@@ -22,6 +22,7 @@ export class XTerm implements XTermType {
   end = false
   resized = false
   private resolve: ResolveFn | undefined = undefined
+  private executionKey?: string
 
   constructor() {}
 
@@ -131,10 +132,9 @@ export class XTerm implements XTermType {
       if (this.end) {
         return
       }
-      console.log('xterm onData: ', data)
-      IPC.send('NodePty:write', this.ptyKey, data).then((key: string) => {
-        IPC.off(key)
-      })
+      const request = IPC.sendSensitive('NodePty:write', this.ptyKey, data)
+      // Keyboard writes have no main-process acknowledgement.
+      IPC.off(request.key)
     })
     /**
      * Reset the interface size
@@ -153,9 +153,8 @@ export class XTerm implements XTermType {
   }
 
   writeToNodePty(data: string) {
-    IPC.send('NodePty:write', this.ptyKey, data).then((key: string) => {
-      IPC.off(key)
-    })
+    const request = IPC.sendSensitive('NodePty:write', this.ptyKey, data)
+    IPC.off(request.key)
   }
 
   write(data: string) {
@@ -201,6 +200,7 @@ export class XTerm implements XTermType {
   }
 
   destroy() {
+    this.releaseExecution()
     if (this.ptyKey) {
       IPC.off(`NodePty:data:${this.ptyKey}`)
     }
@@ -222,6 +222,8 @@ export class XTerm implements XTermType {
   }
 
   stop() {
+    this.end = true
+    this.releaseExecution()
     return new Promise((resolve) => {
       IPC.send('NodePty:stop', this.ptyKey).then((key: string) => {
         IPC.off(key)
@@ -232,7 +234,12 @@ export class XTerm implements XTermType {
     })
   }
 
-  send(command: string[], execUseOneFile = true, reportExitCode = false) {
+  private releaseExecution() {
+    if (this.executionKey) IPC.off(this.executionKey)
+    this.executionKey = undefined
+  }
+
+  send(command: string[], execUseOneFile: boolean | 'direct' = true, reportExitCode = false) {
     console.log('XTerm send:', command)
     if (this.end) {
       return
@@ -240,7 +247,7 @@ export class XTerm implements XTermType {
     return new Promise((resolve, reject) => {
       this.resolve = resolve
       const param = [...command]
-      if (execUseOneFile) {
+      if (execUseOneFile === true) {
         if (window.Server.isWindows) {
           param.push(`echo "Task-${this.ptyKey}-End"`)
           param.push(`exit 0`)
@@ -254,20 +261,21 @@ export class XTerm implements XTermType {
           )
         }
       }
-      IPC.send('NodePty:exec', this.ptyKey, param, execUseOneFile, reportExitCode).then(
-        (key: string, res: any) => {
-          if (res?.code === 200) return
-          console.log('static command finished: ', command)
-          IPC.off(key)
-          this.end = true
-          this.resolve = undefined
-          if (res?.code === 1) {
-            reject(new Error(res?.msg ?? 'Failed to execute terminal command'))
-            return
-          }
-          resolve(true)
+      const request = IPC.send('NodePty:exec', this.ptyKey, param, execUseOneFile, reportExitCode)
+      this.executionKey = request.key
+      request.then((key: string, res: any) => {
+        if (res?.code === 200) return
+        console.log('static command finished: ', command)
+        IPC.off(key)
+        if (this.executionKey === key) this.executionKey = undefined
+        this.end = true
+        this.resolve = undefined
+        if (res?.code === 1) {
+          reject(new Error(res?.msg ?? 'Failed to execute terminal command'))
+          return
         }
-      )
+        resolve(true)
+      })
     })
   }
 }

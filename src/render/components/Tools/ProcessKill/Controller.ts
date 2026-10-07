@@ -3,14 +3,14 @@ import { ProcessToolController } from '../ProcessControl/Controller'
 
 export type { ProcessItem } from '../ProcessControl/Controller'
 
-export class PortKillController extends ProcessToolController {
+export class ProcessKillController extends ProcessToolController {
   constructor() {
-    super('port')
+    super('process')
   }
 
-  get lastPort(): string {
+  get lastKey(): string {
     return this.lastQuery
   }
 }
 
-export default reactiveBind(new PortKillController())
+export default reactiveBind(new ProcessKillController())

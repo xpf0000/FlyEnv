@@ -29,7 +29,7 @@
           </template>
         </el-autocomplete>
         <div class="table-wapper">
-          <div class="btn-cell">
+          <div class="btn-cell flex items-center">
             <el-button
               :disabled="
                 arrs.length === 0 ||
@@ -46,6 +46,14 @@
               @click="cleanAll"
               >{{ I18nT('base.cleanAll') }}</el-button
             >
+            <el-checkbox
+              v-if="!isWindows"
+              v-model="useSudo"
+              class="ml-3"
+              :disabled="controller.killing"
+            >
+              sudo
+            </el-checkbox>
           </div>
           <el-card :header="null" shadow="never">
             <el-table
@@ -78,6 +86,7 @@
   import { I18nT } from '@lang/index'
   import { SearchHistory } from '@/store/searchHistory'
 
+  const useSudo = ref(false)
   const port = ref(controller.lastPort)
   const arrs = computed(() => controller.rows)
   const select = ref<Array<any>>([])
@@ -106,24 +115,26 @@
 
   const cleanSelect = () => {
     const pids = select.value.map((s: any) => s.PID)
+    const sudo = useSudo.value
     Base._Confirm(I18nT('base.killProcessConfirm'), undefined, {
       customClass: 'confirm-del',
       type: 'warning'
     })
       .then(() => {
-        controller.kill(pids)
+        controller.kill(pids, sudo)
       })
       .catch(() => {})
   }
 
   const cleanAll = () => {
     const pids = controller.processes.map((s) => s.PID)
+    const sudo = useSudo.value
     Base._Confirm(I18nT('base.killAllProcessConfirm'), undefined, {
       customClass: 'confirm-del',
       type: 'warning'
     })
       .then(() => {
-        controller.kill(pids)
+        controller.kill(pids, sudo)
       })
       .catch(() => {})
   }

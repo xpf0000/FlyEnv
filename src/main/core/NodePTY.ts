@@ -199,8 +199,7 @@ class NodePTY {
       })
       try {
         // Fixed installation commands must not cross a writable outer script.
-        const literal = param.join('\n').replace(/'/g, "'\\''")
-        pty.write(`/bin/sh -c '${literal}'; exit $?\r`)
+        this.writeDirect(pty, param)
       } catch (error) {
         exit.dispose()
         reject(error)
@@ -208,15 +207,33 @@ class NodePTY {
     })
   }
 
+  private writeDirect(pty: IPty, param: string[]) {
+    const literal = param.join('\n').replace(/'/g, "'\\''")
+    pty.write(`/bin/sh -c '${literal}'; exit $?\r`)
+  }
+
   async exec(
     ptyKey: string,
     param: string[],
-    execUseOneFile: boolean,
+    execUseOneFile: boolean | 'direct',
     command: string,
     key: string,
     reportExitCode = false
   ) {
     if (!this.pty?.[ptyKey]?.pty) throw new Error('Terminal process is unavailable')
+    if (execUseOneFile === 'direct') {
+      if (!isMacOS() && !isLinux()) throw new Error('Direct terminal execution requires Unix')
+      const item = this.pty[ptyKey]!
+      const task = { command, key, reportExitCode }
+      item.task.push(task)
+      try {
+        this.writeDirect(item.pty, param)
+      } catch (error) {
+        item.task.splice(item.task.indexOf(task), 1)
+        throw error
+      }
+      return
+    }
     if (!execUseOneFile) {
       const tmplFile = join(tmpdir(), ptyKey)
       await writeFile(tmplFile, '')

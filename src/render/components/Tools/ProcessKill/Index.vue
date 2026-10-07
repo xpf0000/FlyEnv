@@ -10,7 +10,7 @@
     <div class="main-wapper pb-0 flex-1 overflow-hidden">
       <div class="main p-0">
         <el-autocomplete
-          v-model.number="searchKey"
+          v-model="searchKey"
           :fetch-suggestions="querySearch"
           clearable
           class="input-with-select"
@@ -20,17 +20,40 @@
           @clear="onClear"
         >
           <template #append>
-            <el-button :icon="Search" :disabled="!searchKey" @click="doSearch" />
+            <el-button
+              :icon="Search"
+              :disabled="!searchKey"
+              :loading="controller.querying"
+              @click="doSearch"
+            />
           </template>
         </el-autocomplete>
         <div class="table-wapper">
-          <div class="btn-cell">
-            <el-button :disabled="arrs.length === 0 || select.length === 0" @click="cleanSelect">{{
-              I18nT('base.cleanSelect')
-            }}</el-button>
-            <el-button type="danger" :disabled="arrs.length === 0" @click="cleanAll">{{
-              I18nT('base.cleanAll')
-            }}</el-button>
+          <div class="btn-cell flex items-center">
+            <el-button
+              :disabled="
+                arrs.length === 0 ||
+                select.length === 0 ||
+                controller.querying ||
+                controller.killing
+              "
+              @click="cleanSelect"
+              >{{ I18nT('base.cleanSelect') }}</el-button
+            >
+            <el-button
+              type="danger"
+              :disabled="arrs.length === 0 || controller.querying || controller.killing"
+              @click="cleanAll"
+              >{{ I18nT('base.cleanAll') }}</el-button
+            >
+            <el-checkbox
+              v-if="!isWindows"
+              v-model="useSudo"
+              class="ml-3"
+              :disabled="controller.killing"
+            >
+              sudo
+            </el-checkbox>
           </div>
           <el-card :header="null" shadow="never">
             <el-table
@@ -58,22 +81,14 @@
 <script setup lang="ts">
   import { computed, ref } from 'vue'
   import { Search } from '@element-plus/icons-vue'
-  import { MessageSuccess, MessageWarning } from '@/util/Element'
-  import IPC from '@/util/IPC'
-  import { I18nT } from '@lang/index'
+  import controller, { type ProcessItem } from './Controller'
   import Base from '@/core/Base'
+  import { I18nT } from '@lang/index'
   import { SearchHistory } from '@/store/searchHistory'
 
-  interface ProcessItem {
-    PID: string
-    PPID?: string
-    USER: string
-    COMMAND: string
-    children?: ProcessItem[]
-  }
-
-  const searchKey = ref('')
-  const arrs = ref<ProcessItem[]>([])
+  const useSudo = ref(false)
+  const searchKey = ref(controller.lastKey)
+  const arrs = computed(() => controller.rows)
   const select = ref<ProcessItem[]>([])
 
   const isWindows = computed(() => {
@@ -99,33 +114,27 @@
   }
 
   const cleanSelect = () => {
+    const pids = select.value.map((s) => s.PID)
+    const sudo = useSudo.value
     Base._Confirm(I18nT('base.killProcessConfirm'), undefined, {
       customClass: 'confirm-del',
       type: 'warning'
     })
       .then(() => {
-        const pids = select.value.map((s) => s.PID)
-        IPC.send(`app-fork:tools`, 'killPids', '-9', pids).then((key) => {
-          IPC.off(key)
-          MessageSuccess(I18nT('base.success'))
-          doSearch()
-        })
+        controller.kill(pids, sudo)
       })
       .catch(() => {})
   }
 
   const cleanAll = () => {
+    const pids = controller.processes.map((s) => s.PID)
+    const sudo = useSudo.value
     Base._Confirm(I18nT('base.killAllProcessConfirm'), undefined, {
       customClass: 'confirm-del',
       type: 'warning'
     })
       .then(() => {
-        const pids = arrs.value.map((s) => s.PID)
-        IPC.send(`app-fork:tools`, 'killPids', '-9', pids).then((key) => {
-          IPC.off(key)
-          MessageSuccess(I18nT('base.success'))
-          doSearch()
-        })
+        controller.kill(pids, sudo)
       })
       .catch(() => {})
   }
@@ -151,45 +160,8 @@
     doSearch()
   }
 
-  const doSearch = async () => {
-    arrs.value = []
-    if (!searchKey.value) {
-      return
-    }
-    SearchHistory.add('process', `${searchKey.value.trim()}`)
-    IPC.send(`app-fork:tools`, 'getPidsByKey', searchKey.value).then((key, res) => {
-      IPC.off(key)
-      const arr = res?.data ?? []
-      if (arr.length === 0) {
-        MessageWarning(I18nT('base.processNotFound'))
-        return
-      }
-
-      const processMap = new Map<string, ProcessItem>()
-      const rootProcesses: ProcessItem[] = []
-
-      // First pass: create all items and build the map
-      arr.forEach((item: ProcessItem) => {
-        processMap.set(item.PID, { ...item })
-      })
-
-      // Second pass: build the hierarchy
-      arr.forEach((item: ProcessItem) => {
-        const current = processMap.get(item.PID)
-        if (item.PPID && processMap.has(item.PPID)) {
-          const parent = processMap.get(item.PPID)
-          if (parent) {
-            if (!parent.children) {
-              parent.children = []
-            }
-            parent.children.push(current!)
-          }
-        } else {
-          rootProcesses.push(current!)
-        }
-      })
-
-      arrs.value = rootProcesses
-    })
+  const doSearch = () => {
+    if (searchKey.value) SearchHistory.add('process', searchKey.value.trim())
+    controller.search(`${searchKey.value}`)
   }
 </script>
