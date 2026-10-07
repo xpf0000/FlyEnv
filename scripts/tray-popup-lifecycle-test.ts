@@ -61,6 +61,7 @@ const setup = (windows = false) => {
   let nextTimer = 0
   const tray = new EventEmitter()
   let trayDestroyed = false
+  let contextMenu: any[] = []
   const checkTray = () => {
     if (trayDestroyed) throw new Error('Tray is destroyed')
   }
@@ -68,7 +69,10 @@ const setup = (windows = false) => {
   Object.assign(tray, {
     setToolTip() {},
     isDestroyed: () => trayDestroyed,
-    setContextMenu: checkTray,
+    setContextMenu: (menu: any[]) => {
+      checkTray()
+      contextMenu = menu
+    },
     setImage: checkTray,
     destroy() {
       checkTray()
@@ -125,8 +129,91 @@ const setup = (windows = false) => {
     manager.notifyLayoutApplied(win.nonce)
     await pending
   }
-  return { manager, win, tray, timers, settle, open }
+  return { manager, win, tray, timers, settle, open, getMenu: () => contextMenu }
 }
+
+const classicStatus = (serviceCount: number, groupCount = 0) => ({
+  groupIsRunning: false,
+  groupDisabled: false,
+  startupGroups: Array.from({ length: groupCount }, (_, id) => ({
+    id: `group-${id}`,
+    name: `Group ${id}`,
+    run: false,
+    running: false,
+    disabled: false
+  })),
+  service: Array.from({ length: serviceCount }, (_, id) => ({
+    id: `service-${id}`,
+    typeFlag: `module-${id}`,
+    label: `Service ${id}`,
+    run: id === 0,
+    running: false,
+    disabled: id === 1
+  }))
+})
+
+test('classic menus keep fifteen actions flat and always keep main window and exit at the top level', () => {
+  for (const windows of [false, true]) {
+    const { manager, getMenu } = setup(windows)
+    manager.setStyle('classic')
+    manager.menuChange(classicStatus(14))
+    assert.equal(getMenu().filter((item) => item.type !== 'separator').length, 17)
+    assert.equal(
+      getMenu().some((item) => item.submenu),
+      false
+    )
+
+    manager.menuChange(classicStatus(15))
+    const actions = getMenu().filter((item) => item.type !== 'separator')
+    assert.equal(actions.length, 18)
+    assert.equal(actions[14].label, 'Service 13')
+    assert.equal(actions[15].label, 'tray.more')
+    assert.equal(actions[15].submenu.length, 1)
+    assert.equal(actions[15].submenu[0].label, 'Service 14')
+    assert.equal(actions[16].label, 'tray.showMainWin')
+    assert.equal(actions[17].label, 'tray.exit')
+    const emitted: string[] = []
+    manager.on('action', (action: string) => emitted.push(action))
+    actions[16].click()
+    actions[17].click()
+    assert.deepEqual(emitted, ['show', 'exit'])
+  }
+})
+
+test('overflow preserves startup group and service actions, status and ordering', () => {
+  const { manager, getMenu } = setup()
+  manager.setStyle('classic')
+  manager.menuChange(classicStatus(3, 15))
+  const actions = getMenu().filter((item) => item.type !== 'separator')
+  assert.equal(actions[14].label, 'Group 13')
+  const more = actions[15].submenu
+  assert.deepEqual(
+    Array.from(more, (item: any) => item.label ?? 'separator'),
+    ['Group 14', 'separator', 'Service 0', 'Service 1', 'Service 2']
+  )
+  assert.equal(more[2].enabled, true)
+  assert.equal(more[3].enabled, false)
+  const emitted: unknown[] = []
+  manager.on('action', (...args: unknown[]) => emitted.push(args))
+  more[0].click()
+  more[2].click()
+  assert.deepEqual(emitted, [
+    ['startupGroupDo', 'group-14'],
+    ['switchChange', 'module-0']
+  ])
+})
+
+test('overflow does not leave a separator before More or at the start of its submenu', () => {
+  const { manager, getMenu } = setup()
+  manager.setStyle('classic')
+  manager.menuChange(classicStatus(1, 14))
+  const menu = getMenu()
+  assert.equal(menu[menu.length - 5].label, 'Group 13')
+  assert.equal(menu[menu.length - 4].submenu[0].label, 'Service 0')
+  assert.equal(menu[menu.length - 3].type, 'separator')
+  assert.equal(menu[menu.length - 2].label, 'tray.showMainWin')
+  assert.equal(menu[menu.length - 1].label, 'tray.exit')
+})
 
 test('outside click immediately after showing closes the popup', async () => {
   const { manager, win, open } = setup()

@@ -142,6 +142,17 @@ export default class TrayManager extends EventEmitter {
       })
     }
 
+    // 分隔线不计入 15 项限制；固定操作在分组后追加，始终留在顶层。
+    let itemCount = 0
+    const overflowIndex = menus.findIndex((item) => item.type !== 'separator' && ++itemCount > 15)
+    if (overflowIndex >= 0) {
+      const overflow = menus.splice(overflowIndex)
+      if (menus[menus.length - 1]?.type === 'separator') {
+        menus.pop()
+      }
+      menus.push({ label: I18nT('tray.more'), type: 'submenu', submenu: overflow })
+    }
+
     if (startupGroups.length > 0 || service.length > 0) {
       menus.push({ type: 'separator' })
     }
