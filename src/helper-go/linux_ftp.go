@@ -52,29 +52,7 @@ func linuxFTPBinary(path, name string) (string, error) {
 	return resolved, nil
 }
 
-// Read only the fixed user's regular file, pinned through no-follow descriptors.
-// A root-owned file or symlink cannot turn this into a privileged file reader.
-
-// These are the business settings shipped in FlyEnv's FTP template. File paths,
-// config includes and external authentication/hooks are deliberately not options.
-
-// Never trust the UID/GID stored in a user-editable PureDB/password file. Preserve
-// login hashes, directories and account limits; bind identities to install policy.
-
 func linuxFTPTool(path string, args ...string) (string, error) {
-	if filepath.Base(path) == "pure-pw" {
-		resolved, err := linuxFTPBinary(path, "pure-pw")
-		if err != nil {
-			return "", err
-		}
-		path = resolved
-	} else {
-		f, err := openProtectedFile(path, 128*1024*1024)
-		if err != nil {
-			return "", err
-		}
-		f.Close()
-	}
 	return runFixedTool(path, 30*time.Second, args...)
 }
 
@@ -93,26 +71,15 @@ func linuxFTPPW(bin string) (string, error) {
 	return "", fmt.Errorf("pure-pw executable is required: %w", last)
 }
 
-func refreshLinuxFTPDatabase(p linuxPolicy, dir, pw string) error {
-	users, err := ftpUserFile(filepath.Join(p.DataRoot, "server/ftp/pureftpd.passwd"), p, true)
+func refreshLinuxFTPDatabase(p linuxPolicy, dir, pw, source string) error {
+	users, err := ftpUsers(source, p)
 	if err != nil {
 		return err
 	}
-	users, err = ftpUsers(users, p)
-	if err != nil {
-		return err
-	}
-	if err = writeProtectedFile(filepath.Join(dir, "users.passwd"), []byte(users), 0600, 0); err != nil {
-		return err
-	}
-	staged := filepath.Join(dir, "users.pdb.new")
-	if _, err = linuxFTPTool(pw, "mkdb", staged, "-f", filepath.Join(dir, "users.passwd")); err != nil {
-		return err
-	}
-	return os.Rename(staged, filepath.Join(dir, "users.pdb"))
+	return buildUnixFTPDatabase(p, pw, users, dir)
 }
 
-func refreshLinuxFTPUsers(p linuxPolicy) (bool, error) {
+func refreshLinuxFTPUsers(p linuxPolicy, source string) (bool, error) {
 	linuxFTPMutex.Lock()
 	defer linuxFTPMutex.Unlock()
 	status, err := linuxFTPStatus(p)
@@ -134,7 +101,7 @@ func refreshLinuxFTPUsers(p linuxPolicy) (bool, error) {
 	if err = protectedDirectory(dir); err != nil {
 		return false, err
 	}
-	return true, refreshLinuxFTPDatabase(p, dir, pw)
+	return true, refreshLinuxFTPDatabase(p, dir, pw, source)
 }
 
 func linuxFTPStatus(p linuxPolicy) (map[string]string, error) {
@@ -158,10 +125,10 @@ func linuxFTPStatus(p linuxPolicy) (map[string]string, error) {
 	return values, nil
 }
 
-func startLinuxFTP(bin string, p linuxPolicy) (int, error) {
+func startLinuxFTP(req unixFTPStart, p linuxPolicy) (int, error) {
 	linuxFTPMutex.Lock()
 	defer linuxFTPMutex.Unlock()
-	bin, err := linuxFTPBinary(bin, "pure-ftpd")
+	bin, err := linuxFTPBinary(req.Bin, "pure-ftpd")
 	if err != nil {
 		return 0, err
 	}
@@ -176,13 +143,8 @@ func startLinuxFTP(bin string, p linuxPolicy) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	ftpDir := filepath.Join(p.DataRoot, "server/ftp")
-	config, err := ftpUserFile(filepath.Join(ftpDir, "pure-ftpd.conf"), p, false)
-	if err != nil {
-		return 0, err
-	}
 	dir := filepath.Join(filepath.Dir(linuxSocketPath), fmt.Sprintf("ftp-%d", p.UID))
-	config, err = ftpConfig(config, dir)
+	config, err := ftpConfig(req.Config, dir)
 	if err != nil {
 		return 0, err
 	}
@@ -195,7 +157,7 @@ func startLinuxFTP(bin string, p linuxPolicy) (int, error) {
 	if err = writeProtectedFile(filepath.Join(dir, "pure-ftpd.conf"), []byte(config), 0600, 0); err != nil {
 		return 0, err
 	}
-	if err = refreshLinuxFTPDatabase(p, dir, pw); err != nil {
+	if err = refreshLinuxFTPDatabase(p, dir, pw, req.Users); err != nil {
 		return 0, err
 	}
 	_, err = linuxFTPTool("/usr/bin/systemd-run", "--quiet", "--collect", "--unit="+linuxFTPUnit(p), "--service-type=exec", "--description="+linuxFTPDescription(p), "--property=KillMode=control-group", "--property=KillSignal=SIGINT", "--property=TimeoutStopSec=10s", "--property=TimeoutStartSec=10s", "--property=PartOf=flyenv-helper.service", "--property=NoNewPrivileges=yes", "--", bin, filepath.Join(dir, "pure-ftpd.conf"))

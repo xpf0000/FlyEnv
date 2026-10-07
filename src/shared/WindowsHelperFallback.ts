@@ -2100,35 +2100,16 @@ try {
     ensureArgCount(args, 0, fn)
     return `${preamble}\nClear-DnsClientCache -ErrorAction Stop`
   }
-  // 读取 LocalMachine Root 无需管理员；存在本地证书时按 Thumbprint 核对实际证书，而非仅凭同名 CN。
+  // 按名称查询 LocalMachine Root；无需管理员，也不读取本地证书。
   if (module === 'host' && fn === 'sslFindCertificate') {
     if (args.length < 1 || args.length > 2) helperExecutionFailed('Invalid certificate query')
-    const directory = validatePathForRead(
-      ensureString(args[0], 'certificate directory'),
-      'certificate directory',
-      scope
-    )
+    ensureString(args[0], 'certificate directory')
     const name =
       args[1] === undefined ? 'FlyEnv-Root-CA' : ensureString(args[1], 'certificate name')
     if (!/^[A-Za-z0-9_. -]{1,128}$/.test(name)) helperExecutionFailed('Invalid certificate name')
-    const certificatePath = validatePathForRead(
-      path.win32.join(directory, `${name}.crt`),
-      'certificate file',
-      scope
-    )
     return `${preamble}
-$reference = $null
-$certificatePath = ${powerShellString(certificatePath)}
-if (Test-Path -LiteralPath $certificatePath -PathType Leaf) {
-$text = [IO.File]::ReadAllText($certificatePath)
-$pem = [regex]::Match($text, '(?s)-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----')
-$bytes = if ($pem.Success) { [Convert]::FromBase64String($pem.Groups[1].Value) } else { [IO.File]::ReadAllBytes($certificatePath) }
-$reference = [Security.Cryptography.X509Certificates.X509Certificate2]::new([byte[]]$bytes)
-}
-try {
-$certs = @(Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.Subject -eq ${powerShellString(`CN=${name}`)} -and ($null -eq $reference -or $_.Thumbprint -eq $reference.Thumbprint) })
-$global:FlyEnvActionResult = @{ stdout=($certs | Format-List | Out-String); stderr='' }
-} finally { if ($null -ne $reference) { $reference.Dispose() } }`
+$certs = @(Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.Subject -eq ${powerShellString(`CN=${name}`)} })
+$global:FlyEnvActionResult = @{ stdout=($certs | Format-List | Out-String); stderr='' }`
   }
   // 直接消费统一验证后的业务脚本。命令编码、大小阈值和 TEMP 仅归旧适配入口，
   // 不再用 Number.MAX_SAFE_INTEGER 伪装 inline 计划来取得现代动作。

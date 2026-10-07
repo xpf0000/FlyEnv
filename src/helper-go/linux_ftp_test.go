@@ -9,6 +9,7 @@ import (
 	"net/textproto"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -53,7 +54,13 @@ func TestLinuxFTPRootService(t *testing.T) {
 	if os.Geteuid() != 0 || source == "" {
 		t.Skip("requires root, systemd and compiled Pure-Ftpd fixture")
 	}
-	p := linuxPolicy{Version: Helper_Version, UID: 90001, GID: 90001}
+	account, err := user.Lookup("nobody")
+	if err != nil {
+		t.Skip("ordinary system account fixture unavailable")
+	}
+	uid, _ := strconv.Atoi(account.Uid)
+	gid, _ := strconv.Atoi(account.Gid)
+	p := linuxPolicy{Version: Helper_Version, UID: uid, GID: gid}
 	status, err := linuxFTPStatus(p)
 	if err != nil {
 		t.Fatal(err)
@@ -102,7 +109,7 @@ func TestLinuxFTPRootService(t *testing.T) {
 		t.Fatal(err)
 	}
 	// A user-editable database claiming root must still log in as the installed UID.
-	data = bytes.Replace(data, []byte(":90001:90001:"), []byte(":0:0:"), 1)
+	data = bytes.Replace(data, []byte(fmt.Sprintf(":%d:%d:", p.UID, p.GID)), []byte(":0:0:"), 1)
 	if err = os.WriteFile(passwd, data, 0600); err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +124,7 @@ func TestLinuxFTPRootService(t *testing.T) {
 	if err = os.MkdirAll(parent, 0755); err != nil {
 		t.Fatal(err)
 	}
-	runtimeDir := filepath.Join(parent, "ftp-90001")
+	runtimeDir := filepath.Join(parent, fmt.Sprintf("ftp-%d", p.UID))
 	if _, err = os.Stat(runtimeDir); !os.IsNotExist(err) {
 		t.Fatal("fixture runtime directory already exists")
 	}
@@ -148,7 +155,7 @@ func TestLinuxFTPRootService(t *testing.T) {
 			t.Fatal(err)
 		}
 		os.Chown(filepath.Join(ftpDir, "pure-ftpd.conf"), p.UID, p.GID)
-		pid, err := startLinuxFTP(filepath.Join(dir, "sbin/pure-ftpd"), p)
+		pid, err := startLinuxFTP(unixFTPStart{Bin: filepath.Join(dir, "sbin/pure-ftpd"), Config: config, Users: string(data)}, p)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -156,7 +163,7 @@ func TestLinuxFTPRootService(t *testing.T) {
 		if err != nil || !strings.Contains(string(processStatus), "Uid:\t0\t0\t0\t0") {
 			t.Fatal("FTP master is not root", err, string(processStatus))
 		}
-		if _, err = startLinuxFTP(filepath.Join(dir, "sbin/pure-ftpd"), p); err == nil {
+		if _, err = startLinuxFTP(unixFTPStart{Bin: filepath.Join(dir, "sbin/pure-ftpd"), Config: config, Users: string(data)}, p); err == nil {
 			t.Fatal("duplicate start accepted")
 		}
 		login := func(name string) {
@@ -175,7 +182,7 @@ f.login(sys.argv[2],'flyenv-fixture-password'); f.storbinary('STOR '+sys.argv[2]
 		login("alice")
 		if listenPort == port {
 			addUser("bob")
-			if _, err = refreshLinuxFTPUsers(p); err != nil {
+			if _, err = refreshLinuxFTPUsers(p, string(mustReadFTPTestUsers(t, passwd))); err != nil {
 				t.Fatal(err)
 			}
 			login("bob")
@@ -184,7 +191,7 @@ f.login(sys.argv[2],'flyenv-fixture-password'); f.storbinary('STOR '+sys.argv[2]
 				t.Fatalf("delete: %v %s", err, output)
 			}
 			os.Chown(passwd, p.UID, p.GID)
-			if _, err = refreshLinuxFTPUsers(p); err != nil {
+			if _, err = refreshLinuxFTPUsers(p, string(mustReadFTPTestUsers(t, passwd))); err != nil {
 				t.Fatal(err)
 			}
 			code := `import ftplib,sys
@@ -250,4 +257,13 @@ func TestLinuxFTPMissingUnit(t *testing.T) {
 	if status["LoadState"] != "not-found" || status["MainPID"] != "0" {
 		t.Fatal("fixture UID is already in use", status)
 	}
+}
+
+func mustReadFTPTestUsers(t *testing.T, path string) []byte {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return data
 }

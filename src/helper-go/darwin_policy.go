@@ -11,16 +11,13 @@ import (
 	"io"
 	"net"
 	"os"
-	"os/user"
 	"path/filepath"
-	"strconv"
 	"syscall"
 )
 
 const darwinPolicyDir = "/Library/Application Support/FlyEnv/Helper"
 const darwinPolicyPath = darwinPolicyDir + "/policy.json"
 const darwinKeyPath = darwinPolicyDir + "/client.key"
-const darwinCAPath = darwinPolicyDir + "/approved-ca.crt"
 const darwinSocketPath = "/private/var/run/flyenv-helper/helper.sock"
 
 type darwinPolicy = unixPolicy
@@ -101,16 +98,10 @@ func initializeDarwin() error {
 		return err
 	}
 
-	for alias, target := range map[string]string{"/etc": "/private/etc", "/var": "/private/var"} {
-		actual, err := filepath.EvalSymlinks(alias)
-		if err != nil || actual != target {
-			return fmt.Errorf("unexpected macOS system alias: %s", alias)
-		}
-	}
 	return nil
 }
 func installDarwinPolicy(args []string) error {
-	p, certData, err := policyInstallInputs(args)
+	p, err := policyInstallInputs(args)
 	if err != nil {
 		return err
 	}
@@ -119,11 +110,6 @@ func installDarwinPolicy(args []string) error {
 	}
 	if err = protectedDirectory(darwinPolicyDir); err != nil {
 		return err
-	}
-	if len(certData) > 0 {
-		if err = writeProtectedFile(darwinCAPath, certData, 0644, 0); err != nil {
-			return err
-		}
 	}
 
 	key := make([]byte, 32)
@@ -197,37 +183,6 @@ func validateDarwinHealth(p darwinPolicy) error {
 	if socket.Mode()&os.ModeSocket == 0 || socketMeta.Uid != uint32(p.UID) || socket.Mode().Perm() != 0600 {
 		return fmt.Errorf("unprotected macOS helper socket")
 	}
-	if p.CAFingerprint != "" {
-		return validateDarwinApprovedCA(p.CAFingerprint)
-	}
-	return nil
-}
 
-func protectedDirectoryMode(path string, st os.FileInfo) bool {
-	meta := st.Sys().(*syscall.Stat_t)
-	if meta.Uid != 0 {
-		return false
-	}
-	if st.Mode().Perm()&0022 == 0 {
-		return true
-	}
-	// macOS normally ships this fixed ancestor root:daemon 0775. The socket
-	// child remains root-owned 0755 and the desktop account must not be daemon.
-	if path != "/private/var/run" || meta.Gid != 1 || st.Mode().Perm() != 0775 {
-		return false
-	}
-	account, err := user.LookupId(strconv.Itoa(installedDarwinPolicy.UID))
-	if err != nil {
-		return false
-	}
-	groups, err := account.GroupIds()
-	if err != nil {
-		return false
-	}
-	for _, group := range groups {
-		if group == "1" {
-			return false
-		}
-	}
-	return true
+	return nil
 }

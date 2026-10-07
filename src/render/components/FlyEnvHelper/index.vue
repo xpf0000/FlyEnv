@@ -12,9 +12,6 @@
   >
     <template #default>
       <p v-if="isLinux" class="mb-3">{{ I18nT('setup.linuxHelperScope') }}</p>
-      <p v-if="isLinux && FlyEnvHelperSetup.caFingerprint" class="mb-3 break-all"
-        >CA SHA-256: {{ FlyEnvHelperSetup.caFingerprint }}</p
-      >
       <div class="main-wapper h-full">
         <div ref="xterm" class="h-full overflow-hidden"> </div>
       </div>

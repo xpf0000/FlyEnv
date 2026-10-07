@@ -22,6 +22,7 @@ import TaskQueue from '../../TaskQueue'
 import { withBinVersionCache } from '../../util/BinVersionCache'
 import { isWindows } from '@shared/utils'
 import Helper from '../../Helper'
+import { readUnixFTPInputs } from './HelperInputs'
 
 class Manager extends Base {
   constructor() {
@@ -57,7 +58,10 @@ class Manager extends Base {
         return
       }
       await this._initConf()
-      const pid = await Helper.send<number>('ftp', 'start', { bin: version.bin })
+      const pid = await Helper.send<number>('ftp', 'start', {
+        bin: version.bin,
+        ...(await readUnixFTPInputs(true))
+      })
       resolve({ 'APP-Service-Start-PID': `${pid}` })
     })
   }
@@ -144,7 +148,7 @@ class Manager extends Base {
   private async refreshUnixUsers() {
     if (isWindows()) return
     try {
-      await Helper.send('ftp', 'refreshUsers')
+      await Helper.send('ftp', 'refreshUsers', await readUnixFTPInputs())
     } catch (error) {
       throw new Error(I18nT('service.linuxFtpUsersRefreshFailed', { error: String(error) }))
     }

@@ -15,7 +15,7 @@ import {
 } from '../src/shared/WindowsPrivilege'
 import { buildWindowsPrivilegeAction } from '../src/shared/WindowsHelperFallback'
 import { buildWindowsHelperDisableScript } from '../src/main/core/WindowsHelperDisable'
-import { windowsHelperInstancePaths } from "../src/shared/WindowsHelperIdentity"
+import { windowsHelperInstancePaths } from '../src/shared/WindowsHelperIdentity'
 import { windowsPowerShellPath } from '../src/shared/WindowsSystemPaths'
 import { runWindowsAction } from '../src/shared/WindowsElevation'
 import { executeWindowsPrivilegeOperation } from '../src/shared/WindowsPrivilegeOperation'
@@ -258,6 +258,18 @@ async function main() {
       localAppData: 'C:\\Users\\Employee\\AppData\\Local'
     })
   ]
+  const nameQuery = buildWindowsPrivilegeAction(
+    'host',
+    'sslFindCertificate',
+    ['C:\\FlyEnvData\\CA'],
+    context
+  )
+  assert.doesNotMatch(
+    nameQuery,
+    /Thumbprint|ReadAllText|ReadAllBytes|X509Certificate2/,
+    'fixed-name detection must not inspect or compare the local CA'
+  )
+  assert.match(nameQuery, /CN=FlyEnv-Root-CA/)
   assert.throws(
     () => buildWindowsPrivilegeAction('tools', 'rm', ['C:\\Windows\\System32'], context),
     /sensitive|scope/
@@ -382,31 +394,18 @@ async function main() {
         ),
         (error: any) => error.code === 'ENOENT'
       )
-      // 复制系统 Root 的公开证书到临时目录做 DER/PEM 查询，只读系统证书存储、不导入。
-      const certificate = await runWindowsAction<string>(
-        "$cert = Get-ChildItem Cert:\\LocalMachine\\Root | Select-Object -First 1; $global:FlyEnvActionResult = if ($null -eq $cert) { '' } else { [Convert]::ToBase64String($cert.RawData) }",
-        false
-      )
-      if (certificate) {
-        const certificateFile = join(root, 'FlyEnv-Root-CA.crt')
-        for (const content of [
-          Buffer.from(certificate, 'base64'),
-          `-----BEGIN CERTIFICATE-----\n${certificate}\n-----END CERTIFICATE-----\n`
-        ]) {
-          await writeFile(certificateFile, content)
-          const result = await executeWindowsPrivilegeOperation<{ stdout: string }>(
-            'host',
-            'sslFindCertificate',
-            [root],
-            helper
-          )
-          assert.equal(
-            typeof result.stdout,
-            'string',
-            'DER and PEM trust checks only read the certificate store'
-          )
-        }
-      }
+      // 查询只读系统证书存储；损坏的本地 CA 和不存在的目录不影响按名称检测。
+      const queryCertificate = (directory: string) =>
+        executeWindowsPrivilegeOperation<{ stdout: string }>(
+          'host',
+          'sslFindCertificate',
+          [directory],
+          helper
+        )
+      const before = await queryCertificate(root)
+      await writeFile(join(root, 'FlyEnv-Root-CA.crt'), 'invalid local CA')
+      assert.deepEqual(await queryCertificate(root), before)
+      assert.deepEqual(await queryCertificate(join(root, 'missing-ca-directory')), before)
       // 只终止本测试创建的普通 Node 子进程，验证严格 kill 无需 Helper/UAC 即可完成。
       const child = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 30000)'], {
         windowsHide: true,

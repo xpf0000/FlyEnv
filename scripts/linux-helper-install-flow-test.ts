@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process'
 import { build } from 'esbuild'
 import { runInNewContext } from 'node:vm'
 import * as helperState from '../src/shared/WindowsHelperState'
+import * as sudoErrors from '../src/shared/SudoError'
 
 const require = createRequire(import.meta.url)
 const tick = () => new Promise((resolve) => setImmediate(resolve))
@@ -121,6 +122,7 @@ async function chain() {
     waitTime: async () => {}
   }
   const sudo = await load('src/shared/Sudo.ts', {
+    './SudoError': sudoErrors,
     './utils': utils,
     'node:fs/promises': {
       stat: async (path: string) => {
@@ -164,6 +166,7 @@ async function chain() {
     '@shared/WindowsHelperState': helperState,
     '@shared/AppHelperCheck': { AppHelperCheck: health },
     '@shared/Sudo': sudo,
+    '@shared/SudoError': sudoErrors,
     '@shared/fs-extra': { existsSync: () => false },
     'node:os': { userInfo: () => ({ uid: 1000, gid: 1000 }) }
   })
@@ -408,9 +411,7 @@ await check(
       '/src/helper-go/dist/flyenv-helper-linux-amd64-v1',
       '1000:1000',
       '/home/user/FlyEnv',
-      '/',
-      '',
-      ''
+      '/'
     ])
   }
 )

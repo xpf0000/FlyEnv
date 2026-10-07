@@ -5,9 +5,8 @@ package main
 import (
 	"crypto/ed25519"
 	"crypto/rand"
-	"crypto/sha256"
 	"crypto/x509"
-	"encoding/hex"
+	"crypto/x509/pkix"
 	"encoding/pem"
 	"math/big"
 	"os"
@@ -17,21 +16,61 @@ import (
 	"time"
 )
 
-func TestPublicCAFingerprintRequiresOneCACertificate(t *testing.T) {
+func TestUnixCARequiresOnePublicCertificateWithFixedName(t *testing.T) {
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
-	certificate := &x509.Certificate{SerialNumber: big.NewInt(1), NotBefore: time.Unix(0, 0), NotAfter: time.Unix(2000000000, 0), IsCA: true, BasicConstraintsValid: true, KeyUsage: x509.KeyUsageCertSign}
+	certificate := &x509.Certificate{Subject: pkix.Name{CommonName: unixCAName}, SerialNumber: big.NewInt(1), NotBefore: time.Unix(0, 0), NotAfter: time.Unix(2000000000, 0), IsCA: true, BasicConstraintsValid: true, KeyUsage: x509.KeyUsageCertSign}
 	der, err := x509.CreateCertificate(rand.Reader, certificate, certificate, pub, priv)
 	if err != nil {
 		t.Fatal(err)
 	}
 	data := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
-	hash := sha256.Sum256(der)
-	actual, err := publicCAFingerprint(data)
-	if err != nil || actual != hex.EncodeToString(hash[:]) {
-		t.Fatal("wrong CA identity", actual, err)
+	input := canonicalTempDir(t)
+	if err := os.Chmod(input, 0777); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(input, unixCAFile), data, 0777); err != nil {
+		t.Fatal(err)
+	}
+	alias := filepath.Join(canonicalTempDir(t), "user-alias")
+	if err := os.Symlink(input, alias); err != nil {
+		t.Fatal(err)
+	}
+	snapshot, err := snapshotUnixCA(alias, canonicalTempDir(t))
+	if err != nil {
+		t.Fatal("user-managed CA permissions/alias blocked import snapshot", err)
+	}
+	defer os.Remove(snapshot)
+	os.WriteFile(filepath.Join(input, unixCAFile), []byte("changed input"), 0644)
+	copied, err := os.ReadFile(snapshot)
+	if err != nil || string(copied) != string(data) {
+		t.Fatal("snapshot did not preserve validated bytes", err)
+	}
+	stat, err := os.Stat(snapshot)
+	if err != nil || stat.Mode().Perm() != 0600 {
+		t.Fatal("CA snapshot must remain private", err)
+	}
+	if err := validateUnixCA(data); err != nil || !containsUnixCA(data) {
+		t.Fatal("fixed CA not recognized", err)
+	}
+	// Presence is deliberately determined by name, not fingerprint or expiry.
+	certificate.SerialNumber = big.NewInt(2)
+	otherDER, err := x509.CreateCertificate(rand.Reader, certificate, certificate, pub, priv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !containsUnixCA(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: otherDER})) {
+		t.Fatal("another certificate with the fixed name must count as present")
+	}
+	certificate.Subject.CommonName = "Other-CA"
+	otherName, err := x509.CreateCertificate(rand.Reader, certificate, certificate, pub, priv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if containsUnixCA(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: otherName})) {
+		t.Fatal("other CA name accepted")
 	}
 	certificate.IsCA = false
 	nonCA, err := x509.CreateCertificate(rand.Reader, certificate, certificate, pub, priv)
@@ -40,12 +79,14 @@ func TestPublicCAFingerprintRequiresOneCACertificate(t *testing.T) {
 	}
 	for _, invalid := range [][]byte{
 		[]byte("invalid"),
+		append([]byte("private data\n"), data...),
 		append(append([]byte{}, data...), data...),
 		append(append([]byte{}, data...), []byte("extra content")...),
 		pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: nonCA}),
+		pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: otherName}),
 		pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: der}),
 	} {
-		if _, err = publicCAFingerprint(invalid); err == nil {
+		if err = validateUnixCA(invalid); err == nil {
 			t.Fatal("accepted non-public-CA archive")
 		}
 	}
@@ -58,6 +99,80 @@ func canonicalTempDir(t *testing.T) string {
 		t.Fatal(err)
 	}
 	return dir
+}
+
+func TestSystemToolUsesExecutionResultWithUserConfiguredPermissions(t *testing.T) {
+	dir := canonicalTempDir(t)
+	if err := os.Chmod(dir, 0777); err != nil {
+		t.Fatal(err)
+	}
+	tool := filepath.Join(dir, "system-tool")
+	if err := os.WriteFile(tool, []byte("#!/bin/sh\nexit 0\n"), 0777); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(tool, 0777); err != nil {
+		t.Fatal(err)
+	}
+	if err := runSystemTool(tool); err != nil {
+		t.Fatal("user-configured permissions must not reject an executable system tool", err)
+	}
+	if err := os.WriteFile(tool, []byte("#!/bin/sh\necho actual-command-failure >&2\nexit 7\n"), 0777); err != nil {
+		t.Fatal(err)
+	}
+	if err := runSystemTool(tool); err == nil || !strings.Contains(err.Error(), "actual-command-failure") {
+		t.Fatal("actual command failures must still propagate", err)
+	}
+}
+
+func TestRegularFileDoesNotRequireManagedPermissions(t *testing.T) {
+	dir := canonicalTempDir(t)
+	if err := os.Chmod(dir, 0777); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(dir, "certificate")
+	if err := os.WriteFile(path, []byte("snapshot"), 0777); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(path, 0777); err != nil {
+		t.Fatal(err)
+	}
+	data, err := regularFile(path, 8)
+	if err != nil || string(data) != "snapshot" {
+		t.Fatal("user-managed file permissions blocked reading", err)
+	}
+	if _, err = regularFile(path, 7); err == nil {
+		t.Fatal("oversized file accepted")
+	}
+	link := filepath.Join(dir, "link")
+	if err = os.Symlink(path, link); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = regularFile(link, 8); err == nil {
+		t.Fatal("symbolic link accepted")
+	}
+}
+
+func TestManagedDirectoryChecksOnlyItsOwnPermissions(t *testing.T) {
+	if os.Geteuid() != 0 {
+		t.Skip("root ownership fixture requires root")
+	}
+	parent := canonicalTempDir(t)
+	if err := os.Chmod(parent, 0777); err != nil {
+		t.Fatal(err)
+	}
+	dir := filepath.Join(parent, "flyenv-managed")
+	if err := os.Mkdir(dir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := protectedDirectory(dir); err != nil {
+		t.Fatal("user-configured system ancestor permissions blocked a managed directory", err)
+	}
+	if err := os.Chmod(dir, 0777); err != nil {
+		t.Fatal(err)
+	}
+	if err := protectedDirectory(dir); err == nil {
+		t.Fatal("FlyEnv-managed directory permissions were not validated")
+	}
 }
 func TestManagedHostsHandlesDuplicateCompleteBlocks(t *testing.T) {
 	content := "custom\n#X-HOSTS-BEGIN#\nold\n#X-HOSTS-END#\nmiddle\n#X-HOSTS-BEGIN#\nold2\n#X-HOSTS-END#\ntail\n"
@@ -192,5 +307,44 @@ func TestHostsIntermediateSymlink(t *testing.T) {
 	store := hostsStore{path: filepath.Join(link, "hosts")}
 	if _, err := store.read(); err == nil {
 		t.Fatal("intermediate symlink followed")
+	}
+}
+
+func TestUnixHostsAllowsUserConfiguredParentPermissions(t *testing.T) {
+	dir := canonicalTempDir(t)
+	if err := os.Chmod(dir, 0777); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(dir, "hosts")
+	if err := os.WriteFile(path, []byte("127.0.0.1 localhost\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	// Both platform dispatchers use this shared store without a parent permission policy.
+	store := hostsStore{path: path}
+	snapshot, err := store.read()
+	if err != nil {
+		t.Fatal("parent directory permissions must not block reading hosts", err)
+	}
+	content := "127.0.0.1 localhost\n203.0.113.8 custom.test\n"
+	if changed, err := store.replace(content, snapshot.Digest); err != nil || !changed {
+		t.Fatal("parent directory permissions must not block editing hosts", changed, err)
+	}
+	if changed, err := store.syncManaged("127.0.0.1 flyenv.test\n", digest(content)); err != nil || !changed {
+		t.Fatal("parent directory permissions must not block site synchronization", changed, err)
+	}
+	snapshot, err = store.read()
+	if err != nil || !strings.Contains(snapshot.Content, "flyenv.test") {
+		t.Fatal("site entry was not written", snapshot, err)
+	}
+	if _, err := store.syncManaged("", snapshot.Digest); err != nil {
+		t.Fatal("parent directory permissions must not block managed entry cleanup", err)
+	}
+	snapshot, err = store.read()
+	if err != nil || !strings.HasPrefix(snapshot.Content, content) || strings.Contains(snapshot.Content, "flyenv.test") {
+		t.Fatal("managed entry cleanup changed unrelated content", snapshot, err)
+	}
+	st, err := os.Stat(dir)
+	if err != nil || st.Mode().Perm() != 0777 {
+		t.Fatal("hosts operations must retain user-configured parent permissions", err)
 	}
 }

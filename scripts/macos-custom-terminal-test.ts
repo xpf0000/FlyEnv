@@ -210,12 +210,19 @@ try {
   )
   assert.equal(state.helperCalls.length, 0, 'unsupported Windows FTP must not invoke the helper')
   state.windows = false
+  await writeFile(join(directory, 'pure-ftpd.conf'), 'Bind 127.0.0.1,21\n')
   assert.deepEqual(await ftp._startServer({ bin: '/usr/local/bin/pure-ftpd' }), {
     'APP-Service-Start-PID': '32123'
   })
   assert.deepEqual(
     state.helperCalls,
-    [['ftp', 'start', { bin: '/usr/local/bin/pure-ftpd' }]],
+    [
+      [
+        'ftp',
+        'start',
+        { bin: '/usr/local/bin/pure-ftpd', config: 'Bind 127.0.0.1,21\n', users: '' }
+      ]
+    ],
     'Unix FTP retains the fixed helper lifecycle'
   )
   console.log(

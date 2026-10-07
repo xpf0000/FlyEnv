@@ -27,13 +27,8 @@ func (output *boundedToolOutput) Write(data []byte) (int, error) {
 	return n, nil
 }
 
-func runTrustedTool(path string, args ...string) error {
-	trusted, err := openProtectedFile(path, 128*1024*1024)
-	if err != nil {
-		return err
-	}
-	trusted.Close()
-	_, err = runFixedTool(path, 20*time.Second, args...)
+func runSystemTool(path string, args ...string) error {
+	_, err := runFixedTool(path, 20*time.Second, args...)
 	return err
 }
 

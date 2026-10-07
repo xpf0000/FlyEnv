@@ -2,11 +2,21 @@ import assert from 'node:assert/strict'
 import { build } from 'esbuild'
 import { createRequire } from 'node:module'
 import { runInNewContext } from 'node:vm'
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import {
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  rmSync,
+  existsSync,
+  chmodSync,
+  statSync
+} from 'node:fs'
+import { tmpdir, userInfo } from 'node:os'
 import { join } from 'node:path'
-import { spawnSync, execFile as systemExecFile } from 'node:child_process'
+import { spawnSync, exec as systemExec } from 'node:child_process'
 import * as helperState from '../src/shared/WindowsHelperState'
+import { HelperVersion } from '../src/shared/AppHelperCheck'
 
 const require = createRequire(import.meta.url)
 const bundled = await build({
@@ -15,6 +25,7 @@ const bundled = await build({
   platform: 'node',
   format: 'cjs',
   write: false,
+  supported: { 'dynamic-import': false },
   plugins: [
     {
       name: 'boundaries',
@@ -27,47 +38,162 @@ const bundled = await build({
   ]
 })
 let graphicalMac = false
+let linuxInstaller = false
+let validLinuxResources = true
 let graphicalOutput = ''
+let graphicalError: (Error & { stderr: string }) | undefined
+let graphicalOptions: any
+const sudoBundle = await build({
+  entryPoints: ['src/shared/Sudo.ts'],
+  bundle: true,
+  platform: 'node',
+  format: 'cjs',
+  write: false,
+  packages: 'external',
+  plugins: [
+    {
+      name: 'sudo-boundaries',
+      setup(builder) {
+        builder.onResolve({ filter: /utils$/ }, () => ({ path: './utils', external: true }))
+      }
+    }
+  ]
+})
+const sudoModule = { exports: {} as any }
+runInNewContext(sudoBundle.outputFiles[0].text, {
+  module: sudoModule,
+  exports: sudoModule.exports,
+  require: (name: string) => {
+    if (name === './utils')
+      return {
+        appDebugLog: async () => {},
+        uuid: () => require('node:crypto').randomUUID(),
+        waitTime: async () => {}
+      }
+    if (name === 'node:child_process')
+      return {
+        ...require(name),
+        exec: (command: string, options: any, done: any) => {
+          if (command !== './applet') return systemExec(command, options, done)
+          assert.equal(existsSync(join(options.cwd, 'applet')), true)
+          const plist = readFileSync(join(options.cwd, '../Info.plist'))
+          const decoded = spawnSync('/usr/bin/plutil', ['-convert', 'xml1', '-o', '-', '-'], {
+            input: plist,
+            encoding: 'utf8'
+          })
+          assert.equal(decoded.status, 0, decoded.stderr)
+          assert.match(decoded.stdout, /FlyEnv Password Prompt/)
+          // Exercise Sudo's command/result files without opening an authorization dialog.
+          if (graphicalError?.message === 'User did not grant permission.')
+            return done(null, '', '')
+          const result = spawnSync('/bin/bash', ['sudo-prompt-command'], {
+            cwd: options.cwd,
+            encoding: 'utf8'
+          })
+          graphicalOutput = result.stdout
+          writeFileSync(join(options.cwd, 'stdout'), result.stdout)
+          writeFileSync(join(options.cwd, 'stderr'), graphicalError?.stderr ?? result.stderr)
+          writeFileSync(join(options.cwd, 'code'), `${graphicalError ? 1 : result.status}`)
+          done(null, '', '')
+        }
+      }
+    return require(name)
+  },
+  process,
+  Buffer,
+  Error,
+  console
+})
 const module = { exports: {} as any }
+const installerRuntime = {
+  Server: {
+    Static: '/task/System/FlyEnv/resources/app.asar/dist/static',
+    AppDir: '/task/User/data/app',
+    BaseDir: '/task/User/data',
+    isArmArch: false
+  }
+}
 runInNewContext(bundled.outputFiles[0].text, {
   module,
   exports: module.exports,
   require: (name: string) => {
     if (name === 'node:child_process')
       return {
-        execFile: (file: string, args: string[], callback: any) => {
-          assert.equal(file, '/usr/bin/osascript')
-          assert.ok(args[1].endsWith(' with administrator privileges'))
-          // Exercise real AppleScript escaping while replacing authorization with
-          // ordinary-user execution of a harmless printf command.
-          systemExecFile(
-            file,
-            ['-e', args[1].replace(/ with administrator privileges$/, '')],
-            (error, stdout, stderr) => {
-              graphicalOutput = stdout
-              callback(error, stdout, stderr)
-            }
-          )
+        execFile: () => {
+          throw new Error('AppHelper must delegate macOS authorization to shared Sudo.ts')
+        }
+      }
+    if (name === '@shared/SudoError') return sudoModule.exports
+    if (name === '@shared/Sudo')
+      return {
+        ...sudoModule.exports,
+        exec: (command: string, options: any) => {
+          graphicalOptions = options
+          return sudoModule.exports.exec(command, options)
+        }
+      }
+    if (name === '@shared/fs-extra')
+      return {
+        existsSync: () => true,
+        readFile: () => {
+          throw new Error('Helper installation must not read the unrelated CA')
+        }
+      }
+    if (name === 'node:fs')
+      return {
+        ...require(name),
+        realpathSync: (path: string) =>
+          path === '/task/User/data' ? path : require(name).realpathSync(path),
+        statSync: (path: string) => {
+          if (!linuxInstaller) return require(name).statSync(path)
+          const managed = path === '/task/System/FlyEnv' || path.startsWith('/task/System/FlyEnv/')
+          return {
+            isFile: () => true,
+            uid: managed && validLinuxResources ? 0 : 501,
+            mode: managed && validLinuxResources ? 0o755 : 0o777
+          }
         }
       }
     if (name === '@shared/utils')
       return {
         isMacOS: () => graphicalMac,
         isWindows: () => false,
-        isLinux: () => false,
+        isLinux: () => linuxInstaller,
         appDebugLog: async () => {}
       }
     if (name === '@shared/WindowsHelperState') return helperState
-    if (name === '@shared/AppHelperCheck') return { AppHelperCheck: async () => true }
+    if (name === '@shared/AppHelperCheck')
+      return { AppHelperCheck: async () => true, HelperVersion }
     if (name.startsWith('node:')) return require(name)
     if (name === 'electron-is') return { production: () => true }
     return {}
   },
-  global: {},
+  global: installerRuntime,
   setTimeout,
+  Error,
   console
 })
 const { buildMacOSHelperInstallCommand, macOSHelperBootstrap } = module.exports
+linuxInstaller = true
+try {
+  const linux = module.exports.createAppHelper()
+  const install = await linux.command()
+  assert.match(install.command, /'\/task\/System\/FlyEnv\/helper\/flyenv-helper'/)
+  validLinuxResources = false
+  await linux.command() // Copied/user-managed resources are valid installation sources.
+} finally {
+  linuxInstaller = false
+  validLinuxResources = true
+}
+graphicalMac = true
+try {
+  const mac = module.exports.createAppHelper()
+  const install = await mac.command()
+  assert.equal(install.command.includes('approved-ca'), false)
+  assert.equal(install.command.includes('FlyEnv-Root-CA'), false)
+} finally {
+  graphicalMac = false
+}
 assert.equal(
   typeof buildMacOSHelperInstallCommand,
   'function',
@@ -78,6 +204,7 @@ try {
   const stageParent = join(root, 'protected')
   const source = join(root, "user's $HOME `touch injected` app")
   mkdirSync(stageParent)
+  chmodSync(stageParent, 0o777)
   mkdirSync(join(source, 'Contents/Resources/helper'), { recursive: true })
   mkdirSync(join(source, 'Contents/Resources/plist'), { recursive: true })
   const record = join(root, 'record')
@@ -95,21 +222,11 @@ try {
   const plistBuddy = join(root, 'PlistBuddy')
   writeFileSync(
     plistBuddy,
-    '#!/bin/sh\nif [ "${PROTOCOL_MISSING:-0}" = 1 ]; then exit 1; fi\nprintf "%s\\n" "${PROTOCOL:-42}"\n',
-    { mode: 0o755 }
-  )
-  const stat = join(root, 'stat')
-  writeFileSync(stat, '#!/bin/sh\nprintf "%s\\n" "${OWNER_OVERRIDE:-0:700}"\n', { mode: 0o755 })
-  const ls = join(root, 'ls')
-  writeFileSync(
-    ls,
-    '#!/bin/sh\n[ "${LS_FAIL:-0}" = 0 ] || exit 1\necho protected\nif [ "${ACL_DELEGATED:-0}" = 1 ]; then echo "0: user:501 allow write"; fi\n',
+    `#!/bin/sh\nif [ "\${PROTOCOL_MISSING:-0}" = 1 ]; then exit 1; fi\nprintf "%s\\n" "\${PROTOCOL:-${HelperVersion}}"\n`,
     { mode: 0o755 }
   )
   const bootstrap = macOSHelperBootstrap
     .replaceAll('/usr/libexec/PlistBuddy', plistBuddy)
-    .replaceAll('/usr/bin/stat', stat)
-    .replaceAll('/bin/ls', ls)
     .replaceAll('/private/var/root', stageParent)
     .replaceAll('/usr/bin/codesign', codesign)
     .replaceAll('/usr/sbin/chown', '/usr/bin/true')
@@ -121,9 +238,7 @@ try {
     installer: '',
     plist: '',
     role: '501:20',
-    dataRoot: "/var/with a ' $HOME `touch injected`",
-    caPath: '',
-    caFingerprint: ''
+    dataRoot: "/var/with a ' $HOME `touch injected`"
   })
   const commandFixture = command
     .replace(macOSHelperBootstrap.replace(/'/g, "'\\''"), bootstrap.replace(/'/g, "'\\''"))
@@ -135,6 +250,11 @@ try {
     encoding: 'utf8'
   })
   assert.equal(result.status, 0, result.stderr)
+  assert.equal(
+    statSync(stageParent).mode & 0o777,
+    0o777,
+    'retain user-managed staging parent permissions'
+  )
   assert.equal(existsSync(marker), false, 'installer arguments must remain literal shell data')
   const args = readFileSync(record, 'utf8').split('\n')
   assert.ok(args[0].startsWith(stageParent), 'executed helper is the protected copy')
@@ -157,25 +277,23 @@ try {
     false,
     'production signature failure must not execute installer or downgrade'
   )
+  rmSync(stageParent, { recursive: true })
+  writeFileSync(stageParent, 'not a directory')
+  const invalidParent = spawnSync('/bin/sh', ['-c', commandFixture], {
+    env: { ...process.env, RECORD: record, VERIFY_RECORD: join(root, 'verify') },
+    encoding: 'utf8'
+  })
+  assert.notEqual(invalidParent.status, 0)
+  assert.match(invalidParent.stderr, /FLYENV_HELPER_INSTALL_ERROR:helper_acl_invalid:/)
+  assert.equal(existsSync(record), false, 'invalid staging paths cannot execute the installer')
+  rmSync(stageParent)
+  mkdirSync(stageParent)
+  chmodSync(stageParent, 0o777)
   for (const env of [
-    { OWNER_OVERRIDE: '501:700' },
-    { OWNER_OVERRIDE: '0:770' },
-    { ACL_DELEGATED: '1' },
-    { LS_FAIL: '1' }
+    { PROTOCOL: String(HelperVersion - 1) },
+    { PROTOCOL: String(HelperVersion + 1) },
+    { PROTOCOL_MISSING: '1' }
   ]) {
-    const unprotected = spawnSync('/bin/sh', ['-c', commandFixture], {
-      env: { ...process.env, RECORD: record, VERIFY_RECORD: join(root, 'verify'), ...env },
-      encoding: 'utf8'
-    })
-    assert.notEqual(unprotected.status, 0)
-    assert.match(unprotected.stderr, /FLYENV_HELPER_INSTALL_ERROR:helper_acl_invalid:/)
-    assert.equal(
-      existsSync(record),
-      false,
-      'delegated staging parents cannot authorize an installer'
-    )
-  }
-  for (const env of [{ PROTOCOL: '41' }, { PROTOCOL: '43' }, { PROTOCOL_MISSING: '1' }]) {
     const outdated = spawnSync('/bin/sh', ['-c', commandFixture], {
       env: { ...process.env, RECORD: record, VERIFY_RECORD: join(root, 'verify'), ...env },
       encoding: 'utf8'
@@ -211,9 +329,7 @@ try {
     installer,
     plist: join(source, 'Contents/Resources/plist/com.flyenv.helper.plist'),
     role: '501:20',
-    dataRoot: '/var/development',
-    caPath: '',
-    caFingerprint: ''
+    dataRoot: '/var/development'
   })
     .replace(macOSHelperBootstrap.replace(/'/g, "'\\''"), bootstrap.replace(/'/g, "'\\''"))
     .replace('/usr/bin/sudo ', '')
@@ -251,9 +367,15 @@ try {
   const helper = join(stage, 'flyenv-helper')
   const plist = join(stage, 'com.flyenv.helper.plist')
   const script = join(stage, 'flyenv-helper-init.sh')
+  const keyACL =
+    process.platform === 'darwin'
+      ? `/bin/chmod +a 'user:${userInfo().username.replace(/'/g, "'\\''")} allow read' "$KEY"\n`
+      : ''
   writeFileSync(
     helper,
-    '#!/bin/sh\nprintf "%s\\n" "$@" >> "$LOG"\nprintf new-policy > "$POLICY"\n',
+    '#!/bin/sh\nprintf "%s\\n" "$@" >> "$LOG"\n/bin/mkdir -p "$(/usr/bin/dirname "$POLICY")"\nprintf new-policy > "$POLICY"\n' +
+      'KEY="$(/usr/bin/dirname "$POLICY")/client.key"\n/bin/dd if=/dev/zero of="$KEY" bs=32 count=1 2>/dev/null\n/bin/chmod 0600 "$KEY"\n' +
+      keyACL,
     { mode: 0o755 }
   )
   writeFileSync(plist, readFileSync('build/plist/com.flyenv.helper.plist'))
@@ -287,7 +409,7 @@ esac`
     .replaceAll('/bin/sleep', '/usr/bin/true')
   writeFileSync(script, content)
   const invoke = (env: Record<string, string> = {}, role = '501:20') =>
-    spawnSync('/bin/sh', [script, helper, plist, role, "/private/var/data o'hara $HOME", '', ''], {
+    spawnSync('/bin/sh', [script, helper, plist, role, "/private/var/data o'hara $HOME"], {
       env: { ...process.env, LOG: log, JOB: job, ALIVE: alive, POLICY: policy, ...env },
       encoding: 'utf8'
     })
@@ -325,14 +447,44 @@ esac`
     'label removal cannot replace process-exit verification'
   )
   rmSync(alive)
+  const helperDirectory = join(library, 'Application Support/FlyEnv/Helper')
+  // Reinstallation must repair the actual 0700 directories left by umask 077.
+  chmodSync(join(helperDirectory, '..'), 0o700)
+  chmodSync(helperDirectory, 0o700)
   result = invoke()
   assert.equal(result.status, 0, result.stderr)
+  for (const directory of [join(helperDirectory, '..'), helperDirectory]) {
+    assert.equal(
+      statSync(directory).mode & 0o777,
+      0o755,
+      'desktop clients must traverse protected installation directories after publication'
+    )
+  }
+  const assertKeyProtection = () => {
+    const key = join(helperDirectory, 'client.key')
+    assert.equal(statSync(key).mode & 0o777, 0o600, 'directory repair must not expose key data')
+    if (process.platform === 'darwin') {
+      const acl = spawnSync('/bin/ls', ['-le', key], { encoding: 'utf8' })
+      assert.equal(acl.status, 0, acl.stderr)
+      const entries = acl.stdout.trimEnd().split('\n').slice(1)
+      assert.equal(entries.length, 1, 'directory repair must retain the single UID read ACL')
+      assert.match(entries[0], /^\s*0: user:\S+ allow read$/)
+    }
+  }
+  assertKeyProtection()
   assert.equal(readFileSync(policy, 'utf8'), 'new-policy')
   const operations = readFileSync(log, 'utf8').split('\n')
   assert.equal(operations[0], '--install-darwin-policy')
   assert.equal(operations[1], '501:20')
   assert.equal(operations[2], "/private/var/data o'hara $HOME")
   assert.ok(operations.indexOf('bootstrap') > operations.indexOf('--install-darwin-policy'))
+  rmSync(join(helperDirectory, '..'), { recursive: true })
+  result = invoke()
+  assert.equal(result.status, 0, result.stderr)
+  for (const directory of [join(helperDirectory, '..'), helperDirectory]) {
+    assert.equal(statSync(directory).mode & 0o777, 0o755, 'fresh install under umask 077')
+  }
+  assertKeyProtection()
   console.log(
     'macOS old-daemon stop failure, process liveness and protected policy publication checks passed'
   )
@@ -353,11 +505,75 @@ if (process.platform === 'darwin') {
   const literal = `double " backslash \\ apostrophe ' $HOME\nsecond line`
   graphical.command = async () => ({
     command: `/usr/bin/printf '%s' '${literal.replace(/'/g, "'\\''")}'`,
-    icns: ''
+    icns: join(process.cwd(), 'build/Icon.icns')
   })
   assert.equal(await graphical.initHelper(), true)
-  assert.equal(graphicalOutput.replace(/\r/g, '\n').trimEnd(), literal)
+  assert.equal(graphicalOutput.trimEnd(), literal)
+  assert.equal(graphicalOptions.name, 'FlyEnv')
+  assert.equal(graphicalOptions.icns, join(process.cwd(), 'build/Icon.icns'))
+  const failedHealth = module.exports.createAppHelper({
+    appHelperCheck: async () => {
+      throw new helperState.AppHelperError(
+        'helper_key_invalid',
+        'Helper key is inaccessible',
+        'EACCES: permission denied'
+      )
+    }
+  })
+  failedHealth.command = graphical.command
+  const statuses: any[] = []
+  failedHealth.onStatusMessage((status: any) => statuses.push(status))
+  await assert.rejects(
+    failedHealth.initHelper(),
+    (error: any) => error.code === 'helper_key_invalid'
+  )
+  assert.equal(statuses.at(-1).state, 'installFaild')
+  assert.equal(
+    statuses.some((status) => status.state === 'checkSuccess'),
+    false
+  )
+  assert.match(statuses.at(-1).stderr, /EACCES/)
+  try {
+    graphicalError = Object.assign(new Error('User did not grant permission.'), {
+      stderr: ''
+    })
+    await assert.rejects(
+      sudoModule.exports.exec('echo unused', { name: 'FlyEnv' }),
+      (error: any) => error.name === 'SudoCancelledError'
+    )
+    const cancelled = module.exports.createAppHelper({
+      appHelperCheck: async () => {
+        throw new helperState.AppHelperError('helper_key_missing', 'fixture install required')
+      }
+    })
+    cancelled.command = graphical.command
+    await assert.rejects(
+      cancelled.initHelper(),
+      (error: any) => error.code === 'elevation_cancelled'
+    )
+    graphicalError = Object.assign(new Error('installer failed'), {
+      stderr: 'FLYENV_HELPER_INSTALL_ERROR:helper_signature_invalid:fixture signature failure'
+    })
+    const failed = module.exports.createAppHelper({
+      appHelperCheck: async () => {
+        throw new helperState.AppHelperError('helper_key_missing', 'fixture install required')
+      }
+    })
+    failed.command = async () => ({
+      command: `${(await graphical.command()).command}\n# FLYENV_HELPER_INSTALL_ERROR:helper_acl_invalid:bootstrap text`,
+      icns: graphicalOptions.icns
+    })
+    await assert.rejects(
+      failed.initHelper(),
+      (error: any) =>
+        error.code === 'helper_signature_invalid' &&
+        error.message === 'fixture signature failure' &&
+        error.stderr === graphicalError?.stderr
+    )
+  } finally {
+    graphicalError = undefined
+  }
   console.log(
-    'macOS graphical installation uses system AppleScript with literal quoting and no writable command script'
+    'macOS graphical installation uses the existing Sudo applet, cancellation and failure diagnostics'
   )
 }

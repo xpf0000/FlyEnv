@@ -174,15 +174,12 @@ $global:FlyEnvActionResult = @(@(${portIds}) | ForEach-Object { Get-FlyEnvStopLi
     'writeBufferBase64ByRoot',
     'rm',
     'ensureFlyEnvDataDirectory',
-    'sslAddTrustedCert',
-    'sslFindCertificate'
+    'sslAddTrustedCert'
   ].includes(fn)
     ? [String(args[0])]
     : []
   if (module === 'host' && fn === 'sslAddTrustedCert')
     paths.push(String(args[0]) + '/' + String(args[1]))
-  if (module === 'host' && fn === 'sslFindCertificate')
-    paths.push(String(args[0]) + '/' + String(args[1] ?? 'FlyEnv-Root-CA') + '.crt')
   const script = buildWindowsActionPathGuard(paths) + actionScript
   // 重放例外只来自固定动作名，不接受 renderer 传入的“只读”标志。
   const readOnly =

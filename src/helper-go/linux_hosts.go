@@ -7,10 +7,9 @@ import (
 	"golang.org/x/sys/unix"
 	"os"
 	"strings"
-	"syscall"
 )
 
-var linuxHosts = &hostsStore{path: "/etc/hosts", protected: true}
+var linuxHosts = &hostsStore{path: "/etc/hosts"}
 
 func validateHostsMutation(os.FileInfo) error { return nil }
 
@@ -69,7 +68,3 @@ func preserveHostsAttributes(source, target *os.File) error {
 }
 
 func validateProtectedACL(*os.File) error { return nil }
-
-func protectedDirectoryMode(_ string, st os.FileInfo) bool {
-	return st.Sys().(*syscall.Stat_t).Uid == 0 && st.Mode().Perm()&0022 == 0
-}

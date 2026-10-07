@@ -328,3 +328,18 @@ Web 服务沿用同 UID 的普通停止链，不新增 root PID 信号或进程�
 - 修复 Linux 图形提权命令被 Sudo 拒绝的问题：AppHelper 构造原始 Bash 命令，pkexec 按 argv 启动，终端入口单独加 sudo；取消 polkit 与提权后脚本退出 126 分别处理。Unix PTY 可显式报告真实退出码，普通终端调用保留原返回约定；初始化/执行失败不再悬挂安装页面。
 - 新增 17 个安装链路行为用例与 2 个 UI 用例，接入 renderer-operation-boundaries；涵盖真实 Bash 引号/退出码、前后端安装通知、取消、回退、超时、重入、卸载、PTY 初始化失败和 hosts 附加失败。相关 Windows 安装/renderer 回归、Linux 提示/迁移/transport、WSL Go 全包测试通过。
 - main/fork 和相关 Vue 编译、修改文件 ESLint 与 diff 检查通过；全仓 TypeScript 仍有 38 个既有错误，本次修改文件没有错误。独立复查发现并修复图形/终端并发入口后复核通过。当前 Windows/WSL 环境未验证真实 Linux 桌面授权弹窗和发行版安装，不宣称这些验收已经完成。
+
+### 2026-10-06 系统与工作目录权限边界调整（v43）
+
+- 按用户要求，Linux/macOS Hosts 均不再检查系统父目录的所有者、mode 或 ACL；删除 shared store 的权限开关，读取、全文替换、站点同步和清理共用文件与并发校验。
+- Helper 自身目录只检查自身，不递归检查 `/etc`、`/run` 等系统祖先。固定系统命令、CA 目标目录与用户选择的数据根不再套用 Helper 资产权限预设；数据根不要求桌面账户所有权，实际读写/执行失败仍保持真实错误。
+- Linux 安装器不再检查系统安装父目录，也不将已有 `/usr/local/bin` 的权限/所有者改成预设值；发行资源的检查范围止于 FlyEnv 应用根。自身策略、密钥、批准 CA 和运行资产仍保留自身授权属性与角色边界。
+- 本机 macOS 契约/Go/vet、Linux 安装 IPC 流程、版本和失败回归及 main/fork 构建通过。Linux 测试交叉编译/vet 通过，已补 root fixture；没有可运行的 Linux VM，未执行 Linux 原生/root 用例、生产安装或系统 Hosts/CA 操作。完整范围与回归记录见 macOS review 第 10 节。
+
+### 2026-10-07：CA 安装解耦（协议 v44）
+
+不再在 Helper 安装时收集、批准或复制 CA；policy 只包含版本、UID/GID 和数据根。自动 SSL 复用原有 sslFindCertificate/sslAddTrustedCert，在缺少固定名称 FlyEnv-Root-CA 时按需导入固定 CA。Unix 公有证书及快照逻辑统一在 unix_ca.go，Linux 只负责固定信任目标写入和系统更新；无任意路径/名称 RPC，无新 Sudo 流程。CA 出错只影响自动 SSL，真实信任更新失败可重试，不缓存复制成功。详见 macos-helper-hardening-review.md 第13节。
+
+### 2026-10-07：兼容 review 全部问题（协议 v45）
+
+集中保留系统附加组；安装解析数据根并支持普通服务请求的用户目录别名；FTP 输入由普通 fork 读取有界快照，两端共用普通账户 pure-pw 构建和固定运行数据库发布；Linux 应用源不再以 UID/mode/链接阻止显式安装。自身授权资产与固定 root PID 修复边界保持。完整结果、Windows CA 名称查询恢复及测试范围见 [Unix 兼容 review](unix-helper-compatibility-review.md) 末尾；最终 Helper 协议为 v45。

@@ -11,7 +11,6 @@ class FlyEnvHelperController {
   show = false
   loading = false
   command = ''
-  caFingerprint?: string
   execXTerm?: XTerm
   private installation?: Promise<boolean>
 
@@ -20,7 +19,6 @@ class FlyEnvHelperController {
     this.show = true
     if (!this.loading) {
       this.command = ''
-      this.caFingerprint = undefined
     }
     const fail = (error: unknown) => {
       this.show = false
@@ -41,7 +39,6 @@ class FlyEnvHelperController {
         (key: string, res: any) => {
           if (res?.code === 200) {
             this.command = res.command ?? ''
-            this.caFingerprint = res.caFingerprint
             return
           }
           IPC.off(key)

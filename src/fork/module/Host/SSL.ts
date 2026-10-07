@@ -6,7 +6,6 @@ import {
   mkdirp,
   remove,
   writeFile,
-  readFile,
   zipUnpack
 } from '../../Fn'
 import { dirname, join } from 'path'
@@ -14,10 +13,8 @@ import { existsSync } from 'fs'
 import { EOL } from 'os'
 import type { AppHost } from '@shared/app'
 import Helper from '../../Helper'
-import { appDebugLog, isMacOS, isWindows } from '@shared/utils'
-import { X509Certificate } from 'node:crypto'
+import { appDebugLog, isWindows } from '@shared/utils'
 import { isAppHelperError } from '@shared/WindowsHelperState'
-import { macOSCertificateIsTrusted } from './CertificateTrust'
 
 // Mutex tail for certificate issuance — see makeAutoSSL. (#700)
 let sslQueue: Promise<unknown> = Promise.resolve()
@@ -25,17 +22,7 @@ let sslQueue: Promise<unknown> = Promise.resolve()
 // 生成证书文件和加入系统信任是两个步骤；Windows 信任取消必须向外传递。
 const initCARoot = async (): Promise<boolean> => {
   const CARoot = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
-  if (!isWindows()) {
-    const cert = new X509Certificate(await readFile(CARoot))
-    if (isMacOS() && (await macOSCertificateIsTrusted(CARoot, cert))) return true
-    const fingerprint = cert.fingerprint256.replace(/:/g, '').toLowerCase()
-    await Helper.send('host', 'installApprovedCA', fingerprint)
-    if (isMacOS() && !(await macOSCertificateIsTrusted(CARoot, cert))) {
-      throw new Error('The approved CA was installed but system trust verification failed')
-    }
-  } else {
-    await Helper.send('host', 'sslAddTrustedCert', dirname(CARoot), 'FlyEnv-Root-CA.crt')
-  }
+  await Helper.send('host', 'sslAddTrustedCert', dirname(CARoot), 'FlyEnv-Root-CA.crt')
   return true
 }
 
@@ -100,7 +87,7 @@ authorityKeyIdentifier = keyid:always,issuer`
             return
           }
         }
-        // 已存在 .crt 不等于已信任；每次重试按实际证书指纹查询，再决定是否申请导入。
+        // 已存在 .crt 不等于已信任；每次重试按固定名称查询，再决定是否申请导入。
         // A cancelled trust operation leaves the generated CA on disk. Check
         // trust again on retry instead of treating the existing file as proof.
         const trust: any = await Helper.send('host', 'sslFindCertificate', CADir)
@@ -163,7 +150,8 @@ subjectAltName=@alt_names
             return
           }
         }
-        await initCARoot()
+        const trust: any = await Helper.send('host', 'sslFindCertificate', CADir)
+        if (!trust.stdout.includes(caFileName)) await initCARoot()
         const hostCAName = `CA-${host.id}`
         const hostCADir = join(CADir, `${host.id}`)
         if (existsSync(hostCADir)) {

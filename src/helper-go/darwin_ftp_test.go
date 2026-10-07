@@ -103,7 +103,7 @@ func TestDarwinFTPStartupAndStopFailures(t *testing.T) {
 	if _, err := stopDarwinFTPJob(p); err == nil {
 		t.Fatal("unregistered loaded job reported stopped")
 	}
-	if _, err := refreshDarwinFTPUsers(p); err == nil {
+	if _, err := refreshDarwinFTPUsers(p, ""); err == nil {
 		t.Fatal("unregistered loaded job reported refreshed")
 	}
 	state = &darwinFTPState{Bin: "/user/pure-ftpd", PID: 101, Birth: "old-birth"}

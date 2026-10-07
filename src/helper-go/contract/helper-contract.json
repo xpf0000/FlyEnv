@@ -24,7 +24,12 @@
     {
       "module": "ftp",
       "function": "refreshUsers",
-      "args": [],
+      "args": [
+        {
+          "name": "request",
+          "type": "object"
+        }
+      ],
       "return": "boolean",
       "platform": "linux,macos",
       "privileged": true
@@ -468,7 +473,7 @@
         }
       ],
       "return": "boolean",
-      "platform": "windows",
+      "platform": "windows,linux,macos",
       "privileged": true,
       "pathAccess": "read"
     },
@@ -487,7 +492,7 @@
         }
       ],
       "return": "execResult",
-      "platform": "legacy-disabled",
+      "platform": "windows,linux,macos",
       "privileged": true,
       "pathAccess": "read"
     },
@@ -540,19 +545,6 @@
         {
           "name": "request",
           "type": "object"
-        }
-      ],
-      "return": "boolean",
-      "platform": "linux,macos",
-      "privileged": true
-    },
-    {
-      "module": "host",
-      "function": "installApprovedCA",
-      "args": [
-        {
-          "name": "fingerprint",
-          "type": "string"
         }
       ],
       "return": "boolean",

@@ -46,7 +46,6 @@ type FN =
   | 'replaceHostsContent'
   | 'syncManagedEntries'
   | 'clearManagedEntries'
-  | 'installApprovedCA'
   | 'repairManagedPidDirectory'
   | 'launchLowPort'
   | 'version'

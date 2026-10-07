@@ -7,8 +7,6 @@ BIN="$1"
 PLIST_SRC="$2"
 ROLE="$3"
 DATA_ROOT="$4"
-CA_PATH="$5"
-CA_FINGERPRINT="$6"
 LABEL='com.flyenv.helper'
 HELPER_DIR='/Library/Application Support/FlyEnv/Helper'
 PLIST_PATH='/Library/LaunchDaemons/com.flyenv.helper.plist'
@@ -25,9 +23,6 @@ done
 case "$ROLE" in *[!0-9:]*|:*|*:|*:*:*|'') fail 'invalid installation account' ;; esac
 case "$ROLE" in *:*) ;; *) fail 'invalid installation account' ;; esac
 case "$DATA_ROOT" in /*) ;; *) fail 'data root must be absolute' ;; esac
-if [ -n "$CA_PATH" ]; then
-  [ -f "$CA_PATH" ] && [ ! -L "$CA_PATH" ] || fail 'invalid staged CA'
-fi
 # Existing authorization assets are not changed until both launchd registration
 # and the actual old process have stopped. Errors are required prerequisites.
 job_query() {
@@ -53,8 +48,12 @@ if job_query; then
   done
 fi
 
-# Go owns policy/key/approved-CA validation and ACLs; no /tmp role or legacy roots.
-"$BIN" --install-darwin-policy "$ROLE" "$DATA_ROOT" "$CA_PATH" "$CA_FINGERPRINT"
+# Go owns policy/key validation and ACLs; no /tmp role or legacy roots.
+"$BIN" --install-darwin-policy "$ROLE" "$DATA_ROOT"
+# Policy installation validates these FlyEnv-owned directories.
+# mkdir(0755) under umask 077 produces 0700; existing directories also retain that
+# mode on reinstall. Clients need traversal to reach the UID-readable key.
+/bin/chmod 0755 "${HELPER_DIR%/*}" "$HELPER_DIR"
 # Publish only the protected verified snapshot, never reopen the desktop source.
 /usr/bin/install -o root -g wheel -m 0755 "$BIN" "$BIN_DEST.new"
 /bin/mv -f "$BIN_DEST.new" "$BIN_DEST"

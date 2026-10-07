@@ -49,8 +49,8 @@ func launchLinuxServiceWithBinary(req linuxLaunch, p linuxPolicy, self string) (
 	}
 	// Logs are user files; they are opened ONLY by the child after credentials drop.
 	for _, path := range []string{req.OutFile, req.ErrFile} {
-		if !strings.HasPrefix(path, p.DataRoot+"/") {
-			return 0, fmt.Errorf("logs must be inside the approved data root")
+		if _, err := unixDataPath(path, p.DataRoot); err != nil {
+			return 0, fmt.Errorf("service logs: %w", err)
 		}
 	}
 	trusted, err := openProtectedFile(self, 128*1024*1024)
@@ -62,9 +62,13 @@ func launchLinuxServiceWithBinary(req linuxLaunch, p linuxPolicy, self string) (
 	if err != nil {
 		return 0, err
 	}
+	credential, err := unixUserCredential(p)
+	if err != nil {
+		return 0, err
+	}
 	cmd := exec.Command(self, "--linux-service-child")
 	cmd.Stdin = bytes.NewReader(data)
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true, Credential: &syscall.Credential{Uid: uint32(p.UID), Gid: uint32(p.GID), Groups: []uint32{uint32(p.GID)}}, AmbientCaps: []uintptr{unix.CAP_NET_BIND_SERVICE}}
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true, Credential: credential, AmbientCaps: []uintptr{unix.CAP_NET_BIND_SERVICE}}
 	select {
 	case linuxServiceSlots <- struct{}{}:
 	default:
@@ -114,10 +118,20 @@ func validateLinuxServiceRequest(req linuxLaunch, p linuxPolicy) error {
 		if len(args) != 8 || args[0] != "-f" || args[2] != "-c" || args[4] != "-c" || args[6] != "-D" || args[7] != "FOREGROUND" {
 			return fmt.Errorf("invalid apache startup options")
 		}
-		expectedPID := fmt.Sprintf("PidFile \"%s\"", filepath.Join(p.DataRoot, "server/apache/httpd.pid"))
-		expectedLog := fmt.Sprintf("CustomLog \"%s\" common", filepath.Join(p.DataRoot, "server/apache/common/logs/access_log"))
-		if args[3] != expectedPID || args[5] != expectedLog {
-			return fmt.Errorf("invalid apache managed log/pid options")
+		for index, option := range map[int][3]string{
+			3: {"PidFile \"", "\"", "server/apache/httpd.pid"},
+			5: {"CustomLog \"", "\" common", "server/apache/common/logs/access_log"},
+		} {
+			if !strings.HasPrefix(args[index], option[0]) || !strings.HasSuffix(args[index], option[1]) {
+				return fmt.Errorf("invalid apache managed log/pid options")
+			}
+			path := strings.TrimSuffix(strings.TrimPrefix(args[index], option[0]), option[1])
+			resolved, err := unixDataPath(path, p.DataRoot)
+			root, expectedErr := canonicalUnixPath(p.DataRoot)
+			expected := filepath.Join(root, option[2])
+			if err != nil || expectedErr != nil || resolved != expected {
+				return fmt.Errorf("invalid apache managed log/pid options")
+			}
 		}
 		pathIndexes = []int{1}
 	case "caddy":
@@ -133,8 +147,11 @@ func validateLinuxServiceRequest(req linuxLaunch, p linuxPolicy) error {
 	}
 	for _, index := range pathIndexes {
 		path := args[index]
-		if filepath.Clean(path) != path || !strings.HasPrefix(path, p.DataRoot+"/") || strings.ContainsAny(path, "\x00\r\n") {
+		if filepath.Clean(path) != path || strings.ContainsAny(path, "\x00\r\n") {
 			return fmt.Errorf("service configuration must be inside the approved data root")
+		}
+		if _, err := unixDataPath(path, p.DataRoot); err != nil {
+			return err
 		}
 	}
 	return nil

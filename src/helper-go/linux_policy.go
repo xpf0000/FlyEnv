@@ -7,11 +7,9 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
 
 	"golang.org/x/sys/unix"
 )
@@ -19,7 +17,6 @@ import (
 const linuxPolicyPath = "/etc/flyenv-helper/policy.json"
 const linuxKeyPath = "/etc/flyenv-helper/client.key"
 const linuxSocketPath = "/run/flyenv-helper/helper.sock"
-const linuxCAPath = "/etc/flyenv-helper/approved-ca.crt"
 
 type linuxPolicy = unixPolicy
 
@@ -107,7 +104,7 @@ func linuxSocketReady() error {
 }
 
 func installLinuxPolicy(args []string) error {
-	p, certData, err := policyInstallInputs(args)
+	p, err := policyInstallInputs(args)
 	if err != nil {
 		return err
 	}
@@ -116,11 +113,6 @@ func installLinuxPolicy(args []string) error {
 	}
 	if err = protectedDirectory("/etc/flyenv-helper"); err != nil {
 		return err
-	}
-	if len(certData) > 0 {
-		if err = writeProtectedFile(linuxCAPath, certData, 0644, 0); err != nil {
-			return err
-		}
 	}
 
 	key := make([]byte, 32)
@@ -141,42 +133,4 @@ func installLinuxPolicy(args []string) error {
 	}
 	data, _ := json.MarshalIndent(p, "", "  ")
 	return writeProtectedFile(linuxPolicyPath, data, 0644, 0)
-}
-
-type linuxCAInstaller struct {
-	mu        sync.Mutex
-	installed string
-}
-
-var linuxApprovedCA linuxCAInstaller
-
-func (i *linuxCAInstaller) install(source, dir, tool, fingerprint string) (bool, error) {
-	i.mu.Lock()
-	defer i.mu.Unlock()
-	data, err := protectedFile(source, 256*1024)
-	if err != nil {
-		return false, err
-	}
-	block, _ := pem.Decode(data)
-	if block == nil || block.Type != "CERTIFICATE" || digest(string(block.Bytes)) != fingerprint {
-		return false, fmt.Errorf("approved CA changed")
-	}
-	if err = protectedDirectory(dir); err != nil {
-		return false, err
-	}
-	destination := filepath.Join(dir, "flyenv-"+fingerprint+".crt")
-	if i.installed == fingerprint {
-		existing, err := protectedFile(destination, 256*1024)
-		if err == nil && bytes.Equal(existing, data) {
-			return true, nil
-		}
-	}
-	if err = writeProtectedFile(destination, data, 0644, 0); err != nil {
-		return false, err
-	}
-	if err = runTrustedTool(tool); err != nil {
-		return false, fmt.Errorf("approved CA copied but trust update failed: %w", err)
-	}
-	i.installed = fingerprint
-	return true, nil
 }

@@ -169,7 +169,7 @@ export const buildWindowsPrivilegeReason = (
     // DNS 是固定系统缓存动作，没有文件/业务载荷；具体含义由本地化标签说明。
     add('dnsRefresh', '')
   } else if (module === 'host' && fn === 'sslFindCertificate') {
-    add('sslFindCertificate', `${args[0]}\\${args[1] ?? 'FlyEnv-Root-CA'}.crt`)
+    add('sslFindCertificate', String(args[1] ?? 'FlyEnv-Root-CA'))
   }
   return sanitizeWindowsPrivilegeReason({ items })
 }

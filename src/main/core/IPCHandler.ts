@@ -868,8 +868,7 @@ export default class IPCHandler extends EventEmitter {
         AppHelper.installInTerminal(async (options) => {
           this.sendToMainWindow(command, key, {
             code: 200,
-            command: options.command,
-            caFingerprint: options.caFingerprint
+            command: options.command
           })
           await nodePty.execAndWait(ptyKey, [
             isLinux() ? `sudo ${options.command}` : options.command,

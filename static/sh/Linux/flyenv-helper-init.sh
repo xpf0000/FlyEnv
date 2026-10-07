@@ -6,8 +6,6 @@ export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 BIN="$1"
 ROLE="$2"
 DATA_PATH="$3"
-CA_PATH="${5:-}"
-CA_FINGERPRINT="${6:-}"
 SERVICE_NAME=flyenv-helper
 BIN_DEST=/usr/local/bin/flyenv-helper
 SERVICE_PATH=/etc/systemd/system/flyenv-helper.service
@@ -32,17 +30,16 @@ stop_existing_helper() {
     return 1
   fi
 }
-for directory in / /usr /usr/local /usr/local/bin /etc /etc/systemd /etc/systemd/system; do
-  check_directory "$directory"
-done
 if [ -e /etc/flyenv-helper ] || [ -L /etc/flyenv-helper ]; then check_directory /etc/flyenv-helper; fi
 
-install -d -o root -g root -m 0755 /usr/local/bin /etc/flyenv-helper
+# Preserve administrator-configured system directories; only manage our own assets.
+mkdir -p /usr/local/bin
+install -d -o root -g root -m 0755 /etc/flyenv-helper
 TEMP_BIN=$(mktemp /usr/local/bin/.flyenv-helper.XXXXXX)
 trap 'rm -f "$TEMP_BIN"' EXIT
 install -o root -g root -m 0755 "$BIN" "$TEMP_BIN"
 stop_existing_helper
-"$TEMP_BIN" --install-linux-policy "$ROLE" "$DATA_PATH" "$CA_PATH" "$CA_FINGERPRINT"
+"$TEMP_BIN" --install-linux-policy "$ROLE" "$DATA_PATH"
 mv -T "$TEMP_BIN" "$BIN_DEST"
 
 TEMP_UNIT=$(mktemp /etc/systemd/system/.flyenv-helper.XXXXXX)
@@ -70,4 +67,3 @@ systemctl daemon-reload
 systemctl enable "$SERVICE_NAME"
 systemctl start "$SERVICE_NAME"
 echo 'Installed: fixed hosts editing, user service low-port binding, root Pure-Ftpd, PID directory repair.'
-if [ -n "$CA_PATH" ]; then echo 'Approved the supplied public development CA snapshot.'; fi

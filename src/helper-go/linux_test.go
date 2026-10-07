@@ -5,12 +5,12 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"encoding/pem"
 	"fmt"
 	"golang.org/x/sys/unix"
 	"net"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -28,38 +28,50 @@ func TestLinuxRejectsLegacyRootOperations(t *testing.T) {
 }
 
 func TestLinuxCAUpdateFailureIsRetryable(t *testing.T) {
-	if os.Geteuid() != 0 {
-		t.Skip("requires root")
-	}
-	dir, err := os.MkdirTemp("/opt", ".flyenv-ca-test-")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(dir)
-	os.Chmod(dir, 0755)
-	source := filepath.Join(dir, "approved.crt")
-	der := []byte{1, 2, 3}
-	fingerprint := digest(string(der))
-	os.WriteFile(source, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0644)
+	dir := canonicalTempDir(t)
+	source := filepath.Join(dir, "snapshot.crt")
+	os.WriteFile(source, []byte("public snapshot"), 0600)
 	destination := filepath.Join(dir, "anchors")
-	os.Mkdir(destination, 0755)
+	os.Mkdir(destination, 0777)
+	os.Chmod(destination, 0777)
 	counter := filepath.Join(dir, "calls")
 	tool := filepath.Join(dir, "update-trust")
 	script := fmt.Sprintf("#!/bin/sh\nif [ -f '%s' ]; then printf x >> '%s'; exit 0; fi\nprintf x > '%s'\nexit 1\n", counter, counter, counter)
-	os.WriteFile(tool, []byte(script), 0755)
-	installer := linuxCAInstaller{}
-	if _, err = installer.install(source, destination, tool, fingerprint); err == nil {
+	os.WriteFile(tool, []byte(script), 0777)
+	os.Chmod(tool, 0777)
+	if err := installLinuxCA(source, destination, tool); err == nil {
 		t.Fatal("failed trust update reported success")
 	}
-	if _, err = installer.install(source, destination, tool, fingerprint); err != nil {
+	if err := installLinuxCA(source, destination, tool); err != nil {
 		t.Fatal("partial certificate copy prevented retry:", err)
-	}
-	if _, err = installer.install(source, destination, tool, fingerprint); err != nil {
-		t.Fatal(err)
 	}
 	calls, _ := os.ReadFile(counter)
 	if string(calls) != "xx" {
-		t.Fatal("success was not cached, or failure was cached")
+		t.Fatal("failed trust update was cached")
+	}
+	data, err := os.ReadFile(filepath.Join(destination, unixCAFile))
+	if err != nil || string(data) != "public snapshot" {
+		t.Fatal("wrong fixed CA destination", err)
+	}
+}
+
+func TestLinuxPolicyAllowsUserConfiguredDataRootOwnership(t *testing.T) {
+	if os.Geteuid() != 0 {
+		t.Skip("requires root")
+	}
+	account, err := user.Lookup("nobody")
+	if err != nil {
+		t.Skip("non-root account fixture unavailable")
+	}
+	dir := canonicalTempDir(t)
+	if err = os.Chmod(dir, 0777); err != nil {
+		t.Fatal(err)
+	}
+	policy, err := policyInstallInputs([]string{
+		"installer", account.Uid + ":" + account.Gid, dir,
+	})
+	if err != nil || policy.DataRoot != dir {
+		t.Fatal("a user-writable root-owned data directory blocked policy installation", err)
 	}
 }
 
@@ -132,7 +144,7 @@ func TestLinuxSignedRPC(t *testing.T) {
 	defer func() { installedLinuxPolicy = savedPolicy; helperKey = savedKey; linuxHosts = savedHosts }()
 	installedLinuxPolicy = linuxPolicy{Version: Helper_Version, UID: 1000, GID: 1000, DataRoot: dir}
 	helperKey = bytes.Repeat([]byte{1}, 32)
-	linuxHosts = &hostsStore{path: path, protected: true}
+	linuxHosts = &hostsStore{path: path}
 	app := NewAppHelper()
 	go func() {
 		for {
@@ -375,5 +387,42 @@ func TestHostsPreservesACLAndXattrs(t *testing.T) {
 		if err != nil || !bytes.Equal(buffer[:n], expected) {
 			t.Fatalf("lost %s: %v", name, err)
 		}
+	}
+}
+
+func TestLinuxServiceBusinessPathsAcceptDataAliases(t *testing.T) {
+	root := canonicalTempDir(t)
+	alias := filepath.Join(canonicalTempDir(t), "data-alias")
+	if err := os.Symlink(root, alias); err != nil {
+		t.Fatal(err)
+	}
+	p := linuxPolicy{DataRoot: root}
+	prefix := filepath.Join(alias, "server/nginx/common")
+	errlog := filepath.Join(prefix, "logs/error.log")
+	requests := []linuxLaunch{
+		{Service: "nginx", Bin: "/usr/sbin/nginx", Args: []string{"-p", prefix, "-e", errlog, "-c", filepath.Join(prefix, "conf/nginx.conf"), "-g", "pid " + filepath.Join(prefix, "logs/nginx.pid") + ";error_log " + errlog + ";daemon off;"}},
+		{Service: "apache", Bin: "/usr/sbin/apache2", Args: []string{"-f", filepath.Join(alias, "server/apache/httpd.conf"), "-c", "PidFile \"" + filepath.Join(alias, "server/apache/httpd.pid") + "\"", "-c", "CustomLog \"" + filepath.Join(alias, "server/apache/common/logs/access_log") + "\" common", "-D", "FOREGROUND"}},
+		{Service: "caddy", Bin: "/usr/bin/caddy", Args: []string{"run", "--config", filepath.Join(alias, "server/caddy.conf"), "--watch"}},
+		{Service: "frankenphp", Bin: "/usr/bin/frankenphp", Args: []string{"run", "--config", filepath.Join(alias, "server/frankenphp.conf"), "--pidfile", filepath.Join(alias, "server/frankenphp.pid")}},
+	}
+	for _, req := range requests {
+		if err := validateLinuxServiceRequest(req, p); err != nil {
+			t.Fatalf("%s alias rejected: %v", req.Service, err)
+		}
+	}
+	outside := canonicalTempDir(t)
+	if err := os.MkdirAll(filepath.Join(root, "server"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outside, filepath.Join(root, "server/escape")); err != nil {
+		t.Fatal(err)
+	}
+	requests[2].Args[2] = filepath.Join(alias, "server/escape/caddy.conf")
+	if err := validateLinuxServiceRequest(requests[2], p); err != nil {
+		t.Fatal("ordinary service cannot use user-managed config links", err)
+	}
+	requests[2].Args[2] = filepath.Join(outside, "caddy.conf")
+	if validateLinuxServiceRequest(requests[2], p) == nil {
+		t.Fatal("unrelated configuration path accepted")
 	}
 }

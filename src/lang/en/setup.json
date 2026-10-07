@@ -86,7 +86,7 @@
   },
   "flyenvHelper": "Fix FlyEnv Helper",
   "flyenvHelperBtn": "Fix",
-  "linuxHelperScope": "Authorize at installation: full hosts editing, low-port binding for built-in web servers as your user, Pure-Ftpd running as root, and repair of FlyEnv's PID directory. An existing FlyEnv public CA is also approved for system trust. Daily helper operations do not ask for a password. Reinstall here to approve a new CA; terminal sudo continues to use system authentication.",
+  "linuxHelperScope": "Authorize at installation: full hosts editing, low-port binding for built-in web servers as your user, Pure-Ftpd running as root, and repair of FlyEnv's PID directory. Daily helper operations do not ask for a password; terminal sudo continues to use system authentication.",
   "flyenvHelperFixSuccess": "FlyEnv Helper Fixed Successfully",
   "flyenvHelperInstallFailTips": "FlyEnv helper installation failed. Keep using your original Windows account and retry with the helper repair button in Settings. If it fails again, share the error details below.",
   "flyenvHelperInstallTimeout": "Timed out waiting for the installation result. The installation may still be running in the background. Use the helper repair button again to check the result.",

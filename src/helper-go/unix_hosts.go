@@ -21,9 +21,8 @@ type hostsSnapshot struct {
 	Digest  string `json:"digest"`
 }
 type hostsStore struct {
-	path      string
-	protected bool
-	mu        sync.Mutex
+	path string
+	mu   sync.Mutex
 }
 
 func digest(content string) string {
@@ -47,11 +46,6 @@ func readHostsFile(f *os.File) (string, error) {
 func (s *hostsStore) read() (hostsSnapshot, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.protected {
-		if err := protectedDirectory(filepath.Dir(s.path)); err != nil {
-			return hostsSnapshot{}, err
-		}
-	}
 	f, err := openNoSymlinks(s.path, unix.O_RDONLY, 0)
 	if err != nil {
 		return hostsSnapshot{}, err
@@ -63,11 +57,6 @@ func (s *hostsStore) read() (hostsSnapshot, error) {
 func (s *hostsStore) update(expected string, transform func(string) (string, error)) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.protected {
-		if err := protectedDirectory(filepath.Dir(s.path)); err != nil {
-			return err
-		}
-	}
 	f, err := openNoSymlinks(s.path, unix.O_RDONLY, 0)
 	if err != nil {
 		return err

@@ -27,23 +27,25 @@ func dispatchLinux(info TaskItem, p linuxPolicy) (interface{}, error) {
 		if len(info.Args) != 1 {
 			break
 		}
-		var req struct {
-			Bin string `json:"bin"`
-		}
+		var req unixFTPStart
 		if err := decodeUnix(info.Args[0], &req); err != nil {
 			return nil, err
 		}
-		return startLinuxFTP(req.Bin, p)
+		return startLinuxFTP(req, p)
 	case "ftp.stop":
 		if len(info.Args) != 0 {
 			break
 		}
 		return stopLinuxFTP(p)
 	case "ftp.refreshUsers":
-		if len(info.Args) != 0 {
+		if len(info.Args) != 1 {
 			break
 		}
-		return refreshLinuxFTPUsers(p)
+		var req unixFTPUsers
+		if err := decodeUnix(info.Args[0], &req); err != nil {
+			return nil, err
+		}
+		return refreshLinuxFTPUsers(p, req.Users)
 	case "host.readHosts", "host.replaceHostsContent", "host.syncManagedEntries", "host.clearManagedEntries":
 		return dispatchHosts(info, linuxHosts)
 	case "service.launchLowPort":
@@ -68,20 +70,13 @@ func dispatchLinux(info TaskItem, p linuxPolicy) (interface{}, error) {
 			return nil, err
 		}
 		return true, f.Chmod(0755)
-	case "host.installApprovedCA":
-		if len(info.Args) != 1 || info.Args[0] != p.CAFingerprint || p.CAFingerprint == "" {
-			return nil, fmt.Errorf("CA is not approved; reinstall helper to approve this public certificate")
-		}
-		dir, tool := "/usr/local/share/ca-certificates", "/usr/sbin/update-ca-certificates"
-		if _, err := os.Stat(tool); os.IsNotExist(err) {
-			dir, tool = "/etc/pki/ca-trust/source/anchors", "/usr/bin/update-ca-trust"
-		}
-		return linuxApprovedCA.install(linuxCAPath, dir, tool, p.CAFingerprint)
+	case "host.sslFindCertificate", "host.sslAddTrustedCert":
+		return dispatchUnixCA(info, p, filepath.Dir(linuxPolicyPath))
 	case "host.dnsRefresh":
 		if len(info.Args) != 0 {
 			break
 		}
-		return true, runTrustedTool("/usr/bin/resolvectl", "flush-caches")
+		return true, runSystemTool("/usr/bin/resolvectl", "flush-caches")
 	}
 	return nil, fmt.Errorf("Linux helper denies %s.%s", info.Module, info.Function)
 }

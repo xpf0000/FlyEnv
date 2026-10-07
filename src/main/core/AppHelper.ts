@@ -20,14 +20,11 @@ import {
   windowsHelperInstalledPath
 } from '@shared/WindowsHelperIdentity'
 import { runWindowsHelperInstaller } from './WindowsHelperInstaller'
-import { LinuxSudoCancelledError, WindowsSudoError } from '@shared/Sudo'
+import { SudoCancelledError, WindowsSudoError } from '@shared/SudoError'
 import { userInfo } from 'node:os'
 import { existsSync, readFile } from '@shared/fs-extra'
 import type { CallbackFn } from '@shared/app'
-import { X509Certificate } from 'node:crypto'
-import { lstatSync, realpathSync } from 'node:fs'
-import { execFile } from 'node:child_process'
-import { promisify } from 'node:util'
+import { statSync, realpathSync } from 'node:fs'
 
 type AppHelperMessage = {
   state:
@@ -107,75 +104,58 @@ const toAppHelperInstallError = (error: unknown): AppHelperError => {
   if (isAppHelperError(error)) {
     return error
   }
-  if (error instanceof LinuxSudoCancelledError) {
-    return new AppHelperError('elevation_cancelled', error.message)
+  const message = error instanceof Error ? error.message : `${error}`
+  if (error instanceof SudoCancelledError) {
+    return new AppHelperError(error.code, message, error.stderr)
   }
   if (error instanceof WindowsSudoError) {
     return new AppHelperError(error.code, error.message, error.stderr)
   }
   const rawStderr = (error as { stderr?: unknown } | null)?.stderr
   const stderr = typeof rawStderr === 'string' ? rawStderr : undefined
-  const marker = stderr?.match(/FLYENV_HELPER_INSTALL_ERROR:([a-z_]+):(.*)/i)
+  // The existing macOS Sudo applet includes stderr in Error.message.
+  const diagnostic = stderr ?? message
+  const marker = diagnostic.match(/FLYENV_HELPER_INSTALL_ERROR:([a-z_]+):(.*)/i)
   if (marker && installerErrorCodes.has(marker[1] as AppHelperErrorCode)) {
-    return new AppHelperError(marker[1] as AppHelperErrorCode, marker[2].trim(), stderr)
+    return new AppHelperError(
+      marker[1] as AppHelperErrorCode,
+      marker[2].trim(),
+      stderr ?? diagnostic.slice(marker.index)
+    )
   }
-  return new AppHelperError(
-    'helper_execution_failed',
-    error instanceof Error ? error.message : `${error}`,
-    stderr
-  )
+  return new AppHelperError('helper_execution_failed', message, stderr)
 }
 
 const lazySudo: SudoExec = async (...args) => {
-  if (isMacOS()) {
-    // The sudo-prompt applet reads a user-writable command file as root. Send the
-    // immutable command directly to the system authorization service instead.
-    const literal = args[0]
-      .replace(/\\/g, '\\\\')
-      .replace(/"/g, '\\"')
-      .replace(/\n/g, '\\n')
-      .replace(/\r/g, '\\r')
-    try {
-      return await promisify(execFile)('/usr/bin/osascript', [
-        '-e',
-        `do shell script "${literal}" with administrator privileges`
-      ])
-    } catch (error: any) {
-      if (/\(-128\)/.test(error.stderr ?? '')) {
-        throw new AppHelperError('elevation_cancelled', 'Administrator authorization was cancelled')
-      }
-      throw error
-    }
-  }
   const { exec } = await import('@shared/Sudo')
-  return exec(...args)
+  try {
+    return await exec(...args)
+  } catch (error) {
+    // The macOS applet embeds the command and stderr in its error message.
+    const prefix = `Command failed: ${args[0]}\n`
+    if (isMacOS() && error instanceof Error && error.message.startsWith(prefix)) {
+      Object.assign(error, { stderr: error.message.slice(prefix.length) })
+    }
+    throw error
+  }
 }
 
 const quoteLinuxShell = (value: string) => `'${value.replace(/'/g, "'\\''")}'`
 
-function checkLinuxInstallSource(file: string) {
-  for (let path = file; ; path = dirname(path)) {
-    const stat = lstatSync(path)
-    if (stat.isSymbolicLink() || stat.uid !== 0 || (stat.mode & 0o022) !== 0) {
-      throw new Error(`Linux production installer source must be root-owned and protected: ${path}`)
-    }
-    if (dirname(path) === path) return
-  }
+function checkLinuxInstallSource(file: string, appRoot: string) {
+  if (!file.startsWith(`${appRoot}/`)) throw new Error('Invalid FlyEnv installer resource path')
+  if (!statSync(file).isFile()) throw new Error(`Invalid FlyEnv installer resource: ${file}`)
 }
 
-const linuxInstallCommand = async (
+const linuxInstallCommand = (
   script: string,
   bin: string,
   role: string,
   dataPath: string,
   appRoot: string
 ) => {
-  const ca = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
-  const caFingerprint = existsSync(ca)
-    ? new X509Certificate(await readFile(ca)).fingerprint256.replace(/:/g, '').toLowerCase()
-    : ''
-  const args = [script, bin, role, dataPath, appRoot, caFingerprint ? ca : '', caFingerprint]
-  return { command: `/bin/bash ${args.map(quoteLinuxShell).join(' ')}`, caFingerprint }
+  const args = [script, bin, role, dataPath, appRoot]
+  return { command: `/bin/bash ${args.map(quoteLinuxShell).join(' ')}` }
 }
 
 // Fixed system bootstrap: only arguments are caller data; no user-writable script
@@ -186,17 +166,9 @@ mode="$1"
 source="$2"
 role="$6"
 data="$7"
-ca="$8"
-fingerprint="$9"
-# Fixed system parents must not delegate staging access to the desktop account.
+# Resolve the fixed staging location; system parent permissions are user-managed.
 for parent in / /private /private/var /private/var/root; do
   [ -d "$parent" ] && [ ! -L "$parent" ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_acl_invalid:Invalid staging parent' >&2; exit 1; }
-  ownership=$(/usr/bin/stat -f '%u:%Lp' "$parent")
-  owner=\${ownership%%:*}
-  modeBits=\${ownership#*:}
-  [ "$owner" = 0 ] && [ "$((0$modeBits & 022))" = 0 ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_acl_invalid:Unprotected staging parent' >&2; exit 1; }
-  acl=$(/bin/ls -lde "$parent") || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_acl_invalid:Cannot inspect staging ACL' >&2; exit 1; }
-  [ -z "$(printf '%s\\n' "$acl" | /usr/bin/sed -n '2,$p')" ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_acl_invalid:Delegated staging ACL' >&2; exit 1; }
 done
 stage=$(/usr/bin/mktemp -d /private/var/root/flyenv-helper-install.XXXXXXXX)
 trap '/bin/rm -rf "$stage"' EXIT HUP INT TERM
@@ -210,7 +182,7 @@ if [ "$mode" = production ]; then
     [ ! -L "$path" ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_signature_invalid:Symlink in installer resource path' >&2; exit 1; }
   done
   /usr/bin/codesign --verify --deep --strict --all-architectures -R '=identifier "phpstudy.xpfme.com" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = "956BZQ2F2P"' "$stage/FlyEnv.app" || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_signature_invalid:FlyEnv application signature or resources are invalid. Use an officially signed build.' >&2; exit 1; }
-  [ "$(/usr/libexec/PlistBuddy -c 'Print :FlyEnvHelperProtocolVersion' "$stage/FlyEnv.app/Contents/Info.plist")" = 42 ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_version_mismatch:Unsupported signed helper installation protocol' >&2; exit 1; }
+  [ "$(/usr/libexec/PlistBuddy -c 'Print :FlyEnvHelperProtocolVersion' "$stage/FlyEnv.app/Contents/Info.plist")" = ${HelperVersion} ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_version_mismatch:Unsupported signed helper installation protocol' >&2; exit 1; }
   /usr/bin/codesign --verify --strict --all-architectures -R '=identifier "flyenv-helper" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = "956BZQ2F2P"' "$resources/helper/flyenv-helper" || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_signature_invalid:FlyEnv helper signature is invalid. Use an officially signed build.' >&2; exit 1; }
   binary="$resources/helper/flyenv-helper"
   installer="$resources/helper/flyenv-helper-init.sh"
@@ -227,15 +199,11 @@ else
   echo 'Invalid installer mode' >&2
   exit 1
 fi
-if [ -n "$ca" ]; then
-  /bin/cp "$ca" "$stage/approved-ca.crt"
-  ca="$stage/approved-ca.crt"
-fi
 /usr/sbin/chown -RP root:wheel "$stage"
 /bin/chmod -RN "$stage"
 /bin/chmod -R go-w "$stage"
 /bin/chmod 0700 "$stage" "$binary"
-/bin/sh "$installer" "$binary" "$plist" "$role" "$data" "$ca" "$fingerprint"
+/bin/sh "$installer" "$binary" "$plist" "$role" "$data"
 `
 
 type MacOSHelperInstallOptions = {
@@ -246,8 +214,6 @@ type MacOSHelperInstallOptions = {
   plist: string
   role: string
   dataRoot: string
-  caPath: string
-  caFingerprint: string
 }
 
 export function buildMacOSHelperInstallCommand(options: MacOSHelperInstallOptions): string {
@@ -258,9 +224,7 @@ export function buildMacOSHelperInstallCommand(options: MacOSHelperInstallOption
     options.installer,
     options.plist,
     options.role,
-    options.dataRoot,
-    options.caPath,
-    options.caFingerprint
+    options.dataRoot
   ]
   return `/usr/bin/sudo /usr/bin/env -i PATH=/usr/bin:/bin:/usr/sbin:/sbin /bin/sh -c ${quoteLinuxShell(macOSHelperBootstrap)} flyenv-helper-bootstrap ${args.map(quoteLinuxShell).join(' ')}`
 }
@@ -327,7 +291,6 @@ export class AppHelper {
     command: string
     icns: string
     windowsScript?: string
-    caFingerprint?: string
   }> {
     if (isWindows()) {
       const bin = getWindowsHelperBinaryPath()
@@ -363,17 +326,17 @@ export class AppHelper {
         ? join(appRoot, 'helper/flyenv-helper-init.sh')
         : join(global.Server.Static!, 'sh/flyenv-helper-init.sh')
       if (is.production()) {
-        checkLinuxInstallSource(binary)
-        checkLinuxInstallSource(script)
+        checkLinuxInstallSource(binary, appRoot)
+        checkLinuxInstallSource(script, appRoot)
       }
       return {
-        ...(await linuxInstallCommand(
+        ...linuxInstallCommand(
           script,
           binary,
           `${account.uid}:${account.gid}`,
           dirname(global.Server.AppDir!),
           appRoot
-        )),
+        ),
         icns: join(appRoot, 'Icon@256x256.icns')
       }
     }
@@ -381,10 +344,6 @@ export class AppHelper {
       const account = userInfo()
       const production = is.production()
       const appRoot = PathResolve(global.Server.Static!, '../../../../')
-      const ca = join(global.Server.BaseDir!, 'CA/FlyEnv-Root-CA.crt')
-      const caFingerprint = existsSync(ca)
-        ? new X509Certificate(await readFile(ca)).fingerprint256.replace(/:/g, '').toLowerCase()
-        : ''
       const helperFile = global.Server.isArmArch
         ? 'flyenv-helper-darwin-arm64'
         : 'flyenv-helper-darwin-amd64'
@@ -400,12 +359,11 @@ export class AppHelper {
             ? ''
             : PathResolve(global.Server.Static!, '../../../build/plist/com.flyenv.helper.plist'),
           role: `${account.uid}:${account.gid}`,
-          dataRoot: realpathSync(dirname(global.Server.AppDir!)),
-          caPath: caFingerprint ? realpathSync(ca) : '',
-          caFingerprint
+          dataRoot: realpathSync(dirname(global.Server.AppDir!))
         }),
-        caFingerprint,
-        icns: ''
+        icns: production
+          ? join(appRoot, 'icon.icns')
+          : PathResolve(global.Server.Static!, '../../../build/Icon.icns')
       }
     }
     throw new Error('Unsupported helper installer platform')
@@ -505,7 +463,7 @@ export class AppHelper {
         windowsInstallation = !!windowsScript
         const { stdout, stderr } = windowsScript
           ? await this.deps.installWindows(windowsScript)
-          : await this.deps.sudo(command, { name: 'FlyEnv', icns })
+          : await this.deps.sudo(command, { name: 'FlyEnv', ...(icns ? { icns } : {}) })
         appDebugLog('[AppHelper][install]', `${stdout}\n${stderr}`).catch(() => {})
         installationPerformed = true
         this.state = 'installed'

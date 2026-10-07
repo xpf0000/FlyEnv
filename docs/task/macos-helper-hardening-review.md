@@ -93,7 +93,7 @@ render 层把 Unix 的 `isSudo` 启动路由到终端（`src/render/core/ModuleC
 
 方案 §13 声称的验收与代码实际相符：有效签名拒绝旧 RPC、伪造 PID 拒绝、可写策略/密钥/ACL 拒绝、hosts 事务矩阵、FTP 未知身份保留 state 等均有真实测试钉住；合约双向校验与版本同步通过；签名验证、TOCTOU 快照、停旧服务顺序、dev/production 不降级有自包含 fixture 覆盖。
 
-方案 §13 明确未做的真机系统验收（新签名发行包首次安装/升级、Keychain 真实信任、root launchd FTP 全流程、Intel 真机与受支持旧系统版本、旧 MacPorts MySQL/MariaDB 初始化）仍然成立，本次代码审查不能豁免。当前主机 `/private/etc` 为 777 的已知问题也不受影响——新代码会拒绝该目录。
+方案 §13 明确未做的真机系统验收（新签名发行包首次安装/升级、Keychain 真实信任、root launchd FTP 全流程、Intel 真机与受支持旧系统版本、旧 MacPorts MySQL/MariaDB 初始化）仍然成立，本次代码审查不能豁免。此处原先关于 `/private/etc` 为 777 时拒绝 Hosts 操作的结论，已按用户要求由第 9 节替代。
 
 ## 5 处置建议
 
@@ -133,3 +133,80 @@ render 层把 Unix 的 `isSudo` 启动路由到终端（`src/render/core/ModuleC
 - 签名/协议校验和密钥解密都是必要依赖，失败阻断安装/插件激活；UI 通知与日志仍为附加动作，不能改变安装结果。未新增 renderer 操作状态、共享持久化或 Pinia store。
 
 验证：11 个关联回归脚本通过（插件、固定安装脚本、错误 IPC/UI、安装互斥与 PTY、健康、Windows 兼容、hosts 后续同步及 renderer 边界）；main/fork 构建、ESLint、Prettier、JSON 解析及 diff 检查通过。全量 vue-tsc 与既有诊断一致，无新增。未执行真实 root 安装，也未修改钥匙串授权。
+
+## 8. 签名发行包安装后的目录访问回归
+
+本次日志在发布后报告 `helper_key_invalid` / `EACCES`，GUI 安装与终端安装都未通过客户端健康检查。实际 `/Library/Application Support/FlyEnv/Helper` 为 root 所有、0700、无目录 ACL。安装脚本的 `umask 077` 会将 Go `MkdirAll(..., 0755)` 的新目录收紧为 0700，已有目录重装时也不会改变权限；仅给 client.key 设置指定 UID 读取 ACL 不足以让桌面用户穿过父目录。这是本次安装权限衔接的实现遗漏，与应用签名无关。
+
+修复契约与边界：
+
+- main AppHelper 继续持有整个安装操作，直到实际退出与客户端健康检查完成；GUI 同模式共用安装请求，GUI/终端互斥，发布输出只是中间事件，健康失败仍是失败终态。没有增加模块状态、Pinia、共享配置或另一条安装流程。
+- 安装器在 Go 验证 root 保护的政策目录及全部祖先、写入授权资产之后，发布 binary/plist 之前，显式恢复 FlyEnv 与 Helper 两级安装目录为 0755。目录权限是客户端可用性的必要依赖，失败则不继续发布/启动；已写入的授权资产不宣称回滚。key 仍为 root 0600 加指定 UID 读取 ACL，root 私有 staging 不变；不自动修改系统 Hosts 目录。
+- 按用户要求，帮助程序安装统一调用 shared Sudo.ts。删除 AppHelper 内部 macOS 授权分支，安全的 literal AppleScript 授权实现集中到 Sudo.ts，移除旧可被桌面账户替换的 root 命令脚本。保留 cwd/env 的字面转义、取消分类及原始 stderr；不给不使用图标的调用传入空 icns。底层系统授权仍使用 osascript，调用统一到 Sudo.ts 不等同于恢复旧 applet 的系统弹窗名称。
+- 本轮排查时，当前主机 `/private/etc` 为 root 0777，曾是另一个独立的 Hosts 前置失败。随后用户明确要求目录权限不应阻止 Hosts 编辑，相关处理以第 9 节为准；没有修改主机目录权限。
+
+验证：安装器权限回归先在 0700 重装场景失败，修复后通过；另覆盖首次安装的真实 umask 077 目录创建，确认目录修复保留 key 的 0600 及单个 UID 读取 ACL。授权回归通过真实 Sudo.ts 与 AppHelper，系统提权边界替换为普通用户 AppleScript，验证命令、特殊字符 cwd/env、取消及原始错误；发布命令退出成功但读取 key 被拒绝时，失败终态保留 EACCES 且无成功通知，不打开密码弹窗。10 项安装/IPC/终端/健康/Hosts/renderer/Windows 兼容回归、main 构建、ESLint、格式、shell 语法及 diff 检查通过。未执行真机 root 重装，已安装的应用及系统目录权限不会随源代码修复自动改变。
+
+## 9. macOS Hosts 不限制用户配置的父目录权限
+
+用户明确要求：`/private/etc` 的目录权限由用户配置，不能作为阻止系统 Hosts 读取和编辑的条件。
+
+执行契约：只调整 Go macOS 固定 Hosts store 的目录保护策略，读取、全文替换、托管站点同步和清理统一复用此 store，不再核验 `/private/etc` 及祖先的所有者、POSIX mode 或目录 ACL。不新增 UI 状态、控制器、配置、重试或提权流程，现有互斥及 IPC 生命周期保持原样；没有新模块约束例外。Linux 的 Hosts 目录策略保持原样。
+
+文件操作仍是必要结果：保留固定 `/private/etc/hosts` 路径、拒绝 symlink/hardlink/异常文件类型、大小限制、文件不可修改标志、摘要冲突及已打开文件身份校验；实际读取、写入和属性保留失败继续如实传播，DNS 刷新仍是附加动作。不自动修改系统目录权限。
+
+Go 发布版本与应用检查同步升到 43，签名应用的 Info.plist 标记及固定 bootstrap 门控同步，避免仍执行旧目录限制的 v42 Helper 被当作已更新。bootstrap 直接复用共享版本常量，版本一致性测试继续覆盖 Go、应用检查和签名发布标记。
+
+回归在普通用户临时目录中使用 macOS production store 的策略，先复现 0777 下读取被拒绝，再验证读取、全文编辑、站点同步及清理可完成，其他 Hosts 内容和用户指定的目录权限保留。系统 Hosts 和系统目录未被测试修改。
+
+验证：原生 Go 全量测试（`go test -count=1 ./...`）、帮助程序版本同步、macOS 固定安装脚本与健康检查通过；main/fork 构建、ESLint、格式及 diff 检查通过。macOS Intel/ARM、Linux amd64/ARM 和 Windows amd64/ARM 的 v43 产物均已重新构建，未执行 root 系统安装。
+
+既有失败：`hosts-idempotent-write-test.ts` 仍通过源码正则要求 Host 调用旧 `writeFileByRoot(this.hostsFile, result.content)`，而当前 Unix 分支已走 `syncUnixHosts`，该断言失败。本次未改此测试、Host/index.ts 或 SystemHostsBlock.ts，相关文件与 HEAD 一致；实际无变化、摘要冲突及文件元数据行为由 Go 运行时测试覆盖，本轮未扩展修复此旧断言。
+
+## 10. 用户管理的权限不设额外门槛（Linux 与 macOS）
+
+用户进一步明确 Linux 也适用：用户可自行配置、FlyEnv 无法管理的系统目录与工作目录，不应因为所有者、POSIX mode 或 ACL 不符合 FlyEnv 预设而阻止操作。第 9 节保留 Linux 旧策略的决定由本节替代。
+
+实施边界：Unix Hosts store 删除父目录保护选项与重复检查，两端使用同一文件操作策略；帮助程序自身的 protectedDirectory 只检查给定的 FlyEnv 管理目录，不递归检查系统祖先。固定系统工具由实际执行返回结果，不再校验其所在目录或可写位；系统 Keychain、Linux CA 目标目录同样不套用帮助程序资产的权限要求。Linux 安装只校验 FlyEnv 自身资源/目录，停止校验和改写系统安装父目录；macOS bootstrap 不校验系统 staging 祖先的权限。
+
+数据根保留绝对路径、目录存在及参数校验，取消其必须归桌面 UID 所有的要求。文件读取的类型/大小/链接边界与 FlyEnv 自身资产的权限校验在 unix_policy.go 集中复用；普通 CA 目标快照不经过资产权限策略。
+
+操作归属保持原样：main 持有安装全生命周期，Helper 持有固定文件操作和子进程；不新增状态、配置、控制器或重试。读取、写入、签名验证、必要执行和帮助程序自身授权资产仍是必要依赖，失败保持真实结果；DNS 等附加操作不否定已完成 Hosts 写入。固定文件格式、摘要/身份、输入角色与参数边界继续保留，不重新开放通用 root RPC。
+
+验证：共享 Hosts 和系统工具用例先复现权限门槛失败，修复后通过；本机 `test:helper` 契约/Go/vet、原生 Go 全包、Linux/macOS 安装流程、健康/失败/终端/版本回归、main/fork 构建与 ESLint 通过。Linux 交叉编译测试及 vet 通过；root fixture 补充管理目录只查自身、CA 目标 0777、工具可写和 root 所有的数据根场景。当前 macOS 无运行中的 Linux VM，未执行 Linux 原生/root fixture，也未操作系统 Hosts/CA 或真正安装 Helper；Linux 运行验证仍待专用环境执行。
+
+本轮继续使用尚未发布的 v43，更新后的 macOS/Linux/Windows 两种架构产物均重建。旧 Hosts 源码断言测试的问题仍按第 9 节记录，本轮未扩展修复。
+
+## 11. 恢复原有 Sudo.ts macOS 实现
+
+用户明确要求“调用 Sudo.ts”，没有授权重写其 macOS 部分。第 8 节将 literal AppleScript 授权迁入 Sudo.ts 的处理超出了该要求，已撤回；原 applet 的临时命令文件机制不是此次安装失败的已证实原因。
+
+Sudo.ts 完整恢复到本轮修改前的版本；AppHelper 继续通过 lazySudo 调用其 exec，不添加独立授权分支，并恢复原有 FlyEnv 名称和图标参数。仅在安装调用方兼容已有取消文案，以及从旧 applet 的 Error.message 中识别固定安装脚本错误标记，保留真实失败原因与完整 debug 堆栈。签名快照、Helper 目录 0755 修复及用户管理目录权限策略不受此回退影响。
+
+操作仍由 main AppHelper 持有，授权/安装/健康检查是必要依赖，成功发布并不等于安装成功；取消保持取消终态，失败不得覆盖为成功。不新增状态、控制器、重试或共享配置。回归通过真实原有 Sudo.ts 的 applet 解包、名称/图标和命令/结果文件路径，仅替换真正打开系统授权弹窗的边界，以普通用户执行临时测试命令；验证取消、原始安装标记及发布后 key 不可读的失败终态。未执行 root 安装或系统授权。
+
+## 12. 三端提权取消错误集中维护
+
+用户进一步授权统一取消错误类型。此前 Linux 有 LinuxSudoCancelledError，macOS 返回普通 Error 的固定取消文案，Windows 则使用 WindowsSudoError 的 elevation_uac_cancelled。现将错误类、Windows 取消分类及共用取消文案集中到 src/shared/SudoError.ts，三端取消均返回 SudoCancelledError；Linux/macOS 保留 elevation_cancelled，Windows 保留 elevation_uac_cancelled。Windows 启动失败、状态超时和执行失败继续各自分类。Sudo.ts 保留原导出入口，AppHelper 直接引用错误定义，不再判断 macOS 文本。
+
+本节是用户明确授权的错误类型调整，仅替换 macOS 原取消分支抛出的类型，不重写 applet、认证、名称/图标、命令执行或临时文件流程。安装 owner、互斥和成功健康检查契约保持原样；取消终态不报成功、不开启另一轮认证，真实执行失败继续传播。无新状态、配置或模块例外。
+
+Windows/macOS 取消类型断言先在旧实现失败，统一后通过；Linux 完整安装流程通过，包含“认证取消”和“已提权程序返回 126”的区分。原 applet 安装回归保留真实临时文件与普通用户命令执行，系统授权边界替换，无 root 系统安装。
+
+## 13. CA 与 Helper 安装、健康检查解耦
+
+按用户确认，CA 仍由 Helper 的固定接口导入，仅解除安装耦合。对照 hardening 前的 Host/SSL.ts 与 Go HostManager，复用原有 sslFindCertificate/sslAddTrustedCert 契约以及既有生成、队列、签发和错误处理流程；没有增加 SSL 控制器或 Sudo 授权路径。
+
+main 安装准备、bootstrap、两端安装脚本和 Go policy 不再读取/批准/保存 CA 指纹或公有证书；macOS health 不再验证 CA。旧安装界面的指纹与“新 CA 重新安装 Helper”文案一并移除。Unix 固定 dispatcher 实现旧接口名，独立查询固定名称 FlyEnv-Root-CA，只导入策略数据根 server/CA/FlyEnv-Root-CA.crt；单张公有 CA 与固定名称校验、私有临时快照集中在 unix_ca.go，两端只实现各自系统查询与导入。用户目录、文件权限及路径别名不作为权限门槛，实际读取、写入和工具错误仍传播。
+
+Linux 检查系统生成的信任 bundle，避免更新失败后仅存在 anchor 文件就误报已安装；导入失败不缓存成功，重试会再次执行信任更新。macOS 按系统 Keychain 中的固定名称判断，无指纹或额外 verify-cert 判定。CA 失败仅影响依赖它的自动 SSL 签发，保留已生成的 CA，不影响安装/健康/hosts；Windows 原行为保留。
+
+本次改变安装 policy 参数和 Unix RPC，协议同步升到 44，保证旧 Helper 被要求更新。旧 v43 权限修复记录仍是历史记录；本节实施时产物采用 v44，后续更新见第14节。
+
+验证：安装不读取 CA 的回归先复现失败，移除耦合后通过；自动 SSL 运行时回归覆盖生成保留、固定名称查询、导入失败/重试、查询失败/恢复及 debug 原因，两端共享证书输入测试覆盖同名不同证书、其他名称、非 CA/私钥/多证书拒绝、用户目录 0777/别名与私有快照。test:helper 契约/本机 Go/vet、Linux/macOS 安装/健康/终端/失败/版本回归、main/fork 打包编译、相关 ESLint、shell 语法和 diff 检查通过；Linux 测试交叉编译及 vet 通过。六种平台/架构 Helper 产物已重建。没有实际导入系统 CA、重装 root Helper 或修改系统 hosts；Linux 原生信任更新重试用例及真机 Keychain/系统信任验收待运行环境验证。
+
+## 14. Unix 兼容 review 全部问题与 Windows CA
+
+按用户授权完成 [Unix 兼容边界复查](unix-helper-compatibility-review.md) 剩余全部问题：集中保留普通账户真实附加组、支持数据根别名、普通 fork 读取 FTP 固定输入、取消 Linux 应用源 UID/mode/链接门槛及 macOS 无消费者的全局别名检查、两端共用普通账户 pure-pw 数据库生成。固定 root 业务和自身授权资产保护不变，必要失败仅影响其业务，FTP 生成失败保留旧数据库。
+
+Windows 自动 SSL 仍走原队列与既有权限路由，仅恢复系统 CA 按名称查询，取消查询时本地证书/指纹/路径预检。FTP 快照 RPC 改动使最终协议升为 v45，六种 Helper 产物重建；完整实现、通过检查和未运行的真机验收范围见上述文档末尾。不改通用 ProcessSend.ts、renderer util/Host.ts 或 Sudo.ts 的 macOS applet。

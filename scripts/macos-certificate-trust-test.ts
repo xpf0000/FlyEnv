@@ -1,93 +1,126 @@
 import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { X509Certificate } from 'node:crypto'
-import { macOSCertificateIsTrusted } from '../src/fork/module/Host/CertificateTrust'
+import { build } from 'esbuild'
+import { createRequire } from 'node:module'
+import { runInNewContext } from 'node:vm'
+import { ForkPromise } from '../src/shared/ForkPromise'
 
-const directory = await mkdtemp(join(tmpdir(), 'flyenv-ca-trust-test-'))
-try {
-  for (const name of ['a', 'b']) {
-    execFileSync(
-      'openssl',
-      [
-        'req',
-        '-x509',
-        '-newkey',
-        'rsa:1024',
-        '-nodes',
-        '-days',
-        '1',
-        '-subj',
-        '/CN=FlyEnv-Root-CA',
-        '-keyout',
-        join(directory, name + '.key'),
-        '-out',
-        join(directory, name + '.crt')
-      ],
-      { stdio: 'ignore' }
-    )
-  }
-  const path = join(directory, 'a.crt')
-  const pem = await readFile(path, 'utf8')
-  const other = await readFile(join(directory, 'b.crt'), 'utf8')
-  const certificate = new X509Certificate(pem)
-  const calls: string[][] = []
-  const trusted = (args: string[]) => {
-    calls.push(args)
-    return Promise.resolve({ stdout: args[0] === 'find-certificate' ? pem : '' })
-  }
-  assert.equal(await macOSCertificateIsTrusted(path, certificate, trusted), true)
-  assert.deepEqual(calls, [
-    ['find-certificate', '-a', '-p', '-Z', '/Library/Keychains/System.keychain'],
-    [
-      'verify-cert',
-      '-c',
-      path,
-      '-p',
-      'basic',
-      '-l',
-      '-L',
-      '-k',
-      '/Library/Keychains/System.keychain'
-    ]
-  ])
+const require = createRequire(import.meta.url)
+const bundled = await build({
+  entryPoints: ['src/fork/module/Host/SSL.ts'],
+  bundle: true,
+  platform: 'node',
+  format: 'cjs',
+  write: false,
+  plugins: [
+    {
+      name: 'boundaries',
+      setup(builder) {
+        builder.onResolve({ filter: /./ }, (args) =>
+          args.kind === 'entry-point' ? undefined : { path: args.path, external: true }
+        )
+      }
+    }
+  ]
+})
+const module = { exports: {} as any }
+const calls: any[][] = []
+const commands: string[] = []
+const logs: string[] = []
+let installed = false
+let rootExists = false
+let importError: Error | undefined
+let queryError: Error | undefined
+let windows = false
+runInNewContext(bundled.outputFiles[0].text, {
+  module,
+  exports: module.exports,
+  require: (name: string) => {
+    if (name === '@shared/ForkPromise') return { ForkPromise }
+    if (name === 'fs')
+      return {
+        existsSync: (path: string) => (path.endsWith('FlyEnv-Root-CA.crt') ? rootExists : true)
+      }
+    if (name === '../../Fn')
+      return {
+        hostAlias: () => ['example.test'],
+        mkdirp: async () => {},
+        remove: async () => {},
+        writeFile: async () => {},
+        copyFile: async () => {},
+        zipUnpack: async () => {},
+        execPromiseWithEnv: async (command: string) => {
+          commands.push(command)
+          if (command.includes('genrsa')) rootExists = true
+        }
+      }
+    if (name === '../../Helper')
+      return {
+        send: async (...args: any[]) => {
+          calls.push(args)
+          if (args[1] === 'sslFindCertificate') {
+            if (queryError) throw queryError
+            return { stdout: installed ? 'FlyEnv-Root-CA' : '', stderr: '' }
+          }
+          assert.equal(args[1], 'sslAddTrustedCert')
+          if (importError) throw importError
+          installed = true
+          return true
+        }
+      }
+    if (name === '@shared/utils')
+      return {
+        isWindows: () => windows,
+        appDebugLog: async (_label: string, message: string) => {
+          logs.push(message)
+        }
+      }
+    if (name === '@shared/WindowsHelperState') return { isAppHelperError: () => false }
+    return require(name)
+  },
+  global: { Server: { BaseDir: '/data/server', AppDir: '/data/app', Static: '/static' } },
+  console: { log: () => {} }
+})
+const host = { id: 'site', name: 'example.test' }
+for (windows of [false, true]) {
+  installed = false
+  rootExists = false
+  calls.length = 0
+  commands.length = 0
+  importError = new Error('system CA import failed')
+  const first = Promise.resolve(module.exports.makeAutoSSL(host))
+  if (windows) assert.equal(await first, false)
+  else await assert.rejects(first, (error) => error === importError)
+  assert.equal(rootExists, true, 'generation is retained after an import failure')
   assert.equal(
-    await macOSCertificateIsTrusted(path, certificate, async () => ({ stdout: other })),
+    commands.some((command) => command.includes('CA-site')),
     false,
-    'same CN is not the same CA'
+    'failed import must stop dependent site issuance'
   )
+  const generations = commands.filter((command) => command.includes('genrsa')).length
+  importError = undefined
+  assert.ok(await module.exports.makeAutoSSL(host), 'the existing SSL queue must permit retry')
+  assert.equal(commands.filter((command) => command.includes('genrsa')).length, generations)
+  assert.equal(calls.filter((call) => call[1] === 'sslAddTrustedCert').length, 2)
+  assert.deepEqual(calls[1], ['host', 'sslAddTrustedCert', '/data/server/CA', 'FlyEnv-Root-CA.crt'])
+  await module.exports.makeAutoSSL(host)
   assert.equal(
-    await macOSCertificateIsTrusted(path, certificate, async (args) => {
-      if (args[0] === 'verify-cert') throw Object.assign(new Error('not trusted'), { code: 1 })
-      return { stdout: pem }
-    }),
-    false
+    calls.filter((call) => call[1] === 'sslAddTrustedCert').length,
+    2,
+    'a CA found by the fixed name must not be imported again'
   )
-  assert.equal(
-    await macOSCertificateIsTrusted(path, certificate, async () => {
-      throw Object.assign(new Error('empty'), { code: 44 })
-    }),
-    false
-  )
-  await assert.rejects(
-    macOSCertificateIsTrusted(path, certificate, async () => {
-      throw Object.assign(new Error('denied'), { code: 'EACCES' })
-    }),
-    /denied/
-  )
-  await assert.rejects(
-    macOSCertificateIsTrusted(path, certificate, async (args) => {
-      if (args[0] === 'verify-cert')
-        throw Object.assign(new Error('security missing'), { code: 'ENOENT' })
-      return { stdout: pem }
-    }),
-    /security missing/
-  )
-  console.log(
-    'macOS certificate trust: exact fingerprint, explicit system keychain and real verification failures passed'
-  )
-} finally {
-  await rm(directory, { recursive: true, force: true })
 }
+windows = false
+queryError = new Error('system certificate query failed')
+const imports = calls.filter((call) => call[1] === 'sslAddTrustedCert').length
+await assert.rejects(
+  Promise.resolve(module.exports.makeAutoSSL(host)),
+  (error) => error === queryError
+)
+assert.equal(calls.filter((call) => call[1] === 'sslAddTrustedCert').length, imports)
+queryError = undefined
+assert.ok(await module.exports.makeAutoSSL(host), 'query failure must leave the SSL queue usable')
+assert.ok(logs.some((line) => line.includes('system CA import failed')))
+assert.ok(logs.some((line) => line.includes('system certificate query failed')))
+console.log(
+  'Existing auto SSL generation, fixed-name lookup, import failure, retry and debug logging passed'
+)

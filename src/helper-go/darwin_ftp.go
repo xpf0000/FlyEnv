@@ -80,11 +80,6 @@ type darwinFTPProcess struct {
 }
 
 func darwinFTPProcesses() (map[int]darwinFTPProcess, error) {
-	if f, err := openProtectedFile("/bin/ps", 128*1024*1024); err != nil {
-		return nil, err
-	} else {
-		f.Close()
-	}
 	output, err := runFixedTool("/bin/ps", 5*time.Second, "-axo", "pid=,ppid=,pgid=")
 	if err != nil {
 		return nil, err
@@ -113,11 +108,6 @@ func darwinFTPProcesses() (map[int]darwinFTPProcess, error) {
 	return result, nil
 }
 func darwinFTPTool(args ...string) (string, error) {
-	f, err := openProtectedFile("/bin/launchctl", 128*1024*1024)
-	if err != nil {
-		return "", err
-	}
-	f.Close()
 	return runFixedTool("/bin/launchctl", 15*time.Second, args...)
 }
 func darwinFTPJobPID(p darwinPolicy) (int, error) {
@@ -162,13 +152,9 @@ func darwinFTPPW(bin string) (string, error) {
 	}
 	return "", fmt.Errorf("pure-pw executable required: %w", last)
 }
-func refreshDarwinFTPDatabase(p darwinPolicy, bin string) error {
+func refreshDarwinFTPDatabase(p darwinPolicy, bin, source string) error {
 	dir := darwinFTPDirectory(p)
 	pw, err := darwinFTPPW(bin)
-	if err != nil {
-		return err
-	}
-	source, err := ftpUserFile(filepath.Join(p.DataRoot, "server/ftp/pureftpd.passwd"), p, true)
 	if err != nil {
 		return err
 	}
@@ -176,12 +162,7 @@ func refreshDarwinFTPDatabase(p darwinPolicy, bin string) error {
 	if err != nil {
 		return err
 	}
-	if err = writeProtectedFile(filepath.Join(dir, "users.passwd"), []byte(users), 0600, 0); err != nil {
-		return err
-	}
-	// pure-pw only builds data and runs as the installed account; no root execution.
-	// Give it its private staging directory, then snapshot output to root runtime.
-	return buildDarwinFTPDatabase(p, pw, users, dir)
+	return buildUnixFTPDatabase(p, pw, users, dir)
 }
 func plistString(value string) string {
 	var b strings.Builder
@@ -191,7 +172,7 @@ func plistString(value string) string {
 func darwinFTPPlist(p darwinPolicy, bin, dir string) string {
 	return `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>Label</key><string>` + darwinFTPLabel(p) + `</string><key>ProgramArguments</key><array><string>` + plistString(bin) + `</string><string>` + plistString(filepath.Join(dir, "pure-ftpd.conf")) + `</string></array><key>RunAtLoad</key><true/><key>KeepAlive</key><false/><key>AbandonProcessGroup</key><false/><key>ExitTimeOut</key><integer>10</integer><key>WorkingDirectory</key><string>/</string><key>EnvironmentVariables</key><dict><key>PATH</key><string>/usr/bin:/bin:/usr/sbin:/sbin</string></dict></dict></plist>`
 }
-func startDarwinFTP(bin string, p darwinPolicy) (int, error) {
+func startDarwinFTP(req unixFTPStart, p darwinPolicy) (int, error) {
 	darwinFTPMutex.Lock()
 	defer darwinFTPMutex.Unlock()
 	dir := darwinFTPDirectory(p)
@@ -206,15 +187,11 @@ func startDarwinFTP(bin string, p darwinPolicy) (int, error) {
 	} else if !strings.Contains(err.Error(), "Could not find service") {
 		return 0, err
 	}
-	bin, err := darwinFTPBinary(bin, "pure-ftpd")
+	bin, err := darwinFTPBinary(req.Bin, "pure-ftpd")
 	if err != nil {
 		return 0, err
 	}
-	config, err := ftpUserFile(filepath.Join(p.DataRoot, "server/ftp/pure-ftpd.conf"), p, false)
-	if err != nil {
-		return 0, err
-	}
-	config, err = ftpConfig(config, dir)
+	config, err := ftpConfig(req.Config, dir)
 	if err != nil {
 		return 0, err
 	}
@@ -227,7 +204,7 @@ func startDarwinFTP(bin string, p darwinPolicy) (int, error) {
 	if err = writeProtectedFile(filepath.Join(dir, "pure-ftpd.conf"), []byte(config), 0600, 0); err != nil {
 		return 0, err
 	}
-	if err = refreshDarwinFTPDatabase(p, bin); err != nil {
+	if err = refreshDarwinFTPDatabase(p, bin, req.Users); err != nil {
 		return 0, err
 	}
 	plist := filepath.Join(dir, "job.plist")
@@ -291,7 +268,7 @@ func beginDarwinFTPJob(p darwinPolicy, bin, plist string) (int, error) {
 	return pid, nil
 }
 
-func refreshDarwinFTPUsers(p darwinPolicy) (bool, error) {
+func refreshDarwinFTPUsers(p darwinPolicy, source string) (bool, error) {
 	darwinFTPMutex.Lock()
 	defer darwinFTPMutex.Unlock()
 	state, err := ftpReadState(p)
@@ -319,7 +296,7 @@ func refreshDarwinFTPUsers(p darwinPolicy) (bool, error) {
 	if !ok || proc.Birth != state.Birth {
 		return false, fmt.Errorf("FTP PID identity changed")
 	}
-	return true, refreshDarwinFTPDatabase(p, state.Bin)
+	return true, refreshDarwinFTPDatabase(p, state.Bin, source)
 }
 func darwinFTPJobAbsent(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "Could not find service")

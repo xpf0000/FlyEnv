@@ -18,7 +18,7 @@ import (
 
 func TestDarwinFixedBoundary(t *testing.T) {
 	p := darwinPolicy{Version: Helper_Version, UID: 501, GID: 20}
-	for _, action := range []string{"tools.runScript", "tools.writeFileByRoot", "tools.writeBufferBase64ByRoot", "tools.readFileByRoot", "tools.rm", "tools.chmod", "tools.kill", "tools.killPorts", "tools.ln_s", "tools.processListWin", "tools.getPortPids", "tools.removeLoginItemMac", "rabbitmq.initPlugin", "php.iniFileFixed", "redis.logFileFixed", "mailpit.binFixed", "mysql.macportsDirFixed", "mariadb.macportsDirFixed", "host.sslAddTrustedCert", "host.sslFindCertificate", "service.launchLowPort"} {
+	for _, action := range []string{"tools.runScript", "tools.writeFileByRoot", "tools.writeBufferBase64ByRoot", "tools.readFileByRoot", "tools.rm", "tools.chmod", "tools.kill", "tools.killPorts", "tools.ln_s", "tools.processListWin", "tools.getPortPids", "tools.removeLoginItemMac", "rabbitmq.initPlugin", "php.iniFileFixed", "redis.logFileFixed", "mailpit.binFixed", "mysql.macportsDirFixed", "mariadb.macportsDirFixed", "service.launchLowPort"} {
 		parts := strings.SplitN(action, ".", 2)
 		if _, err := dispatchDarwin(TaskItem{Module: parts[0], Function: parts[1]}, p); err == nil {
 			t.Fatal("accepted closed operation", action)

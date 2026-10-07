@@ -69,7 +69,7 @@ HMAC 是协议认证，不是同 UID 恶意代码的隔离。无日常认证的�
 建议布局：继续使用现有 Helper 安装目录与 LaunchDaemon label；新增 root 保护的 `policy.json`、`client.key` 和 `approved-ca.crt`。socket 改到 `/private/var/run/flyenv-helper/helper.sock`，父目录 root 所有且不可由用户替换。
 
 - 策略沿用 Linux 实施后的简单结构：版本、安装 UID/GID、核实后的数据根、批准 CA 指纹；固定 action 和系统资源写在版本化代码中，不增加 action 注册器。当前仍为一个安装账户，不暗中扩成多用户全局授权。
-- policy、plist、程序、证书存档及所有父目录由 root 保护；client.key root 所有，用 macOS ACL 仅赋安装 UID 读取权，检查 ACL 与父目录，不能仅检查 POSIX mode 或赋整个 wheel/共享组读取。
+- policy、plist、程序、证书存档及 FlyEnv 自身管理目录由 root 保护；client.key root 所有，用 macOS ACL 仅赋安装 UID 读取权，检查文件 ACL 与自身目录，不递归检查用户配置的系统祖先目录。不能仅检查 POSIX mode 或赋整个 wheel/共享组读取。
 - socket 可以赋安装 UID 连接权限，但其 root 父目录不能可写；先完成 socket 权限，再受理业务。失败直接停止，不回退旧 `/tmp` socket 或旧协议。
 - 安装先预检来源、参数与现有资源，确认旧 Helper 已停止后，才更新策略/密钥、程序和 plist；停止失败保留旧资产。发布失败报告真实阶段，不凭脚本启动成功就宣称安装完成，成功条件包括新版本与策略健康检查。
 - 当前临时脚本/plist/binary 均由桌面用户持有，不能作为 root 信任锚。发布安装必须由固定安装入口将输入快照复制到 root 私有 staging，再验证发布签名与资源完整性，并从保护后的快照发布；bootstrap 不能是任意用户脚本，签名要求不能由 RPC/安装参数自报。脚本不允许执行前再次从原可写路径加载，避免“校验路径后重新打开”的竞态。开发未签名安装单独标记为管理员主动开发维护，不进入生产自动降级。本地 `electron-builder.mac.local.ts` 的未签名 production 包不能安装帮助程序；它不会因为签名失败自动转为开发安装。
@@ -180,9 +180,9 @@ Windows 专有接口不得被 macOS 新 dispatcher 误放行；Linux dispatcher 
 ### 实现收敛
 
 - Go 的 `unix_policy.go`、`unix_hosts.go`、`unix_dispatch.go`、`unix_ftp.go`、`unix_tool.go` 共用策略 schema、受保护句柄、hosts 合并/摘要/原子事务、FTP 配置与账户解析、固定工具限时及输出边界。Darwin 文件仅承担固定路径、原生 ACL/flags、Keychain/DNS、launchd 与实际进程出生时间差异；不增加通用命令注册器。
-- Darwin 固定 dispatcher 拒绝旧脚本/文件/PID/模块修复 RPC。连接绑定真实 `LOCAL_PEERPID` 和 UID；策略/密钥在启动时加载，health 验证受保护资产而不并发更新全局授权。密钥 root 持有，原生 ACL 只允许安装 UID 读取；父目录的 ACL 同步核实。仅固定系统祖先 `/private/var/run` 的 root:daemon 775 采用受限兼容检查，不放宽一般路径。
+- Darwin 固定 dispatcher 拒绝旧脚本/文件/PID/模块修复 RPC。连接绑定真实 `LOCAL_PEERPID` 和 UID；策略/密钥在启动时加载，health 验证受保护资产而不并发更新全局授权。密钥 root 持有，原生 ACL 只允许安装 UID 读取；只检查 FlyEnv 自身管理目录的属性，按用户要求取消系统祖先的权限/所有者/ACL 门槛，不再需要 `/private/var/run` 的特殊兼容分支。详见 review 第 10 节。
 - 原生 ACL/文件属性/进程身份桥接集中于 `darwin_acl.go`；无 cgo 时相关安全操作明确失败。Darwin 构建固定 SDK sysroot 与 macOS 12 部署目标，Linux/Windows 仍无 cgo。当前 Electron 39 原有系统下限为 macOS 12，未因本次使用新版 SDK 提高到 macOS 15。[Electron 官方兼容说明](https://www.electronjs.org/blog/electron-38-0)
-- AppHelper 固定 bootstrap 将发布应用复制到 root 私有 staging，校验真实发行者签名及完整 sealed resources，并要求签名 Info.plist 的 `FlyEnvHelperProtocolVersion=42` 后才执行安装脚本，旧真实发布包也不能回退执行旧安装协议。图形安装使用系统 AppleScript 的字面命令认证，终端复用同一固定命令；开发未签名安装单独明确标记，不从生产失败降级。停旧服务和真实 PID 退出是更新授权资产的必要前提。
+- AppHelper 固定 bootstrap 将发布应用复制到 root 私有 staging，校验真实发行者签名及完整 sealed resources，并要求签名 Info.plist 的 `FlyEnvHelperProtocolVersion=43` 后才执行安装脚本，旧真实发布包也不能回退执行旧安装协议。图形安装调用原有 Sudo.ts applet 认证，传入 FlyEnv 名称和图标；不修改共享提权实现，终端复用同一固定命令；开发未签名安装单独明确标记，不从生产失败降级。停旧服务和真实 PID 退出是更新授权资产的必要前提。
 - 客户端共用 `Host/UnixHosts.ts`，全文与托管块编辑共享队列，退出先 drain 再 clear。Go 返回实际 changed，全文无变化不会写或刷新；macOS 成功改变后统一调用固定 DNS，DNS 或诊断失败只影响刷新结果，不重放或否定已经完成的 hosts 写入。未改 `ProcessSend.ts` 或 renderer `util/Host.ts` 的错误展示。
 - CA 只允许安装批准的公共证书指纹；普通查询同时核对系统 keychain 中的精确证书和有效信任，不按 CN 判定，也不通过显式信任锚参数绕过安装状态。后台任意 sudo、密码保存/注入、通用文件/进程提权与登录项/quarantine 回退已撤回；PHP/RabbitMQ/个人 shell 改普通用户操作。MacPorts 老数据库安装资源集中准备到普通用户 basedir，未写系统包目录。
 - MacPorts 换源由一个模块本地 controller 持有预览、IPC、XTerm、重入 guard、清理与文件结果，无 Pinia/共享配置扩展；两个必要文件独立执行，保留 completed/failed/unknown 与终端记录，部分失败不自动重放。系统文件普通编辑器保持只读，明确终端维护。
@@ -199,10 +199,18 @@ Windows 专有接口不得被 macOS 新 dispatcher 误放行；Linux dispatcher 
 
 ### 未运行的系统验收
 
-尚未对真实系统安装/更新 Helper、写系统 hosts 或 Keychain、启停 root launchd FTP；新签名发行包首次安装/升级、Intel 真机、受支持旧系统版本、实际 FTP 登录/上传/账户更新/动态库与会话退出、旧 MacPorts MySQL/MariaDB 初始化需专用环境验收。当前机器只读检查发现 `/private/etc` 已为不安全的 777；本次未修改它，新 hosts 路径会拒绝这种目录，不能以当前主机测试冒充健康系统验收。
+尚未对真实系统安装/更新 Helper、写系统 hosts 或 Keychain、启停 root launchd FTP；新签名发行包首次安装/升级、Intel 真机、受支持旧系统版本、实际 FTP 登录/上传/账户更新/动态库与会话退出、旧 MacPorts MySQL/MariaDB 初始化需专用环境验收。当前机器只读检查发现 `/private/etc` 为 777，本次未修改它。用户随后明确要求 macOS Hosts 不受该目录权限限制，已在 v43 移除 Hosts 父目录保护校验，实施与回归见 review 第 9 节；策略、密钥和 socket 等帮助程序自身资产仍检查父目录。
 
 普通 UID 501 在当前 macOS 的短暂 bind/close 探测：`0.0.0.0`/`::` 的 80、443 成功，`127.0.0.1`/`::1` 的 80、443 返回 EACCES，四种地址的 18080 均成功；没有改变现有服务地址、端口或提权行为，也没有把这一台机器的结果扩成所有系统保证。
 
 ## 14 独立 review 跟进
 
 用户已授权处理 [独立 review](macos-helper-hardening-review.md)。两个 Major 及优先 Minor 已修复：macOS sudo 终端统一入口、图形/终端安装实际互斥、完整 hosts 编辑原始摘要、响应 Key 与 Darwin 超时、MacPorts 失败结果保留、受保护文件/CA/socket 与安装预检细节。无用密码/FTP 分支已清理；验证结果、必要澄清和未扩展项目见 review 第 6 节。系统验收边界继续按第 13 节，不因代码审查通过而豁免。
+
+### 2026-10-07：CA 安装解耦（协议 v44）
+
+按用户确认，仅解除 CA 与 Helper 安装/健康检查的耦合，CA 导入仍走固定 Helper 接口。复用已有自动 SSL 流程和 sslFindCertificate/sslAddTrustedCert 契约，按固定名称检测系统 Keychain，缺少时导入数据根中的固定公有 CA 临时快照；不增加 Sudo 流程、指纹绑定或 verify-cert 门槛。实际 CA 操作失败只阻断本次 SSL，不阻断 Helper/hosts。详见 macos-helper-hardening-review.md 第13节。
+
+### 2026-10-07：兼容 review 全部问题（协议 v45）
+
+集中保留系统附加组；FTP 固定输入由普通 fork 按真实账户权限读取有界快照，两端共用普通账户 pure-pw 构建与固定数据库发布；移除 Helper 初始化对 `/etc`、`/var` 的全局别名断言。固定 root 业务、自身授权资产、Sudo 原 applet 与现有操作生命周期保持。完整结果及测试范围见 [Unix 兼容 review](unix-helper-compatibility-review.md) 末尾；最终 Helper 协议为 v45。

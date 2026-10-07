@@ -4,40 +4,26 @@ package main
 
 import (
 	"fmt"
-	"golang.org/x/sys/unix"
-	"io"
 	"net"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 )
 
-func ftpUserFile(path string, p unixPolicy, optional bool) (string, error) {
-	f, err := openNoSymlinks(path, unix.O_RDONLY|unix.O_NONBLOCK, 0)
-	if optional && os.IsNotExist(err) {
-		return "", nil
-	}
-	if err != nil {
-		return "", err
-	}
-	defer f.Close()
-	st, err := f.Stat()
-	if err != nil {
-		return "", err
-	}
-	meta := st.Sys().(*syscall.Stat_t)
-	if !st.Mode().IsRegular() || int(meta.Uid) != p.UID || meta.Nlink != 1 || st.Size() > 1024*1024 {
-		return "", fmt.Errorf("FTP input must be a bounded regular file owned by the authorized user")
-	}
-	data, err := io.ReadAll(io.LimitReader(f, 1024*1024+1))
-	if len(data) > 1024*1024 {
-		return "", fmt.Errorf("FTP input is too large")
-	}
-	return string(data), err
+type unixFTPStart struct {
+	Bin    string `json:"bin"`
+	Config string `json:"config"`
+	Users  string `json:"users"`
 }
+
+type unixFTPUsers struct {
+	Users string `json:"users"`
+}
+
 func ftpConfig(source, dir string) (string, error) {
+	if len(source) > hostsLimit || strings.TrimSpace(source) == "" {
+		return "", fmt.Errorf("expected bounded FTP configuration")
+	}
 	booleans := strings.Fields("ChrootEveryone BrokenClientsCompatibility VerboseLog DisplayDotFiles AnonymousOnly NoAnonymous DontResolve AnonymousCanCreateDirs AntiWarez AllowUserFXP AllowAnonymousFXP ProhibitDotFilesWrite ProhibitDotFilesRead AutoRename AnonymousCantUpload CustomerProof")
 	counts := strings.Fields("MaxClientsNumber MaxClientsPerIP MaxIdleTime MinUID MaxDiskUsage")
 	allowedBool, allowedCount := map[string]bool{}, map[string]bool{}
@@ -114,7 +100,7 @@ func ftpConfig(source, dir string) (string, error) {
 	return strings.Join(lines, "\n") + "\n", nil
 }
 func ftpUsers(source string, p unixPolicy) (string, error) {
-	if p.UID <= 0 || p.GID <= 0 || strings.ContainsAny(source, "\x00\r") {
+	if p.UID <= 0 || p.GID <= 0 || len(source) > hostsLimit || strings.ContainsAny(source, "\x00\r") {
 		return "", fmt.Errorf("invalid FTP users")
 	}
 	seen, lines := map[string]bool{}, []string{}

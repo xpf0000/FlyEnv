@@ -22,7 +22,7 @@ const helper = createAppHelper({
 })
 helper.command = async () => {
   commandCalls++
-  return { command: 'fixed installer', icns: '', caFingerprint: 'approved' }
+  return { command: 'fixed installer', icns: '' }
 }
 helper.onSuduExecSuccess(() => readyCalls++)
 const pending = helper.installInTerminal(async (options) => {

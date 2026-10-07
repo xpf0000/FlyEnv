@@ -10,7 +10,8 @@ import (
 	"syscall"
 )
 
-var darwinHosts = &hostsStore{path: "/private/etc/hosts", protected: true}
+// Hosts uses the fixed file's validation, independent of user-configured parent permissions.
+var darwinHosts = &hostsStore{path: "/private/etc/hosts"}
 
 func validateHostsMutation(st os.FileInfo) error {
 	flags := st.Sys().(*syscall.Stat_t).Flags
