@@ -5,5 +5,6 @@
   "trayMenuBarStyle": "Bakke Popup Stil",
   "classic": "Klassisk",
   "modern": "Moderne",
-  "trayMenuBarStyleTips": "Vælg bakke popup stil. På nogle Linux desktops, den moderne stil kan have problemer, så du kan vælge den klassiske stil i stedet."
+  "trayMenuBarStyleTips": "Vælg bakke popup stil. På nogle Linux desktops, den moderne stil kan have problemer, så du kan vælge den klassiske stil i stedet.",
+  "more": "Mere"
 }

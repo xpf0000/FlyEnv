@@ -50,5 +50,7 @@
   "auto": "Automaattinen",
   "noVerionsFoundInLib": "Ei saatavilla olevaa versiota",
   "showToolBtn": "Näytä Kelluva Työkalupainike",
-  "inputSearchKey": "Etsi avainsana"
+  "inputSearchKey": "Etsi avainsana",
+  "macPortsSourceTerminal": "Tarkista lähteen asetukset ja ota ne sitten käyttöön päätteessä sudo-todennuksen avulla.",
+  "linuxSystemFileReadOnly": "Järjestelmän ympäristötiedostot ovat täällä vain luettavissa. Ylläpidä niitä päätteessä järjestelmänvalvojan oikeuksilla; käyttäjäprofiilisi tiedostoja voi edelleen muokata."
 }

@@ -34,5 +34,6 @@
   "databaseBackup": "Kopia zapasowa bazy danych",
   "backupSaveDirSet": "Zapisz ustawienia lokalizacji",
   "saveDirError": "Nieprawidłowa lokalizacja zapisu",
-  "backupFail": "Kopia zapasowa {database} nie powiodła się, błąd: {error}"
+  "backupFail": "Kopia zapasowa {database} nie powiodła się, błąd: {error}",
+  "socket": "Ścieżka gniazda połączenia lokalnego (domyślnie: /tmp/mysql.sock). W systemie Windows jest to nazwa potoku nazwanego (domyślnie: MySQL)."
 }

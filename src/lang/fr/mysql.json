@@ -34,5 +34,6 @@
   "databaseBackup": "Sauvegarde de la base de données",
   "backupSaveDirSet": "Paramètres de l'emplacement de sauvegarde",
   "saveDirError": "Emplacement de sauvegarde invalide",
-  "backupFail": "Échec de la sauvegarde de {database}, erreur: {error}"
+  "backupFail": "Échec de la sauvegarde de {database}, erreur: {error}",
+  "socket": "Chemin du socket de connexion locale (par défaut : /tmp/mysql.sock). Sous Windows, il s’agit du nom du canal nommé (par défaut : MySQL)."
 }

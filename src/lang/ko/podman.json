@@ -99,5 +99,7 @@
     "readonlyFs": "읽기 전용 루트 파일시스템",
     "maxRetry": "최대 재시도",
     "loading": "컨테이너 정보를 불러오는 중..."
-  }
+  },
+  "rosettaGlobalTip": "Apple Silicon 기기의 Podman 전역 설정으로 적용됩니다(VM별 설정이 아님). Podman >= 5.1.0이 필요합니다.",
+  "rosettaNeedVersion": "Rosetta에는 Podman >= 5.1.0이 필요합니다. 이 스위치를 활성화하려면 Podman을 업그레이드하세요."
 }

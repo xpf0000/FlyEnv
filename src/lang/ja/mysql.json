@@ -34,5 +34,6 @@
   "databaseBackup": "データベースのバックアップ",
   "backupSaveDirSet": "保存先の設定",
   "saveDirError": "無効な保存先",
-  "backupFail": "{database}のバックアップに失敗しました、エラー: {error}"
+  "backupFail": "{database}のバックアップに失敗しました、エラー: {error}",
+  "socket": "ローカル接続の Socket パス（既定値：/tmp/mysql.sock）。Windows では名前付きパイプの名前です（既定値：MySQL）。"
 }

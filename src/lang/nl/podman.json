@@ -99,5 +99,7 @@
     "readonlyFs": "Alleen-Lezen Root FS",
     "maxRetry": "Max. aantal keer proberen",
     "loading": "containerinformatie laden..."
-  }
+  },
+  "rosettaGlobalTip": "Geldt als algemene Podman-voorkeur voor computers met Apple Silicon (niet per virtuele machine). Vereist Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta vereist Podman >= 5.1.0. Werk Podman bij om deze schakelaar in te schakelen."
 }

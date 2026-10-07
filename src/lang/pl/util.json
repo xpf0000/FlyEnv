@@ -50,5 +50,7 @@
   "auto": "Auto",
   "noVerionsFoundInLib": "Brak dostępnej wersji",
   "showToolBtn": "Wyświetl przycisk narzędzi pływających",
-  "inputSearchKey": "Szukaj słowa kluczowe"
+  "inputSearchKey": "Szukaj słowa kluczowe",
+  "macPortsSourceTerminal": "Sprawdź konfigurację źródła, a następnie zastosuj ją w terminalu z uwierzytelnianiem sudo.",
+  "linuxSystemFileReadOnly": "Pliki środowiska systemowego są tutaj dostępne tylko do odczytu. Do ich zarządzania użyj terminala z uprawnieniami administratora; pliki Twojego profilu użytkownika pozostają edytowalne."
 }

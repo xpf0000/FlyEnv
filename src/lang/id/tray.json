@@ -5,5 +5,6 @@
   "trayMenuBarStyle": "Gaya Popup Tray",
   "classic": "Klasik",
   "modern": "Modern",
-  "trayMenuBarStyleTips": "Pilih gaya popup tray. Di beberapa desktop Linux, gaya modern mungkin bermasalah, Anda dapat memilih gaya klasik sebagai gantinya."
+  "trayMenuBarStyleTips": "Pilih gaya popup tray. Di beberapa desktop Linux, gaya modern mungkin bermasalah, Anda dapat memilih gaya klasik sebagai gantinya.",
+  "more": "Lainnya"
 }

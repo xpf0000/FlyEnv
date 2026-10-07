@@ -99,5 +99,7 @@
     "readonlyFs": "Csak olvasható root FS",
     "maxRetry": "Max. próbálkozás",
     "loading": "Konténerinformáció betöltése..."
-  }
+  },
+  "rosettaGlobalTip": "Globális Podman-beállításként érvényes az Apple Silicon gépeken (nem virtuális gépenként). Podman >= 5.1.0 szükséges.",
+  "rosettaNeedVersion": "A Rosetta használatához Podman >= 5.1.0 szükséges. A kapcsoló engedélyezéséhez frissítse a Podmant."
 }

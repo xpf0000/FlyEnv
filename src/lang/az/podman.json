@@ -99,5 +99,7 @@
     "readonlyFs": "Yalnız oxuma rejimində fayl sistemi",
     "maxRetry": "Maksimum yenidən cəhd",
     "loading": "Konteyner məlumatı yüklənir..."
-  }
+  },
+  "rosettaGlobalTip": "Apple Silicon cihazları üçün qlobal Podman ayarı kimi tətbiq olunur (ayrı-ayrı virtual maşınlar üçün deyil). Podman >= 5.1.0 tələb olunur.",
+  "rosettaNeedVersion": "Rosetta üçün Podman >= 5.1.0 tələb olunur. Bu keçidi aktivləşdirmək üçün Podman-ı yeniləyin."
 }

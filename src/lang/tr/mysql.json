@@ -34,5 +34,6 @@
   "databaseBackup": "Veritabanı yedekleme",
   "backupSaveDirSet": "Kaydetme konumu ayarları",
   "saveDirError": "Geçersiz kaydetme konumu",
-  "backupFail": "{database} yedekleme başarısız, hata: {error}"
+  "backupFail": "{database} yedekleme başarısız, hata: {error}",
+  "socket": "Yerel bağlantı soketinin yolu (varsayılan: /tmp/mysql.sock). Windows'ta bu, adlandırılmış kanalın adıdır (varsayılan: MySQL)."
 }

@@ -50,5 +50,7 @@
   "auto": "Automat",
   "noVerionsFoundInLib": "Nici o versiune disponibilă",
   "showToolBtn": "Afișează butonul plutitor",
-  "inputSearchKey": "Căutare cuvânt cheie"
+  "inputSearchKey": "Căutare cuvânt cheie",
+  "macPortsSourceTerminal": "Verificați configurația sursei, apoi aplicați-o în terminal folosind autentificarea sudo.",
+  "linuxSystemFileReadOnly": "Fișierele de mediu ale sistemului pot fi doar citite aici. Folosiți un terminal cu drepturi de administrator pentru a le gestiona; fișierele profilului dvs. de utilizator rămân editabile."
 }

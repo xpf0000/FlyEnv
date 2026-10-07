@@ -99,5 +99,7 @@
     "readonlyFs": "Vain Luetuin Juuri FS",
     "maxRetry": "Maksimi Uudelleen",
     "loading": "Ladataan säiliön tietoja..."
-  }
+  },
+  "rosettaGlobalTip": "Koskee Podmanin yleistä asetusta Apple Silicon -tietokoneissa (ei yksittäistä virtuaalikonetta). Vaatii Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta vaatii Podman >= 5.1.0. Päivitä Podman, jotta voit ottaa tämän asetuksen käyttöön."
 }

@@ -99,5 +99,7 @@
     "readonlyFs": "Skrivskyddat rotfilsystem",
     "maxRetry": "Maximalt antal försök",
     "loading": "Läser in containerns information..."
-  }
+  },
+  "rosettaGlobalTip": "Gäller som en global Podman-inställning för datorer med Apple Silicon (inte per virtuell maskin). Kräver Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta kräver Podman >= 5.1.0. Uppgradera Podman för att aktivera detta reglage."
 }

@@ -50,5 +50,7 @@
   "auto": "Otomatik",
   "noVerionsFoundInLib": "Mevcut sürüm bulunamadı",
   "showToolBtn": "Araçlar İçin Yüzen Butonu Göster",
-  "inputSearchKey": "Anahtar kelime"
+  "inputSearchKey": "Anahtar kelime",
+  "macPortsSourceTerminal": "Kaynak yapılandırmasını gözden geçirin, ardından sudo kimlik doğrulamasını kullanarak terminalde uygulayın.",
+  "linuxSystemFileReadOnly": "Sistem ortam dosyaları burada salt okunurdur. Bunları yönetmek için yönetici haklarına sahip bir terminal kullanın; kullanıcı profilinizin dosyaları düzenlenebilir olmaya devam eder."
 }

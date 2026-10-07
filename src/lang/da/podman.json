@@ -99,5 +99,7 @@
     "readonlyFs": "Læsebeskyttet Root FS",
     "maxRetry": "Maks. Forsøg Igen",
     "loading": "Indlæser container info..."
-  }
+  },
+  "rosettaGlobalTip": "Gælder som en global Podman-indstilling på Apple Silicon-maskiner (ikke pr. virtuel maskine). Kræver Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta kræver Podman >= 5.1.0. Opgradér Podman for at aktivere denne indstilling."
 }

@@ -7,7 +7,6 @@
   "useSysPHP": "使用預設 PHP 版本",
   "setByApp": "FlyEnv 設定的環境變數",
   "setByNoApp": "非 FlyEnv 設定的環境變數",
-  "ftpdNeedPasswordToStart": "Pure-FTPd 需要管理員權限啟動，請輸入當前使用者密碼。後續會使用此密碼自動填充。您也可以點擊下方按鈕在終端中手動輸入，但此提示可能會再次出現。",
   "bundleinVersionDelTips": "此版本為內建版本，確定不再顯示？",
   "customDirVersionDelTips": "此版本為使用者自訂版本，確定不再顯示？",
   "ErrorTips": {
@@ -18,5 +17,8 @@
       "versionRange": "版本範圍",
       "msvsVersion": "MSVC 版本"
     }
-  }
+  },
+  "linuxSudoRequiresTerminal": "請手動啟動此工作並在終端機完成授權；macOS/Linux 不支援在背景自動執行 sudo。",
+  "linuxFtpUnmanagedRoot": "此 root FTP 程序不屬於 FlyEnv 管理的服務。請先以管理員權限停止舊程序，再重新啟動。",
+  "linuxFtpUsersRefreshFailed": "FTP 帳號變更已儲存，但執行中的服務無法套用變更：{error}"
 }

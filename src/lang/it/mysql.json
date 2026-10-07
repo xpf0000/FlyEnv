@@ -34,5 +34,6 @@
   "databaseBackup": "Backup database",
   "backupSaveDirSet": "Impostazioni percorso salvataggio",
   "saveDirError": "Percorso salvataggio non valido",
-  "backupFail": "Backup di {database} fallito, errore: {error}"
+  "backupFail": "Backup di {database} fallito, errore: {error}",
+  "socket": "Percorso del socket per la connessione locale (predefinito: /tmp/mysql.sock). Su Windows, è il nome della pipe denominata (predefinito: MySQL)."
 }

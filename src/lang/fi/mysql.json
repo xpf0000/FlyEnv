@@ -34,5 +34,6 @@
   "databaseBackup": "Tietokannan varmuuskopiointi",
   "backupSaveDirSet": "Tallenna sijaintiasetukset",
   "saveDirError": "Virheellinen tallennuksen sijainti",
-  "backupFail": "Varmuuskopiointi kohteelle {database} epaonnistui, virhe: {error}"
+  "backupFail": "Varmuuskopiointi kohteelle {database} epaonnistui, virhe: {error}",
+  "socket": "Paikallisen yhteyden socket-polku (oletus: /tmp/mysql.sock). Windowsissa tämä on nimetyn putken nimi (oletus: MySQL)."
 }

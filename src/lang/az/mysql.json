@@ -34,5 +34,6 @@
   "databaseBackup": "Verilənlər bazasının ehtiyat nüsxəsi",
   "backupSaveDirSet": "Yadda saxlanma yeri ayarları",
   "saveDirError": "Yanlış yadda saxlanma yeri",
-  "backupFail": "{database} ehtiyat nüsxəsi alınmadı, xəta: {error}"
+  "backupFail": "{database} ehtiyat nüsxəsi alınmadı, xəta: {error}",
+  "socket": "Yerli bağlantı üçün soket yolu (standart: /tmp/mysql.sock). Windows-da bu, adlandırılmış borunun adıdır (standart: MySQL)."
 }

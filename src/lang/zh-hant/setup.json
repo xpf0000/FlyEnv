@@ -21,7 +21,6 @@
   "autoHideTips": "是否在啟動服務後，隱藏主介面，只保留托盤圖示",
   "autoLaunch": "開機啟動",
   "autoLaunchTips": "是否開機時自動啟動 App",
-  "passwordTips": "非必填。用於執行命令時，自動填充密碼。例如使用 Macports 安裝解除安裝等",
   "langTips": "載入使用者自訂語言包。同時也會初始化一套預設語言包，方便使用者翻譯成其他語言。",
   "openLangDir": "開啟語言包資料夾",
   "moduleCateAddTips": "添加模組分類",
@@ -105,8 +104,6 @@
     "helperDescription": "安裝透過排程工作在背景執行的輔助程式，為支援的操作提供管理員權限。安裝或修復需要管理員授權，後續通常無須重複核准。",
     "helperReady": "輔助程式已就緒。",
     "settingsHint": "選擇後會記住您的設定，後續可在「設定 → 權限授權方式」重新選擇。",
-    "disableOption": "同時停用此帳號之前安裝的輔助程式（可能需要 UAC）",
-    "disableOnSwitch": "切換至 UAC 後會自動停用此帳號的輔助程式，保留安裝檔案。",
     "disableHelperTips": "僅處理此 Windows 帳號已安裝的輔助程式：停用其排程工作並停止背景程序，保留安裝檔案。此操作可能需要 UAC 授權。",
     "disableFailed": "已切換至 UAC，但無法停用既有輔助程式。",
     "elevated": "目前以管理員權限執行，直接操作。此處儲存的方式用於一般權限執行。",
@@ -130,9 +127,23 @@
       "processListWin": "讀取系統處理程序資訊",
       "getPortPids": "查詢連接埠佔用程序",
       "sslFindCertificate": "查詢系統信任的開發憑證",
-      "dnsRefresh": "重新整理系統 DNS 快取"
+      "dnsRefresh": "重新整理系統 DNS 快取",
+      "writeFileByRoot": "寫入受保護的檔案",
+      "writeBufferBase64ByRoot": "寫入受保護的檔案",
+      "readFileByRoot": "讀取受保護的檔案",
+      "rm": "刪除受保護的檔案",
+      "installFlyEnvPowerShellIntegration": "設定 PowerShell 整合",
+      "ensureFlyEnvDataDirectory": "修復 FlyEnv 資料目錄權限",
+      "setSystemPath": "更新系統 PATH",
+      "setSystemEnv": "更新系統環境變數",
+      "setAutoStartWin": "更新 FlyEnv 開機啟動設定",
+      "sslAddTrustedCert": "信任開發憑證",
+      "kill": "結束程序",
+      "killPorts": "釋放連接埠",
+      "ready": "準備權限輔助程式"
     },
     "detailsTitle": "本次需要執行的操作",
     "detailsMore": "另有 {count} 項操作未展開顯示。"
-  }
+  },
+  "linuxHelperScope": "安裝時授權：完整編輯 hosts、以一般使用者身分讓內建 Web 服務綁定低號連接埠、以 root 執行 Pure-Ftpd，以及修復 FlyEnv 的 PID 目錄。日常輔助程式操作不再詢問密碼；終端機中的 sudo 仍使用系統認證。"
 }

@@ -50,5 +50,7 @@
   "auto": "Otomatis",
   "noVerionsFoundInLib": "Tidak ada versi yang tersedia",
   "showToolBtn": "Tampilkan Tombol Alat Mengambang",
-  "inputSearchKey": "Kata kunci pencarian"
+  "inputSearchKey": "Kata kunci pencarian",
+  "macPortsSourceTerminal": "Tinjau konfigurasi sumber, lalu terapkan di terminal menggunakan autentikasi sudo.",
+  "linuxSystemFileReadOnly": "File lingkungan sistem hanya dapat dibaca di sini. Gunakan terminal dengan hak administrator untuk mengelolanya; file profil pengguna Anda tetap dapat disunting."
 }

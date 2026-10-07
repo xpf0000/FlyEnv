@@ -99,5 +99,7 @@
     "readonlyFs": "Salt Okunur Kök Dosya Sistemi",
     "maxRetry": "Maksimum Yeniden Deneme",
     "loading": "Kapsayıcı bilgileri yükleniyor..."
-  }
+  },
+  "rosettaGlobalTip": "Apple Silicon bilgisayarlar için genel Podman tercihi olarak uygulanır (sanal makineye özel değildir). Podman >= 5.1.0 gerektirir.",
+  "rosettaNeedVersion": "Rosetta, Podman >= 5.1.0 gerektirir. Bu anahtarı etkinleştirmek için Podman'ı yükseltin."
 }
