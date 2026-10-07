@@ -66,6 +66,19 @@
 5. 回收 fork（包含版本缓存落盘、EnvSync provider 释放和 worker 销毁）。
 6. 最后释放权限协调器、销毁托盘，记录 quit.returned；Launcher 继续实际退出。
 
+## 退出时的 UI IPC 边界（2026-10-07）
+
+- 复用 WindowManager.willQuit 作为唯一退出标记；Application.doStop 在首次 await
+  前设置它，app.quit、菜单退出及 relaunch 共用现有退出流程，无新增状态或配置。
+- IPCHandler 的 command/event 入口在触发业务监听器前拒绝新 UI 请求；窗口统一
+  sendCommandTo 在退出时停止回包，AppNodeFn 直接发送的旧回调同步解除窗口目标。
+- 已接纳请求的 main/fork 终态消费者继续完成 PID 登记和 drain，随后仍按原契约
+  停服务与清理 hosts；UI 通知是附加动作，停止发送不能跳过必要清理或改变其结果。
+- 重复退出仍复用 stopPromise；TrayManager 对销毁后的显示调用安全返回，destroy
+  即使重复执行也先取消弹窗布局等待与定时器，再检查原生托盘是否已销毁。
+- 回归覆盖退出入口拦截、迟到异步回包、迟到启动 PID 登记、首次 drain 前关闭入口、
+  退出防重及托盘生命周期；未进行真实系统服务退出或 macOS 发布包验收。
+
 ## 修改文件
 
 - src/main/Application.ts：将原四个串行 await 放入同一组 Promise.allSettled；保留

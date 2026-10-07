@@ -60,14 +60,27 @@ const setup = (windows = false) => {
   const timers = new Map<number, { callback: () => void; delay: number }>()
   let nextTimer = 0
   const tray = new EventEmitter()
+  let trayDestroyed = false
+  const checkTray = () => {
+    if (trayDestroyed) throw new Error('Tray is destroyed')
+  }
   const image = { resize: () => image }
   Object.assign(tray, {
     setToolTip() {},
-    setContextMenu() {},
-    destroy() {},
-    getBounds: () => ({ x: 500, y: 0, width: 24, height: 24 })
+    isDestroyed: () => trayDestroyed,
+    setContextMenu: checkTray,
+    setImage: checkTray,
+    destroy() {
+      checkTray()
+      trayDestroyed = true
+    },
+    getBounds: () => {
+      checkTray()
+      return { x: 500, y: 0, width: 24, height: 24 }
+    }
   })
   const electron = {
+    Menu: { buildFromTemplate: (items: unknown[]) => items },
     Tray: function () {
       return tray
     },
@@ -241,4 +254,72 @@ test('an older layout request cannot show the popup after a close and reopen', a
   assert.deepEqual(positions, [400])
   assert.equal(win.visible, true)
   assert.equal(win.listenerCount('blur'), 1)
+})
+
+test('late renderer updates after tray shutdown are ignored for both styles', () => {
+  for (const style of ['modern', 'classic']) {
+    const { manager } = setup()
+    manager.setStyle(style)
+    manager.destroy()
+    assert.doesNotThrow(() => manager.iconChange(true))
+    assert.doesNotThrow(() => manager.menuChange({ groupIsRunning: true }))
+    assert.equal(manager.active, false)
+    assert.equal(manager.status, undefined)
+  }
+})
+
+test('renderer updates still apply while the tray is alive', () => {
+  for (const style of ['modern', 'classic']) {
+    const { manager } = setup()
+    manager.setStyle(style)
+    const status = { groupIsRunning: true }
+    manager.iconChange(true)
+    manager.menuChange(status)
+    assert.equal(manager.active, true)
+    assert.equal(manager.status, status)
+    manager.iconChange(false)
+    assert.equal(manager.active, false)
+  }
+})
+
+test('tray shutdown is safe to repeat even when the native tray was already destroyed', () => {
+  for (const nativeFirst of [false, true]) {
+    const { manager, tray } = setup()
+    if (nativeFirst) (tray as any).destroy()
+    assert.doesNotThrow(() => manager.destroy())
+    assert.doesNotThrow(() => manager.destroy())
+  }
+})
+
+test('late style and popup requests cannot revive a destroyed tray', async () => {
+  const { manager, win, tray } = setup()
+  manager.setStyle('modern')
+  manager.destroy()
+  let styleChanges = 0
+  let clicks = 0
+  manager.on('style-changed', () => styleChanges++)
+  manager.on('click', () => clicks++)
+  assert.doesNotThrow(() => manager.setStyle('classic'))
+  manager.addModernStyleListener()
+  assert.doesNotThrow(() => manager.handleTrayClick({}))
+  assert.doesNotThrow(() => manager.pushPopupLayout())
+  assert.equal(manager.getPopupLayout(), undefined)
+  await manager.openPopup(400, 24, 'down', 15)
+  assert.equal(styleChanges, 0)
+  assert.equal(clicks, 0)
+  assert.equal(tray.listenerCount('right-click'), 0)
+  assert.equal(win.visible, false)
+})
+
+test('tray shutdown cancels popup layout acknowledgement and timers', async () => {
+  const { manager, win, timers, settle } = setup(true)
+  const pending = manager.openPopup(400, 24, 'down', 15)
+  manager.destroy()
+  manager.notifyLayoutApplied(win.nonce)
+  settle()
+  await pending
+  assert.equal(win.visible, false)
+  assert.equal(manager.show, false)
+  assert.equal(timers.size, 0)
+  assert.equal(win.listenerCount('blur'), 0)
 })

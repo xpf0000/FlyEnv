@@ -339,7 +339,7 @@ export default class WindowManager extends EventEmitter {
   }
 
   sendCommandTo(window: BrowserWindow, command: string, ...args: any) {
-    if (!window || window.isDestroyed()) {
+    if (this.willQuit || !window || window.isDestroyed()) {
       return
     }
     window.webContents.send('command', command, ...args)

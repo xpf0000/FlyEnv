@@ -1184,6 +1184,9 @@ export default class Application extends EventEmitter {
     logger.info('[FlyEnv] application stop !!!')
     // 菜单退出、app.quit 和 relaunch 共用此顺序；已确认授权在并行清理期间继续有效。
     this.windowManager?.setWillQuit(true)
+    // Node 函数的旧异步回调直接发送 IPC，退出时解除其 UI 响应目标。
+    AppNodeFnManager.mainWindow = undefined
+    AppNodeFnManager.trayWindow = undefined
     this.windowsPrivilege.beginShutdown()
     // 同步关闭两层入口，再等待已接纳请求的完整终态消费者；尤其要等迟到的 start PID
     // 登记完成后才允许并行停止取得最终表。排队请求靠 AsyncLocalStorage 通行证继续运行；

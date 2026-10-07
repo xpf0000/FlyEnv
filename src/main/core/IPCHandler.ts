@@ -140,6 +140,7 @@ export default class IPCHandler extends EventEmitter {
     })
 
     ipcMain.on('event', (event, eventName, ...args) => {
+      if (this.deps.windowManager.willQuit) return
       console.log('receive event', eventName, ...args)
       this.emit(eventName, ...args)
     })
@@ -149,6 +150,8 @@ export default class IPCHandler extends EventEmitter {
    * 处理命令
    */
   handleCommand(command: string, key: string, ...args: any[]) {
+    // 退出期间 UI 不再派发新业务；已接纳请求的 fork 回调继续登记终态供清理使用。
+    if (this.deps.windowManager.willQuit) return
     this.emit(command, ...args)
 
     // 处理 app-fork 命令

@@ -59,6 +59,7 @@ export default class TrayManager extends EventEmitter {
   }
 
   addModernStyleListener() {
+    if (this.tray.isDestroyed()) return
     if (!isWindows()) {
       this.tray.on('click', this.handleTrayClick)
     }
@@ -70,6 +71,7 @@ export default class TrayManager extends EventEmitter {
   }
 
   setStyle(style: 'modern' | 'classic') {
+    if (this.tray.isDestroyed()) return
     console.log('setStyle: ', style, this.style)
     if (this.style === style) {
       return
@@ -87,6 +89,7 @@ export default class TrayManager extends EventEmitter {
   }
 
   menuChange(status: TrayState) {
+    if (this.tray.isDestroyed()) return
     this.status = status
     if (this.style !== 'classic') {
       return
@@ -163,6 +166,8 @@ export default class TrayManager extends EventEmitter {
   }
 
   iconChange(status: boolean) {
+    // 退出时 renderer 仍可能发送状态 IPC；托盘销毁后不再更新原生对象。
+    if (this.tray.isDestroyed()) return
     this.active = status
     this.tray.setImage(this.active ? this.activeIcon : this.normalIcon)
   }
@@ -191,7 +196,7 @@ export default class TrayManager extends EventEmitter {
    * Windows 给托盘菜单的前台切换留出短暂缓冲,结束时检查实际焦点。 */
   async openPopup(x: number, y: number, side: TrayPopupSide, arrowOffset: number) {
     const win = this.window
-    if (!win || win.isDestroyed()) {
+    if (this.tray.isDestroyed() || !win || win.isDestroyed()) {
       return
     }
     this.closePopup()
@@ -207,6 +212,7 @@ export default class TrayManager extends EventEmitter {
       !this.show ||
       generation !== this.popupGeneration ||
       win !== this.window ||
+      this.tray.isDestroyed() ||
       win.isDestroyed()
     ) {
       // 等待期间已被关闭(快速切换),放弃本次打开
@@ -265,6 +271,7 @@ export default class TrayManager extends EventEmitter {
   }
 
   handleTrayClick = (event: any) => {
+    if (this.tray.isDestroyed()) return
     event?.preventDefault?.()
     if (!this.show && Date.now() - this.lastBlurCloseAt < 350) {
       // Windows 下弹窗打开时点击图标会先触发 blur(已自动关窗)再触发 click,
@@ -279,13 +286,16 @@ export default class TrayManager extends EventEmitter {
 
   /** 弹窗相对图标的方向与箭头偏移,供显示前先把布局同步给渲染层 */
   getPopupLayout() {
+    if (this.tray.isDestroyed()) return
     const { side, arrowOffset } = this.resolvePlacement()
     return { side, arrowOffset }
   }
 
   /** 把方向/箭头一次性推给渲染层(dom-ready 预热用,不等回执) */
   pushPopupLayout() {
-    const { side, arrowOffset } = this.getPopupLayout()
+    const layout = this.getPopupLayout()
+    if (!layout) return
+    const { side, arrowOffset } = layout
     this.sendPopupLayout(side, arrowOffset)
   }
 
@@ -442,6 +452,7 @@ export default class TrayManager extends EventEmitter {
 
   destroy() {
     this.closePopup()
+    if (this.tray.isDestroyed()) return
     this.tray.removeAllListeners()
     this.tray.setContextMenu(null)
     this.tray.destroy()
