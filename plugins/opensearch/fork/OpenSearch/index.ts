@@ -25,6 +25,8 @@ import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import OpenSearchVersionFetch from './version'
 import { applyDevMode, fetchDevModeState } from './security'
 import { resolveClusterName, resolveConfDir, resolveHome, resolveLogsDir } from './homebrew'
+import dashboards, { isOpenSearchDashboardsItem } from './dashboards'
+import { OpenSearchT } from '../lang'
 
 class OpenSearch extends Base {
   constructor() {
@@ -34,6 +36,81 @@ class OpenSearch extends Base {
 
   init() {
     this.pidPath = join(global.Server.BaseDir!, 'opensearch/opensearch.pid')
+  }
+
+  prepareDashboards(version: SoftInstalled) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        const generation = await dashboards.prepare(version, on)
+        resolve({ prepared: true, generation })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  openDashboards(version: SoftInstalled, generation?: string) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        const result = await dashboards.open(version, on, generation)
+        const item = { ...result['APP-Service-Start-Item'], pid: result['APP-Service-Start-PID'] }
+        resolve({
+          ...result,
+          'APP-Service-Start-Item': item,
+          'APP-Service-Stop-Args': [item, { dashboardsOnly: true }],
+          'APP-Service-Stop-Companion': true
+        })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  _stopServer(version: SoftInstalled, ...args: any[]) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        if (args[0]?.dashboardsOnly) {
+          if (!isOpenSearchDashboardsItem(version)) {
+            throw new Error(OpenSearchT('dashboardsInstanceInvalid'))
+          }
+          const pids = await dashboards.stopInstance(version)
+          on({ 'APP-Service-Stop-Success': true })
+          resolve({ 'APP-Service-Stop-PID': pids })
+          return
+        }
+        // Parent and companion cleanup are independent required operations.
+        // Hold the success event until both finish, even if Base emits it earlier.
+        const results = await Promise.allSettled([
+          super._stopServer(version, ...args).on((event: any) => {
+            if (!('APP-Service-Stop-Success' in event)) on(event)
+          }),
+          dashboards.stopAll()
+        ])
+        const stopped = new Set<string>()
+        const failures: string[] = []
+        const parent = results[0]
+        if (parent.status === 'fulfilled') {
+          for (const pid of parent.value?.['APP-Service-Stop-PID'] ?? []) stopped.add(`${pid}`)
+        } else failures.push(`OpenSearch: ${String(parent.reason)}`)
+        const panel = results[1]
+        if (panel.status === 'fulfilled') {
+          for (const pid of panel.value) stopped.add(`${pid}`)
+        } else failures.push(`Dashboards: ${String(panel.reason)}`)
+        if (failures.length) {
+          const message = OpenSearchT('dashboardsPartialStop', {
+            pids: [...stopped].join(', ') || '-',
+            error: failures.join('; ')
+          })
+          on({ 'APP-On-Log': AppLog('error', message) })
+          reject(new Error(message))
+          return
+        }
+        on({ 'APP-Service-Stop-Success': true })
+        resolve({ 'APP-Service-Stop-PID': [...stopped] })
+      } catch (error) {
+        reject(error)
+      }
+    })
   }
 
   _startServer(version: SoftInstalled) {

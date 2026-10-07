@@ -14,7 +14,7 @@ import { serviceStartSpawn } from '@fork/util/ServiceStart'
 import { AppLog } from '@fork/Fn'
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import type { PItem } from '@shared/Process'
-import { assertInvocationSupported, buildServerInvocation, createApiKeyFile, formatUrlHost, readServerHelp, validateApiKeyFile, validateLaunchProfile, validateManagedModelPath, variantFromInstalled, waitForServerHealth, waitForServerStopped } from '../config'
+import { assertInvocationSupported, buildServerInvocation, createApiKeyFile, formatUrlHost, readServerHelp, validateApiKeyFile, validateLaunchProfile, validateManagedModelPath, variantFromInstalled, waitForServerHealth } from '../config'
 import type { LaunchProfile, LocalModel } from '../../shared/types'
 import { isGGUFShardPath } from '../../shared/modelFile'
 import { isStandaloneGGUFFile } from '../gguf'
@@ -239,8 +239,8 @@ export class LlamaCppModule extends Base {
           if ('APP-Service-Stop-Success' in data) return
           on(data)
         })
-        const stoppedPids = (result?.['APP-Service-Stop-PID'] ?? []).map((pid: string | number) => `${pid}`)
-        await waitForServerStopped(stoppedPids, async () => (await StopProcessListFetch()).map((process) => `${process.PID}`), this.pidPath)
+        // Base owns exit confirmation and PID cleanup. StopProcessListFetch
+        // reuses the initial request snapshot and cannot confirm a later exit.
         this.activeRuntime = undefined
         on({ 'APP-Service-Stop-Success': true })
         resolve(result)

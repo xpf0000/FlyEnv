@@ -67,6 +67,26 @@ until the fork process restarts (the Version Manager's static tab still shows th
 its `installed` flags come from a separate `existsSync` check, which makes the stale service
 list look especially confusing).
 
+## Fork-side service shutdown
+
+The host keeps plugin `stopService(version, ...businessArgs)` calls in their existing
+argument order. Unlike built-in modules, plugins do not receive an inserted second
+`ServiceStopContext` argument. The dispatcher binds the request's process snapshot and
+`stop`/`quit` reason through a shared async context; freshly bundled `Base.stopService`
+inherits it, including when a plugin supplies a second business argument. Renderer
+`stopExtParam` registrations and `_stopServer(version, ...businessArgs)` overrides keep
+their existing signatures.
+
+`StopProcessListFetch()` reuses that immutable initial snapshot for target discovery.
+Let Base own signals, fresh exit confirmation, and PID-file cleanup; a plugin must not
+poll the discovery snapshot after Base completes or repeat its cleanup. Propagate Base
+failures and clear plugin runtime state only after successful completion. Windows quit
+uses the shared command-completion policy rather than adding plugin-specific polling.
+
+Plugins bundle Base and shared fork utilities, so previously published packages need
+to be rebuilt and released to receive updated shutdown behavior; updating the host
+alone does not update their bundled code.
+
 ## Real example: Mailpit
 
 `plugins/mailpit` is intentionally a real service plugin rather than a Hello World example.
@@ -124,6 +144,31 @@ The Renderer exercises real Mailpit operations through the plugin Fork module:
 - open the Mailpit web UI
 
 The example intentionally shares the built-in module's binary dirs config (`setup.mailpit.dirs`). Both manage the same Mailpit binaries/default ports, so they should not be started at the same time.
+
+## OpenSearch Dashboards
+
+The OpenSearch service page can open a local OpenSearch Dashboards companion. The
+button uses the running backend instance. First use installs the same Dashboards
+version from official Windows/Linux archives or the matching macOS Homebrew formula;
+subsequent opens reuse the owned healthy process. The panel binds to `127.0.0.1`,
+preferring port 5601 and selecting another available port when necessary.
+
+This first integration supports local development mode (HTTP without authentication).
+It verifies the actual backend version/security response before installation and does
+not change OpenSearch security settings. Authenticated/TLS cluster account and
+certificate configuration is not included. Homebrew availability and exact installed
+version are checked; a mismatched formula is not used against an older backend.
+macOS uses an existing matching installation or a matching Homebrew bottle; source
+compilation is not started from the panel button. Shared Homebrew plugin files remain
+untouched. Install/start operations have a five-minute budget inside the host deadline.
+
+Panel configuration, data, logs and PID records belong to the plugin. The renderer
+singleton owns IPC progress across page changes; the fork runtime owns process health
+and cleanup. Main receives the existing companion registration/stop arguments.
+Stopping or restarting OpenSearch also stops its companions, and FlyEnv exit can stop
+the panel independently. A panel failure does not stop a healthy OpenSearch backend.
+
+Validate with `yarn test:opensearch-dashboards` and `yarn plugin:test opensearch`.
 
 ## llama.cpp service plugin
 

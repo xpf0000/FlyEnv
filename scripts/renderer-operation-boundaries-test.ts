@@ -479,6 +479,24 @@ assert.match(privilegeController, /IPC\.off\(key\)/)
 assert.match(privilegeController, /private operation\?: Promise<void>/)
 assert.match(privilegeController, /snapshot\.revision < /)
 
+const openSearchDir = join(root, 'plugins', 'opensearch', 'render')
+const openSearchDashboardsPage = readFileSync(join(openSearchDir, 'Index.vue'), 'utf-8')
+const openSearchDashboardsController = readFileSync(
+  join(openSearchDir, 'DashboardsPanel.ts'),
+  'utf-8'
+)
+assert.doesNotMatch(openSearchDashboardsPage, /IPC\.send\(/)
+assert.match(openSearchDashboardsPage, /installed\.find\(\(item\) =>/)
+assert.match(openSearchDashboardsPage, /item\.run &&/)
+assert.match(openSearchDashboardsPage, /!item\.running &&/)
+assert.match(openSearchDashboardsPage, /dashboardsPanel\.open\(runningVersion\)/)
+assert.match(openSearchDashboardsController, /export class OpenSearchDashboardsPanel\b/)
+assert.match(openSearchDashboardsController, /response\?\.code === 200/)
+assert.match(openSearchDashboardsController, /ipc\.off\(request\.key\)/)
+assert.match(openSearchDashboardsController, /private operation\?: Promise<void>/)
+assert.match(openSearchDashboardsController, /maxTimeoutMs/)
+assert.match(openSearchDashboardsController, /shell\.openExternal/)
+
 await import('./linux-helper-ui-test')
 await import('./linux-helper-install-flow-test')
 

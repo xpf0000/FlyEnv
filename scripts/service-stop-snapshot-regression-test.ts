@@ -4,7 +4,7 @@ import { createRequire } from 'node:module'
 import { resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { runInNewContext } from 'node:vm'
-import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises'
+import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import * as Process from '../src/shared/Process'
@@ -192,7 +192,87 @@ try {
   )
   assert.equal(await readFile(pidFile, 'utf8'), '7001')
   assert.equal(tunnel.pid, '7001')
-  console.log('pgAdmin and Cloudflare stop snapshot regression tests passed')
+  // Plugin overrides must not poll the immutable discovery snapshot after Base
+  // has confirmed exit. Exercise the real llama.cpp override and Base together.
+  dependencies['@fork/module/Base'] = dependencies['../Base']
+  dependencies['@fork/Fn'] = dependencies['../../Fn']
+  dependencies['@fork/util/ServiceStart'] = {}
+  dependencies['../release'] = {}
+  dependencies['../runtime'] = {}
+  dependencies['../models'] = {}
+  const { LlamaCppModule } = await load('plugins/llamacpp/fork/LlamaCpp/index.ts')
+  const savedServer = global.Server
+  global.Server = { ...savedServer, BaseDir: directory } as typeof global.Server
+  const llama = new LlamaCppModule()
+  const version = { bin: '/app/llama-server', path: '/app', pid: '7001', version: 'test' }
+  const llamaPidFile = resolve(directory, 'llama-cpp/llama-server.pid')
+  await mkdir(resolve(directory, 'llama-cpp'))
+  const resetLlama = async () => {
+    initial = [
+      {
+        ...root,
+        COMMAND: '/app/llama-server --model weights.gguf',
+        EXECUTABLE: '/app/llama-server'
+      }
+    ]
+    after = []
+    discoveries = 0
+    confirmations = 0
+    signals.length = 0
+    queryError = undefined
+    signalError = undefined
+    llama.activeRuntime = version
+    await writeFile(llamaPidFile, '7001')
+  }
+  try {
+    for (const reason of ['stop', 'quit'] as const) {
+      await resetLlama()
+      // A replacement with the same PID is also a completed original stop.
+      if (reason === 'quit') after = [{ ...initial[0], CREATED: '2026-10-06T08:00:01.000Z' }]
+      const progress: any[] = []
+      const result = await Context.withServiceStopContext({ processList: initial, reason }, () =>
+        llama.stopService(version).on((event: any) => progress.push(event))
+      )
+      assert.deepEqual(Array.from(result['APP-Service-Stop-PID']), ['7001'])
+      assert.equal(discoveries, 0, 'plugin must reuse the supplied discovery snapshot')
+      assert.equal(confirmations, 1, 'Base owns fresh exit confirmation')
+      assert.equal(existsSync(llamaPidFile), false)
+      assert.equal(llama.activeRuntime, undefined)
+      assert.equal(progress.filter((event) => event['APP-Service-Stop-Success']).length, 1)
+    }
+    await resetLlama()
+    after = initial
+    signalError = new Error('signal denied')
+    const progress: any[] = []
+    await assert.rejects(
+      Context.withServiceStopContext({ processList: initial, reason: 'stop' }, () =>
+        llama.stopService(version).on((event: any) => progress.push(event))
+      ),
+      /signal denied/
+    )
+    assert.equal(await readFile(llamaPidFile, 'utf8'), '7001')
+    assert.strictEqual(llama.activeRuntime, version)
+    assert.equal(
+      progress.some((event) => event['APP-Service-Stop-Success']),
+      false
+    )
+    // Windows quit completes on the shared kill result without an extra poll.
+    await resetLlama()
+    windows = true
+    const quitResult = await Context.withServiceStopContext(
+      { processList: initial, reason: 'quit' },
+      () => llama.stopService(version)
+    )
+    assert.deepEqual(Array.from(quitResult['APP-Service-Stop-PID']), ['7001'])
+    assert.equal(discoveries, 0)
+    assert.equal(confirmations, 0)
+    assert.equal(existsSync(llamaPidFile), false)
+    assert.equal(llama.activeRuntime, undefined)
+  } finally {
+    windows = false
+    global.Server = savedServer
+  }
+  console.log('pgAdmin, Cloudflare and llama.cpp stop snapshot regression tests passed')
 } finally {
   await rm(directory, { recursive: true, force: true })
 }
