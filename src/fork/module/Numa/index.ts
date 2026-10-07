@@ -21,10 +21,11 @@ import {
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/runtime'
 import TaskQueue from '../../TaskQueue'
-import { isMacOS, isWindows } from '@shared/utils'
+import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ProcessListSearch } from '@shared/Process.win'
 import { ProcessListFetch, ProcessSearch } from '@shared/Process'
+import { numaListenPorts } from './Ports'
 
 class Numa extends Base {
   constructor() {
@@ -100,6 +101,8 @@ class Numa extends Base {
           })
         } else {
           res = await serviceStartSpawn({
+            lowPortService: isLinux(),
+            listenPorts: isLinux() ? await numaListenPorts(configFile) : undefined,
             version,
             pidPath: this.pidPath,
             baseDir,

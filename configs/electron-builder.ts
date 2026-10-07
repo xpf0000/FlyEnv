@@ -92,7 +92,7 @@ const conf: Configuration = {
       CFBundleDisplayName: 'FlyEnv',
       CFBundleExecutable: 'FlyEnv',
       // Sealed installation protocol; fixed bootstrap rejects older signed installers.
-      FlyEnvHelperProtocolVersion: 45
+      FlyEnvHelperProtocolVersion: 46
     },
     type: 'distribution',
     darkModeSupport: true,

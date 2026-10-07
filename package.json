@@ -57,6 +57,7 @@
     "build:win": "yarn run clean:dev && yarn run clean && cross-env NODE_ENV=production CSC_IDENTITY_AUTO_DISCOVERY=false npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/app-builder-win-local.ts --outfile=electron/app-builder-win-local.mjs && cross-env NODE_ENV=production CSC_IDENTITY_AUTO_DISCOVERY=false node electron/app-builder-win-local.mjs",
     "build:mac": "yarn run clean:dev && yarn run clean && cross-env FLYENV_MAC_BUILD_ARCH=arm64 NODE_OPTIONS=--max-old-space-size=8192 NODE_ENV=production CSC_IDENTITY_AUTO_DISCOVERY=false npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/app-builder-mac-local.ts --outfile=electron/app-builder-mac-local.mjs && cross-env FLYENV_MAC_BUILD_ARCH=arm64 NODE_OPTIONS=--max-old-space-size=8192 NODE_ENV=production CSC_IDENTITY_AUTO_DISCOVERY=false node electron/app-builder-mac-local.mjs",
     "test:helper:contract": "tsx scripts/helper-contract-check.ts",
+    "test:linux-tomcat-numa-start": "tsx scripts/linux-tomcat-numa-start-test.ts",
     "test:flyenv-shell-integration": "tsx scripts/flyenv-shell-integration-test.ts",
     "test:windows-privilege-choice": "tsx scripts/windows-privilege-choice-test.ts",
     "test:windows-privilege-renderer": "tsx scripts/windows-privilege-renderer-test.ts",

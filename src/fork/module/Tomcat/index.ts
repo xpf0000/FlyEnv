@@ -31,9 +31,10 @@ import Host from '../Host'
 import { fetchHostList, saveHostList } from '../Host/HostFile'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { I18nT } from '@lang/runtime'
-import { isWindows } from '@shared/utils'
+import { isLinux, isWindows } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
 import EnvSync from '@shared/EnvSync'
+import { tomcatListenPorts } from './Ports'
 
 class Tomcat extends Base {
   constructor() {
@@ -244,6 +245,8 @@ class Tomcat extends Base {
         }
         try {
           const res = await serviceStartSpawn({
+            lowPortService: isLinux(),
+            listenPorts: isLinux() ? await tomcatListenPorts(baseDir) : undefined,
             version,
             pidPath: this.pidPath,
             baseDir: tomcatDir,

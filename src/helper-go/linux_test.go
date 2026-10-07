@@ -321,14 +321,20 @@ func TestLinuxUIDPolicy(t *testing.T) {
 }
 
 func TestLinuxServiceBusinessOptions(t *testing.T) {
-	p := linuxPolicy{DataRoot: "/home/user/FlyEnv"}
+	root, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := linuxPolicy{DataRoot: root}
 	prefix := p.DataRoot + "/server/nginx/common"
 	errlog := prefix + "/logs/error.log"
 	requests := []linuxLaunch{
 		{Service: "nginx", Bin: "/usr/sbin/nginx", Args: []string{"-p", prefix, "-e", errlog, "-c", prefix + "/conf/nginx.conf", "-g", "pid " + prefix + "/logs/nginx.pid;error_log " + errlog + ";daemon off;"}},
-		{Service: "apache", Bin: "/usr/sbin/apache2", Args: []string{"-f", p.DataRoot + "/server/apache/httpd.conf", "-c", `PidFile "/home/user/FlyEnv/server/apache/httpd.pid"`, "-c", `CustomLog "/home/user/FlyEnv/server/apache/common/logs/access_log" common`, "-D", "FOREGROUND"}},
+		{Service: "apache", Bin: "/usr/sbin/apache2", Args: []string{"-f", p.DataRoot + "/server/apache/httpd.conf", "-c", `PidFile "` + p.DataRoot + `/server/apache/httpd.pid"`, "-c", `CustomLog "` + p.DataRoot + `/server/apache/common/logs/access_log" common`, "-D", "FOREGROUND"}},
 		{Service: "caddy", Bin: "/usr/bin/caddy", Args: []string{"run", "--config", p.DataRoot + "/caddy.conf", "--watch"}},
 		{Service: "frankenphp", Bin: "/usr/bin/frankenphp", Args: []string{"run", "--config", p.DataRoot + "/frankenphp.conf", "--pidfile", p.DataRoot + "/frankenphp.pid"}},
+		{Service: "tomcat", Bin: "/opt/tomcat/bin/catalina.sh", Args: []string{"run"}, Env: map[string]string{"CATALINA_BASE": p.DataRoot + "/server/tomcat/custom base", "CATALINA_PID": p.DataRoot + "/server/tomcat/tomcat.pid"}},
+		{Service: "numa", Bin: "/opt/numa", Args: []string{p.DataRoot + "/server/numa/numa.toml"}},
 	}
 	for _, req := range requests {
 		if err := validateLinuxServiceRequest(req, p); err != nil {
@@ -348,6 +354,20 @@ func TestLinuxServiceBusinessOptions(t *testing.T) {
 	requests[2].Args[2] = "/etc/caddy.conf"
 	if validateLinuxServiceRequest(requests[2], p) == nil {
 		t.Fatal("external configuration accepted")
+	}
+	for _, req := range []linuxLaunch{
+		{Service: "tomcat", Bin: "/opt/tomcat/bin/startup.sh", Args: []string{"run"}},
+		{Service: "tomcat", Bin: "/opt/tomcat/bin/catalina.sh", Args: []string{"start"}},
+		{Service: "tomcat", Bin: "/opt/tomcat/bin/catalina.sh", Args: []string{"run"}},
+		{Service: "tomcat", Bin: "/opt/tomcat/bin/catalina.sh", Args: []string{"run"}, Env: map[string]string{"CATALINA_BASE": "/etc", "CATALINA_PID": p.DataRoot + "/tomcat.pid"}},
+		{Service: "tomcat", Bin: "/opt/tomcat/bin/catalina.sh", Args: []string{"run"}, Env: map[string]string{"CATALINA_BASE": p.DataRoot + "/tomcat", "CATALINA_PID": "/etc/tomcat.pid"}},
+		{Service: "numa", Bin: "/opt/numa", Args: []string{"--help"}},
+		{Service: "numa", Bin: "/opt/numa", Args: []string{"/etc/numa.toml"}},
+		{Service: "numa", Bin: "/opt/numa", Args: []string{p.DataRoot + "/numa.toml", "--help"}},
+	} {
+		if validateLinuxServiceRequest(req, p) == nil {
+			t.Fatalf("invalid %s launch accepted: %+v", req.Service, req)
+		}
 	}
 }
 

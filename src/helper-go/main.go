@@ -38,7 +38,8 @@ const (
 	// v43: Unix operations no longer constrain user-managed system directory permissions.
 	// v44: CA lookup/import is independent of Helper installation and health.
 	// v45: Unix FTP consumes ordinary-account input snapshots and preserves supplementary groups.
-	Helper_Version   = 45
+	// v46: Linux Tomcat and NUMA gain fixed low-port startup with user credentials.
+	Helper_Version   = 46
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
 	Key_Path_Unix    = "/usr/local/share/FlyEnv/flyenv-helper.key"

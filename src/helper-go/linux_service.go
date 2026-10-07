@@ -92,7 +92,7 @@ func launchLinuxServiceWithBinary(req linuxLaunch, p linuxPolicy, self string) (
 // Fixed foreground invocations; the API cannot select a shell or arbitrary CLI mode.
 // User-writable binaries are still untrusted code, so credentials/caps remain the boundary.
 func validateLinuxServiceRequest(req linuxLaunch, p linuxPolicy) error {
-	names := map[string][]string{"nginx": {"nginx"}, "apache": {"httpd", "apache2"}, "caddy": {"caddy"}, "frankenphp": {"frankenphp"}}
+	names := map[string][]string{"nginx": {"nginx"}, "apache": {"httpd", "apache2"}, "caddy": {"caddy"}, "frankenphp": {"frankenphp"}, "tomcat": {"catalina.sh"}, "numa": {"numa"}}
 	approved := false
 	for _, name := range names[req.Service] {
 		if filepath.Base(req.Bin) == name {
@@ -104,6 +104,7 @@ func validateLinuxServiceRequest(req linuxLaunch, p linuxPolicy) error {
 	}
 	args := req.Args
 	pathIndexes := []int{}
+	paths := []string{}
 	switch req.Service {
 	case "nginx":
 		if len(args) != 8 || args[0] != "-p" || args[2] != "-e" || args[4] != "-c" || args[6] != "-g" {
@@ -144,9 +145,21 @@ func validateLinuxServiceRequest(req linuxLaunch, p linuxPolicy) error {
 			return fmt.Errorf("invalid frankenphp startup options")
 		}
 		pathIndexes = []int{2, 4}
+	case "tomcat":
+		if len(args) != 1 || args[0] != "run" {
+			return fmt.Errorf("invalid tomcat foreground options")
+		}
+		paths = []string{req.Env["CATALINA_BASE"], req.Env["CATALINA_PID"]}
+	case "numa":
+		if len(args) != 1 {
+			return fmt.Errorf("invalid numa startup options")
+		}
+		pathIndexes = []int{0}
 	}
 	for _, index := range pathIndexes {
-		path := args[index]
+		paths = append(paths, args[index])
+	}
+	for _, path := range paths {
 		if filepath.Clean(path) != path || strings.ContainsAny(path, "\x00\r\n") {
 			return fmt.Errorf("service configuration must be inside the approved data root")
 		}
