@@ -16,7 +16,7 @@ export default {
   selected: '已选择', select: '选择', delete: '删除', confirmDeleteModel: '确定删除此本地模型文件吗？',
   stable: '稳定版', prerelease: '预发布版', refresh: '刷新', loadingVersions: '正在加载可用版本…', noRuntimeVariants: '没有找到适用于此平台的运行时版本。',
   runtimeStatus: '运行时安装', installedRuntimes: '已安装运行时', noInstalledRuntimes: '尚未安装运行时。', install: '安装', remove: '删除', confirmRemoveRuntime: '删除此运行时？如果服务正在运行，会先将其停止。',
-  host: '监听地址', port: '端口', contextSize: '上下文长度', contextSizeHint: '新配置默认 8192 token；增大上下文会增加内存或显存占用。', threads: 'CPU 线程数', gpuLayers: 'GPU 层数', gpuDevice: 'GPU 设备索引',
+  host: '监听地址', port: '端口', contextSize: '上下文长度', contextSizeHint: '新配置默认 8192 token；增大上下文会增加内存或显存占用。', threads: 'CPU 线程数', gpuLayers: 'GPU 层数', gpuDevice: 'GPU 设备', gpuDeviceHint: '填写 llama.cpp 设备名，如 CUDA0、Vulkan0、MTL0；只填序号（如 0）会按所选后端自动补全。留空则由 llama.cpp 自行选择。',
   apiKeyFile: 'API 密钥文件', newApiKey: '新 API 密钥', apiKey: '新 API 密钥（至少 16 个字符）', generateKey: '生成', copyKey: '复制', createKeyFile: '创建私有密钥文件',
   nonLoopbackNote: '非本机回环地址必须配置 API 密钥。Windows 在无法保证私有文件权限前不开放远程监听。',
   save: '保存设置', previous: '上一页', next: '下一页'
