@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { planPostgresStop } from '../src/fork/module/Postgresql'
+import { withServiceStopContext } from '../src/shared/ServiceStopContext'
+import { StopProcessListAccess } from '../src/shared/StopProcessList'
+import type { PItem } from '../src/shared/Process'
+
+let localQueries = 0
 
 // Issue #896: `Base.startService` always performs a pre-start cleanup through
 // `_stopServer`. On Unix that cleanup called `pg_ctl stop` unconditionally, so a
@@ -92,5 +97,40 @@ assert.match(
   'liveness must be scoped to the exact data directory'
 )
 console.log('Unix stop branch consults the plan before running pg_ctl')
+
+// The liveness read must reuse the list already supplied to this stop request. A stop that
+// carries a first list is documented to perform no further list query, and the module's own
+// pgAdmin discovery already reads through the same accessor. A separate local fetch here
+// would duplicate the query and sample a different moment than the rest of the stop.
+const access = new StopProcessListAccess(async () => {
+  localQueries += 1
+  return []
+})
+const suppliedList: PItem[] = [
+  {
+    USER: 'u',
+    PID: '4242',
+    PPID: '1',
+    COMMAND: '/usr/lib/postgresql/18/bin/postgres -D /data/pg18'
+  }
+]
+const reused = await withServiceStopContext({ processList: suppliedList, reason: 'stop' }, () =>
+  access.fetch()
+)
+assert.deepEqual(reused, suppliedList, 'the supplied stop list must be reused')
+assert.equal(localQueries, 0, 'no extra process-list query may be issued when a list is supplied')
+await access.fetch()
+assert.equal(localQueries, 1, 'a stop without a supplied list must fall back to a query')
+assert.match(
+  unixBranch,
+  /const discovered = await StopProcessListFetch\(\)/,
+  'the liveness read must use the shared accessor so a supplied list is reused'
+)
+assert.doesNotMatch(
+  unixBranch,
+  /const discovered = await fetchStopProcessListLocal\(\)/,
+  'the liveness read must not force a duplicate local query'
+)
+console.log('liveness read reuses the stop request list')
 
 console.log('PostgreSQL stop planning regressions passed')

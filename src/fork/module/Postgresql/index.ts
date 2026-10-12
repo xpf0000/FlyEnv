@@ -625,7 +625,9 @@ class Manager extends Base {
         // 让 pg_ctl 的退出码来判定。服务未运行（含被强制退出）时，
         // `pg_ctl stop` 只会报“PID 文件不存在”或“无法发送停止信号”，
         // 把它当成失败会否掉正常的冷启动（#896）；把它当成成功又会谎报已停止。
-        const discovered = await fetchStopProcessListLocal()
+        // 复用本次停止请求的首表（或共享 provider），不再另发一次取表：
+        // 本次发现与已有 pgAdmin 发现属于同一停服务范围，列表语义一致。
+        const discovered = await StopProcessListFetch()
         finalProcessList = discovered
         const observedRunning = discovered.filter((process) =>
           postgresCommandUsesDataDirectory(process.COMMAND, dbPath)
