@@ -35,7 +35,7 @@ const desktop: any = {
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.20.0',
+  buildVersion: '4.20.1',
   electronVersion: '39.8.10',
   appId: 'com.xpf0000.flyenv',
   asar: true,
@@ -56,17 +56,18 @@ const conf: Configuration = {
     '!**/node_modules/node-pty/third_party/**'
   ],
   deb: {
-    packageName: 'flyenv'
+    packageName: 'flyenv',
+    packageCategory: 'Development'
   },
   rpm: {
-    packageName: 'flyenv'
+    packageName: 'flyenv',
+    packageCategory: 'Development'
   },
   artifactName: `\${productName}-\${version}-${archName}.\${ext}`, // 自定义打包文件名格式
   linux: {
     icon: 'build/icons',
     asarUnpack: ['**/*.node', '**/node_modules/sharp/**/*', '**/node_modules/@img/**/*'],
     category: 'Development',
-    packageCategory: 'Development',
     desktop: {
       entry: desktop
     },

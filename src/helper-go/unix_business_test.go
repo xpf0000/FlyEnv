@@ -177,7 +177,7 @@ func TestManagedDirectoryChecksOnlyItsOwnPermissions(t *testing.T) {
 func TestManagedHostsHandlesDuplicateCompleteBlocks(t *testing.T) {
 	content := "custom\n#X-HOSTS-BEGIN#\nold\n#X-HOSTS-END#\nmiddle\n#X-HOSTS-BEGIN#\nold2\n#X-HOSTS-END#\ntail\n"
 	got, err := mergeManagedHosts(content, "")
-	if err != nil || got != "custom\n\nmiddle\n\ntail\n" {
+	if err != nil || got != "custom\nmiddle\ntail\n" {
 		t.Fatalf("got %q: %v", got, err)
 	}
 }

@@ -194,8 +194,18 @@ func mergeManagedHosts(content, entries string) (string, error) {
 			return "", fmt.Errorf("ambiguous FlyEnv hosts markers; edit hosts manually")
 		}
 		result += content[:start] + block
-		block = ""
 		content = content[stop+len(end):]
+		if block == "" && (result == "" || strings.HasSuffix(result, "\n")) {
+			// The removed block owns its line ending. Leaving it behind grows
+			// the gap before the next appended block on every start/quit cycle.
+			// Keep it when preceding text still needs a line separator.
+			if strings.HasPrefix(content, "\r\n") {
+				content = content[2:]
+			} else {
+				content = strings.TrimPrefix(content, "\n")
+			}
+		}
+		block = ""
 		start, stop = strings.Index(content, begin), strings.Index(content, end)
 	}
 	return result + content, nil

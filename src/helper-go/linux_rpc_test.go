@@ -103,7 +103,7 @@ func TestLinuxHostsSyncReportsChanges(t *testing.T) {
 	if err != nil || changed != true {
 		t.Fatalf("clear must report change: %v %v", changed, err)
 	}
-	want := "127.0.0.1 localhost\n\n# keep tail\n"
+	want := "127.0.0.1 localhost\n# keep tail\n"
 	got, _ := os.ReadFile(path)
 	if string(got) != want {
 		t.Fatalf("outside block changed: %q", got)

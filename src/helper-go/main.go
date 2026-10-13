@@ -40,7 +40,8 @@ const (
 	// v45: Unix FTP consumes ordinary-account input snapshots and preserves supplementary groups.
 	// v46: Linux Tomcat and NUMA gain fixed low-port startup with user credentials.
 	// v47: Linux gains a fixed read-only port ownership query for capability-bearing services.
-	Helper_Version   = 47
+	// v48: Unix hosts cleanup removes the managed block's line ending to prevent blank-line growth.
+	Helper_Version   = 48
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
 	Key_Path_Unix    = "/usr/local/share/FlyEnv/flyenv-helper.key"
