@@ -354,7 +354,13 @@ assert.deepEqual(redisCommanderOpenRequest, {
 })
 assert.doesNotMatch(JSON.stringify(redisCommanderOpenRequest), /node-secret|redis-secret/)
 assert.match(redisPage, /<template v-if="isRunning" #tool-left>/)
-assert.match(redisPage, /:disabled="redisCommanderOpening \|\| !redisCommanderNodeAvailable"/)
+assert.match(redisPage, /:disabled="redisCommanderOpening"/)
+assert.doesNotMatch(redisPage, /redisCommanderNodeAvailable/)
+assert.match(redisPanel, /await brewStore\.module\('node'\)\.fetchInstalled\(true\)/)
+assert.ok(
+  redisPanel.indexOf('this.opening.value = true') <
+    redisPanel.indexOf("await brewStore.module('node').fetchInstalled(true)")
+)
 assert.match(redisPanel, /IPC\.sendSensitive\('app-fork:redis', 'openRedisCommander'/)
 assert.match(redisPanel, /redisCommanderRequest\(node, redis\)/)
 assert.match(redisPanel, /isWebPanelInstallNotice/)

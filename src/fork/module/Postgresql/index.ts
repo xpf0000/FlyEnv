@@ -44,6 +44,7 @@ import {
   assertPgAdminRegistrationPort,
   assertPgAdminPythonVersion,
   completePgAdminInitialization,
+  ensurePgAdminPip,
   findPgAdminPort,
   PGADMIN4_DEFAULT_PORT,
   PGADMIN4_PACKAGE,
@@ -351,8 +352,11 @@ class Manager extends Base {
         await Promise.all(
           pgAdminPrivateDirectories(paths, isWindows()).map((directory) => chmod(directory, 0o700))
         )
-        if (!existsSync(paths.venv)) {
-          await spawnPromiseWithEnv(python.bin, ['-m', 'venv', paths.venv], { shell: false })
+        if (!existsSync(paths.python)) {
+          // Debian/Ubuntu may ship venv without ensurepip; bootstrap pip separately.
+          await spawnPromiseWithEnv(python.bin, ['-m', 'venv', '--without-pip', paths.venv], {
+            shell: false
+          })
         }
         if (!existsSync(paths.python)) {
           throw new Error('pgAdmin virtual environment Python was not created')
@@ -368,6 +372,22 @@ class Manager extends Base {
         if (!packageRoot) {
           await this._stopPGAdmin()
           packageRepaired = true
+          await ensurePgAdminPip({
+            run: (args) => spawnPromiseWithEnv(paths.python, args, { shell: false }),
+            bootstrap: async (url) => {
+              const bootstrapFile = join(paths.root, 'get-pip.py')
+              const { data } = await axios.get<string>(url, {
+                responseType: 'text',
+                timeout: 180000
+              })
+              await writeFile(bootstrapFile, data)
+              await spawnPromiseWithEnv(
+                paths.python,
+                [bootstrapFile, '--disable-pip-version-check'],
+                { shell: false }
+              )
+            }
+          })
           await spawnPromiseWithEnv(
             paths.python,
             ['-m', 'pip', 'install', '--disable-pip-version-check', '--upgrade', PGADMIN4_PACKAGE],

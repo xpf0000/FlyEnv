@@ -1125,7 +1125,7 @@ assert.match(postgresqlSource, /assertPgAdminRegistrationPort\(postgreSqlPort\)/
 assert.match(postgresqlSource, /postgresqlPortFromConfig/)
 assert.match(
   postgresqlSource,
-  /spawnPromiseWithEnv\(python\.bin, \['-m', 'venv', paths\.venv\], \{[\s\S]*?shell: false/
+  /spawnPromiseWithEnv\(python\.bin, \['-m', 'venv', '--without-pip', paths\.venv\], \{[\s\S]*?shell: false/
 )
 assert.match(postgresqlSource, /PGADMIN4_PACKAGE/)
 assert.match(postgresqlSource, /'--upgrade', PGADMIN4_PACKAGE/)
@@ -1221,7 +1221,9 @@ const parsedPostgreSqlPortIndex = postgresqlSource.indexOf(
 const registrationPortValidationIndex = postgresqlSource.indexOf(
   'assertPgAdminRegistrationPort(postgreSqlPort)'
 )
-const virtualEnvironmentIndex = postgresqlSource.indexOf("['-m', 'venv', paths.venv]")
+const virtualEnvironmentIndex = postgresqlSource.indexOf(
+  "['-m', 'venv', '--without-pip', paths.venv]"
+)
 assert.ok(parsedPostgreSqlPortIndex < registrationPortValidationIndex)
 assert.ok(registrationPortValidationIndex < virtualEnvironmentIndex)
 assert.match(
