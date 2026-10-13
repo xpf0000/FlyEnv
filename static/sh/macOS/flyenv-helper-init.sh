@@ -59,6 +59,11 @@ fi
 /bin/mv -f "$BIN_DEST.new" "$BIN_DEST"
 /usr/bin/install -o root -g wheel -m 0644 "$PLIST_SRC" "$PLIST_PATH.new"
 /bin/mv -f "$PLIST_PATH.new" "$PLIST_PATH"
+# /usr/bin/install propagates the source's com.apple.quarantine xattr (an app
+# bundle installed from a DMG is quarantined), and launchd refuses to bootstrap
+# a quarantined LaunchDaemon ("Bootstrap failed: 5: Input/output error"). Clear
+# the flag from the published files before registering the job.
+/usr/bin/xattr -dr com.apple.quarantine "$BIN_DEST" "$PLIST_PATH" 2>/dev/null || true
 /bin/launchctl enable "system/$LABEL"
 /bin/launchctl bootstrap system "$PLIST_PATH"
 echo 'Helper published. FlyEnv will verify the new version and policy health.'
