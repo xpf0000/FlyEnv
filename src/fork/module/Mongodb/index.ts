@@ -130,7 +130,15 @@ class Manager extends Base {
   openDbGate(node: SoftInstalled): ForkPromise<DbGateOpenResult> {
     return new ForkPromise((resolve, reject, on) => {
       if (!node?.bin) {
-        reject(new Error(I18nT('base.needSelectVersion')))
+        reject(
+          new Error(
+            I18nT('base.serviceRequiresRuntime', {
+              service: 'DbGate',
+              runtime: 'NodeJS',
+              module: 'NodeJS'
+            })
+          )
+        )
         return
       }
       this.dbGateRuntime.open(node, on).then(resolve).catch(reject)

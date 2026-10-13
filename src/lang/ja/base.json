@@ -97,5 +97,8 @@
   "selectVersion": "バージョンを選択",
   "webPanelFirstInstall": "{service} は初回起動時にインストールする必要があります。しばらく時間がかかる場合がありますので、お待ちください。インストールが完了すると管理パネルが自動的に開きます。",
   "helperBinaryMissing": "FlyEnv ヘルパーが見つかりません。FlyEnv を再インストールするか、ヘルパーを修復してください。",
-  "dataDirectoryRecoveryFailed": "FlyEnv はデータディレクトリを復元できませんでした。ヘルパーを確認して、もう一度お試しください。"
+  "dataDirectoryRecoveryFailed": "FlyEnv はデータディレクトリを復元できませんでした。ヘルパーを確認して、もう一度お試しください。",
+  "serviceRequiresRuntime": "{service} には {runtime} が必要です。まず {module} モジュールで互換性のあるバージョンをインストールして選択してください。",
+  "serviceRuntimeFetchFailed": "{service} には {runtime} が必要ですが、インストール済みバージョンの一覧を読み込めませんでした。{runtime} モジュールを確認して再試行してください。",
+  "serviceRequiresRunningService": "{service} には実行中の {dependency} サービスが必要です。まず {dependency} を起動してください。"
 }

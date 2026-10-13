@@ -97,5 +97,8 @@
   "selectVersion": "Seleccionar versión",
   "webPanelFirstInstall": "{service} debe instalarse la primera vez que se ejecuta. Esto puede tardar un poco, así que tenga paciencia. El panel de administración se abrirá automáticamente cuando finalice la instalación.",
   "helperBinaryMissing": "Falta el asistente de FlyEnv. Reinstala FlyEnv o repara el asistente.",
-  "dataDirectoryRecoveryFailed": "FlyEnv no pudo restaurar la carpeta de datos. Comprueba el asistente e inténtalo de nuevo."
+  "dataDirectoryRecoveryFailed": "FlyEnv no pudo restaurar la carpeta de datos. Comprueba el asistente e inténtalo de nuevo.",
+  "serviceRequiresRuntime": "{service} necesita {runtime}. Primero instala y selecciona una versión compatible en el módulo {module}.",
+  "serviceRuntimeFetchFailed": "{service} necesita {runtime}, pero no se pudo cargar la lista de versiones instaladas. Revisa el módulo {runtime} e inténtalo de nuevo.",
+  "serviceRequiresRunningService": "{service} necesita que el servicio {dependency} esté en ejecución. Primero inicia {dependency}."
 }

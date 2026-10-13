@@ -97,5 +97,8 @@
   "selectVersion": "Version auswählen",
   "webPanelFirstInstall": "{service} muss beim ersten Start installiert werden. Dies kann eine Weile dauern, bitte haben Sie etwas Geduld. Das Verwaltungsfenster wird nach Abschluss der Installation automatisch geöffnet.",
   "helperBinaryMissing": "Der FlyEnv-Helfer fehlt. Installieren Sie FlyEnv neu oder reparieren Sie den Helfer.",
-  "dataDirectoryRecoveryFailed": "FlyEnv konnte den Datenordner nicht wiederherstellen. Prüfen Sie den Helfer und versuchen Sie es erneut."
+  "dataDirectoryRecoveryFailed": "FlyEnv konnte den Datenordner nicht wiederherstellen. Prüfen Sie den Helfer und versuchen Sie es erneut.",
+  "serviceRequiresRuntime": "{service} benötigt {runtime}. Installieren und wählen Sie zuerst eine kompatible Version im Modul {module}.",
+  "serviceRuntimeFetchFailed": "{service} benötigt {runtime}, aber die Liste der installierten Versionen konnte nicht geladen werden. Prüfen Sie das Modul {runtime} und versuchen Sie es erneut.",
+  "serviceRequiresRunningService": "{service} benötigt einen laufenden {dependency}-Dienst. Starten Sie zuerst {dependency}."
 }

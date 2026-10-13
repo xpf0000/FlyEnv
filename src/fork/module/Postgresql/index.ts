@@ -339,7 +339,13 @@ class Manager extends Base {
         )
         assertPgAdminRegistrationPort(postgreSqlPort)
         if (!python?.bin || !existsSync(python.bin)) {
-          throw new Error('A selected Python binary is required')
+          throw new Error(
+            I18nT('base.serviceRequiresRuntime', {
+              service: 'pgAdmin 4',
+              runtime: 'Python',
+              module: 'Python'
+            })
+          )
         }
         await this.validatePgAdminPythonVersion(python.bin, 'selected Python')
         if (firstStart) {

@@ -97,5 +97,8 @@
   "selectVersion": "Виберіть версію",
   "webPanelFirstInstall": "{service} потрібно встановити під час першого запуску. Це може зайняти деякий час, тому зачекайте. Панель керування відкриється автоматично після завершення встановлення.",
   "helperBinaryMissing": "Допоміжна програма FlyEnv відсутня. Перевстановіть FlyEnv або відновіть помічник.",
-  "dataDirectoryRecoveryFailed": "FlyEnv не вдалося відновити каталог даних. Перевірте помічник і повторіть спробу."
+  "dataDirectoryRecoveryFailed": "FlyEnv не вдалося відновити каталог даних. Перевірте помічник і повторіть спробу.",
+  "serviceRequiresRuntime": "Для {service} потрібен {runtime}. Спочатку встановіть і виберіть сумісну версію в модулі {module}.",
+  "serviceRuntimeFetchFailed": "Для {service} потрібен {runtime}, але не вдалося завантажити список установлених версій. Перевірте модуль {runtime} і повторіть спробу.",
+  "serviceRequiresRunningService": "Для {service} потрібна запущена служба {dependency}. Спочатку запустіть {dependency}."
 }

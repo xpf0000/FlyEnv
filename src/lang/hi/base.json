@@ -97,5 +97,8 @@
   "selectVersion": "संस्करण चुनें",
   "webPanelFirstInstall": "{service} को पहली बार चलाने पर इंस्टॉल करना होगा। इसमें कुछ समय लग सकता है, कृपया धैर्य रखें। इंस्टॉलेशन पूरा होने पर प्रबंधन पैनल स्वचालित रूप से खुल जाएगा।",
   "helperBinaryMissing": "FlyEnv Helper गायब है। कृपया FlyEnv को पुनः इंस्टॉल करें या Helper की मरम्मत करें।",
-  "dataDirectoryRecoveryFailed": "FlyEnv अपनी डेटा निर्देशिका पुनर्स्थापित नहीं कर सका। कृपया Helper की जांच करें और पुनः प्रयास करें।"
+  "dataDirectoryRecoveryFailed": "FlyEnv अपनी डेटा निर्देशिका पुनर्स्थापित नहीं कर सका। कृपया Helper की जांच करें और पुनः प्रयास करें।",
+  "serviceRequiresRuntime": "{service} के लिए {runtime} आवश्यक है। पहले {module} मॉड्यूल में एक संगत संस्करण इंस्टॉल करें और चुनें।",
+  "serviceRuntimeFetchFailed": "{service} के लिए {runtime} आवश्यक है, लेकिन इंस्टॉल किए गए संस्करणों की सूची लोड नहीं हो सकी। {runtime} मॉड्यूल की जाँच करें और फिर कोशिश करें।",
+  "serviceRequiresRunningService": "{service} के लिए {dependency} सेवा चालू होना आवश्यक है। पहले {dependency} शुरू करें।"
 }

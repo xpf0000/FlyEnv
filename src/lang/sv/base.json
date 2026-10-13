@@ -97,5 +97,8 @@
   "selectVersion": "Välj version",
   "webPanelFirstInstall": "{service} måste installeras första gången det körs. Det kan ta en stund, så ha tålamod. Hanteringspanelen öppnas automatiskt när installationen är klar.",
   "helperBinaryMissing": "FlyEnv-hjälpen saknas. Installera om FlyEnv eller reparera hjälpen.",
-  "dataDirectoryRecoveryFailed": "FlyEnv kunde inte återställa datamappen. Kontrollera hjälpen och försök igen."
+  "dataDirectoryRecoveryFailed": "FlyEnv kunde inte återställa datamappen. Kontrollera hjälpen och försök igen.",
+  "serviceRequiresRuntime": "{service} kräver {runtime}. Installera och välj först en kompatibel version i modulen {module}.",
+  "serviceRuntimeFetchFailed": "{service} kräver {runtime}, men listan över installerade versioner kunde inte läsas in. Kontrollera modulen {runtime} och försök igen.",
+  "serviceRequiresRunningService": "{service} kräver en {dependency}-tjänst som körs. Starta först {dependency}."
 }

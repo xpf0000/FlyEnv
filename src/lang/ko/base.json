@@ -97,5 +97,8 @@
   "selectVersion": "버전 선택",
   "webPanelFirstInstall": "{service}은(는) 처음 실행할 때 설치해야 합니다. 시간이 걸릴 수 있으므로 잠시 기다려 주세요. 설치가 완료되면 관리 패널이 자동으로 열립니다.",
   "helperBinaryMissing": "FlyEnv 도우미가 없습니다. FlyEnv를 다시 설치하거나 도우미를 복구하세요.",
-  "dataDirectoryRecoveryFailed": "FlyEnv가 데이터 디렉터리를 복원하지 못했습니다. 도우미를 확인한 후 다시 시도하세요."
+  "dataDirectoryRecoveryFailed": "FlyEnv가 데이터 디렉터리를 복원하지 못했습니다. 도우미를 확인한 후 다시 시도하세요.",
+  "serviceRequiresRuntime": "{service}에는 {runtime}이 필요합니다. 먼저 {module} 모듈에서 호환되는 버전을 설치하고 선택하세요.",
+  "serviceRuntimeFetchFailed": "{service}에는 {runtime}이 필요하지만 설치된 버전 목록을 불러오지 못했습니다. {runtime} 모듈을 확인하고 다시 시도하세요.",
+  "serviceRequiresRunningService": "{service}에는 실행 중인 {dependency} 서비스가 필요합니다. 먼저 {dependency}을(를) 시작하세요."
 }

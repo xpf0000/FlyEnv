@@ -97,5 +97,8 @@
   "selectVersion": "Chọn phiên bản",
   "webPanelFirstInstall": "Cần cài đặt {service} trong lần chạy đầu tiên. Quá trình này có thể mất một chút thời gian, vui lòng kiên nhẫn. Bảng điều khiển quản trị sẽ tự động mở sau khi cài đặt hoàn tất.",
   "helperBinaryMissing": "Thiếu trình trợ giúp FlyEnv. Hãy cài đặt lại FlyEnv hoặc sửa trình trợ giúp.",
-  "dataDirectoryRecoveryFailed": "FlyEnv không thể khôi phục thư mục dữ liệu. Hãy kiểm tra trình trợ giúp và thử lại."
+  "dataDirectoryRecoveryFailed": "FlyEnv không thể khôi phục thư mục dữ liệu. Hãy kiểm tra trình trợ giúp và thử lại.",
+  "serviceRequiresRuntime": "{service} cần {runtime}. Trước tiên, hãy cài đặt và chọn phiên bản tương thích trong mô-đun {module}.",
+  "serviceRuntimeFetchFailed": "{service} cần {runtime}, nhưng không thể tải danh sách các phiên bản đã cài đặt. Hãy kiểm tra mô-đun {runtime} rồi thử lại.",
+  "serviceRequiresRunningService": "{service} cần dịch vụ {dependency} đang chạy. Hãy khởi động {dependency} trước."
 }

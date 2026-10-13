@@ -97,5 +97,8 @@
   "selectVersion": "Selectați versiunea",
   "webPanelFirstInstall": "{service} trebuie instalat la prima rulare. Acest lucru poate dura ceva timp, așa că vă rugăm să aveți răbdare. Panoul de administrare se va deschide automat după finalizarea instalării.",
   "helperBinaryMissing": "Lipsește utilitarul FlyEnv. Reinstalați FlyEnv sau reparați utilitarul.",
-  "dataDirectoryRecoveryFailed": "FlyEnv nu a putut restaura directorul de date. Verificați utilitarul și încercați din nou."
+  "dataDirectoryRecoveryFailed": "FlyEnv nu a putut restaura directorul de date. Verificați utilitarul și încercați din nou.",
+  "serviceRequiresRuntime": "{service} necesită {runtime}. Mai întâi instalați și selectați o versiune compatibilă în modulul {module}.",
+  "serviceRuntimeFetchFailed": "{service} necesită {runtime}, dar lista versiunilor instalate nu a putut fi încărcată. Verificați modulul {runtime} și încercați din nou.",
+  "serviceRequiresRunningService": "{service} necesită ca serviciul {dependency} să fie pornit. Porniți mai întâi {dependency}."
 }

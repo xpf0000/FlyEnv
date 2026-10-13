@@ -97,5 +97,8 @@
   "selectVersion": "Vyberte verzi",
   "webPanelFirstInstall": "Při prvním spuštění je nutné nainstalovat {service}. Může to chvíli trvat, proto prosím vyčkejte. Po dokončení instalace se automaticky otevře panel pro správu.",
   "helperBinaryMissing": "Pomocný program FlyEnv chybí. Přeinstalujte FlyEnv nebo pomocný program opravte.",
-  "dataDirectoryRecoveryFailed": "FlyEnv nemohl obnovit datovou složku. Zkontrolujte pomocný program a zkuste to znovu."
+  "dataDirectoryRecoveryFailed": "FlyEnv nemohl obnovit datovou složku. Zkontrolujte pomocný program a zkuste to znovu.",
+  "serviceRequiresRuntime": "{service} vyžaduje {runtime}. Nejprve nainstalujte a vyberte kompatibilní verzi v modulu {module}.",
+  "serviceRuntimeFetchFailed": "{service} vyžaduje {runtime}, ale seznam nainstalovaných verzí se nepodařilo načíst. Zkontrolujte modul {runtime} a zkuste to znovu.",
+  "serviceRequiresRunningService": "{service} vyžaduje spuštěnou službu {dependency}. Nejprve spusťte {dependency}."
 }

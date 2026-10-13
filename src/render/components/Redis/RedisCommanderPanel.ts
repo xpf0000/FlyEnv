@@ -20,15 +20,28 @@ export class RedisCommanderPanel {
       const brewStore = BrewStore()
       const fetched = await brewStore.module('node').fetchInstalled(true)
       if (!fetched) {
-        throw new Error(`NodeJS: ${I18nT('base.versionError')}`)
+        throw new Error(
+          I18nT('base.serviceRuntimeFetchFailed', { service: 'Redis Commander', runtime: 'NodeJS' })
+        )
       }
       const node = brewStore.currentVersion('node')
       if (!node?.bin) {
-        throw new Error(`NodeJS: ${I18nT('base.needSelectVersion')}`)
+        throw new Error(
+          I18nT('base.serviceRequiresRuntime', {
+            service: 'Redis Commander',
+            runtime: 'NodeJS',
+            module: 'NodeJS'
+          })
+        )
       }
       const redis = brewStore.module('redis').installed.find((item) => item.run)
       if (!redis) {
-        throw new Error(I18nT('tray.notRun'))
+        throw new Error(
+          I18nT('base.serviceRequiresRunningService', {
+            service: 'Redis Commander',
+            dependency: 'Redis'
+          })
+        )
       }
       const request = redisCommanderRequest(node, redis)
       IPC.sendSensitive('app-fork:redis', 'openRedisCommander', request.node, request.redis).then(

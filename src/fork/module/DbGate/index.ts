@@ -27,6 +27,7 @@ import { isWindows, waitTime } from '@shared/utils'
 import { spawnPromise } from '@shared/child-process'
 import { findLoopbackPort } from '@shared/LoopbackPort'
 import { webPanelInstallNotice } from '@shared/WebPanelInstallNotice'
+import { I18nT } from '@lang/runtime'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 
 export const DBGATE_PACKAGE = 'dbgate-serve'
@@ -387,7 +388,14 @@ debug('process.loaded', { cwd: process.cwd(), argv: process.argv.slice(1), node:
     const npm = this.windows
       ? undefined
       : [join(nodeDir, 'npm')].find((candidate) => existsSync(candidate))
-    if (!npmCli && !npm) throw new Error('npm is not available for the selected Node.js version')
+    if (!npmCli && !npm)
+      throw new Error(
+        I18nT('base.serviceRequiresRuntime', {
+          service: 'DbGate',
+          runtime: 'NodeJS (npm)',
+          module: 'NodeJS'
+        })
+      )
     await mkdirp(paths.root)
     const manifestPath = join(paths.root, 'package.json')
     let manifest = dbGateInstallManifest()
@@ -561,7 +569,14 @@ debug('process.loaded', { cwd: process.cwd(), argv: process.argv.slice(1), node:
     on: (...args: any[]) => void
   ): Promise<DbGateOpenResult> {
     const nodeBin = `${node?.bin ?? ''}`.trim()
-    if (!nodeBin) throw new Error('A Node.js version must be selected before opening DbGate')
+    if (!nodeBin)
+      throw new Error(
+        I18nT('base.serviceRequiresRuntime', {
+          service: 'DbGate',
+          runtime: 'NodeJS',
+          module: 'NodeJS'
+        })
+      )
     const freshInstall = !existsSync(this.paths.entry)
     await mkdirp(this.paths.workspace)
     const credentials = await this.ensureCredentials()

@@ -97,5 +97,8 @@
   "selectVersion": "Versiya seçin",
   "webPanelFirstInstall": "{service} ilk dəfə işə salındıqda quraşdırılmalıdır. Bu bir qədər vaxt apara bilər, ona görə səbirli olun. Quraşdırma tamamlandıqda idarəetmə paneli avtomatik açılacaq.",
   "helperBinaryMissing": "FlyEnv köməkçi proqramı yoxdur. FlyEnv-i yenidən quraşdırın və ya köməkçi proqramı bərpa edin.",
-  "dataDirectoryRecoveryFailed": "FlyEnv məlumat qovluğunu bərpa edə bilmədi. Köməkçi proqramı yoxlayın və yenidən cəhd edin."
+  "dataDirectoryRecoveryFailed": "FlyEnv məlumat qovluğunu bərpa edə bilmədi. Köməkçi proqramı yoxlayın və yenidən cəhd edin.",
+  "serviceRequiresRuntime": "{service} üçün {runtime} tələb olunur. Əvvəlcə {module} modulunda uyğun versiyanı quraşdırın və seçin.",
+  "serviceRuntimeFetchFailed": "{service} üçün {runtime} tələb olunur, lakin quraşdırılmış versiyaların siyahısı yüklənmədi. {runtime} modulunu yoxlayın və yenidən cəhd edin.",
+  "serviceRequiresRunningService": "{service} üçün işləyən {dependency} xidməti tələb olunur. Əvvəlcə {dependency} xidmətini başladın."
 }

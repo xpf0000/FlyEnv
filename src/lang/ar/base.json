@@ -97,5 +97,8 @@
   "selectVersion": "اختيار الإصدار",
   "webPanelFirstInstall": "يجب تثبيت {service} عند تشغيله لأول مرة. قد يستغرق ذلك بعض الوقت، لذا يرجى التحلي بالصبر. ستُفتح لوحة الإدارة تلقائيًا عند اكتمال التثبيت.",
   "helperBinaryMissing": "ملف FlyEnv المساعد مفقود. يرجى إعادة تثبيت FlyEnv أو إصلاح المساعد.",
-  "dataDirectoryRecoveryFailed": "تعذر على FlyEnv استعادة دليل البيانات. يرجى التحقق من المساعد والمحاولة مرة أخرى."
+  "dataDirectoryRecoveryFailed": "تعذر على FlyEnv استعادة دليل البيانات. يرجى التحقق من المساعد والمحاولة مرة أخرى.",
+  "serviceRequiresRuntime": "يتطلب {service} وجود {runtime}. يرجى أولاً تثبيت إصدار متوافق واختياره في وحدة {module}.",
+  "serviceRuntimeFetchFailed": "يتطلب {service} وجود {runtime}، ولكن تعذر تحميل قائمة الإصدارات المثبتة. يرجى التحقق من وحدة {runtime} والمحاولة مرة أخرى.",
+  "serviceRequiresRunningService": "يتطلب {service} تشغيل خدمة {dependency}. يرجى بدء تشغيل {dependency} أولاً."
 }

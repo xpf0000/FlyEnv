@@ -97,5 +97,8 @@
   "selectVersion": "Pilih Versi",
   "webPanelFirstInstall": "{service} perlu diinstal saat pertama kali dijalankan. Proses ini mungkin memerlukan waktu, jadi harap bersabar. Panel manajemen akan terbuka otomatis setelah instalasi selesai.",
   "helperBinaryMissing": "Helper FlyEnv tidak ditemukan. Instal ulang FlyEnv atau perbaiki helper.",
-  "dataDirectoryRecoveryFailed": "FlyEnv tidak dapat memulihkan direktori data. Periksa helper lalu coba lagi."
+  "dataDirectoryRecoveryFailed": "FlyEnv tidak dapat memulihkan direktori data. Periksa helper lalu coba lagi.",
+  "serviceRequiresRuntime": "{service} memerlukan {runtime}. Instal dan pilih versi yang kompatibel di modul {module} terlebih dahulu.",
+  "serviceRuntimeFetchFailed": "{service} memerlukan {runtime}, tetapi daftar versi yang terinstal tidak dapat dimuat. Periksa modul {runtime} dan coba lagi.",
+  "serviceRequiresRunningService": "{service} memerlukan layanan {dependency} yang sedang berjalan. Jalankan {dependency} terlebih dahulu."
 }

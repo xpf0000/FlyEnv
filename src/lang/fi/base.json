@@ -97,5 +97,8 @@
   "selectVersion": "Valitse Versio",
   "webPanelFirstInstall": "{service} on asennettava ensimmäisellä käynnistyskerralla. Tämä voi kestää hetken, joten odota kärsivällisesti. Hallintapaneeli avautuu automaattisesti, kun asennus on valmis.",
   "helperBinaryMissing": "FlyEnv-apuohjelma puuttuu. Asenna FlyEnv uudelleen tai korjaa apuohjelma.",
-  "dataDirectoryRecoveryFailed": "FlyEnv ei voinut palauttaa tietokansiota. Tarkista apuohjelma ja yritä uudelleen."
+  "dataDirectoryRecoveryFailed": "FlyEnv ei voinut palauttaa tietokansiota. Tarkista apuohjelma ja yritä uudelleen.",
+  "serviceRequiresRuntime": "{service} tarvitsee {runtime}-ajoympäristön. Asenna ja valitse ensin yhteensopiva versio {module}-moduulissa.",
+  "serviceRuntimeFetchFailed": "{service} tarvitsee {runtime}-ajoympäristön, mutta asennettujen versioiden luetteloa ei voitu ladata. Tarkista {runtime}-moduuli ja yritä uudelleen.",
+  "serviceRequiresRunningService": "{service} tarvitsee käynnissä olevan {dependency}-palvelun. Käynnistä ensin {dependency}."
 }

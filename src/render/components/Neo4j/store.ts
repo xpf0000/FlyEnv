@@ -1,3 +1,4 @@
+import { I18nT } from '@lang/index'
 import { BrewStore, type SoftInstalled } from '@/store/brew'
 import { reactiveBind } from '@/util/Index'
 import { dirname, join, normalize, resolve } from '@/util/path-browserify'
@@ -88,7 +89,13 @@ export class Neo4jJavaBindingManager {
     const key = normalizeNeo4jBin(bin)
     if (!key) throw new Error('Neo4j installation path is required')
     if (!binding?.javaHome || !Number.isFinite(binding.javaMajor)) {
-      throw new Error('A valid Java runtime is required')
+      throw new Error(
+        I18nT('base.serviceRequiresRuntime', {
+          service: 'Neo4j',
+          runtime: 'Java',
+          module: 'Java'
+        })
+      )
     }
     await this.init()
     return this.enqueueMutation(async () => {

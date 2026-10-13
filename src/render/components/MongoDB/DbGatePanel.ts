@@ -17,7 +17,13 @@ export class DbGatePanel {
 
     const node = BrewStore().currentVersion('node')
     if (!node?.bin) {
-      MessageError(I18nT('base.needSelectVersion'))
+      MessageError(
+        I18nT('base.serviceRequiresRuntime', {
+          service: 'DbGate',
+          runtime: 'NodeJS',
+          module: 'NodeJS'
+        })
+      )
       return
     }
 

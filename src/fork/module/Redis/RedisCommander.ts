@@ -27,6 +27,7 @@ import { isWindows, waitTime } from '@shared/utils'
 import { spawnPromise } from '@shared/child-process'
 import { findLoopbackPort } from '@shared/LoopbackPort'
 import { webPanelInstallNotice } from '@shared/WebPanelInstallNotice'
+import { I18nT } from '@lang/runtime'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 
 export const REDIS_COMMANDER_PACKAGE = 'redis-commander'
@@ -389,7 +390,14 @@ export class RedisCommanderRuntime {
     const npm = this.windows
       ? undefined
       : [join(nodeDir, 'npm')].find((candidate) => existsSync(candidate))
-    if (!npmCli && !npm) throw new Error('npm is not available for the selected Node.js version')
+    if (!npmCli && !npm)
+      throw new Error(
+        I18nT('base.serviceRequiresRuntime', {
+          service: 'Redis Commander',
+          runtime: 'NodeJS (npm)',
+          module: 'NodeJS'
+        })
+      )
 
     await mkdirp(paths.root)
     const manifestPath = join(paths.root, 'package.json')
@@ -570,7 +578,13 @@ export class RedisCommanderRuntime {
     try {
       const nodeBin = `${node?.bin ?? ''}`.trim()
       if (!nodeBin) {
-        throw new Error('A Node.js version must be selected before opening Redis Commander')
+        throw new Error(
+          I18nT('base.serviceRequiresRuntime', {
+            service: 'Redis Commander',
+            runtime: 'NodeJS',
+            module: 'NodeJS'
+          })
+        )
       }
 
       const connection = await this.readConfig(redis)

@@ -97,5 +97,8 @@
   "selectVersion": "انتخاب نسخه",
   "webPanelFirstInstall": "برای اولین اجرای سرویس {service}، نیاز به نصب آن است. این کار ممکن است کمی طول بکشد، لطفاً صبور باشید. پنل مدیریت پس از اتمام نصب به طور خودکار باز خواهد شد.",
   "helperBinaryMissing": "دستیار FlyEnv پیدا نشد. لطفاً FlyEnv را دوباره نصب یا دستیار را تعمیر کنید.",
-  "dataDirectoryRecoveryFailed": "FlyEnv نتوانست پوشه داده را بازیابی کند. لطفاً دستیار را بررسی و دوباره تلاش کنید."
+  "dataDirectoryRecoveryFailed": "FlyEnv نتوانست پوشه داده را بازیابی کند. لطفاً دستیار را بررسی و دوباره تلاش کنید.",
+  "serviceRequiresRuntime": "{service} به {runtime} نیاز دارد. ابتدا یک نسخه سازگار را در ماژول {module} نصب و انتخاب کنید.",
+  "serviceRuntimeFetchFailed": "{service} به {runtime} نیاز دارد، اما فهرست نسخه‌های نصب‌شده بارگیری نشد. ماژول {runtime} را بررسی کنید و دوباره تلاش کنید.",
+  "serviceRequiresRunningService": "{service} به سرویس در حال اجرای {dependency} نیاز دارد. ابتدا {dependency} را راه‌اندازی کنید."
 }

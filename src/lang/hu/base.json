@@ -97,5 +97,8 @@
   "targetPlatforms": "Célplatformok",
   "webPanelFirstInstall": "A(z) {service} szolgáltatást az első futtatáskor telepíteni kell. Ez eltarthat egy ideig, kérjük, legyen türelemmel. A kezelőpanel a telepítés befejezése után automatikusan megnyílik.",
   "helperBinaryMissing": "Hiányzik a FlyEnv segédprogramja. Telepítse újra a FlyEnv-et, vagy javítsa a segédprogramot.",
-  "dataDirectoryRecoveryFailed": "A FlyEnv nem tudta helyreállítani az adatkönyvtárat. Ellenőrizze a segédprogramot, majd próbálja újra."
+  "dataDirectoryRecoveryFailed": "A FlyEnv nem tudta helyreállítani az adatkönyvtárat. Ellenőrizze a segédprogramot, majd próbálja újra.",
+  "serviceRequiresRuntime": "A(z) {service} használatához {runtime} szükséges. Először telepítsen és válasszon ki egy kompatibilis verziót a(z) {module} modulban.",
+  "serviceRuntimeFetchFailed": "A(z) {service} használatához {runtime} szükséges, de a telepített verziók listáját nem sikerült betölteni. Ellenőrizze a(z) {runtime} modult, majd próbálja újra.",
+  "serviceRequiresRunningService": "A(z) {service} használatához futó {dependency} szolgáltatás szükséges. Először indítsa el a(z) {dependency} szolgáltatást."
 }

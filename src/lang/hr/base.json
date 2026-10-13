@@ -97,5 +97,8 @@
   "selectVersion": "Odaberi Verziju",
   "webPanelFirstInstall": "{service} treba instalirati pri prvom pokretanju. To može potrajati, stoga budite strpljivi. Upravljačka ploča otvorit će se automatski kada instalacija završi.",
   "helperBinaryMissing": "Nedostaje FlyEnv pomoćni program. Ponovno instalirajte FlyEnv ili popravite pomoćni program.",
-  "dataDirectoryRecoveryFailed": "FlyEnv nije mogao vratiti podatkovnu mapu. Provjerite pomoćni program i pokušajte ponovno."
+  "dataDirectoryRecoveryFailed": "FlyEnv nije mogao vratiti podatkovnu mapu. Provjerite pomoćni program i pokušajte ponovno.",
+  "serviceRequiresRuntime": "{service} zahtijeva {runtime}. Najprije instalirajte i odaberite kompatibilnu verziju u modulu {module}.",
+  "serviceRuntimeFetchFailed": "{service} zahtijeva {runtime}, ali popis instaliranih verzija nije moguće učitati. Provjerite modul {runtime} i pokušajte ponovno.",
+  "serviceRequiresRunningService": "{service} zahtijeva pokrenutu uslugu {dependency}. Najprije pokrenite {dependency}."
 }

@@ -97,5 +97,8 @@
   "selectVersion": "選擇版本",
   "webPanelFirstInstall": "首次執行需要安裝 {service}，安裝過程可能需要一些時間，請耐心等候。安裝完成後將自動開啟管理面板。",
   "helperBinaryMissing": "FlyEnv 輔助程式遺失，請重新安裝 FlyEnv 或修復輔助程式。",
-  "dataDirectoryRecoveryFailed": "FlyEnv 無法還原資料目錄，請檢查輔助程式後重試。"
+  "dataDirectoryRecoveryFailed": "FlyEnv 無法還原資料目錄，請檢查輔助程式後重試。",
+  "serviceRequiresRuntime": "{service} 需要 {runtime}，請先在 {module} 模組中安裝並選擇相容的版本。",
+  "serviceRuntimeFetchFailed": "{service} 需要 {runtime}，但已安裝版本清單載入失敗，請檢查 {runtime} 模組後重試。",
+  "serviceRequiresRunningService": "{service} 需要正在執行的 {dependency} 服務，請先啟動 {dependency}。"
 }

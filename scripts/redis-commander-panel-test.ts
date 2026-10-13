@@ -3,9 +3,19 @@ import { build } from 'esbuild'
 import { mkdtemp, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { readFileSync } from 'node:fs'
+import { createI18n } from 'vue-i18n'
 import { pathToFileURL } from 'node:url'
 
 const directory = await mkdtemp(join(tmpdir(), 'flyenv-redis-panel-'))
+const i18n = createI18n({
+  legacy: false,
+  locale: 'en',
+  messages: {
+    en: { base: JSON.parse(readFileSync('src/lang/en/base.json', 'utf8')) },
+    zh: { base: JSON.parse(readFileSync('src/lang/zh/base.json', 'utf8')) }
+  }
+})
 const node = { bin: '/tmp/node' }
 const redis = { version: '7.4.0', run: true }
 const requests: Array<{ args: unknown[]; reply: (response: any) => void }> = []
@@ -32,6 +42,7 @@ const store = {
       : { installed: [redis] }
 }
 ;(globalThis as any).__redisPanel = {
+  translate: (key: string, params: any) => i18n.global.t(key, params),
   store,
   requests,
   errors,
@@ -43,7 +54,7 @@ const store = {
 try {
   const mocks: Record<string, string> = {
     '@/store/brew': 'export const BrewStore=()=>globalThis.__redisPanel.store',
-    '@lang/index': 'export const I18nT=key=>key',
+    '@lang/index': 'export const I18nT=(key,params)=>globalThis.__redisPanel.translate(key,params)',
     '@/util/Element': 'export const MessageError=msg=>globalThis.__redisPanel.errors.push(msg)',
     '@/util/NodeFn': `export const shell={openExternal:url=>{
       globalThis.__redisPanel.opened.push(url);return Promise.resolve()
@@ -111,7 +122,8 @@ try {
   const missing = panel.open()
   finishFetch(true)
   await missing
-  assert.match(errors.at(-1)!, /NodeJS.*base.needSelectVersion/)
+  assert.match(errors.at(-1)!, /Redis Commander.*requires.*NodeJS/)
+  assert.match(errors.at(-1)!, /install.*select/)
   assert.equal(panel.opening.value, false)
   assert.equal(requests.length, 1)
 
@@ -119,7 +131,7 @@ try {
   const failed = panel.open()
   finishFetch(false)
   await failed
-  assert.match(errors.at(-1)!, /NodeJS.*base.versionError/)
+  assert.match(errors.at(-1)!, /Redis Commander.*NodeJS.*could not be loaded/)
   assert.equal(panel.opening.value, false)
   assert.equal(requests.length, 1, 'failed scan cannot send a stale NodeJS selection')
 
@@ -127,11 +139,22 @@ try {
   redis.run = false
   finishFetch(true)
   await stopped
-  assert.equal(errors.at(-1), 'tray.notRun')
+  assert.match(errors.at(-1)!, /Redis Commander.*running Redis/)
   assert.equal(panel.opening.value, false)
   assert.equal(requests.length, 1)
 
+  i18n.global.locale.value = 'zh'
   redis.run = true
+  selectedNode = undefined
+  const missingChinese = panel.open()
+  finishFetch(true)
+  await missingChinese
+  assert.match(errors.at(-1)!, /Redis Commander.*需要.*NodeJS/)
+  assert.match(errors.at(-1)!, /安装.*选择/)
+  assert.equal(panel.opening.value, false)
+  assert.equal(requests.length, 1)
+
+  selectedNode = node
   const retry = panel.open()
   finishFetch(true)
   await retry

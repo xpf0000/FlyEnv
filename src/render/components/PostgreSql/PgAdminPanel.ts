@@ -25,7 +25,12 @@ export class PgAdminPanel {
     const brewStore = BrewStore()
     const version = brewStore.module('postgresql').installed.find((item) => item.run)
     if (!version) {
-      MessageError(I18nT('base.needSelectVersion'))
+      MessageError(
+        I18nT('base.serviceRequiresRunningService', {
+          service: 'pgAdmin 4',
+          dependency: 'PostgreSQL'
+        })
+      )
       return
     }
     this.opening.value = true
@@ -37,7 +42,11 @@ export class PgAdminPanel {
       )
       if (!python?.bin) {
         throw new Error(
-          `pgAdmin 4 requires Python 3.${PGADMIN4_MIN_PYTHON_MINOR} through 3.${PGADMIN4_MAX_PYTHON_MINOR}`
+          I18nT('base.serviceRequiresRuntime', {
+            service: 'pgAdmin 4',
+            runtime: `Python 3.${PGADMIN4_MIN_PYTHON_MINOR}–3.${PGADMIN4_MAX_PYTHON_MINOR}`,
+            module: 'Python'
+          })
         )
       }
       await PostgreSqlSetup.init()

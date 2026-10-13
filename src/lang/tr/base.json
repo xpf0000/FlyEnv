@@ -97,5 +97,8 @@
   "selectVersion": "Sürüm Seç",
   "webPanelFirstInstall": "{service} ilk çalıştırıldığında yüklenmelidir. Bu işlem biraz zaman alabilir, lütfen bekleyin. Yükleme tamamlandığında yönetim paneli otomatik olarak açılır.",
   "helperBinaryMissing": "FlyEnv Yardımcısı eksik. FlyEnv’i yeniden yükleyin veya Yardımcıyı onarın.",
-  "dataDirectoryRecoveryFailed": "FlyEnv veri dizinini geri yükleyemedi. Yardımcıyı kontrol edip tekrar deneyin."
+  "dataDirectoryRecoveryFailed": "FlyEnv veri dizinini geri yükleyemedi. Yardımcıyı kontrol edip tekrar deneyin.",
+  "serviceRequiresRuntime": "{service} için {runtime} gereklidir. Önce {module} modülünde uyumlu bir sürüm yükleyip seçin.",
+  "serviceRuntimeFetchFailed": "{service} için {runtime} gereklidir, ancak yüklü sürümlerin listesi yüklenemedi. {runtime} modülünü kontrol edip tekrar deneyin.",
+  "serviceRequiresRunningService": "{service} için {dependency} hizmetinin çalışıyor olması gerekir. Önce {dependency} hizmetini başlatın."
 }
