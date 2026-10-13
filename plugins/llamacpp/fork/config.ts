@@ -5,10 +5,43 @@ import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { spawn } from 'node:child_process'
 import type { SoftInstalled } from '@shared/app'
-import type { LaunchProfile, LocalModel, RuntimeVariant, ServerInvocation, ValidatedLaunchProfile } from '../shared/types'
+import type { LaunchProfile, LocalModel, RuntimeBackend, RuntimeVariant, ServerInvocation, ValidatedLaunchProfile } from '../shared/types'
 import { isGGUFShardPath } from '../shared/modelFile'
 
 const isLoopback = (host: string) => host === 'localhost' || host === '127.0.0.1' || host === '::1'
+
+/** llama.cpp names GPU backends `<prefix><index>`; `ggml_backend_dev_by_name` matches them case-insensitively. */
+const GPU_DEVICE_PREFIX: Partial<Record<RuntimeBackend, string>> = {
+  cuda: 'CUDA',
+  vulkan: 'Vulkan',
+  metal: 'MTL'
+}
+const BARE_DEVICE_INDEX = /^\d{1,3}$/
+const DEVICE_NAME = /^[A-Za-z][A-Za-z0-9_-]{0,31}$/
+
+/**
+ * `--device` only accepts llama.cpp device names such as `CUDA0`, not a bare index.
+ * A bare index is expanded with the selected backend so saved profiles keep working;
+ * an empty value means "let llama.cpp pick the default device".
+ */
+export const resolveGpuDevice = (backend: RuntimeBackend, gpuDevice?: string): string | undefined => {
+  const value = gpuDevice?.trim()
+  if (!value) return undefined
+  const prefix = GPU_DEVICE_PREFIX[backend]
+  if (!prefix) throw new Error('GPU device is unsupported for this backend')
+  return value
+    .split(',')
+    .map((device) => {
+      const entry = device.trim()
+      if (BARE_DEVICE_INDEX.test(entry)) return `${prefix}${entry}`
+      if (!DEVICE_NAME.test(entry)) {
+        throw new Error('GPU device must be a llama.cpp device name (for example CUDA0, Vulkan0 or MTL0) or a numeric index')
+      }
+      return entry
+    })
+    .join(',')
+}
+
 export const formatUrlHost = (host: string) => host.includes(':') && !host.startsWith('[') ? `[${host}]` : host
 
 export const validateLaunchProfile = (profile: LaunchProfile, variant: RuntimeVariant): ValidatedLaunchProfile => {
@@ -19,11 +52,10 @@ export const validateLaunchProfile = (profile: LaunchProfile, variant: RuntimeVa
   if (!Number.isInteger(profile.contextSize) || profile.contextSize < 128 || profile.contextSize > 1_048_576) throw new Error('Context size is outside the supported range')
   if (!Number.isInteger(profile.threads) || profile.threads < 1 || profile.threads > 512) throw new Error('Thread count is outside the supported range')
   if (!Number.isInteger(profile.gpuLayers) || profile.gpuLayers < 0 || profile.gpuLayers > 999) throw new Error('GPU layer count is outside the supported range')
-  if (profile.backend === 'cpu' && (profile.gpuLayers > 0 || profile.gpuDevice)) throw new Error('CPU runtime cannot use GPU layers or devices')
-  if (profile.gpuDevice !== undefined && !/^\d{1,3}$/.test(profile.gpuDevice)) throw new Error('GPU device must be a numeric device index')
-  if (profile.gpuDevice && !['cuda', 'vulkan', 'metal'].includes(profile.backend)) throw new Error('GPU device is unsupported for this backend')
+  if (profile.backend === 'cpu' && (profile.gpuLayers > 0 || profile.gpuDevice?.trim())) throw new Error('CPU runtime cannot use GPU layers or devices')
+  const gpuDevice = resolveGpuDevice(profile.backend, profile.gpuDevice)
   if (!isLoopback(profile.host) && !profile.apiKeyFile?.trim()) throw new Error('An API key file is required for non-loopback binding')
-  return { ...profile, host: profile.host.trim() }
+  return { ...profile, host: profile.host.trim(), gpuDevice }
 }
 
 export const buildServerInvocation = (profile: ValidatedLaunchProfile, runtime: SoftInstalled, model: LocalModel): ServerInvocation => {
@@ -36,7 +68,7 @@ export const buildServerInvocation = (profile: ValidatedLaunchProfile, runtime: 
     '--threads', `${profile.threads}`,
     '--n-gpu-layers', `${profile.gpuLayers}`
   ]
-  if (profile.gpuDevice !== undefined) args.push('--device', profile.gpuDevice)
+  if (profile.gpuDevice) args.push('--device', profile.gpuDevice)
   if (profile.apiKeyFile) args.push('--api-key-file', profile.apiKeyFile)
   return { bin: runtime.bin, args, env: {}, cwd: runtime.path }
 }

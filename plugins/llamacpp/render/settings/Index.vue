@@ -24,9 +24,12 @@
           <el-form-item :label="LlamaCppT('gpuLayers')"
             ><el-input-number v-model="profile.gpuLayers" :min="0" :max="999"
           /></el-form-item>
-          <el-form-item :label="LlamaCppT('gpuDevice')"
-            ><el-input v-model="profile.gpuDevice" placeholder="0"
-          /></el-form-item>
+          <el-form-item :label="LlamaCppT('gpuDevice')">
+            <div class="flex w-full flex-col items-start gap-1">
+              <el-input v-model="profile.gpuDevice" placeholder="CUDA0" />
+              <span class="text-xs opacity-70">{{ LlamaCppT('gpuDeviceHint') }}</span>
+            </div>
+          </el-form-item>
           <el-form-item :label="LlamaCppT('apiKeyFile')"
             ><el-input :model-value="profile.apiKeyFile ?? LlamaCppT('none')" readonly
           /></el-form-item>

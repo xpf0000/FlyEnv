@@ -13,7 +13,7 @@ import { createModelDownloadDeps, deleteLocalModel, downloadHubModelFile, format
 import type { HubModel, HubModelFile } from '../plugins/llamacpp/shared/types'
 import { isStandaloneGGUFPath } from '../plugins/llamacpp/shared/modelFile'
 import { isStandaloneGGUFFile } from '../plugins/llamacpp/fork/gguf'
-import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, readServerHelp, validateLaunchProfile, validateManagedModelPath, waitForServerHealth, waitForServerStopped } from '../plugins/llamacpp/fork/config'
+import { assertInvocationSupported, assertServerStopped, buildServerInvocation, createApiKeyFile, readServerHelp, resolveGpuDevice, validateLaunchProfile, validateManagedModelPath, waitForServerHealth, waitForServerStopped } from '../plugins/llamacpp/fork/config'
 import { LlamaCppModule, isManagedModelActive } from '../plugins/llamacpp/fork/LlamaCpp'
 import type { LaunchProfile } from '../plugins/llamacpp/shared/types'
 import { createControllerTransport, LlamaCppController, LlamaCppManager, modelFileKey, type ControllerTransport, type ModelService } from '../plugins/llamacpp/render/controller'
@@ -431,6 +431,53 @@ const testLaunchRejectsUnsupportedRuntimeFlags = () => {
 
 const testLaunchProfileRejectsUnknownBackendDevice = () => {
   assert.throws(() => validateLaunchProfile({ ...launchProfile, gpuDevice: 'cuda:any arbitrary' }, launchVariant), /GPU device/)
+}
+
+const testBareDeviceIndexIsExpandedForSelectedBackend = () => {
+  assert.equal(resolveGpuDevice('cuda', '0'), 'CUDA0')
+  assert.equal(resolveGpuDevice('vulkan', '1'), 'Vulkan1')
+  assert.equal(resolveGpuDevice('metal', '2'), 'MTL2')
+  // llama.cpp matches device names case-insensitively; an explicit name is passed through as typed.
+  assert.equal(resolveGpuDevice('cuda', 'CUDA0'), 'CUDA0')
+  assert.equal(resolveGpuDevice('cuda', 'cuda1'), 'cuda1')
+}
+
+const testEmptyDeviceMeansProviderDefault = () => {
+  assert.equal(resolveGpuDevice('cuda', undefined), undefined)
+  assert.equal(resolveGpuDevice('cuda', ''), undefined)
+  assert.equal(resolveGpuDevice('cuda', '  '), undefined)
+  // An empty selection must not reach argv as `--device ''`, which llama.cpp rejects.
+  const validated = validateLaunchProfile({ ...launchProfile, gpuDevice: '' }, launchVariant)
+  assert.deepEqual(validated.gpuDevice, undefined)
+  const invocation = buildServerInvocation(validated, { bin: '/runtime/llama-server', path: '/runtime', version: 'b4000' } as any, { localPath: '/models/test.gguf' } as any)
+  assert.equal(invocation.args.includes('--device'), false)
+}
+
+const testDeviceListIsAcceptedAndSanitized = () => {
+  assert.equal(resolveGpuDevice('cuda', ' CUDA0 , CUDA1 '), 'CUDA0,CUDA1')
+  assert.equal(resolveGpuDevice('cuda', '0,1'), 'CUDA0,CUDA1')
+  for (const value of [';rm -rf /', 'CUDA0;ls', 'foo bar', '-1', 'CUDA 0']) {
+    assert.throws(() => resolveGpuDevice('cuda', value), /GPU device/, value)
+  }
+}
+
+const testWhitespaceDeviceIsTreatedAsUnset = () => {
+  // A whitespace-only field must not trip the CPU guard nor emit `--device ''`.
+  const validated = validateLaunchProfile({ ...launchProfile, gpuDevice: '   ' }, launchVariant)
+  assert.equal(validated.gpuDevice, undefined)
+  const cpu = validateLaunchProfile({ ...launchProfile, backend: 'cpu', gpuLayers: 0, gpuDevice: '   ' }, { ...launchVariant, backend: 'cpu' })
+  assert.equal(cpu.gpuDevice, undefined)
+}
+
+const testDeviceArgumentReachesArgvAsLlamaCppDeviceName = () => {
+  const runtime = { bin: '/runtime/llama-server', path: '/runtime', version: 'b4000' } as any
+  const model = { localPath: '/models/test.gguf' } as any
+  // The regression from issue #897: a bare `0` was forwarded verbatim and llama.cpp replied
+  // `error while handling argument "--device": invalid device: 0`.
+  const numeric = buildServerInvocation(validateLaunchProfile(launchProfile, launchVariant), runtime, model)
+  assert.equal(numeric.args[numeric.args.indexOf('--device') + 1], 'CUDA0')
+  const named = buildServerInvocation(validateLaunchProfile({ ...launchProfile, gpuDevice: 'CUDA0' }, launchVariant), runtime, model)
+  assert.equal(named.args[named.args.indexOf('--device') + 1], 'CUDA0')
 }
 
 const testLoopbackDoesNotRequireApiKey = () => {
@@ -1608,6 +1655,11 @@ void (async () => {
   testBuildServerInvocationUsesArgv()
   testLaunchRejectsUnsupportedRuntimeFlags()
   testLaunchProfileRejectsUnknownBackendDevice()
+  testBareDeviceIndexIsExpandedForSelectedBackend()
+  testEmptyDeviceMeansProviderDefault()
+  testDeviceListIsAcceptedAndSanitized()
+  testWhitespaceDeviceIsTreatedAsUnset()
+  testDeviceArgumentReachesArgvAsLlamaCppDeviceName()
   testLoopbackDoesNotRequireApiKey()
   testNonLoopbackRequiresApiKeyFile()
   await testApiKeyNeverAppearsInArgsOrLogs()
