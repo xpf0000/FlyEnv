@@ -2,6 +2,64 @@
 
 All notable changes to FlyEnv will be documented in this file.
 
+## [4.20.1] - 2026-10-13
+
+# **FlyEnv v4.20.1 Update Release Notes**
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **1. Fixed macOS Helper Installation Failure**
+
+Resolved an issue where installing the FlyEnv helper after a DMG installation could repeatedly fail with `Terminal exited with code 5` or `Bootstrap failed: 5: Input/output error`, preventing access to local sites and other operations that require the helper.
+
+The installer now removes inherited macOS quarantine attributes from both the installed helper executable and its LaunchDaemon configuration before registering the service. This addresses the installation failure reported on macOS 27.
+
+Thanks to [@zhoujians](https://github.com/zhoujians) for the contribution, [@PaulDelwig](https://github.com/PaulDelwig) and [@lizejun999](https://github.com/lizejun999) for the reports, and [@Tastaturberuf](https://github.com/Tastaturberuf) for helping identify the cause! [Pull Request #893](https://github.com/xpf0000/FlyEnv/pull/893) · [Issue #899](https://github.com/xpf0000/FlyEnv/issues/899) · [Issue #901](https://github.com/xpf0000/FlyEnv/issues/901)
+
+---
+
+### **2. Fixed Apache Startup on Linux**
+
+Resolved an issue reported on Fedora 44 KDE where Apache failed to start after updating to v4.20.0 with `AppHelperError: unapproved service executable name`.
+
+FlyEnv now resolves Apache launcher scripts such as `apachectl` and `apache2ctl` to the actual `httpd` or `apache2` server executable before starting the service. Required Apache environment settings are preserved, along with the selected installation's existing FlyEnv configuration.
+
+Thanks to [@DigionsPieces](https://github.com/DigionsPieces) for the report! [Issue #894](https://github.com/xpf0000/FlyEnv/issues/894)
+
+---
+
+### **3. Fixed PostgreSQL Startup When the Server Is Already Stopped**
+
+Resolved an issue on macOS and Linux where starting a stopped PostgreSQL instance failed during the pre-start cleanup with a missing `postmaster.pid` error. Users no longer need to start PostgreSQL manually before using FlyEnv's start button.
+
+FlyEnv now checks whether the selected database instance is actually running before requesting a native stop. A stopped instance, including one with an outdated PID file from an unclean shutdown, can proceed to startup; genuine stop failures still report an error.
+
+Thanks to [@Megumi1773](https://github.com/Megumi1773) for the contribution and [@glitter1105](https://github.com/glitter1105) for the report! [Pull Request #900](https://github.com/xpf0000/FlyEnv/pull/900) · [Issue #902](https://github.com/xpf0000/FlyEnv/issues/902)
+
+---
+
+### **4. Fixed llama.cpp GPU Device Selection**
+
+Resolved an issue where the llama.cpp plugin passed a numeric GPU index directly to the server, causing startup to fail with an `invalid device: 0` error.
+
+Saved numeric indices now resolve to the device name for the selected backend, such as `CUDA0`, `Vulkan0`, or `MTL0`. The GPU device setting also accepts explicit device names and comma-separated device lists, while leaving it empty lets llama.cpp choose its default device. Updated settings hints explain the accepted values.
+
+Thanks to [@Megumi1773](https://github.com/Megumi1773) for the contribution! [Pull Request #898](https://github.com/xpf0000/FlyEnv/pull/898)
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can inspect the build process and download workflow artifacts from the public build history:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues).
+
+**Enjoy the update!**
+
 ## [4.20.0] - 2026-10-07
 
 # **FlyEnv v4.20.0 Update Release Notes**
