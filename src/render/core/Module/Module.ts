@@ -12,6 +12,7 @@ import { brewInfo, fetchVerion, portInfo, sdkmanInfo } from '@/util/Brew'
 import { installedVersionNote, syncInstalledVersionNotes } from '@/util/InstalledVersionNote'
 import { syncStaticInstalledFlags } from './syncStaticInstalledFlags'
 import { ensureDataDirectoryReady } from '@/core/DataDirectoryStartup'
+import { fs } from '@/util/NodeFn'
 
 type ExtParamFn = (item: ModuleInstalledItem) => Promise<any>
 
@@ -174,7 +175,7 @@ export class Module {
 
     this.installed.splice(0)
     this.installed.push(...installItems)
-    syncStaticInstalledFlags(this.static, this.installed)
+    await syncStaticInstalledFlags(this.static, fs.existsSync)
 
     const needSaveConfig = this.resetCurrentVersion(false)
     try {

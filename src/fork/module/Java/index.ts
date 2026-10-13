@@ -18,7 +18,7 @@ import {
   zipUnpack
 } from '../../Fn'
 import TaskQueue from '../../TaskQueue'
-import { isWindows } from '@shared/utils'
+import { isMacOS, isWindows } from '@shared/utils'
 
 class Java extends Base {
   constructor() {
@@ -42,7 +42,7 @@ class Java extends Base {
             dir = join(
               global.Server.AppDir!,
               `static-${type}-${a.version}`,
-              'Contents/Home/bin/java'
+              isMacOS() ? 'Contents/Home/bin/java' : 'bin/java'
             )
             zip = join(global.Server.Cache!, `static-${type}-${a.version}.tar.gz`)
             a.appDir = join(global.Server.AppDir!, `static-${type}-${a.version}`)

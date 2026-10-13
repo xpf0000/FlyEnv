@@ -25,6 +25,7 @@ import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
 import { isLinux, isWindows, pathFixedToUnix } from '@shared/utils'
+import { resolveLinuxApacheLaunch } from './Launch'
 
 class Apache extends Base {
   constructor() {
@@ -342,6 +343,7 @@ IncludeOptional "${vhost}"`
           I18nT('appLog.startServiceBegin', { service: `apache-${version.version}` })
         )
       })
+      const launch = isLinux() ? await resolveLinuxApacheLaunch(version.bin) : { bin: version.bin }
       await this.#resetConf(version).on(on)
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.apachePortHandleBegin'))
@@ -367,7 +369,7 @@ IncludeOptional "${vhost}"`
       }
 
       const pidFile = join(global.Server.ApacheDir!, 'httpd.pid')
-      const bin = version.bin
+      const bin = launch.bin
       if (isWindows()) {
         const execArgs = ['-f', conf]
         try {
@@ -415,6 +417,8 @@ IncludeOptional "${vhost}"`
             pidPath: pidFile,
             baseDir,
             bin,
+            execEnv: launch.execEnv,
+            sensitive: !!launch.execEnv,
             execArgs,
             on
           })
