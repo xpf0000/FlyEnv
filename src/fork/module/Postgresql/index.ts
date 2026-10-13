@@ -104,6 +104,40 @@ const postgresCommandUsesDataDirectory = (
   return postgresExecutable.test(normalizedCommand) && dataDirectoryArgument.test(normalizedCommand)
 }
 
+/** 停止开始前观察到的实例证据：登记文件里的 PID，以及命令行归属本数据目录的存活根。 */
+export type PostgresInstanceEvidence = {
+  /** postmaster.pid 记录的 PID；文件缺失为空串。 */
+  recordedPid: string
+  /** 命令行确实使用本数据目录的存活 postmaster 根。 */
+  livePids: string[]
+}
+
+export type PostgresStopPlan = {
+  /** 只有登记 PID 确实存活时才调用 pg_ctl；否则它只会以“PID 文件不存在”失败。 */
+  useNativeStop: boolean
+  /** 存活却无法由本文件授权的根：既不能停也不能谎报已停止。 */
+  unverifiedPids: string[]
+}
+
+/**
+ * 启动前的残留清理不能以 pg_ctl 的退出码判定成败：服务本来就没运行时，
+ * `pg_ctl stop` 以“PID 文件不存在”退出，会把正常的冷启动整个否掉（#896）。
+ * Windows 分支一直要求“登记根必须出现在本次存活列表里”才会关闭，
+ * 这里让 Unix 使用同一规则：先证明实例存活，再决定是否交给 pg_ctl。
+ * 残留登记文件的清理仍由 cleanupStoppedServicePidFiles 统一负责，
+ * 这里不重复做删除判定。
+ */
+export const planPostgresStop = (evidence: PostgresInstanceEvidence): PostgresStopPlan => {
+  const alive = new Set(evidence.livePids)
+  const useNativeStop = !!evidence.recordedPid && alive.has(evidence.recordedPid)
+  return {
+    useNativeStop,
+    unverifiedPids: useNativeStop
+      ? []
+      : evidence.livePids.filter((pid) => pid !== evidence.recordedPid)
+  }
+}
+
 class Manager extends Base {
   private readonly pgAdminOpenFlight = new PgAdminSingleFlight<PgAdminOpenResult>()
 
@@ -587,18 +621,49 @@ class Manager extends Base {
 
       if (!isWindows()) {
         const pidFile = postmasterPidFile
-        await doStop()
-        let pidFileRemoved = false
-        for (let attempt = 0; attempt < 10; attempt += 1) {
-          if (!existsSync(pidFile)) {
-            pidFileRemoved = true
-            break
-          }
-          await waitTime(1000)
+        // 先把“这个实例是否真在运行”作为决定是否调用 pg_ctl 的前提，而不是
+        // 让 pg_ctl 的退出码来判定。服务未运行（含被强制退出）时，
+        // `pg_ctl stop` 只会报“PID 文件不存在”或“无法发送停止信号”，
+        // 把它当成失败会否掉正常的冷启动（#896）；把它当成成功又会谎报已停止。
+        // 复用本次停止请求的首表（或共享 provider），不再另发一次取表：
+        // 本次发现与已有 pgAdmin 发现属于同一停服务范围，列表语义一致。
+        const discovered = await StopProcessListFetch()
+        finalProcessList = discovered
+        const observedRunning = discovered.filter((process) =>
+          postgresCommandUsesDataDirectory(process.COMMAND, dbPath)
+        )
+        const plan = planPostgresStop({
+          recordedPid: postmasterPidBefore,
+          livePids: observedRunning.map(({ PID }) => PID)
+        })
+        if (plan.unverifiedPids.length) {
+          // 存活但无法由本次读取的登记文件授权：不能盲目 pg_ctl（会命中被复用的
+          // PID），也不能清登记或报成功——交给用户先处理这个不一致实例。
+          throw new Error(
+            `PostgreSQL process PID(s) ${plan.unverifiedPids.join(', ')} are running for ${dbPath} but no postmaster.pid authorizes them`
+          )
         }
-        if (!pidFileRemoved && !existsSync(pidFile)) pidFileRemoved = true
-        if (!pidFileRemoved) {
-          throw new Error('PostgreSQL postmaster.pid still exists after the stop request')
+        if (!plan.useNativeStop) {
+          // 该实例已不在此数据目录运行：跳过 pg_ctl，只清残留登记。
+          appDebugLog(
+            '[PostgreSql][_stopServer][skip-native-stop]',
+            `${JSON.stringify({ dbPath, recordedPid: postmasterPidBefore, pidFileExists: existsSync(pidFile), livePids: observedRunning.length })}`
+          ).catch()
+        }
+        if (plan.useNativeStop) {
+          await doStop()
+          let pidFileRemoved = false
+          for (let attempt = 0; attempt < 10; attempt += 1) {
+            if (!existsSync(pidFile)) {
+              pidFileRemoved = true
+              break
+            }
+            await waitTime(1000)
+          }
+          if (!pidFileRemoved && !existsSync(pidFile)) pidFileRemoved = true
+          if (!pidFileRemoved) {
+            throw new Error('PostgreSQL postmaster.pid still exists after the stop request')
+          }
         }
 
         // PID 文件消失只是辅助证据；还需用精确 DATA_DIR 参数确认数据库进程退出。

@@ -30,6 +30,7 @@
     "test:php-project-directory": "tsx scripts/php-project-directory-test.ts",
     "test:hermes-provider": "tsx scripts/hermes-provider-config-test.ts",
     "test:postgresql-pgadmin4": "tsx scripts/postgresql-pgadmin4-test.ts",
+    "test:postgresql-stop-plan": "tsx scripts/postgresql-stop-plan-test.ts",
     "test:module-lifecycle-single-flight": "tsx scripts/module-lifecycle-single-flight-test.ts",
     "test:mongodb-dbgate": "tsx scripts/mongodb-dbgate-test.ts",
     "test:mysql-init-password-port": "tsx scripts/mysql-init-password-port-test.ts",
