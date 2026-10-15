@@ -1,0 +1,25 @@
+{
+  "apiVersion": 1,
+  "id": "mssql",
+  "name": "SQL Server",
+  "version": "0.1.0",
+  "description": {
+    "en": "Microsoft SQL Server for x64 Windows and Ubuntu. Windows downloads full media and opens the official setup wizard with FlyEnv paths. Ubuntu runs the unpacked engine with Bubblewrap.",
+    "zh": "适用于 x64 Windows 和 Ubuntu 的 SQL Server。Windows 下载完整媒体并预填 FlyEnv 路径打开官方安装向导；Ubuntu 通过 Bubblewrap 运行解包后的引擎。"
+  },
+  "author": "FlyEnv",
+  "module": {
+    "typeFlag": "mssql",
+    "moduleType": "dataBaseServer",
+    "label": "SQL Server",
+    "asideIndex": 25,
+    "isService": true,
+    "isTray": false,
+    "platform": ["Windows", "Linux"]
+  },
+  "entry": {
+    "render": "render/Module.ts",
+    "fork": "fork/index.ts"
+  },
+  "architecture": ["x64"]
+}

@@ -502,7 +502,10 @@ assert.match(openSearchDashboardsController, /private operation\?: Promise<void>
 assert.match(openSearchDashboardsController, /maxTimeoutMs/)
 assert.match(openSearchDashboardsController, /shell\.openExternal/)
 
-const llamaRuntimePage = readFileSync(join(root, 'plugins/llamacpp/render/runtime/Index.vue'), 'utf-8')
+const llamaRuntimePage = readFileSync(
+  join(root, 'plugins/llamacpp/render/runtime/Index.vue'),
+  'utf-8'
+)
 const llamaController = readFileSync(join(root, 'plugins/llamacpp/render/controller.ts'), 'utf-8')
 assert.doesNotMatch(llamaRuntimePage, /from\s+['"]@\/util\/IPC['"]|#footer/)
 assert.match(llamaRuntimePage, /LlamaCppManager\.getRuntimeOperation\(variant\)/)
@@ -510,6 +513,14 @@ assert.match(llamaRuntimePage, /LlamaCppManager\.getRuntimeOperation\(runtime\.p
 assert.match(llamaRuntimePage, /LlamaCppManager\.installRuntime\(row\.variant\)/)
 assert.match(llamaController, /runtimeOperations: Record<string, OperationState>/)
 assert.match(llamaController, /ipc\.off\(key\)/)
+
+const mssqlPage = readFileSync(join(root, 'plugins/mssql/render/Index.vue'), 'utf8')
+const mssqlController = readFileSync(join(root, 'plugins/mssql/render/store.ts'), 'utf8')
+assert.doesNotMatch(mssqlPage, /IPC\.send\(/)
+assert.doesNotMatch(mssqlController, /fs\.remove\(/)
+assert.match(mssqlController, /private operations = new Map/)
+assert.match(mssqlController, /res\?\.code === 200/)
+assert.match(mssqlController, /IPC\.off\(request\.key\)/)
 
 await import('./linux-helper-ui-test')
 await import('./linux-helper-install-flow-test')
