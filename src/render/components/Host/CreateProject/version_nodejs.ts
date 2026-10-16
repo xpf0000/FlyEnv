@@ -50,7 +50,7 @@ const version = {
     ]
   },
   VitePress: {
-    url: 'https://vuejs.org/',
+    url: 'https://vitepress.dev/',
     list: [
       {
         name: 'latest',
