@@ -30,7 +30,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "2abff0dab54ef98b1cd1ce91e6eb8bdf75032ad4e561b1843b0f06c3bc33c46e"
+        "sha256": "6949d7b655ac3811661cfbdaedc63801e7a98ea9864c2d99966ed843d7c8fa30"
       },
       "official": true
     },
@@ -63,7 +63,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "2c233b3db04dcd046e62b1561546f1c2121bb4ced60e2367bd74f6f6d70f5527"
+        "sha256": "0dba21be06f0dc89a1fba903e0f64b506910a6a558af2567d04f02061b176dcb"
       },
       "official": true
     },
@@ -96,7 +96,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "55f424c983fb5686f0a0fdb228bffbae3730f51c51dac3f98b87ea5c7d1bbc83"
+        "sha256": "cb422fa326ab9e24a17a81e9f2e04b7f9e800463bbfce61ebd2a2f19213b9387"
       },
       "official": true
     },
@@ -129,17 +129,17 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "2a49d4d95411eb93342014d91b3c3d8ad7588fd5d75f6e714753b567d5094d5d"
+        "sha256": "d2ddfa524c08e77c52557a34d6750e3694257889810502c7b1887ac85f13830a"
       },
       "official": true
     },
     {
       "id": "mssql",
       "name": "SQL Server",
-      "version": "0.1.0",
+      "version": "0.1.14",
       "description": {
-        "en": "Microsoft SQL Server for x64 Windows and Ubuntu. Windows downloads full media and opens the official setup wizard with FlyEnv paths. Ubuntu runs the unpacked engine with Bubblewrap.",
-        "zh": "适用于 x64 Windows 和 Ubuntu 的 SQL Server。Windows 下载完整媒体并预填 FlyEnv 路径打开官方安装向导；Ubuntu 通过 Bubblewrap 运行解包后的引擎。"
+        "en": "Microsoft SQL Server for x64 Windows and Ubuntu. Windows installs silently with official Setup and uses manual service startup. Ubuntu runs the unpacked engine with Bubblewrap.",
+        "zh": "适用于 x64 Windows 和 Ubuntu 的 SQL Server。Windows 使用官方 Setup 静默安装，服务按需启动；Ubuntu 通过 Bubblewrap 运行解包后的引擎。"
       },
       "author": "FlyEnv",
       "module": {
@@ -160,7 +160,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "0f67a2e94f5dfcc22302a460e6b1c7205c5efd4c648ec1d18ef45fcdbc2d5901"
+        "sha256": "68cdca754a5834327afe5ca23ef63427d2109bd0d5bfd81a9639c9b2a9b6723b"
       },
       "official": true
     }

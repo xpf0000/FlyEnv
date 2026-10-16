@@ -28,7 +28,7 @@ export async function downloadMssqlFile(
   }
 }
 
-/** Required external command: error, non-zero exit and timeout all reject. */
+/** stdout is the result; stderr is diagnostic. Errors, non-zero exits and timeouts reject. */
 export function spawnMssqlCommand(
   bin: string,
   args: string[],
@@ -38,6 +38,7 @@ export function spawnMssqlCommand(
   return new Promise((resolve, reject) => {
     const child = spawnCommand(bin, args, { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] })
     let output = ''
+    let diagnostics = ''
     let settled = false
     let timedOut = false
     let cleanupTimer: ReturnType<typeof setTimeout> | undefined
@@ -62,9 +63,12 @@ export function spawnMssqlCommand(
       }
     }, timeoutMs)
     const collect = (data: Buffer) => {
-      output = `${output}${data.toString()}`.slice(-16000)
+      diagnostics = `${diagnostics}${data.toString()}`.slice(-16000)
     }
-    child.stdout?.on('data', collect)
+    child.stdout?.on('data', (data: Buffer) => {
+      output = `${output}${data.toString()}`.slice(-16000)
+      collect(data)
+    })
     child.stderr?.on('data', collect)
     child.once('error', (error) => finish(error))
     child.once('close', (code, signal) => {
@@ -73,7 +77,7 @@ export function spawnMssqlCommand(
           ? new Error('SQL Server external command timed out')
           : code === 0
             ? undefined
-            : new Error(`SQL Server command exited ${code ?? signal}: ${output.trim()}`)
+            : new Error(`SQL Server command exited ${code ?? signal}: ${diagnostics.trim()}`)
       )
     })
   })
@@ -84,7 +88,7 @@ export const windowsMediaDownloadArgs = (edition: string, mediaDir: string): str
   `/MEDIATYPE=${edition === 'Developer' ? 'ISO' : 'Core'}`,
   `/MEDIAPATH=${mediaDir}`,
   '/ENU',
-  // Applies only to downloading media. The subsequent Setup always opens its GUI.
+  // Download complete media before running the separate quiet Setup.
   '/QUIET'
 ]
 
@@ -92,17 +96,24 @@ export function windowsSetupArgs(version: string, appRoot: string, serverRoot: s
   const instance = `FLYENV${version.split('-')[0]}`
   const dataRoot = win32.join(serverRoot, 'mssql')
   const data = win32.join(dataRoot, `data-${instance}`)
+  // Setup refuses existing tempdb files, including those preserved on uninstall.
+  // Keep old files intact and give this install its own tempdb data/log location.
+  const temp = win32.join(data, 'temp', randomUUID())
   return [
     '/ACTION=Install',
-    '/UIMODE=Normal',
+    '/Q',
+    '/IACCEPTSQLSERVERLICENSETERMS',
+    '/SUPPRESSPRIVACYSTATEMENTNOTICE',
     '/FEATURES=SQLENGINE',
     `/INSTANCENAME=${instance}`,
+    `/SQLSVCACCOUNT=NT Service\\MSSQL$${instance}`,
+    '/SQLSVCSTARTUPTYPE=Manual',
     `/INSTANCEDIR=${win32.join(appRoot, 'mssql', version)}`,
     `/INSTALLSQLDATADIR=${dataRoot}`,
     `/SQLUSERDBDIR=${win32.join(data, 'data')}`,
     `/SQLUSERDBLOGDIR=${win32.join(data, 'log')}`,
-    `/SQLTEMPDBDIR=${win32.join(data, 'temp')}`,
-    `/SQLTEMPDBLOGDIR=${win32.join(data, 'temp')}`,
+    `/SQLTEMPDBDIR=${temp}`,
+    `/SQLTEMPDBLOGDIR=${temp}`,
     `/SQLBACKUPDIR=${win32.join(dataRoot, `backup-${instance}`)}`
   ]
 }
@@ -114,9 +125,9 @@ export const windowsArgument = (value: string) =>
 
 /** ShellExecute honors the official installer's own manifest and UAC behavior. */
 export function windowsLaunchScript(file: string, args: string[], wait: boolean): string {
-  const launch = `$p=Start-Process -FilePath ${psString(file)} -ArgumentList ${psString(args.map(windowsArgument).join(' '))} -PassThru;`
+  const launch = `$p=Start-Process -FilePath ${psString(file)} -ArgumentList ${psString(args.map(windowsArgument).join(' '))} -WorkingDirectory ${psString(win32.dirname(file))}${wait ? ' -WindowStyle Hidden' : ' -Verb RunAs'} -PassThru;`
   if (!wait)
-    return `$ErrorActionPreference='Stop'; ${launch} if (!$p) { throw "SQL Server installer was not launched" }`
+    return `$ErrorActionPreference='Stop'; ${launch} if (!$p) { throw "SQL Server installer was not launched" }; if ($p.WaitForExit(1500) -and $p.ExitCode -ne 0) { throw "SQL Server Setup exited $($p.ExitCode)" }`
   // The downloader is owned work. Its wrapper watches the worker lifetime and
   // confirms termination before returning a failure; interactive Setup is independent.
   return `$ErrorActionPreference='Stop'; $owner=Get-Process -Id ${process.pid}; $stamp=$owner.StartTime.ToUniversalTime().Ticks; $p=$null; try { ${launch} $deadline=[DateTime]::UtcNow.AddMinutes(39); while (!$p.WaitForExit(500)) { $owner=Get-Process -Id ${process.pid} -ErrorAction SilentlyContinue; if (!$owner -or $owner.StartTime.ToUniversalTime().Ticks -ne $stamp) { throw "SQL Server media download owner exited" }; if ([DateTime]::UtcNow -ge $deadline) { throw "SQL Server media download timed out" } }; $p.WaitForExit(); if ($p.ExitCode -ne 0) { throw "SQL Server media download exited $($p.ExitCode)" } } finally { if ($p -and !$p.HasExited) { $p.Kill(); if (!$p.WaitForExit(10000)) { throw "SQL Server media cleanup result is unknown" } } }`

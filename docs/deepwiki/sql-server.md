@@ -1,3 +1,5 @@
+> **当前实现（2026-10-15，按最新用户反馈修正）**：SQL Server 使用专用图标；移除 FlyEnv 的 Developer 提示、许可弹窗、下载阶段说明及成功提示。Windows 获取完整官方媒体，以 `/Q` 和官方许可/隐私参数静默安装；保留 FlyEnv 路径，使用虚拟服务账户，将提权前的当前 Windows 用户设为 SQL 管理员（Windows 认证）。安装器仍注册系统服务，但设为手动启动，等待 Setup 真实结束后停止且确认本次新建的实例。已存在实例拒绝重复安装，安装成功但停止失败保留已安装事实并报告部分完成。启停普通权限不足时只提权该次控制，UAC 后复核状态/PID；不接管、不停止外部运行实例。Windows x64 实机安装/UAC 仍待验收。下文关于图形安装、不静默、零提权代码及许可 UI 的表述是早期调研，已被最新要求取代；实施记录见 `docs/superpowers/plans/2026-10-15-mssql-windows-silent.md`。
+
 # Microsoft SQL Server 集成调研
 
 > **调研主题**: Microsoft SQL Server (MSSQL) 是否可集成进 FlyEnv
@@ -94,7 +96,7 @@ FlyEnv 的工程结构(fork 模块 + Base 基类 + 插件机制)可以容纳 MSS
 | `/INSTANCEDIR` | `app/mssql/<version>/`(实例程序文件) |
 | `/INSTALLSQLDATADIR` | `server/mssql/`(数据目录根,系统库,与 `server/<module>/` 规则一致) |
 | `/SQLUSERDBDIR` / `/SQLUSERDBLOGDIR` | `server/mssql/data-<实例名>/` 下(用户库数据/日志) |
-| `/SQLTEMPDBDIR` / `/SQLTEMPDBLOGDIR` | 同上数据目录下 |
+| `/SQLTEMPDBDIR` / `/SQLTEMPDBLOGDIR` | `server/mssql/data-<实例名>/temp/<每次安装的 UUID>/`，避免重装时与已保留的 tempdb 文件冲突 |
 | `/SQLBACKUPDIR` | `server/mssql/backup-<实例名>/` |
 | `/INSTANCENAME` | 预填 `FLYENV` 之类可识别实例名(用户可改);扫描安装信息不依赖固定实例名 |
 

@@ -168,7 +168,7 @@ and cleanup. Main receives the existing companion registration/stop arguments.
 Stopping or restarting OpenSearch also stops its companions, and FlyEnv exit can stop
 the panel independently. A panel failure does not stop a healthy OpenSearch backend.
 
-Validate with `yarn test:opensearch-dashboards` and `yarn plugin:test opensearch`.
+Validate with `yarn plugin:test opensearch`.
 
 ## llama.cpp service plugin
 
@@ -183,13 +183,12 @@ The server starts from a typed profile using an argv array and binds to `127.0.0
 Develop and validate the plugin with:
 
 ```bash
-yarn test:llamacpp-plugin
 yarn plugin:test llamacpp
 yarn plugin:build llamacpp
 yarn plugin:runtime-smoke
 ```
 
-The repository's Electron runtime smoke covers the generic plugin installation and lifecycle. llama.cpp's release/model downloads and launch-profile security contracts are tested offline with local fakes, so the smoke never fetches public model weights or binaries.
+The repository's Electron runtime smoke covers generic plugin installation and lifecycle using local fixtures; it does not fetch public model weights or binaries.
 
 ## Commands
 

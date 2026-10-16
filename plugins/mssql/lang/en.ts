@@ -1,5 +1,15 @@
 export default {
+  repairPermissions: 'Repair permissions',
+  permissionRepairFailed: 'SQL Server permission repair failed (completed grants are preserved)',
+  permissionsRepaired: 'SQL Server permissions repaired',
+  logAccessDenied:
+    'Cannot read log {path}. Run “Repair permissions” from the service action menu, then refresh.',
   settings: 'Settings',
+  configurationManager: 'Configuration Management',
+  configurationManagerOpenFailed: 'Failed to open SQL Server Configuration Manager',
+  configurationManagerWindowsOnly: 'SQL Server Configuration Manager is only available on Windows.',
+  configurationManagerNotFound:
+    'SQL Server Configuration Manager was not found at {path}. Repair the SQL Server installation for this version and try again.',
   unsupportedArchitecture: 'SQL Server requires x64 Windows or Linux. ARM64 is not supported.',
   operationTimeout:
     'The SQL Server operation timed out. Check its logs and refresh before retrying.',
@@ -37,19 +47,14 @@ export default {
     'A strong sa password is required before the first start. Open Settings on this page to set it.',
   port: 'Port',
   invalidPort: 'Invalid port: must be an integer between 1 and 65535',
-  eulaDialogTitle: 'Microsoft SQL Server License Terms',
-  eulaCheckboxLabel: 'I have read and accept the Microsoft SQL Server End-User License Agreement',
-  eulaLinkText: 'Read the license terms (aka.ms/useterms)',
   memoryNotice:
     'SQL Server requires at least 2 GB of memory to start; about 6 GB of disk space is needed.',
-  developerEditionNote:
-    'Developer edition: free, for development and testing only, not for production use',
-  eulaRequired:
-    'Installation requires explicit acceptance of the Microsoft SQL Server EULA. Accept it in the install dialog first.',
-  windowsInstallerLaunched:
-    'The SQL Server installer has been launched. Finish the setup wizard (UAC and license acceptance are handled by the installer), then refresh the installed list on the Service page.',
-  windowsDownloadOnly:
-    'Windows does not support silent install here; the official installer is launched after download.',
+  windowsOperationUnknown:
+    'SQL Server external process result is unknown. Check Setup logs and services.msc before retrying.',
+  windowsInstallHandoffFailed:
+    'SQL Server was installed, but its new service could not be prepared for FlyEnv: {error}. Check services.msc; do not reinstall.',
+  windowsRestartRequired:
+    'SQL Server was installed and its service stopped. Restart Windows before starting it in FlyEnv.',
   distroUnsupported:
     'Only Ubuntu 22.04/24.04 (x64) repositories are supported by this version of the plugin; other distributions return an empty list (rpm support is planned).',
   repoProbeFailed: 'Failed to fetch the Microsoft package repository index: {error}',
@@ -57,8 +62,6 @@ export default {
   debContentInvalid: 'The unpacked deb does not contain opt/mssql/bin/sqlservr',
   instanceScanItemSkipped:
     'Skipped a broken SQL Server instance registry entry ({instance}): {error}',
-  windowsServiceDenied:
-    'Permission denied while controlling the Windows service {service}. Run FlyEnv as administrator, or start/stop the service manually (services.msc).',
   windowsServiceStartFailed: 'Failed to start the Windows service {service}: {error}',
   windowsServiceStopFailed: 'Failed to stop the Windows service {service}: {error}',
   windowsServiceTimeout:
@@ -68,7 +71,6 @@ export default {
   startFailDiagnostics: 'sqlservr exited during startup. Recent output:\n{log}',
   manifestInvalid: 'Invalid flyenv-runtime.json in {dir}: {error}',
   installConfirmTitle: 'Install SQL Server',
-  installSuccess: 'SQL Server files are in place. Start the service from the Service page.',
   editSettings: 'Initial sa password / port',
   uninstallConfirm: 'Remove the unpacked SQL Server {version} files from {path}?'
 }

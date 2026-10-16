@@ -7,8 +7,28 @@
     </el-radio-group>
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="mssql" title="SQL Server">
+        <template #action="{ row }">
+          <li
+            v-if="isWindows"
+            :class="{ 'opacity-50 pointer-events-none': MssqlManager.configurationManagerOpening }"
+            :aria-disabled="MssqlManager.configurationManagerOpening"
+            @click.stop="MssqlManager.openConfigurationManager(row)"
+          >
+            <yb-icon :svg="import('@/svg/config.svg?raw')" width="17" height="17" />
+            <span class="ml-3">{{ MssqlT('configurationManager') }}</span>
+          </li>
+          <li
+            v-if="MssqlManager.canRepairPermissions(row)"
+            :class="{ 'opacity-50 pointer-events-none': MssqlManager.isRepairingPermissions(row) }"
+            :aria-disabled="MssqlManager.isRepairingPermissions(row)"
+            @click.stop="MssqlManager.repairPermissions(row)"
+          >
+            <yb-icon :svg="import('@/svg/setup.svg?raw')" width="17" height="17" />
+            <span class="ml-3">{{ MssqlT('repairPermissions') }}</span>
+          </li>
+        </template>
         <template #tool-left>
-          <el-button class="button" link @click.stop="openSettings">
+          <el-button v-if="!isWindows" class="button" link @click.stop="openSettings">
             <yb-icon
               style="width: 20px; height: 20px; margin-left: 10px"
               :svg="import('@/svg/setup.svg?raw')"
@@ -17,13 +37,15 @@
         </template>
       </Service>
       <div v-else-if="tab === 1" class="flex h-full min-h-0 flex-col gap-2">
-        <el-alert type="info" :closable="false" :title="MssqlT('developerEditionNote')" />
         <el-alert
           v-if="!isWindows"
           type="info"
           :closable="false"
           :title="MssqlT('linuxRuntimeNotice')"
         />
+        <div v-for="item in activeStages" :key="item.url" class="text-sm opacity-70" role="status">
+          {{ item.name }}: {{ item.downState }}
+        </div>
         <Manager
           type-flag="mssql"
           title="SQL Server"
@@ -36,12 +58,7 @@
       </div>
       <Logs v-else-if="tab === 2" />
     </div>
-    <SetupDialog
-      ref="setupDialog"
-      :with-eula="dialogWithEula"
-      :item="pendingItem"
-      @confirm="onDialogConfirm"
-    />
+    <SetupDialog ref="setupDialog" @confirm="onDialogConfirm" />
   </div>
 </template>
 
@@ -74,13 +91,15 @@
 
   const isWindows = computed(() => window.Server.isWindows)
 
+  const activeStages = computed(() =>
+    MssqlManager.onlineVersions.filter((item) => item.downing && item.downState)
+  )
+
   const setupDialog = ref()
-  const dialogWithEula = ref(true)
   const pendingItem = ref<MssqlVersionItem | undefined>(undefined)
 
   const openSettings = () => {
     pendingItem.value = undefined
-    dialogWithEula.value = false
     setupDialog.value?.open()
   }
 
@@ -105,12 +124,9 @@
       return
     }
     await MssqlManager.init()
-    const needEula = !MssqlManager.settings.eulaAccepted
     const needPassword = !isWindows.value && !MssqlManager.settings.saPassword
-    const developer = JSON.parse(item.note || '{}').edition === 'Developer'
-    if (needEula || needPassword || developer) {
+    if (needPassword) {
       pendingItem.value = item
-      dialogWithEula.value = needEula
       setupDialog.value?.open()
       return
     }

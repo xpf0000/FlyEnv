@@ -181,6 +181,20 @@ export type RegInstanceName = {
 
 const REG_SZ_LINE = /^\s+(\S+)\s+REG_SZ\s+(.+?)\s*$/i
 
+export const windowsErrorLogFromParameters = (stdout: string): string => {
+  for (const line of stdout.split(/\r?\n/)) {
+    const match = line.match(REG_SZ_LINE)
+    if (!match || !/^SQLArg\d+$/i.test(match[1])) continue
+    const arg = match[2].trim().replace(/^"(.*)"$/, '$1')
+    if (/^-e/i.test(arg))
+      return arg
+        .slice(2)
+        .trim()
+        .replace(/^"(.*)"$/, '$1')
+  }
+  return ''
+}
+
 /**
  * Parse `reg query "HKLM\SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL"`
  * output. Each value line maps an instance name to its instance ID. Header and
@@ -317,6 +331,22 @@ export const windowsInstanceFromSetup = (
 export const mssqlMajorOfVersion = (version: string): string => {
   const match = `${version ?? ''}`.trim().match(/^(\d+)/)
   return match?.[1] ?? ''
+}
+
+/** Catalog entries install one fixed FlyEnv instance; other installations are independent. */
+export const windowsInstallerMatchesInstance = (
+  installer: MssqlWindowsInstaller,
+  instance: { version: string; instanceName?: string; edition?: string }
+): boolean => {
+  const engineMajor: Record<string, string> = { '2019': '15', '2022': '16', '2025': '17' }
+  const expectedMajor = engineMajor[installer.version]
+  const edition = /^(\w+)(?:\s|$)/.exec(instance.edition ?? '')?.[1] ?? ''
+  return !!(
+    expectedMajor &&
+    mssqlMajorOfVersion(instance.version) === expectedMajor &&
+    instance.instanceName?.toUpperCase() === `FLYENV${installer.version}` &&
+    edition.toLowerCase() === installer.edition.toLowerCase()
+  )
 }
 
 /** sa password strength: 8+ chars, three of lowercase/uppercase/digit/symbol. */

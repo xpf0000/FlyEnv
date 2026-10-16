@@ -6,13 +6,13 @@ import IPC from '@/util/IPC'
 import type { SoftInstalled } from '@/store/brew'
 import { MssqlT } from './lang'
 import { isStrongSaPassword } from '../fork/Mssql/version'
+import { canRepairWindowsPermissions } from '../fork/Mssql/Permissions'
 
 const storageKey = 'flyenv-mssql-settings'
 
 export type MssqlSettings = {
   saPassword: string
   port: number
-  eulaAccepted: boolean
 }
 
 export type MssqlVersionItem = {
@@ -35,8 +35,7 @@ export type MssqlVersionItem = {
 
 const defaultSettings = (): MssqlSettings => ({
   saPassword: '',
-  port: 1433,
-  eulaAccepted: false
+  port: 1433
 })
 
 const copySettings = (value: unknown): MssqlSettings => {
@@ -46,7 +45,6 @@ const copySettings = (value: unknown): MssqlSettings => {
   if (typeof item.saPassword === 'string') result.saPassword = item.saPassword
   const port = Number(item.port)
   if (Number.isInteger(port) && port > 0 && port <= 65535) result.port = port
-  result.eulaAccepted = item.eulaAccepted === true
   return result
 }
 
@@ -56,10 +54,10 @@ const copySettings = (value: unknown): MssqlSettings => {
  * no Pinia store, no `config.setup` writes). The singleton survives page
  * re-entry; persistence goes through StorageSetAsync/StorageGetAsync.
  *
- * Operation contract (install): owner = this singleton; start = user confirms
- * the EULA dialog; intermediate events = IPC code 200 progress rows mapped to
+ * Operation contract (install): owner = this singleton; start = user requests
+ * installation; intermediate events = IPC code 200 progress/stage rows mapped to
  * item.progress; terminal events = IPC code 0 (success, possibly
- * { installerLaunched } on Windows) or any other code (failure notice);
+ * an installed-but-not-ready result on Windows) or any other code (failure notice);
  * duplicate invocation = blocked per item by `downing`; cleanup = IPC.off at
  * every terminal event.
  */
@@ -70,6 +68,130 @@ export class MssqlPluginManager {
   inited = false
   private initPromise?: Promise<void>
   private operations = new Map<string, Promise<boolean>>()
+  configurationManagerOpening = false
+  private configurationManagerRequest?: Promise<boolean>
+
+  openConfigurationManager(item: Pick<SoftInstalled, 'version'>): Promise<boolean> {
+    if (!window.Server.isWindows) return Promise.resolve(false)
+    if (this.configurationManagerRequest) return this.configurationManagerRequest
+    const snapshot = { version: item.version }
+    this.configurationManagerOpening = true
+    const pending = this.request('openConfigurationManager', [snapshot])
+      .then((result) => {
+        if (result !== true) throw new Error(MssqlT('operationFailed'))
+        return true
+      })
+      .catch((error) => {
+        MessageError(`${MssqlT('configurationManagerOpenFailed')}: ${error?.message ?? error}`)
+        return false
+      })
+      .finally(() => {
+        this.configurationManagerOpening = false
+        if (this.configurationManagerRequest === pending)
+          this.configurationManagerRequest = undefined
+      })
+    this.configurationManagerRequest = pending
+    return pending
+  }
+
+  private permissionRepairs = new Map<string, Promise<boolean>>()
+  repairingPermissions: Record<string, boolean> = {}
+
+  canRepairPermissions(version: SoftInstalled): boolean {
+    return window.Server.isWindows && canRepairWindowsPermissions(version as any)
+  }
+
+  isRepairingPermissions(version: SoftInstalled): boolean {
+    return !!this.repairingPermissions[this.operationKey(version)]
+  }
+
+  private automaticPermissionFailures = new Map<string, Error>()
+
+  repairPermissions(version: SoftInstalled, automatic = false): Promise<boolean> {
+    if (!window.Server.isWindows) return Promise.resolve(false)
+    const key = this.operationKey(version)
+    const previous = this.permissionRepairs.get(key)
+    if (previous) return previous
+    const snapshot = JSON.parse(JSON.stringify(version))
+    this.automaticPermissionFailures.delete(key)
+    this.repairingPermissions[key] = true
+    const pending = this.request('repairPermissions', [snapshot])
+      .then(async (result) => {
+        if (result !== true) throw new Error(MssqlT('operationFailed'))
+        if (!automatic) MessageSuccess(MssqlT('permissionsRepaired'))
+        await this.rescanAfterOperation()
+        return true
+      })
+      .catch((error) => {
+        const failure = new Error(`${MssqlT('permissionRepairFailed')}: ${error?.message ?? error}`)
+        this.automaticPermissionFailures.set(key, failure)
+        if (!automatic) MessageError(failure.message)
+        return false
+      })
+      .finally(() => {
+        this.repairingPermissions[key] = false
+        if (this.permissionRepairs.get(key) === pending) this.permissionRepairs.delete(key)
+      })
+    this.permissionRepairs.set(key, pending)
+    return pending
+  }
+
+  private async ensureAutomaticPermissions(version: SoftInstalled): Promise<void> {
+    const key = this.operationKey(version)
+    const failure = this.automaticPermissionFailures.get(key)
+    if (failure) throw failure
+    if (!(await this.repairPermissions(version, true))) {
+      throw this.automaticPermissionFailures.get(key) ?? new Error(MssqlT('operationFailed'))
+    }
+  }
+
+  private logReads = new Map<string, Promise<string>>()
+
+  readLogFile(version: SoftInstalled, allowAutomaticRepair = true): Promise<string> {
+    const runtime = (version as any).mssqlRuntime
+    const snapshot = {
+      version: version.version,
+      bin: version.bin,
+      path: version.path,
+      serviceName: (version as any).serviceName,
+      instanceName: (version as any).instanceName,
+      instanceId: (version as any).instanceId,
+      mssqlRuntime: { errorLogFile: runtime?.errorLogFile, sqlDataRoot: runtime?.sqlDataRoot }
+    }
+    const key = JSON.stringify([snapshot, allowAutomaticRepair])
+    const previous = this.logReads.get(JSON.stringify([snapshot, true])) ?? this.logReads.get(key)
+    if (previous) return previous
+    const pending = this.request(
+      'readLogFile',
+      [snapshot],
+      undefined,
+      Math.min(this.requestTimeoutMs, 30_000)
+    )
+      .catch(async (error) => {
+        if (
+          !allowAutomaticRepair ||
+          !this.canRepairPermissions(snapshot as any) ||
+          !`${error?.message ?? error}`.includes('[MSSQL_PERMISSION_REQUIRED]')
+        )
+          throw error
+        await this.ensureAutomaticPermissions(snapshot as any)
+        return this.request(
+          'readLogFile',
+          [snapshot],
+          undefined,
+          Math.min(this.requestTimeoutMs, 30_000)
+        )
+      })
+      .then((content) => {
+        if (typeof content !== 'string') throw new Error(MssqlT('operationFailed'))
+        return content
+      })
+      .finally(() => {
+        if (this.logReads.get(key) === pending) this.logReads.delete(key)
+      })
+    this.logReads.set(key, pending)
+    return pending
+  }
 
   constructor(private readonly requestTimeoutMs = 45 * 60 * 1000) {}
 
@@ -92,7 +214,7 @@ export class MssqlPluginManager {
     await StorageSetAsync(storageKey, JSON.parse(JSON.stringify(this.settings)))
   }
 
-  async saveSettings(partial: { saPassword?: string; port?: number; eulaAccepted?: boolean }) {
+  async saveSettings(partial: { saPassword?: string; port?: number }) {
     await this.init()
     const next = {
       ...this.settings,
@@ -113,7 +235,8 @@ export class MssqlPluginManager {
   private request(
     action: string,
     args: unknown[] = [],
-    progress?: (data: any) => void
+    progress?: (data: any) => void,
+    timeoutMs = this.requestTimeoutMs
   ): Promise<any> {
     return new Promise((resolve, reject) => {
       let request: ReturnType<typeof IPC.send> | undefined
@@ -129,7 +252,7 @@ export class MssqlPluginManager {
       const timer = setTimeout(
         () =>
           finish(Object.assign(new Error(MssqlT('operationTimeout')), { outcomeUnknown: true })),
-        this.requestTimeoutMs
+        timeoutMs
       )
       try {
         request = IPC.send('app-fork:mssql', action, ...args)
@@ -169,7 +292,10 @@ export class MssqlPluginManager {
     const pending = admitted
       .then(work)
       .catch((error) => {
-        if (error?.outcomeUnknown || /result is unknown/i.test(`${error?.message ?? error}`)) {
+        if (
+          error?.outcomeUnknown ||
+          /result is unknown|MSSQL_OUTCOME_UNKNOWN/i.test(`${error?.message ?? error}`)
+        ) {
           item.disabled = true
         }
         MessageError(`${error?.message ?? error}`)
@@ -232,27 +358,23 @@ export class MssqlPluginManager {
     const previous = this.operations.get(this.operationKey(item))
     if (previous) return previous
     if (item.installed || item.disabled) return Promise.resolve(false)
-    if (!this.settings.eulaAccepted) {
-      MessageError(MssqlT('eulaRequired'))
-      return Promise.resolve(false)
-    }
-    const row = JSON.parse(
-      JSON.stringify({ ...item, typeFlag: 'mssql', eulaAccepted: this.settings.eulaAccepted })
-    )
+    const row = JSON.parse(JSON.stringify({ ...item, typeFlag: 'mssql' }))
     return this.operation(item, async () => {
+      item.progress = 0
+      item.downState = ''
       const result = await this.request('installSoft', [row], (msg) => {
         if (typeof msg?.progress === 'number') item.progress = msg.progress
         if (msg?.downState) item.downState = msg.downState
       })
       if (result === false) throw new Error(MssqlT('debContentInvalid'))
       item.downloaded = true
-      if (result?.installerLaunched) {
-        MessageSuccess(MssqlT('windowsInstallerLaunched'))
-      } else {
-        item.installed = true
-        MessageSuccess(MssqlT('installSuccess'))
-      }
+      item.installed = true
       await this.rescanAfterOperation()
+      if (result?.installError) {
+        item.disabled = true
+        MessageError(result.installError)
+        return false
+      }
       return true
     })
   }
@@ -279,17 +401,24 @@ export class MssqlPluginManager {
   }
 
   /** Parameters appended to the ModuleInstalledItem startService IPC call. */
-  async startParams(
-    _item: SoftInstalled
-  ): Promise<[{ saPassword?: string; port?: number; eulaAccepted: boolean }]> {
+  async startParams(_item: SoftInstalled): Promise<[{ saPassword?: string; port?: number }]> {
     await this.init()
     if (this.operations.has(this.operationKey(_item)))
       throw new Error(MssqlT('operationInProgress'))
+    if (this.canRepairPermissions(_item)) {
+      const allowed = await this.request(
+        'checkServicePermissions',
+        [JSON.parse(JSON.stringify(_item))],
+        undefined,
+        Math.min(this.requestTimeoutMs, 70_000)
+      )
+      if (allowed !== true && allowed !== false) throw new Error(MssqlT('operationFailed'))
+      if (!allowed) await this.ensureAutomaticPermissions(_item)
+    }
     return [
       {
         saPassword: this.settings.saPassword || undefined,
-        port: this.settings.port || 1433,
-        eulaAccepted: this.settings.eulaAccepted
+        port: this.settings.port || 1433
       }
     ]
   }

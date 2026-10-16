@@ -1,4 +1,14 @@
 export default {
+  repairPermissions: '修复权限',
+  permissionRepairFailed: '修复 SQL Server 权限失败（已完成的授权会保留）',
+  permissionsRepaired: 'SQL Server 权限已修复',
+  logAccessDenied:
+    '无法读取日志 {path}。请在服务页面的操作菜单执行“修复权限”，完成一次授权后再刷新。',
+  configurationManager: '配置管理',
+  configurationManagerOpenFailed: '打开 SQL Server Configuration Manager 失败',
+  configurationManagerWindowsOnly: 'SQL Server Configuration Manager 仅支持 Windows。',
+  configurationManagerNotFound:
+    '未找到 SQL Server Configuration Manager：{path}。请修复此版本的 SQL Server 安装后重试。',
   windowsServiceAlreadyRunning:
     '此 SQL Server 服务已在 FlyEnv 外部运行，请先在 services.msc 中停止，再通过 FlyEnv 启动。',
   windowsServiceNotOwned: 'SQL Server 服务 PID 与 FlyEnv 启动的实例不符，未操作外部服务。',
@@ -25,23 +35,17 @@ export default {
   saPasswordRequired: '首次启动前需要设置强 sa 密码，请在本页的设置中填写。',
   port: '端口',
   invalidPort: '端口无效：必须是 1-65535 之间的整数',
-  eulaDialogTitle: 'Microsoft SQL Server 许可条款',
-  eulaCheckboxLabel: '我已阅读并接受 Microsoft SQL Server 最终用户许可协议（EULA）',
-  eulaLinkText: '阅读许可条款（aka.ms/useterms）',
   memoryNotice: 'SQL Server 启动至少需要 2 GB 内存，磁盘占用约 6 GB。',
-  developerEditionNote: 'Developer 版：免费，仅限开发测试用途，禁止用于生产环境',
-  eulaRequired: '安装前必须显式接受 Microsoft SQL Server EULA，请先在安装对话框中勾选接受。',
-  windowsInstallerLaunched:
-    'SQL Server 安装器已启动。请在安装向导中完成安装（UAC 提权与许可接受由安装器处理），完成后在服务页面刷新已安装列表。',
-  windowsDownloadOnly: 'Windows 不提供静默安装；下载完成后将拉起官方安装器。',
+  windowsOperationUnknown: 'SQL Server 外部进程结果未知，请检查安装日志和 services.msc 后再重试。',
+  windowsInstallHandoffFailed:
+    'SQL Server 已安装，但未能将新服务准备为 FlyEnv 可启动的状态：{error}。请检查 services.msc，不要重复安装。',
+  windowsRestartRequired: 'SQL Server 已安装且服务已停止，请重启 Windows 后再通过 FlyEnv 启动。',
   distroUnsupported:
     '当前版本的插件仅支持 Ubuntu 22.04/24.04（x64）仓库；其他发行版返回空列表（rpm 支持在规划中）。',
   repoProbeFailed: '获取微软软件仓库索引失败：{error}',
   debUnpackFailed: 'deb 包解包失败：{error}',
   debContentInvalid: '解包结果中不包含 opt/mssql/bin/sqlservr',
   instanceScanItemSkipped: '跳过一条损坏的 SQL Server 实例注册表项（{instance}）：{error}',
-  windowsServiceDenied:
-    '控制 Windows 服务 {service} 时权限不足。请以管理员身份运行 FlyEnv，或手动启停该服务（services.msc）。',
   windowsServiceStartFailed: '启动 Windows 服务 {service} 失败：{error}',
   windowsServiceStopFailed: '停止 Windows 服务 {service} 失败：{error}',
   windowsServiceTimeout: '等待 Windows 服务 {service} 进入 {state} 状态超时',
@@ -49,7 +53,6 @@ export default {
   startFailDiagnostics: 'sqlservr 在启动过程中退出，最近的输出：\n{log}',
   manifestInvalid: '{dir} 下的 flyenv-runtime.json 无效：{error}',
   installConfirmTitle: '安装 SQL Server',
-  installSuccess: 'SQL Server 文件已就位，请到服务页面启动服务。',
   editSettings: '首次初始化 sa 密码 / 端口',
   uninstallConfirm: '确定删除 {path} 下解包的 SQL Server {version} 文件吗？'
 }

@@ -1,4 +1,4 @@
-import { basename, dirname, join } from 'path'
+import { basename, dirname, join, win32 } from 'path'
 import { createReadStream, existsSync } from 'fs'
 import { arch, totalmem } from 'node:os'
 import { stat } from 'node:fs/promises'
@@ -30,10 +30,27 @@ import {
 } from '@fork/Fn'
 import { serviceStartSpawn } from '@fork/util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
+import { decodeTextFile } from './TextFile'
+import {
+  canRepairWindowsPermissions,
+  windowsGrantAccessBody,
+  windowsServiceAccessCheckScript
+} from './Permissions'
 import { compareVersions } from '@shared/compare-versions'
 import { isLinux, isWindows } from '@shared/utils'
 import { MssqlT } from '../lang'
-import { resolveWindowsPowerShellPath } from '@shared/WindowsSystemPaths'
+import {
+  resolveWindowsPowerShellPath,
+  resolveWindowsSystemExecutable,
+  windowsSystemRoot
+} from '@shared/WindowsSystemPaths'
+import {
+  windowsConfigurationManagerPath,
+  windowsConfigurationManagerScript,
+  windowsElevationScript,
+  windowsInstallBody,
+  windowsServiceControlBody
+} from './windows'
 import {
   downloadMssqlFile,
   spawnMssqlCommand,
@@ -57,6 +74,8 @@ import {
   parseScQueryEx,
   ubuntuMssqlRepoCandidates,
   windowsInstanceFromSetup,
+  windowsInstallerMatchesInstance,
+  windowsErrorLogFromParameters,
   windowsServiceName
 } from './version'
 
@@ -67,7 +86,6 @@ const MSSQL_DEFAULT_PORT = 1433
 export type MssqlStartParams = {
   saPassword?: string
   port?: number
-  eulaAccepted?: boolean
 }
 
 type MssqlRuntimeManifest = {
@@ -91,7 +109,6 @@ const parseNote = (note: any): Record<string, any> => {
 class Mssql extends Base {
   baseDir: string = ''
   private operationTails = new Map<string, Promise<unknown>>()
-
   constructor() {
     super()
     this.type = 'mssql'
@@ -100,6 +117,37 @@ class Mssql extends Base {
   init() {
     this.baseDir = join(global.Server.BaseDir!, 'mssql')
     this.pidPath = join(this.baseDir, 'mssql.pid')
+  }
+
+  openConfigurationManager(version: Pick<SoftInstalled, 'version'>) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        if (!isWindows()) throw new Error(MssqlT('configurationManagerWindowsOnly'))
+        const consoleFile = windowsConfigurationManagerPath(
+          version.version ?? '',
+          windowsSystemRoot()
+        )
+        if (!existsSync(consoleFile) || !(await stat(consoleFile)).isFile()) {
+          throw new Error(MssqlT('configurationManagerNotFound', { path: consoleFile }))
+        }
+        await spawnMssqlCommand(
+          resolveWindowsPowerShellPath(),
+          [
+            '-NoProfile',
+            '-NonInteractive',
+            '-Command',
+            windowsConfigurationManagerScript(
+              resolveWindowsSystemExecutable('mmc.exe'),
+              consoleFile
+            )
+          ],
+          60000
+        )
+        resolve(true)
+      } catch (error) {
+        reject(error)
+      }
+    })
   }
 
   private queued<T>(
@@ -200,7 +248,12 @@ class Mssql extends Base {
 
   /* ------------------------------ online list ------------------------------ */
 
-  private _windowsOnlineRows(): OnlineVersionItem[] {
+  private async _windowsOnlineRows(): Promise<OnlineVersionItem[]> {
+    const installed = (await this._installedWindows({})).map((row: any) => ({
+      version: row.version,
+      instanceName: row.instanceName,
+      edition: row.mssqlRuntime?.edition
+    }))
     return MSSQL_WINDOWS_INSTALLERS.map((item) => {
       const zip = join(global.Server.Cache!, item.fileName)
       return {
@@ -212,9 +265,7 @@ class Mssql extends Base {
         zip,
         bin: '',
         downloaded: existsSync(zip),
-        // Windows "installed" is expressed by the registry scan in
-        // allInstalledVersions, never by the installer download row.
-        installed: false,
+        installed: installed.some((instance) => windowsInstallerMatchesInstance(item, instance)),
         note: JSON.stringify({
           edition: item.edition,
           licenseNote: item.licenseNote,
@@ -290,7 +341,7 @@ class Mssql extends Base {
       try {
         this.assertNativeArchitecture()
         if (isWindows()) {
-          resolve(this._windowsOnlineRows())
+          resolve(await this._windowsOnlineRows())
         } else if (isLinux()) {
           resolve(await this._linuxOnlineRows())
         } else {
@@ -346,6 +397,44 @@ class Mssql extends Base {
     }
   }
 
+  private async _runWindowsElevated(body: string): Promise<{
+    ok: boolean
+    installed: boolean
+    error?: string
+    permissionError?: string
+    rebootRequired?: boolean
+  }> {
+    const dir = join(global.Server.Cache!, 'mssql-operations')
+    await mkdirp(dir)
+    const resultFile = join(dir, `${randomUUID()}.json`)
+    const powershell = resolveWindowsPowerShellPath()
+    try {
+      const output = await spawnMssqlCommand(powershell, [
+        '-NoProfile',
+        '-NonInteractive',
+        '-Command',
+        windowsElevationScript(body, resultFile, powershell)
+      ])
+      const result = JSON.parse(output.trim())
+      if (typeof result.ok !== 'boolean' || typeof result.installed !== 'boolean') {
+        throw new Error('[MSSQL_OUTCOME_UNKNOWN]')
+      }
+      return result
+    } catch (error: any) {
+      if (
+        error instanceof SyntaxError ||
+        /timed out|without a result|MSSQL_OUTCOME_UNKNOWN/i.test(`${error?.message ?? error}`)
+      ) {
+        throw new Error(`[MSSQL_OUTCOME_UNKNOWN] ${MssqlT('windowsOperationUnknown')}`)
+      }
+      throw error
+    } finally {
+      await remove(resultFile).catch((error) =>
+        console.warn('[mssql] operation result cleanup failed', error)
+      )
+    }
+  }
+
   private async _findMediaFiles(dir: string, match: RegExp, depth = 0): Promise<string[]> {
     const found: string[] = []
     for (const name of await readdir(dir)) {
@@ -379,7 +468,7 @@ class Mssql extends Base {
     await mkdirp(root)
     const download = join(root, 'download')
     await mkdirp(download)
-    on({ stage: 'media-download', progress: 0 })
+    on({ stage: 'media-download' })
     await this._runWindowsProgram(
       row.zip,
       windowsMediaDownloadArgs(catalog.edition, download),
@@ -394,8 +483,14 @@ class Mssql extends Base {
     // Only this plugin's cache directory is removed. No installed files/data are touched.
     await remove(media)
     await mkdirp(media)
-    on({ stage: 'media-extract', progress: 0 })
-    await zipUnpack(archives[0], media)
+    on({ stage: 'media-extract' })
+    if (catalog.edition === 'Express') {
+      // SQLEXPR is a multi-CAB self-extractor. Generic 7zip extracts only the
+      // first CAB (AUTORUN.INF); use Microsoft's extraction-only command.
+      await this._runWindowsProgram(archives[0], ['/q', `/x:${media}`], true)
+    } else {
+      await zipUnpack(archives[0], media)
+    }
     const setup = join(media, 'setup.exe')
     if (!existsSync(setup)) throw new Error(MssqlT('mediaInvalid'))
     await writeFile(readyFile, JSON.stringify({ version: row.version, setup: 'media/setup.exe' }))
@@ -491,7 +586,6 @@ class Mssql extends Base {
           let staging = ''
           try {
             this.assertNativeArchitecture()
-            if (request?.eulaAccepted !== true) throw new Error(MssqlT('eulaRequired'))
             if (totalmem() < 2 * 1024 ** 3) throw new Error(MssqlT('memoryNotice'))
             on({
               'APP-On-Log': AppLog(
@@ -502,12 +596,27 @@ class Mssql extends Base {
             if (isWindows()) {
               await this._download(request, on)
               const setup = await this._prepareWindowsMedia(request, on)
-              await this._runWindowsProgram(
-                setup,
-                windowsSetupArgs(request.version, global.Server.AppDir!, global.Server.BaseDir!),
-                false
+              on({ stage: 'setup-launch' })
+              const service = windowsServiceName(`FLYENV${request.version.split('-')[0]}`)
+              const result = await this._runWindowsElevated(
+                windowsInstallBody(
+                  setup,
+                  windowsSetupArgs(request.version, global.Server.AppDir!, global.Server.BaseDir!),
+                  service,
+                  windowsGrantAccessBody(service, global.Server.AppDir!, global.Server.BaseDir!)
+                )
               )
-              resolve({ installerLaunched: true })
+              if (!result.ok && !result.installed) {
+                throw new Error(result.error || MssqlT('operationFailed'))
+              }
+              resolve({
+                installed: true,
+                installError: !result.ok
+                  ? MssqlT('windowsInstallHandoffFailed', { error: result.error ?? '' })
+                  : result.rebootRequired
+                    ? MssqlT('windowsRestartRequired')
+                    : undefined
+              })
               return
             }
             if (!isLinux()) throw new Error(MssqlT('distroUnsupported'))
@@ -591,6 +700,11 @@ class Mssql extends Base {
           )
           continue
         }
+        const logFiles = await this.listLogFiles({
+          version: scanned.version,
+          instanceId: scanned.instanceId,
+          mssqlRuntime: { sqlDataRoot: scanned.sqlDataRoot }
+        } as unknown as SoftInstalled)
         const num = Number(versionFixed(scanned.version).split('.').slice(0, 2).join(''))
         found.push({
           typeFlag: this.type,
@@ -608,7 +722,8 @@ class Mssql extends Base {
             edition: scanned.edition,
             instanceName: scanned.name,
             instanceId: scanned.instanceId,
-            sqlDataRoot: scanned.sqlDataRoot
+            sqlDataRoot: scanned.sqlDataRoot,
+            errorLogFile: logFiles.find((file) => file.name === 'errorlog')?.path ?? ''
           }
         } as unknown as SoftInstalled)
       } catch (e: any) {
@@ -724,7 +839,32 @@ class Mssql extends Base {
     } catch (e: any) {
       const output = `${e?.stdout ?? ''}\n${e?.stderr ?? ''}\n${e?.message ?? e}`
       if (isScAccessDenied(output)) {
-        throw new Error(MssqlT('windowsServiceDenied', { service }))
+        try {
+          const result = await this._runWindowsElevated(
+            windowsServiceControlBody(
+              service,
+              action,
+              `${version.pid ?? ''}`,
+              canRepairWindowsPermissions(version as any)
+                ? windowsGrantAccessBody(service, global.Server.AppDir!, global.Server.BaseDir!)
+                : ''
+            )
+          )
+          if (!result.ok) throw new Error(result.error || MssqlT('operationFailed'))
+          if (result.permissionError)
+            console.warn(
+              '[mssql] service controlled; access repair incomplete',
+              result.permissionError
+            )
+          return ''
+        } catch (error: any) {
+          throw new Error(
+            MssqlT(action === 'start' ? 'windowsServiceStartFailed' : 'windowsServiceStopFailed', {
+              service,
+              error: error?.message ?? `${error}`
+            })
+          )
+        }
       }
       throw new Error(
         action === 'start'
@@ -764,9 +904,7 @@ class Mssql extends Base {
         const { pid } = await this._waitWindowsServiceState(service, 'RUNNING')
         if (!pid) throw new Error(MssqlT('windowsServiceUnknown'))
 
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: `${pid}` }))
-        })
+        on({ 'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid: `${pid}` })) })
         resolve({ 'APP-Service-Start-PID': `${pid || '-1'}` })
       } catch (e) {
         reject(e)
@@ -777,9 +915,7 @@ class Mssql extends Base {
   private _stopWindowsService(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       const service = this._serviceNameOf(version)
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
-      })
+      on({ 'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type })) })
       try {
         if (!service) throw new Error(MssqlT('serviceNameUnknown'))
         const pid = `${version.pid ?? ''}`
@@ -795,9 +931,7 @@ class Mssql extends Base {
           await this._waitWindowsServiceState(service, 'STOPPED')
         }
         on({ 'APP-Service-Stop-Success': true })
-        on({
-          'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
-        })
+        on({ 'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type })) })
         resolve({ 'APP-Service-Stop-PID': pid ? [pid] : [] })
       } catch (e) {
         reject(e)
@@ -825,7 +959,6 @@ class Mssql extends Base {
       let runtime: MssqlRuntimeManifest
       try {
         this.assertNativeArchitecture()
-        if (params?.eulaAccepted !== true) throw new Error(MssqlT('eulaRequired'))
         if (!existsSync('/usr/bin/bwrap')) throw new Error(MssqlT('bubblewrapRequired'))
         if (totalmem() < 2 * 1024 ** 3) throw new Error(MssqlT('memoryNotice'))
         runtime = JSON.parse(await readFile(join(version.path, 'flyenv-runtime.json'), 'utf8'))
@@ -953,12 +1086,109 @@ class Mssql extends Base {
   }
 
   getLogFiles(version?: SoftInstalled): Array<{ name: string; path: string }> {
-    if (isWindows() || !version?.version) return []
+    if (!version?.version) return []
+    if (isWindows()) {
+      const runtime = (version as any).mssqlRuntime
+      const path =
+        runtime?.errorLogFile ||
+        (runtime?.sqlDataRoot ? win32.join(runtime.sqlDataRoot, 'Log', 'ERRORLOG') : '')
+      return path ? [{ name: 'errorlog', path }] : []
+    }
     const dataDir = this._dataDirOf(version)
     return [
       { name: 'errorlog', path: join(dataDir, 'log', 'errorlog') },
       ...this.startupLogFiles(version)
     ]
+  }
+
+  checkServicePermissions(version: SoftInstalled): ForkPromise<boolean> {
+    return new ForkPromise<boolean>(async (resolve) => {
+      if (!isWindows() || !canRepairWindowsPermissions(version as any)) {
+        throw new Error(MssqlT('ownedInstallRequired'))
+      }
+      const output = await spawnMssqlCommand(
+        resolveWindowsPowerShellPath(),
+        [
+          '-NoProfile',
+          '-NonInteractive',
+          '-EncodedCommand',
+          Buffer.from(
+            windowsServiceAccessCheckScript(this._serviceNameOf(version)),
+            'utf16le'
+          ).toString('base64')
+        ],
+        60_000
+      )
+      const result = output.trim()
+      if (!['true', 'false'].includes(result)) throw new Error(MssqlT('operationFailed'))
+      resolve(result === 'true')
+    })
+  }
+
+  repairPermissions(version: SoftInstalled): ForkPromise<boolean> {
+    const request = JSON.parse(JSON.stringify(version))
+    return this.queued(
+      request,
+      () =>
+        new ForkPromise(async (resolve) => {
+          if (!isWindows() || !canRepairWindowsPermissions(request)) {
+            throw new Error(MssqlT('ownedInstallRequired'))
+          }
+          const result = await this._runWindowsElevated(
+            windowsGrantAccessBody(
+              this._serviceNameOf(request),
+              global.Server.AppDir!,
+              global.Server.BaseDir!
+            )
+          )
+          if (!result.ok) throw new Error(result.error || MssqlT('operationFailed'))
+          resolve(true)
+        })
+    )
+  }
+
+  readLogFile(version: SoftInstalled): ForkPromise<string> {
+    return new ForkPromise(async (resolve) => {
+      const file = this.getLogFiles(version).find((file) => file.name === 'errorlog')
+      if (!file?.path) throw new Error(I18nT('base.logFileNotFound'))
+      try {
+        resolve(decodeTextFile(await readFile(file.path)))
+      } catch (error: any) {
+        if (isWindows() && ['EPERM', 'EACCES'].includes(error?.code)) {
+          throw new Error(
+            `[MSSQL_PERMISSION_REQUIRED] ${MssqlT('logAccessDenied', { path: file.path })}`
+          )
+        }
+        throw error
+      }
+    })
+  }
+
+  listLogFiles(
+    version?: SoftInstalled
+  ): ForkPromise<Array<{ name: string; path: string; exists: boolean }>> {
+    if (!isWindows()) return super.listLogFiles(version)
+    return new ForkPromise(async (resolve) => {
+      const files = this.getLogFiles(version)
+      const instanceId = (version as any)?.instanceId ?? (version as any)?.mssqlRuntime?.instanceId
+      if (instanceId && /^[^"\\/\r\n]+$/.test(instanceId)) {
+        try {
+          const result = await execPromiseWithEnv(
+            `reg query "HKLM\\SOFTWARE\\Microsoft\\Microsoft SQL Server\\${instanceId}\\MSSQLServer\\Parameters" /reg:64`,
+            { windowsHide: true }
+          )
+          const path = windowsErrorLogFromParameters(result.stdout)
+          if (path) {
+            const existing = files.find((file) => file.name === 'errorlog')
+            if (existing) existing.path = path
+            else files.unshift({ name: 'errorlog', path })
+          }
+        } catch (error) {
+          console.warn('[mssql] error log startup parameter lookup failed', error)
+        }
+      }
+      resolve(files.map((file) => ({ ...file, exists: existsSync(file.path) })))
+    })
   }
 }
 export default new Mssql()
