@@ -40,9 +40,9 @@
 
   const module = BrewStore().module(typeFlag)
   module.startExtParam = async (version: ModuleInstalledItem) => {
-    return LlamaCppManager.startParameters(version.flag ?? 'cpu')
+    return LlamaCppManager.startParameters(version)
   }
-  if (!module.stopExtParam) module.stopExtParam = (_version: ModuleInstalledItem) => []
+  if (!module.stopExtParam) module.stopExtParam = async (_version: ModuleInstalledItem) => []
 
   AppServiceModule[typeFlag] = {
     groupDo,

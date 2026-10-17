@@ -17,3 +17,74 @@ export const isStandaloneGGUFPath = (path: string, repoId = ''): boolean => {
     !segments.slice(0, -1).some((segment) => /^(?:mtp|mmproj|imatrix)$/i.test(segment))
   )
 }
+
+export const modelFileKey = (file: { repoId: string; revision: string; path: string }): string =>
+  JSON.stringify([file.repoId, file.revision, file.path])
+
+export type FileRole = 'main' | 'projector' | 'draft-or-mtp' | 'shard' | 'support' | 'unknown'
+export interface GGUFDescription {
+  role: FileRole
+  architecture?: string
+  reason?: string
+  valid: boolean
+  metadata?: Record<string, string | number | boolean>
+}
+export const describeModelFile = (file: {
+  path: string
+  standalone?: boolean
+  description?: GGUFDescription
+  repoId?: string
+}): GGUFDescription => {
+  if (isGGUFShardPath(file.path)) return { role: 'shard', valid: true }
+  if (file.description) return file.description
+  if (file.standalone) return { role: 'main', valid: true }
+  if (/mmproj/i.test(file.path))
+    return {
+      role: 'projector',
+      valid: true,
+      reason: 'Filename candidate; loading compatibility unverified'
+    }
+  if (/(?:draft|mtp|dflash|eagle)/i.test(file.path)) return { role: 'draft-or-mtp', valid: true }
+  return {
+    role:
+      file.standalone === false
+        ? 'unknown'
+        : isStandaloneGGUFPath(file.path, file.repoId)
+          ? 'main'
+          : 'support',
+    valid: true,
+    reason: 'File metadata not inspected'
+  }
+}
+export const rankProjectors = <
+  T extends { repoId: string; revision: string; resolvedRevision?: string; path: string }
+>(
+  model: T,
+  files: T[]
+) =>
+  files
+    .filter((f) => describeModelFile(f).role === 'projector')
+    .map((file) => ({
+      file,
+      confidence:
+        file.repoId === model.repoId &&
+        file.resolvedRevision &&
+        file.resolvedRevision === model.resolvedRevision
+          ? 3
+          : file.repoId === model.repoId && file.revision === model.revision
+            ? 2
+            : 1
+    }))
+    .sort((a, b) => b.confidence - a.confidence || a.file.path.localeCompare(b.file.path))
+
+export const managedReference = (file: {
+  repoId: string
+  revision: string
+  path: string
+  size: number
+  sha256?: string
+}) => ({
+  kind: 'managed' as const,
+  fileKey: modelFileKey(file),
+  fingerprint: { size: file.size, sha256: file.sha256 }
+})

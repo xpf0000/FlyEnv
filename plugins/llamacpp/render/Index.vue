@@ -1,12 +1,23 @@
 <template>
   <div class="soft-index-panel main-right-panel">
-    <el-radio-group v-model="tab" class="mt-3">
+    <el-radio-group :model-value="tab" class="mt-3" @change="changeTab">
       <el-radio-button v-for="(item, index) in tabs" :key="index" :label="item" :value="index" />
     </el-radio-group>
     <div class="main-block">
       <Service v-if="tab === 0" type-flag="llama-cpp" title="llama.cpp">
         <template #tool-left>
-          <div class="ml-4 min-w-0">
+          <div class="ml-4 flex min-w-0 items-center gap-3">
+            <el-tag v-if="launchSummary.pending" type="warning">{{
+              LlamaCppT('savedPending')
+            }}</el-tag>
+            <el-tooltip :content="launchSummary.detail"
+              ><el-tag :type="launchSummary.unknown ? 'info' : 'success'">{{
+                launchSummary.text
+              }}</el-tag></el-tooltip
+            >
+            <el-button link @click="openSettings(LlamaCppManager.selectedModel)">{{
+              LlamaCppT('configure')
+            }}</el-button>
             <el-popover placement="bottom" width="480" trigger="click">
               <template #reference>
                 <el-button link class="min-w-0 w-full">
@@ -38,6 +49,11 @@
                 <el-descriptions-item :label="LlamaCppT('endpoint')">{{
                   endpoint
                 }}</el-descriptions-item>
+                <el-descriptions-item
+                  v-if="endpoint !== savedEndpoint"
+                  :label="LlamaCppT('nextConfiguration')"
+                  >{{ savedEndpoint }}</el-descriptions-item
+                >
               </el-descriptions>
               <el-button class="mt-3" size="small" @click="copyEndpoint">{{
                 LlamaCppT('copyEndpoint')
@@ -47,9 +63,16 @@
         </template>
       </Service>
       <RuntimeView v-else-if="tab === 1" />
-      <ModelsView v-else-if="tab === 2" />
-      <SettingsView v-else-if="tab === 3" />
-      <LogsView v-else />
+      <ModelsView v-else-if="tab === 2" @configure="openSettings" @associate="associate" />
+
+      <LogsView v-else-if="tab === 4" />
+      <SettingsView
+        v-show="tab === 3"
+        ref="settingsView"
+        :initial-model-key="editingModelKey"
+        :initial-projector-key="editingProjectorKey"
+        @open-repository="openRepository"
+      />
     </div>
   </div>
 </template>
@@ -64,7 +87,11 @@
   import RuntimeView from './runtime/Index.vue'
   import SettingsView from './settings/Index.vue'
   import LogsView from './logs/Index.vue'
-  import { computed, onMounted } from 'vue'
+  import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+  import router from '@/router/index'
+  import { launchConfigKey } from '../shared/settings'
+  import { modelFileKey } from '../shared/modelFile'
+  import type { LocalModel } from '../shared/types'
   import { ElMessageBox } from 'element-plus'
   import { BrewStore } from '@/store/brew'
   import { I18nT } from '@lang/index'
@@ -81,14 +108,94 @@
   ]
   onMounted(() => LlamaCppManager.init())
   checkVersion()
-  const endpoint = computed(
+  const settingsView = ref(),
+    editingModelKey = ref<string>(),
+    editingProjectorKey = ref<string>()
+  const changeTab = async (value: number) => {
+    if (tab.value === 3 && value !== 3 && !(await settingsView.value?.canLeave())) return
+    tab.value = value
+  }
+  const openSettings = async (model?: LocalModel) => {
+    if (tab.value === 3 && !(await settingsView.value?.canLeave())) return false
+    editingModelKey.value = model ? modelFileKey(model) : LlamaCppManager.settings?.selectedModelKey
+    editingProjectorKey.value = undefined
+    await settingsView.value?.openModel()
+    tab.value = 3
+    return true
+  }
+  const associate = async (file: LocalModel) => {
+    if (await openSettings(LlamaCppManager.selectedModel))
+      editingProjectorKey.value = modelFileKey(file)
+  }
+  const openRepository = async (model?: LocalModel) => {
+    if (!model) return
+    tab.value = 2
+    LlamaCppManager.modelView.activeTab = 'library'
+    LlamaCppManager.modelView.query = model.repoId
+    await LlamaCppManager.searchModelLibrary(0)
+    await LlamaCppManager.setExpandedModelRepos([model.repoId])
+  }
+  let removeGuard: (() => void) | undefined
+  onMounted(() => {
+    removeGuard = router?.beforeEach(async (to: any, from: any) => {
+      if (from.path === '/llama-cpp' && to.path !== from.path && tab.value === 3)
+        return (await settingsView.value?.canLeave()) ?? true
+      return true
+    })
+    LlamaCppManager.launch.refreshState().catch(() => {})
+  })
+  onUnmounted(() => removeGuard?.())
+  const savedEndpoint = computed(
     () =>
-      `http://${LlamaCppManager.profile.host.includes(':') ? `[${LlamaCppManager.profile.host}]` : LlamaCppManager.profile.host}:${LlamaCppManager.profile.port}/v1`
+      `http://${(LlamaCppManager.settings?.service.host ?? LlamaCppManager.profile.host).includes(':') ? `[${LlamaCppManager.settings?.service.host ?? LlamaCppManager.profile.host}]` : (LlamaCppManager.settings?.service.host ?? LlamaCppManager.profile.host)}:${LlamaCppManager.settings?.service.port ?? LlamaCppManager.profile.port}/v1`
   )
+  const endpoint = computed(() => {
+    const s = LlamaCppManager.launch.state.active?.launch.resolvedInput.service
+    return s
+      ? `http://${s.host.includes(':') ? '[' + s.host + ']' : s.host}:${s.port}/v1`
+      : savedEndpoint.value
+  })
   const currentVersion = computed(() => BrewStore().currentVersion('llama-cpp'))
+  watch(
+    () => currentVersion.value?.run,
+    () => LlamaCppManager.launch.refreshState().catch(() => {})
+  )
+  const launchSummary = computed(() => {
+    const state = LlamaCppManager.launch.state,
+      active = state.active
+    if (state.kind !== 'running-known' || !active)
+      return {
+        text: LlamaCppT(state.kind === 'stopped' ? 'notRunning' : 'unknownConfiguration'),
+        detail: LlamaCppT('unknownConfiguration'),
+        unknown: true,
+        pending: false
+      }
+    let pending = false
+    try {
+      pending =
+        launchConfigKey(LlamaCppManager.launchInput(), active.launch.runtimeKey) !==
+          active.launch.requestKey || currentVersion.value?.bin !== active.launch.bin
+    } catch {
+      pending = true
+    }
+    const projector = active.launch.dependencies.find((d) => d.role === 'projector')
+    return {
+      pending,
+      unknown: false,
+      text: projector ? LlamaCppT('projectorLoaded') : LlamaCppT('textOnly'),
+      detail:
+        (projector?.path ?? '') +
+        ' · ' +
+        LlamaCppT('modalities') +
+        ': ' +
+        (active.observation.modalities?.join(', ') ?? LlamaCppT('unverified'))
+    }
+  })
   const selectableModels = computed(() =>
     LlamaCppManager.localModels.filter(
-      (model) => !isGGUFShardPath(model.path) && (model.standalone ?? isStandaloneGGUFPath(model.path, model.repoId))
+      (model) =>
+        !isGGUFShardPath(model.path) &&
+        (model.standalone ?? isStandaloneGGUFPath(model.path, model.repoId))
     )
   )
   const modelSwitchBusy = computed(

@@ -1,5 +1,11 @@
+import { ProfilesRepository, createModelProfile, collectModelReferences } from './profiles'
+import { LaunchController, ModuleMutationGate } from './launchController'
+import { clone, type LaunchInput } from '../shared/settings'
+import type { SoftInstalled } from '@shared/app'
+import { MessageError, MessageSuccess } from '@/util/Element'
+import { dialog } from '@/util/NodeFn'
 import { reactiveBind } from '@/util/Index'
-import { StorageGetAsync, StorageRemoveAsync, StorageSetAsync } from '@/util/Storage'
+import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
 import type {
   HubModel,
   HubModelFile,
@@ -16,7 +22,7 @@ export interface OperationState {
   id: string
   targetKey?: string
   targetFile?: HubModelFile
-  status: 'starting' | 'running' | 'cancelling' | 'success' | 'failed' | 'cancelled'
+  status: 'starting' | 'running' | 'cancelling' | 'success' | 'failed' | 'cancelled' | 'partial'
   progress?: { downloaded?: number; total?: number; status?: string; asset?: string }
   result?: unknown
   error?: string
@@ -27,6 +33,7 @@ export interface ModelService {
   running: boolean
   stop(): Promise<string | boolean>
   start(): Promise<string | boolean>
+  restart(): Promise<string | boolean>
 }
 
 export interface ModelSwitchOperation {
@@ -112,10 +119,7 @@ const notifyOperationError = (message: string) => {
     .catch(() => {})
 }
 
-const settingsKey = 'flyenv-llama-cpp-settings'
 const modelsKey = 'flyenv-llama-cpp-models'
-const runtimeVariantsKey = 'flyenv-llama-cpp-runtime-variants'
-const hubCatalogKey = 'flyenv-llama-cpp-hub-catalog'
 type RuntimeChannel = 'stable' | 'prerelease'
 type HubCatalog = { pages: Record<string, HubModel[]>; files: Record<string, HubModelFile[]> }
 type ModelViewState = {
@@ -134,9 +138,72 @@ export const modelFileKey = (file: Pick<HubModelFile, 'repoId' | 'revision' | 'p
   JSON.stringify([file.repoId, file.revision, file.path])
 
 const isRunnableLocalModel = (model: LocalModel) =>
-  !isGGUFShardPath(model.path) && (model.standalone ?? isStandaloneGGUFPath(model.path, model.repoId))
+  !isGGUFShardPath(model.path) &&
+  (model.standalone ?? isStandaloneGGUFPath(model.path, model.repoId))
 
 export class LlamaCppController {
+  repository = new ProfilesRepository({ get: StorageGetAsync, set: StorageSetAsync })
+  mutationGate = new ModuleMutationGate()
+  launch = new LaunchController({
+    repository: this.repository,
+    gate: this.mutationGate,
+    input: (key) => this.launchInput(key),
+    request: (method, ...args) => this.request(method, ...args),
+    withInput: (input, runtime, fn) => this.withLaunchInput(input, runtime, fn),
+    notify: (message, error) => {
+      if (error) MessageError(escapeNoticeText(message))
+      else MessageSuccess(message)
+    }
+  })
+  private launchOverride?: { input: LaunchInput; bin: string }
+  get settings() {
+    return this.repository.current
+  }
+  async withLaunchInput<T>(
+    input: LaunchInput,
+    runtime: SoftInstalled,
+    fn: () => Promise<T>
+  ): Promise<T> {
+    this.launchOverride = { input: clone(input), bin: runtime.bin }
+    try {
+      return await fn()
+    } finally {
+      this.launchOverride = undefined
+    }
+  }
+  launchInput(key = this.settings.selectedModelKey): LaunchInput {
+    const model = this.localModels.find((m) => modelFileKey(m) === key)
+    if (!model || !key || !this.settings.modelProfiles[key])
+      throw Error('Select an installed main model')
+    return clone({
+      service: this.settings.service,
+      profile: this.settings.modelProfiles[key],
+      model,
+      files: this.localModels
+    })
+  }
+  async ensureModelProfile(key: string) {
+    await this.init()
+    const model = this.localModels.find((m) => modelFileKey(m) === key)
+    if (!model || !isRunnableLocalModel(model)) throw Error('Select an installed main model')
+    if (!this.settings.modelProfiles[key])
+      await this.repository.commitProfile(createModelProfile(model, this.settings.initialBase), 0)
+  }
+  async pickReference(role: 'projector' | 'draft' | 'template') {
+    const chosen = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: [
+        {
+          name: role === 'template' ? 'Template' : 'GGUF',
+          extensions: role === 'template' ? ['jinja', 'j2', 'txt'] : ['gguf']
+        }
+      ]
+    })
+    if (chosen.canceled || !chosen.filePaths?.[0]) return
+    const ref = { kind: 'external' as const, path: chosen.filePaths[0], allowUnverified: true }
+    const dep = await this.request<any>('inspectModelReference', ref, role)
+    return { ...ref, path: dep.path, fingerprint: dep.fingerprint, description: dep.description }
+  }
   runtimeOperations: Record<string, OperationState> = {}
   private runtimeRefresh?: Promise<void>
   modelOperation?: OperationState
@@ -154,8 +221,15 @@ export class LlamaCppController {
   selectedModel?: LocalModel
   localModels: LocalModel[] = []
   modelView: ModelViewState = {
-    activeTab: 'local', query: '', page: 0, results: [], files: {},
-    expandedRowKeys: [], searching: false, loaded: false, error: ''
+    activeTab: 'local',
+    query: '',
+    page: 0,
+    results: [],
+    files: {},
+    expandedRowKeys: [],
+    searching: false,
+    loaded: false,
+    error: ''
   }
   private runtimeVariants: Partial<Record<RuntimeChannel, RuntimeVariant[]>> = {}
   private runtimeRequests: Partial<Record<RuntimeChannel, Promise<RuntimeVariant[]>>> = {}
@@ -181,33 +255,26 @@ export class LlamaCppController {
     if (this.initialized) return
     if (this.initRequest) return this.initRequest
     this.initRequest = (async () => {
-      const saved = await StorageGetAsync<{ profile?: LaunchProfile; selectedModel?: LocalModel }>(
-        settingsKey
-      ).catch(() => undefined)
-      const models = await StorageGetAsync<LocalModel[]>(modelsKey).catch(() => undefined)
-      await Promise.allSettled([
-        StorageRemoveAsync(runtimeVariantsKey),
-        StorageRemoveAsync(hubCatalogKey)
-      ])
-      if (saved?.profile) this.profile = { ...this.profile, ...saved.profile }
+      const models = await StorageGetAsync<LocalModel[]>(modelsKey)
       this.localModels = Array.isArray(models) ? models : []
-      if (saved?.selectedModel) {
-        this.selectedModel = isRunnableLocalModel(saved.selectedModel)
-          ? saved.selectedModel
-          : this.localModels.find(isRunnableLocalModel)
-        if (!isRunnableLocalModel(saved.selectedModel)) {
-          this.profile.modelPath = this.selectedModel?.localPath ?? ''
-          await StorageSetAsync(
-            settingsKey,
-            storageSnapshot({ profile: this.profile, selectedModel: this.selectedModel })
-          )
-        }
-      }
+      await this.repository.load(this.localModels)
+      this.syncProfile()
       this.initialized = true
     })().finally(() => {
       this.initRequest = undefined
     })
     return this.initRequest
+  }
+  syncProfile() {
+    const s = this.settings
+    this.selectedModel = this.localModels.find((m) => modelFileKey(m) === s.selectedModelKey)
+    const p = s.selectedModelKey ? s.modelProfiles[s.selectedModelKey] : undefined
+    this.profile = {
+      ...this.profile,
+      ...s.service,
+      ...p?.base,
+      modelPath: this.selectedModel?.localPath ?? ''
+    }
   }
 
   request<T>(method: string, ...args: unknown[]) {
@@ -321,26 +388,31 @@ export class LlamaCppController {
   setExpandedModelRepos(keys: string[]) {
     this.modelView.expandedRowKeys = [...keys]
     const generation = this.modelViewGeneration
-    return Promise.all(keys.map((key) => {
-      const model = this.modelView.results.find((item) => item.id === key)
-      if (!model || this.modelView.files[key]) return Promise.resolve()
-      if (this.modelViewFileRequests[key]) return this.modelViewFileRequests[key]
-      const request = this.getHubModelFiles(model.id)
-        .then((listed) => {
-          if (generation === this.modelViewGeneration)
-            this.modelView.files[key] = listed.map((file) => ({ ...file, license: model.license }))
-        })
-        .catch((error) => {
-          if (generation !== this.modelViewGeneration) return
-          this.modelView.error = error instanceof Error ? error.message : `${error}`
-          throw error
-        })
-        .finally(() => {
-          if (this.modelViewFileRequests[key] === request) delete this.modelViewFileRequests[key]
-        })
-      this.modelViewFileRequests[key] = request
-      return request
-    })).then(() => undefined)
+    return Promise.all(
+      keys.map((key) => {
+        const model = this.modelView.results.find((item) => item.id === key)
+        if (!model || this.modelView.files[key]) return Promise.resolve()
+        if (this.modelViewFileRequests[key]) return this.modelViewFileRequests[key]
+        const request = this.getHubModelFiles(model.id)
+          .then((listed) => {
+            if (generation === this.modelViewGeneration)
+              this.modelView.files[key] = listed.map((file) => ({
+                ...file,
+                license: model.license
+              }))
+          })
+          .catch((error) => {
+            if (generation !== this.modelViewGeneration) return
+            this.modelView.error = error instanceof Error ? error.message : `${error}`
+            throw error
+          })
+          .finally(() => {
+            if (this.modelViewFileRequests[key] === request) delete this.modelViewFileRequests[key]
+          })
+        this.modelViewFileRequests[key] = request
+        return request
+      })
+    ).then(() => undefined)
   }
 
   createApiKeyFile(key: string) {
@@ -348,109 +420,105 @@ export class LlamaCppController {
   }
 
   async saveProfile(profile = this.profile) {
-    this.profile = { ...profile }
-    await StorageSetAsync(
-      settingsKey,
-      storageSnapshot({ profile: this.profile, selectedModel: this.selectedModel })
+    await this.repository.commitService(
+      {
+        ...this.settings.service,
+        host: profile.host,
+        port: profile.port,
+        apiKeyFile: profile.apiKeyFile
+      },
+      this.settings.service.revision
     )
+    this.syncProfile()
   }
-
   async selectModel(model: LocalModel) {
-    if (!isRunnableLocalModel(model)) throw new Error('Select a standalone GGUF model')
-    this.selectedModel = model
-    this.profile.modelPath = model.localPath
-    await StorageSetAsync(
-      settingsKey,
-      storageSnapshot({ profile: this.profile, selectedModel: model })
-    )
+    if (!isRunnableLocalModel(model)) throw Error('Select a standalone GGUF model')
+    const key = modelFileKey(model)
+    if (!this.settings.modelProfiles[key])
+      await this.repository.commitProfile(createModelProfile(model, this.settings.initialBase), 0)
+    await this.repository.selectModel(key)
+    this.syncProfile()
   }
-
-  async startParameters(backend: string): Promise<[LaunchProfile, LocalModel]> {
+  async startParameters(version: SoftInstalled): Promise<[LaunchInput]> {
     await this.init()
-    const model = this.selectedModel
-    if (!model) throw new Error('Select a local GGUF model before starting llama.cpp')
-    if (!isRunnableLocalModel(model)) throw new Error('Select a standalone GGUF model before starting llama.cpp')
-    this.profile.modelPath = model.localPath
-    this.profile.backend = backend as LaunchProfile['backend']
-    await this.saveProfile()
-    return storageSnapshot([this.profile, model])
+    if (this.mutationGate.blocked) throw Error('Refresh unknown service state before starting')
+    if (this.launchOverride) {
+      if (this.launchOverride.bin !== version.bin) throw Error('Runtime changed during application')
+      return [clone(this.launchOverride.input)]
+    }
+    if (this.mutationGate.busy) throw Error('Wait for current llama.cpp operation')
+    return [this.launchInput()]
   }
 
   async switchModel(model: LocalModel, service?: ModelService) {
-    if (
-      this.modelSwitchOperation &&
-      !['success', 'failed'].includes(this.modelSwitchOperation.status)
-    ) {
-      const message = 'A model switch is already in progress'
-      this.reportOperationError(message)
-      throw new Error(message)
-    }
-    const operation: ModelSwitchOperation = { targetPath: model.localPath, status: 'starting' }
-    this.modelSwitchOperation = operation
-    const active = this.modelSwitchOperation
-    let previous: LocalModel | undefined
-    let stopped = false
-    try {
+    return this.mutationGate.run('switch', modelFileKey(model), async () => {
       await this.init()
-      previous = this.selectedModel
-      if (!this.localModels.some((item) => item.localPath === model.localPath)) {
-        throw new Error('The selected model is no longer installed')
-      }
-      if (this.selectedModel?.localPath === model.localPath) {
-        active.status = 'success'
-        return
-      }
-      if (service?.running) throw new Error('Wait for the current service operation to finish')
-      const wasRunning = service?.run === true
-      if (wasRunning) {
-        active.status = 'stopping'
-        const result = await service.stop()
-        if (result !== true)
-          throw new Error(typeof result === 'string' ? result : 'Could not stop llama.cpp')
-        stopped = true
-      }
-      await this.selectModel(model)
-      if (wasRunning) {
-        active.status = 'startingService'
-        const result = await service.start()
-        if (result !== true)
-          throw new Error(typeof result === 'string' ? result : 'Could not restart llama.cpp')
-      }
-      active.status = 'success'
-    } catch (error) {
-      const recoveryErrors: string[] = []
-      if (this.selectedModel?.localPath === model.localPath) {
-        try {
-          if (previous) await this.selectModel(previous)
-          else {
-            this.selectedModel = undefined
-            this.profile.modelPath = ''
-            await this.saveProfile()
+      if (this.selectedModel?.localPath === model.localPath) return
+      this.modelSwitchOperation = { targetPath: model.localPath, status: 'starting' }
+      const operation = this.modelSwitchOperation
+      let stopped = false
+      const previous = this.selectedModel
+      let oldState: import('../shared/settings').LaunchState | undefined
+      try {
+        oldState = await this.launch.refreshState()
+        if (service?.running) throw Error('Wait for service operation')
+        const key = modelFileKey(model)
+        if (!this.settings.modelProfiles[key])
+          await this.repository.commitProfile(
+            createModelProfile(model, this.settings.initialBase),
+            0
+          )
+        const input = this.launchInput(key)
+        if (service) {
+          const report = await this.request<any>('prepareModelLaunch', input, service)
+          if (!report.prepared) throw Error(report.issues.map((i: any) => i.message).join('\n'))
+        }
+        if (service?.run) {
+          operation.status = 'stopping'
+          const result = await service.stop()
+          if (result !== true) throw Error(String(result))
+          stopped = true
+        }
+        await this.selectModel(model)
+        if (stopped && service) {
+          operation.status = 'startingService'
+          const result = await this.withLaunchInput(
+            input,
+            service as unknown as SoftInstalled,
+            () => service.start()
+          )
+          if (result !== true) throw Error(String(result))
+        }
+        operation.status = 'success'
+        await this.launch.refreshState()
+      } catch (e) {
+        const messages = [e instanceof Error ? e.message : String(e)]
+        const state = await this.launch.refreshState().catch(() => ({ kind: 'unknown' }))
+        if (previous) {
+          try {
+            await this.selectModel(previous)
+          } catch (restore) {
+            messages.push(String(restore))
           }
-        } catch (restoreError) {
-          recoveryErrors.push(`Could not restore model selection: ${restoreError}`)
         }
-      }
-      if (stopped && service && !service.run && previous) {
-        try {
-          const result = await service.start()
-          if (result !== true)
-            throw new Error(
-              typeof result === 'string' ? result : 'Could not restart the previous model'
+        if (stopped && service && state.kind === 'stopped' && oldState?.active) {
+          try {
+            const result = await this.withLaunchInput(
+              oldState.active.launch.resolvedInput,
+              service as unknown as SoftInstalled,
+              () => service.start()
             )
-        } catch (restoreError) {
-          recoveryErrors.push(`Could not restart the previous model: ${restoreError}`)
+            if (result !== true) throw Error(String(result))
+          } catch (restore) {
+            messages.push('Recovery failed: ' + restore)
+          }
         }
+        operation.status = 'failed'
+        operation.error = messages.join('; ')
+        this.reportOperationError(operation.error)
+        throw Error(operation.error)
       }
-      const message = [error instanceof Error ? error.message : `${error}`, ...recoveryErrors].join(
-        '; '
-      )
-      active.status = 'failed'
-      active.error = message
-      this.error = message
-      this.reportOperationError(message)
-      throw new Error(message)
-    }
+    })
   }
 
   getRuntimeOperation(target: RuntimeIdentity | string) {
@@ -523,7 +591,10 @@ export class LlamaCppController {
     }
   }
 
-  async removeRuntime(path: string) {
+  removeRuntime(path: string) {
+    return this.mutationGate.run('remove-runtime', path, () => this.performRemoveRuntime(path))
+  }
+  private async performRemoveRuntime(path: string) {
     const active = this.beginRuntimeOperation(path, path)
     this.error = ''
     try {
@@ -540,7 +611,12 @@ export class LlamaCppController {
     }
   }
 
-  async downloadModel(
+  downloadModel(file: HubModelFile, operationId?: string) {
+    return this.mutationGate.run('download', modelFileKey(file), () =>
+      this.performModelDownload(file, operationId)
+    )
+  }
+  private async performModelDownload(
     file: HubModelFile,
     operationId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
   ) {
@@ -570,10 +646,18 @@ export class LlamaCppController {
         }
       )
       active.result = model
-      if (!this.localModels.some((item) => item.localPath === model.localPath))
-        this.localModels.push(model)
-      await StorageSetAsync(modelsKey, storageSnapshot(this.localModels))
-      if (!this.selectedModel && isRunnableLocalModel(model)) await this.selectModel(model)
+      const i = this.localModels.findIndex((item) => item.localPath === model.localPath)
+      if (i < 0) this.localModels.push(model)
+      else this.localModels.splice(i, 1, model)
+      try {
+        await StorageSetAsync(modelsKey, storageSnapshot(this.localModels))
+      } catch (error) {
+        active.status = 'partial'
+        active.error = 'File downloaded; catalogue registration failed: ' + String(error)
+        this.error = active.error
+        return model
+      }
+      this.syncProfile()
       active.status = 'success'
       return model
     } catch (error) {
@@ -581,6 +665,26 @@ export class LlamaCppController {
       active.error = error instanceof Error ? error.message : `${error}`
       if (active.status === 'failed') this.error = active.error
       throw error
+    }
+  }
+
+  retryModelRegistration() {
+    return this.mutationGate.run('register-download', this.modelOperation?.id ?? '', () =>
+      this.registerDownloadedModel()
+    )
+  }
+  private async registerDownloadedModel() {
+    const op = this.modelOperation
+    if (!op || op.status !== 'partial') return
+    try {
+      await StorageSetAsync(modelsKey, storageSnapshot(this.localModels))
+      op.status = 'success'
+      op.error = undefined
+      this.error = ''
+    } catch (e) {
+      op.error = 'File downloaded; catalogue registration failed: ' + String(e)
+      this.error = op.error
+      throw e
     }
   }
 
@@ -612,18 +716,31 @@ export class LlamaCppController {
     return true
   }
 
+  private deletedPaths = new Set<string>()
   async deleteModel(model: LocalModel) {
-    await this.transport.request('deleteLocalModel', [model.localPath], () => {})
-    this.localModels = this.localModels.filter((item) => item.localPath !== model.localPath)
-    await StorageSetAsync(modelsKey, storageSnapshot(this.localModels))
-    if (this.selectedModel?.localPath === model.localPath) {
-      this.selectedModel = this.localModels.find(isRunnableLocalModel)
-      this.profile.modelPath = this.selectedModel?.localPath ?? ''
-      await StorageSetAsync(
-        settingsKey,
-        storageSnapshot({ profile: this.profile, selectedModel: this.selectedModel })
-      )
-    }
+    return this.mutationGate.run('delete', model.localPath, async () => {
+      const key = modelFileKey(model)
+      if (!this.deletedPaths.has(model.localPath)) {
+        const usages = collectModelReferences(this.settings, key, this.localModels)
+        if (usages.length)
+          throw Error(
+            'Unlink this file from models before deleting: ' +
+              usages.map((u) => JSON.parse(u.modelKey)[2]).join(', ')
+          )
+        await this.request('deleteLocalModel', model.localPath)
+        this.deletedPaths.add(model.localPath)
+      }
+      try {
+        const files = this.localModels.filter((m) => m.localPath !== model.localPath)
+        await StorageSetAsync(modelsKey, storageSnapshot(files))
+        await this.repository.removeProfile(key)
+        this.localModels = files
+        this.syncProfile()
+        this.deletedPaths.delete(model.localPath)
+      } catch (e) {
+        throw Error('File deleted; retry metadata cleanup: ' + e)
+      }
+    })
   }
 
   clearError() {

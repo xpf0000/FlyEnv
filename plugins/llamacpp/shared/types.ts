@@ -1,3 +1,4 @@
+import type { GGUFDescription } from './modelFile'
 export type RuntimeBackend = 'cpu' | 'cuda' | 'vulkan' | 'metal'
 
 export interface RuntimeIdentity {
@@ -36,6 +37,7 @@ export interface HubModel {
 export interface HubModelFile {
   repoId: string
   revision: string
+  resolvedRevision?: string
   path: string
   size: number
   sha256?: string
@@ -46,6 +48,7 @@ export interface HubModelFile {
 export interface LocalModel extends HubModelFile {
   localPath: string
   downloadedAt: number
+  description?: GGUFDescription
   standalone?: boolean
 }
 

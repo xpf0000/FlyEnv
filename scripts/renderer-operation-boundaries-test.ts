@@ -513,6 +513,28 @@ assert.match(llamaRuntimePage, /LlamaCppManager\.getRuntimeOperation\(runtime\.p
 assert.match(llamaRuntimePage, /LlamaCppManager\.installRuntime\(row\.variant\)/)
 assert.match(llamaController, /runtimeOperations: Record<string, OperationState>/)
 assert.match(llamaController, /ipc\.off\(key\)/)
+const llamaLaunchOwner = readFileSync(
+  join(root, 'plugins/llamacpp/render/launchController.ts'),
+  'utf8'
+)
+const llamaAside = readFileSync(join(root, 'plugins/llamacpp/render/aside.vue'), 'utf8')
+for (const name of [
+  'Index.vue',
+  'settings/ModelSettings.vue',
+  'settings/ServiceSettings.vue',
+  'settings/CommandPreview.vue'
+]) {
+  const page = readFileSync(join(root, 'plugins/llamacpp/render', name), 'utf8')
+  assert.doesNotMatch(page, /from\s+['"]@\/util\/IPC['"]|ipc\.send|defineStore\(/)
+}
+assert.match(llamaAside, /startExtParam/)
+assert.match(llamaController, /startParameters\(version/)
+assert.match(llamaController, /withLaunchInput/)
+assert.match(llamaLaunchOwner, /class ModuleMutationGate/)
+assert.match(llamaLaunchOwner, /clone\(input\)/)
+assert.match(llamaLaunchOwner, /service\.restart\(\)/)
+assert.match(llamaLaunchOwner, /generation === this\.generation/)
+assert.doesNotMatch(llamaController, /config\.setup|defineStore\(/)
 
 const mssqlPage = readFileSync(join(root, 'plugins/mssql/render/Index.vue'), 'utf8')
 const mssqlController = readFileSync(join(root, 'plugins/mssql/render/store.ts'), 'utf8')

@@ -25,6 +25,15 @@
       </div>
     </template>
     <el-scrollbar height="100%" view-class="flex h-full min-h-0 flex-col">
+      <el-alert
+        v-if="LlamaCppManager.modelOperation?.status === 'partial'"
+        :title="LlamaCppManager.modelOperation.error"
+        type="warning"
+        :closable="false"
+        ><el-button @click="LlamaCppManager.retryModelRegistration().catch(() => {})">{{
+          LlamaCppT('retryRegistration')
+        }}</el-button></el-alert
+      >
       <div v-if="activeTab === 'library'" class="shrink-0 p-3">
         <div class="flex gap-2">
           <el-input
@@ -101,11 +110,12 @@
   import IPC from '@/util/IPC'
   import { shell } from '@/util/NodeFn'
   import type { HubModel, HubModelFile, LocalModel } from '../../shared/types'
-  import { isGGUFShardPath, isStandaloneGGUFPath } from '../../shared/modelFile'
+  import { describeModelFile, isGGUFShardPath, isStandaloneGGUFPath } from '../../shared/modelFile'
   import { LlamaCppManager, modelFileKey } from '../controller'
   import { LlamaCppT } from '../lang'
   import { escapeNoticeText } from '../notice'
 
+  const emit = defineEmits<{ configure: [model: LocalModel]; associate: [model: LocalModel] }>()
   type ModelRow = {
     key: string
     name: string
@@ -118,10 +128,16 @@
     children?: ModelRow[]
   }
   const isMainModelRow = (row: ModelRow) => {
-    if (row.local) return !isGGUFShardPath(row.local.path) && (row.local.standalone ?? isStandaloneGGUFPath(row.local.path, row.local.repoId))
+    if (row.local)
+      return (
+        !isGGUFShardPath(row.local.path) &&
+        (row.local.standalone ?? isStandaloneGGUFPath(row.local.path, row.local.repoId))
+      )
     return !!row.file && isStandaloneGGUFPath(row.file.path, row.file.repoId)
   }
-  const { activeTab, query, results, files, expandedRowKeys, searching, page } = toRefs(LlamaCppManager.modelView)
+  const { activeTab, query, results, files, expandedRowKeys, searching, page } = toRefs(
+    LlamaCppManager.modelView
+  )
   const hardware = reactive<ModelHardware>({ ramGB: 0, vramGB: 0, loaded: false })
   let hardwareRequestKey = ''
   let mounted = true
@@ -272,7 +288,7 @@
     },
     {
       key: 'mainModel',
-      title: LlamaCppT('isMainModel'),
+      title: LlamaCppT('fileType'),
       width: 160,
       align: 'center',
       class: 'flex-shrink-0',
@@ -280,7 +296,18 @@
       cellRenderer: ({ rowData }) =>
         rowData.file || rowData.local ? (
           <ElTag size="small" effect="plain" type={isMainModelRow(rowData) ? 'success' : 'info'}>
-            {LlamaCppT(isMainModelRow(rowData) ? 'mainModel' : 'supportingFile')}
+            {LlamaCppT(
+              (
+                {
+                  main: 'mainModel',
+                  projector: 'projector',
+                  'draft-or-mtp': 'draftFile',
+                  shard: 'shardFile',
+                  support: 'supportingFile',
+                  unknown: 'descriptionUnknown'
+                } as const
+              )[describeModelFile((rowData.local ?? rowData.file)!).role]
+            )}
           </ElTag>
         ) : (
           <span />
@@ -297,12 +324,14 @@
           <ElTag
             size="small"
             effect="plain"
-            type={isMainModelRow(rowData)
-              ? getModelSizeColorForHardware(
-                  (rowData.file ?? rowData.local)!.size / 1024 ** 3,
-                  hardware
-                )
-              : 'info'}
+            type={
+              isMainModelRow(rowData)
+                ? getModelSizeColorForHardware(
+                    (rowData.file ?? rowData.local)!.size / 1024 ** 3,
+                    hardware
+                  )
+                : 'info'
+            }
           >
             {formatBytes((rowData.file ?? rowData.local)!.size)}
           </ElTag>
@@ -350,7 +379,7 @@
     {
       key: 'operation',
       title: I18nT('common.label.action'),
-      width: 100,
+      width: 190,
       align: 'center',
       class: 'flex-shrink-0',
       headerClass: 'flex-shrink-0',
@@ -358,14 +387,25 @@
         if (rowData.local) {
           const local = rowData.local
           return (
-            <ElButton
-              link
-              type="danger"
-              icon={Delete}
-              aria-label={LlamaCppT('delete')}
-              disabled={modelBusy.value}
-              onClick={() => removeModel(local)}
-            />
+            <div class="flex items-center gap-2">
+              {isMainModelRow(rowData) ? (
+                <ElButton link onClick={() => emit('configure', local)}>
+                  {LlamaCppT('configure')}
+                </ElButton>
+              ) : describeModelFile(local).role === 'projector' ? (
+                <ElButton link onClick={() => emit('associate', local)}>
+                  {LlamaCppT('associate')}
+                </ElButton>
+              ) : null}
+              <ElButton
+                link
+                type="danger"
+                icon={Delete}
+                aria-label={LlamaCppT('delete')}
+                disabled={modelBusy.value}
+                onClick={() => removeModel(local)}
+              />
+            </div>
           )
         }
         const file = rowData.file
@@ -403,9 +443,10 @@
         Object.assign(hardware, modelHardwareFromReport(response.data))
     })
     await LlamaCppManager.init()
-    if (mounted) await LlamaCppManager.ensureModelLibrary().catch((error) => {
-      if (mounted) showError(error)
-    })
+    if (mounted)
+      await LlamaCppManager.ensureModelLibrary().catch((error) => {
+        if (mounted) showError(error)
+      })
   })
   onUnmounted(() => {
     mounted = false
