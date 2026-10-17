@@ -35,7 +35,8 @@
     "plugin:release": "tsx scripts/plugin-release.ts",
     "plugin:debug": "tsx scripts/plugin-runner.ts debug",
     "plugin:test": "tsx scripts/plugin-test.ts",
-    "plugin:runtime-smoke": "tsx scripts/plugin-runtime-smoke.ts"
+    "plugin:runtime-smoke": "tsx scripts/plugin-runtime-smoke.ts",
+    "test:hermes-providers": "tsx scripts/hermes-providers-test.ts"
   },
   "type": "module",
   "main": "./dist/electron/main.mjs",
