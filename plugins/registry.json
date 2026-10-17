@@ -30,7 +30,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "6949d7b655ac3811661cfbdaedc63801e7a98ea9864c2d99966ed843d7c8fa30"
+        "sha256": "4ced804a1b5da6096902169c5fdeb14e3e8500a23fd0de072cd54ce5d56a9fee"
       },
       "official": true
     },
@@ -63,7 +63,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "0dba21be06f0dc89a1fba903e0f64b506910a6a558af2567d04f02061b176dcb"
+        "sha256": "89723b6f38ff7fc9880eaf8d4c3082111c1b93d78c814227e124211890c3aee5"
       },
       "official": true
     },
@@ -96,7 +96,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "cb422fa326ab9e24a17a81e9f2e04b7f9e800463bbfce61ebd2a2f19213b9387"
+        "sha256": "4ffa6f0f492f4d4b7647e74952eec76ac330f00f8d9aed8b3d4cfd94cf711d71"
       },
       "official": true
     },
@@ -129,7 +129,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "d2ddfa524c08e77c52557a34d6750e3694257889810502c7b1887ac85f13830a"
+        "sha256": "f5ebc94edaa697b0c0db413c5f66647e3cae7abe9839b9571983e2adbf237688"
       },
       "official": true
     },
@@ -160,7 +160,38 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "68cdca754a5834327afe5ca23ef63427d2109bd0d5bfd81a9639c9b2a9b6723b"
+        "sha256": "5ad9d182bd443685683f332e048ea4b2bd72758aaa9f6405f61ce3698025d452"
+      },
+      "official": true
+    },
+    {
+      "id": "dameng",
+      "name": "Dameng DM8",
+      "version": "0.1.9",
+      "description": {
+        "en": "Dameng DM8 for x64 Windows and Ubuntu 22.04. Official downloads, database initialization and native service management.",
+        "zh": "适用于 x64 Windows 和 Ubuntu 22.04 的达梦 DM8 插件。官方源下载、数据库初始化及原生服务管理。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "dameng",
+        "moduleType": "dataBaseServer",
+        "label": "Dameng DM8",
+        "asideIndex": 26,
+        "isService": true,
+        "isTray": false,
+        "platform": [
+          "Windows",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "da70908b8dd651eb0bf1145cce6b387307f68146ea1cff054bee42e794da7375"
       },
       "official": true
     }

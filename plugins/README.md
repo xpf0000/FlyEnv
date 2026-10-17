@@ -4,6 +4,8 @@ Plugins live in `plugins/<plugin-name>` while developing in the FlyEnv repositor
 
 A plugin contains a `plugin.json` manifest and may provide both Renderer and Fork entries.
 
+`plugins/dameng` provides an experimental DM8 service plugin for native Windows x64 and Ubuntu 22.04 x86_64. It uses pinned official media, explicit initialization, Linux SIGINT/Windows SCM lifecycle, standard configuration/log views and official uninstall with data retention. See [its prerequisites, ownership policy and real-platform acceptance gaps](dameng/README.md). Its service/version panels reuse the default host components and require no host source changes.
+
 ## Localized manifest text
 
 `plugin.json` fields shown in the Plugin Market — currently `description` — accept either a
