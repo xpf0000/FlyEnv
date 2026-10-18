@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
-import { access, mkdir, readdir, rename, rm, chmod, writeFile, stat } from 'node:fs/promises'
+import { lstat, mkdir, readdir, rename, rm, chmod, writeFile, stat } from 'node:fs/promises'
+import { setTimeout as wait } from 'node:timers/promises'
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import { Transform } from 'node:stream'
@@ -22,7 +23,11 @@ export interface RuntimePaths {
 
 export interface RuntimeInstallDeps {
   mkdir(path: string): Promise<void>
-  download(url: string, target: string, progress?: (downloaded: number, total?: number) => void): Promise<void>
+  download(
+    url: string,
+    target: string,
+    progress?: (downloaded: number, total?: number) => void
+  ): Promise<void>
   digest(path: string): Promise<string>
   size(path: string): Promise<number>
   extract(archive: string, target: string): Promise<void>
@@ -32,13 +37,19 @@ export interface RuntimeInstallDeps {
   write(path: string, content: string): Promise<void>
   probe(bin: string): Promise<string>
   findExecutable?(root: string, name: string): Promise<string | undefined>
+  wait?(ms: number): Promise<void>
 }
 
 const defaultDeps: RuntimeInstallDeps = {
   mkdir: async (path) => mkdir(path, { recursive: true }).then(() => undefined),
   download: async (url, target, progress) => {
     if (!url.startsWith('https://')) throw new Error('Runtime downloads require HTTPS')
-    const response = await axios.get(url, { responseType: 'stream', timeout: 0, proxy: getAxiosProxy(), maxRedirects: 5 })
+    const response = await axios.get(url, {
+      responseType: 'stream',
+      timeout: 0,
+      proxy: getAxiosProxy(),
+      maxRedirects: 5
+    })
     await mkdir(dirname(target), { recursive: true })
     const total = Number(response.headers['content-length']) || undefined
     let downloaded = 0
@@ -61,23 +72,45 @@ const defaultDeps: RuntimeInstallDeps = {
     if (isWindows()) await zipUnpack(archive, target)
     else await unpack(archive, target)
   },
-  exists: async (path) => access(path).then(() => true, () => false),
+  exists: async (path) => {
+    try {
+      await lstat(path)
+      return true
+    } catch (error) {
+      if (['ENOENT', 'ENOTDIR'].includes((error as NodeJS.ErrnoException).code ?? '')) return false
+      throw error
+    }
+  },
   rename,
   remove: (path) => rm(path, { recursive: true, force: true }),
-  write: async (path, content) => { await mkdir(dirname(path), { recursive: true }); await writeFile(path, content) },
-  probe: (bin) => new Promise((resolveProbe, reject) => {
-    const child = spawn(bin, ['--version'], { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true })
-    let output = ''
-    const append = (chunk: Buffer) => { output = `${output}${chunk.toString()}`.slice(-64_000) }
-    child.stdout?.on('data', append)
-    child.stderr?.on('data', append)
-    child.once('error', reject)
-    child.once('close', (code, signal) => {
-      const detail = output.trim()
-      if (code === 0) resolveProbe(detail)
-      else reject(new Error(`llama-server version probe failed (${signal ?? code})${detail ? `:\n${detail}` : ''}`))
-    })
-  }),
+  write: async (path, content) => {
+    await mkdir(dirname(path), { recursive: true })
+    await writeFile(path, content)
+  },
+  probe: (bin) =>
+    new Promise((resolveProbe, reject) => {
+      const child = spawn(bin, ['--version'], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+        windowsHide: true
+      })
+      let output = ''
+      const append = (chunk: Buffer) => {
+        output = `${output}${chunk.toString()}`.slice(-64_000)
+      }
+      child.stdout?.on('data', append)
+      child.stderr?.on('data', append)
+      child.once('error', reject)
+      child.once('close', (code, signal) => {
+        const detail = output.trim()
+        if (code === 0) resolveProbe(detail)
+        else
+          reject(
+            new Error(
+              `llama-server version probe failed (${signal ?? code})${detail ? `:\n${detail}` : ''}`
+            )
+          )
+      })
+    }),
   findExecutable: async (root, name) => {
     const visit = async (dir: string): Promise<string | undefined> => {
       for (const item of await readdir(dir, { withFileTypes: true })) {
@@ -97,42 +130,113 @@ export { runtimeDirectoryName } from '../shared/runtime'
 
 export const validateRuntimeVariant = (variant: RuntimeVariant): void => {
   const allowed = (candidate: RuntimeVariant) =>
-    (candidate.platform === 'windows' && candidate.arch === 'x64' && ['cpu', 'cuda', 'vulkan'].includes(candidate.backend)) ||
-    (candidate.platform === 'macos' && candidate.arch === 'arm64' && candidate.backend === 'metal') ||
-    (candidate.platform === 'linux' && candidate.arch === 'x64' && ['cpu', 'cuda', 'vulkan'].includes(candidate.backend)) ||
-    (candidate.platform === 'linux' && candidate.arch === 'arm64' && ['cpu', 'vulkan'].includes(candidate.backend))
+    (candidate.platform === 'windows' &&
+      candidate.arch === 'x64' &&
+      ['cpu', 'cuda', 'vulkan'].includes(candidate.backend)) ||
+    (candidate.platform === 'macos' &&
+      candidate.arch === 'arm64' &&
+      candidate.backend === 'metal') ||
+    (candidate.platform === 'linux' &&
+      candidate.arch === 'x64' &&
+      ['cpu', 'cuda', 'vulkan'].includes(candidate.backend)) ||
+    (candidate.platform === 'linux' &&
+      candidate.arch === 'arm64' &&
+      ['cpu', 'vulkan'].includes(candidate.backend))
   const validateAsset = (asset: RuntimeAsset) => {
-    if (!asset.assetName || asset.assetName !== asset.assetName.split(/[\\/]/).pop()) throw new Error('Invalid runtime asset name')
+    if (!asset.assetName || asset.assetName !== asset.assetName.split(/[\\/]/).pop())
+      throw new Error('Invalid runtime asset name')
     let url: URL
-    try { url = new URL(asset.assetUrl) } catch { throw new Error('Invalid runtime asset URL') }
+    try {
+      url = new URL(asset.assetUrl)
+    } catch {
+      throw new Error('Invalid runtime asset URL')
+    }
     const segments = url.pathname.split('/').map((segment) => decodeURIComponent(segment))
-    if (url.origin !== 'https://github.com' || segments[1] !== 'ggml-org' || segments[2] !== 'llama.cpp' || segments[3] !== 'releases' || segments[4] !== 'download' || segments.at(-1) !== asset.assetName || url.username || url.password) {
+    if (
+      url.origin !== 'https://github.com' ||
+      segments[1] !== 'ggml-org' ||
+      segments[2] !== 'llama.cpp' ||
+      segments[3] !== 'releases' ||
+      segments[4] !== 'download' ||
+      segments.at(-1) !== asset.assetName ||
+      url.username ||
+      url.password
+    ) {
       throw new Error('Runtime assets must come from official llama.cpp GitHub releases')
     }
-    if (asset.sha256 && !/^[a-f\d]{64}$/i.test(asset.sha256)) throw new Error('Invalid runtime SHA-256 digest')
+    if (asset.sha256 && !/^[a-f\d]{64}$/i.test(asset.sha256))
+      throw new Error('Invalid runtime SHA-256 digest')
     return segments.at(-2)
   }
-  if (!allowed(variant) || !variant.release || !Number.isFinite(variant.size) || variant.size < 0) throw new Error('Unsupported llama.cpp runtime variant')
-  if (variant.backend === 'cuda' ? !/^\d+(?:\.\d+)?$/.test(variant.cudaVersion ?? '') : variant.cudaVersion !== undefined) throw new Error('Invalid CUDA runtime identity')
-  if (validateAsset(variant) !== variant.release) throw new Error('Runtime asset tag does not match the selected release')
-  if (variant.backend === 'cuda' && !variant.companion) throw new Error('CUDA runtime requires its matching companion archive')
-  if (variant.companion && (!hasMatchingCudaIdentity(variant.assetName, variant.companion.assetName, variant.release) || validateAsset(variant.companion) !== variant.release)) {
+  if (!allowed(variant) || !variant.release || !Number.isFinite(variant.size) || variant.size < 0)
+    throw new Error('Unsupported llama.cpp runtime variant')
+  if (
+    variant.backend === 'cuda'
+      ? !/^\d+(?:\.\d+)?$/.test(variant.cudaVersion ?? '')
+      : variant.cudaVersion !== undefined
+  )
+    throw new Error('Invalid CUDA runtime identity')
+  if (validateAsset(variant) !== variant.release)
+    throw new Error('Runtime asset tag does not match the selected release')
+  if (variant.backend === 'cuda' && !variant.companion)
+    throw new Error('CUDA runtime requires its matching companion archive')
+  if (
+    variant.companion &&
+    (!hasMatchingCudaIdentity(variant.assetName, variant.companion.assetName, variant.release) ||
+      validateAsset(variant.companion) !== variant.release)
+  ) {
     throw new Error('CUDA companion must match the selected runtime identity and release')
   }
 }
 
 const verifyAsset = async (asset: RuntimeAsset, archive: string, deps: RuntimeInstallDeps) => {
-  if (asset.size > 0 && await deps.size(archive) !== asset.size) throw new Error(`Size verification failed for ${asset.assetName}`)
+  if (asset.size > 0 && (await deps.size(archive)) !== asset.size)
+    throw new Error(`Size verification failed for ${asset.assetName}`)
   if (!asset.sha256) return
   const actual = (await deps.digest(archive)).toLowerCase()
-  if (actual !== asset.sha256.toLowerCase()) throw new Error(`SHA-256 verification failed for ${asset.assetName}`)
+  if (actual !== asset.sha256.toLowerCase())
+    throw new Error(`SHA-256 verification failed for ${asset.assetName}`)
 }
 
-const resolveServer = async (root: string, platform: RuntimeVariant['platform'], deps: RuntimeInstallDeps) => {
+const resolveServer = async (
+  root: string,
+  platform: RuntimeVariant['platform'],
+  deps: RuntimeInstallDeps
+) => {
   const name = platform === 'windows' ? 'llama-server.exe' : 'llama-server'
-  const found = deps.findExecutable ? await deps.findExecutable(root, name) : (await deps.exists(join(root, name)) ? join(root, name) : undefined)
+  const found = deps.findExecutable
+    ? await deps.findExecutable(root, name)
+    : (await deps.exists(join(root, name)))
+      ? join(root, name)
+      : undefined
   if (!found) throw new Error(`Runtime archive does not contain ${name}`)
   return found
+}
+
+// Windows can briefly refuse a directory move after extraction or the version probe.
+// Retry only the atomic move, never the completed download/extraction/probe steps.
+const renameRuntimeDirectory = async (
+  from: string,
+  to: string,
+  platform: RuntimeVariant['platform'],
+  deps: RuntimeInstallDeps
+) => {
+  const delays = [100, 200, 400, 800, 1000]
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await deps.rename(from, to)
+      return
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code ?? ''
+      if (
+        platform !== 'windows' ||
+        !['EPERM', 'EACCES', 'EBUSY'].includes(code) ||
+        attempt >= delays.length
+      )
+        throw error
+      await (deps.wait ?? wait)(delays[attempt])
+    }
+  }
 }
 
 export const installRuntime = async (
@@ -144,22 +248,31 @@ export const installRuntime = async (
   validateRuntimeVariant(variant)
   const id = runtimeDirectoryName(variant)
   const finalDir = join(paths.runtimeRoot, id)
-  const stageDir = join(paths.stagingRoot, `${id}-${Date.now()}-${Math.random().toString(36).slice(2)}`)
+  const stageDir = join(
+    paths.stagingRoot,
+    `${id}-${Date.now()}-${Math.random().toString(36).slice(2)}`
+  )
   const runtimeStage = join(stageDir, 'runtime')
   const backupDir = `${finalDir}.previous-${Date.now()}`
+  const move = (from: string, to: string) =>
+    renameRuntimeDirectory(from, to, variant.platform, deps)
   await deps.mkdir(paths.runtimeRoot)
   await deps.mkdir(paths.stagingRoot)
   await deps.mkdir(stageDir)
   let movedOld = false
   try {
     const mainArchive = join(stageDir, variant.assetName.split(/[\\/]/).pop()!)
-    await deps.download(variant.assetUrl, mainArchive, (downloaded, total) => onProgress?.(variant.assetName, downloaded, total))
+    await deps.download(variant.assetUrl, mainArchive, (downloaded, total) =>
+      onProgress?.(variant.assetName, downloaded, total)
+    )
     await verifyAsset(variant, mainArchive, deps)
     await deps.mkdir(runtimeStage)
     await deps.extract(mainArchive, runtimeStage)
     if (variant.companion) {
       const companionArchive = join(stageDir, variant.companion.assetName.split(/[\\/]/).pop()!)
-      await deps.download(variant.companion.assetUrl, companionArchive, (downloaded, total) => onProgress?.(variant.companion!.assetName, downloaded, total))
+      await deps.download(variant.companion.assetUrl, companionArchive, (downloaded, total) =>
+        onProgress?.(variant.companion!.assetName, downloaded, total)
+      )
       await verifyAsset(variant.companion, companionArchive, deps)
       await deps.extract(companionArchive, runtimeStage)
     }
@@ -167,12 +280,15 @@ export const installRuntime = async (
     const probeResult = await deps.probe(stagedBin)
     const bin = join(finalDir, relative(runtimeStage, stagedBin))
     if (variant.platform !== 'windows') await chmod(stagedBin, 0o755).catch(() => {})
-    await deps.write(join(runtimeStage, 'flyenv-runtime.json'), JSON.stringify({ ...variant, executable: relative(runtimeStage, stagedBin) }, null, 2))
+    await deps.write(
+      join(runtimeStage, 'flyenv-runtime.json'),
+      JSON.stringify({ ...variant, executable: relative(runtimeStage, stagedBin) }, null, 2)
+    )
     if (await deps.exists(finalDir)) {
-      await deps.rename(finalDir, backupDir)
+      await move(finalDir, backupDir)
       movedOld = true
     }
-    await deps.rename(runtimeStage, finalDir)
+    await move(runtimeStage, finalDir)
     // Activation is complete; cleanup failures must not report an installed runtime as failed.
     if (movedOld) await deps.remove(backupDir).catch(() => {})
     await deps.remove(stageDir).catch(() => {})
@@ -186,18 +302,40 @@ export const installRuntime = async (
       run: false,
       running: false,
       flag: variant.backend,
-      note: JSON.stringify({ platform: variant.platform, arch: variant.arch, backend: variant.backend, cudaVersion: variant.cudaVersion, probe: probeResult })
+      note: JSON.stringify({
+        platform: variant.platform,
+        arch: variant.arch,
+        backend: variant.backend,
+        cudaVersion: variant.cudaVersion,
+        probe: probeResult
+      })
     }
   } catch (error) {
-    await deps.remove(stageDir).catch(() => {})
-    if (movedOld && !(await deps.exists(finalDir)) && await deps.exists(backupDir)) {
-      await deps.rename(backupDir, finalDir).catch(() => {})
+    let failure = error
+    if (movedOld) {
+      try {
+        if (await deps.exists(finalDir)) throw new Error(`Destination already exists: ${finalDir}`)
+        if (!(await deps.exists(backupDir)))
+          throw new Error(`Previous runtime backup is missing: ${backupDir}`)
+        await move(backupDir, finalDir)
+      } catch (restoreError) {
+        const detail = (value: unknown) => (value instanceof Error ? value.message : String(value))
+        failure = new AggregateError(
+          [error, restoreError],
+          `Runtime installation failed: ${detail(error)}. Previous runtime could not be restored; backup: ${backupDir}. Restore error: ${detail(restoreError)}`
+        )
+      }
     }
-    throw error
+    await deps.remove(stageDir).catch(() => {})
+    throw failure
   }
 }
 
-export const removeRuntime = async (target: string, runtimeRoot: string, deps: RuntimeInstallDeps = defaultDeps): Promise<void> => {
+export const removeRuntime = async (
+  target: string,
+  runtimeRoot: string,
+  deps: RuntimeInstallDeps = defaultDeps
+): Promise<void> => {
   const root = resolve(runtimeRoot)
   const resolved = resolve(target)
   const child = relative(root, resolved)
@@ -209,5 +347,9 @@ export const removeRuntime = async (target: string, runtimeRoot: string, deps: R
 
 export const runtimePathsForHost = (baseDir: string): RuntimePaths => {
   const root = join(baseDir, 'llama-cpp')
-  return { cacheDir: join(root, 'cache'), runtimeRoot: join(root, 'runtimes'), stagingRoot: join(root, 'staging') }
+  return {
+    cacheDir: join(root, 'cache'),
+    runtimeRoot: join(root, 'runtimes'),
+    stagingRoot: join(root, 'staging')
+  }
 }

@@ -30,7 +30,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "bd98f829615673b2b106310d92c97157074183a9baaa6fb77bc1b8814d20498b"
+        "sha256": "f8dd348b1c0718d26c84cbb51151de111563bc047382f6e4845bb79a8ab3be40"
       },
       "official": true
     },
@@ -63,14 +63,14 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "34373fa2fd95afb37cb34e66d20019fae844e69fedf6e5b17617ee2c15ae92bc"
+        "sha256": "a90babc99a690949f4d38ee678adece24d4a51be77d7eaba3c77b1f378d74c4b"
       },
       "official": true
     },
     {
       "id": "llama-cpp",
       "name": "llama.cpp",
-      "version": "0.2.9",
+      "version": "0.2.10",
       "description": {
         "en": "Manage llama.cpp local inference runtimes and GGUF models.",
         "zh": "管理 llama.cpp 本地推理运行时和 GGUF 模型。"
@@ -96,7 +96,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "b849db20e7fdb6564475e3eeeb8378e07e5719ec6b60b7623bdebcb2962872e2"
+        "sha256": "484563e31c8099a7a4daef7d2c2036ec82bc84290ff91bd348ba2a6b639471cb"
       },
       "official": true
     },
@@ -129,7 +129,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "27d6fee150e75e6cf454a3e463540265f5c807064c2777c5df45ec9561433eec"
+        "sha256": "44a9c34490bbb408736a3aa3c96554e8cfbad7780320b98a33e659ef9faed730"
       },
       "official": true
     },
@@ -160,7 +160,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "26c1930c41d083dbea03d8871b742a85c3ef86c604b39240674db60f79d1977a"
+        "sha256": "0960dd88fd4f7ef054ea7b611f3a070593647c4f0d7e84bfa17f3c268a6dbe90"
       },
       "official": true
     },
@@ -191,7 +191,40 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "949c7c12480fcb14eb5e31da8bcd5d05dad1b0183be59b9dd775c353ee3839c7"
+        "sha256": "2acd75d9962b29167e6d788cffa9af45406f1093ff13eaada3dd4d5c510b46af"
+      },
+      "official": true
+    },
+    {
+      "id": "command-shortcuts",
+      "name": "Command Shortcuts",
+      "version": "0.1.3",
+      "description": {
+        "en": "Organize preset commands by folder and run them in your system terminal.",
+        "zh": "按文件夹管理预设命令，一键在指定目录的系统终端中执行。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "command-shortcuts",
+        "moduleType": "console",
+        "label": "Command Shortcuts",
+        "asideIndex": 5,
+        "isService": false,
+        "isTray": false,
+        "platform": [
+          "Windows",
+          "macOS",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "1ed94c056043ce242ce175b7a3a706080c4544d55fa063a0e67f082236eb5073"
       },
       "official": true
     }
