@@ -1,7 +1,7 @@
 <template>
-  <div v-if="draft" class="flex h-full min-h-0 flex-col">
-    <el-scrollbar class="min-h-0 flex-1"
-      ><el-form label-width="180px" class="p-4" @submit.prevent>
+  <div v-if="draft && model" class="settings-page">
+    <el-scrollbar class="settings-scroll"
+      ><el-form label-position="top" class="settings-form" @submit.prevent>
         <el-form-item :label="t('selectedModel')"
           ><el-select :model-value="modelKey" class="w-full" filterable @change="chooseModel"
             ><el-option
@@ -9,10 +9,10 @@
               :key="key(m)"
               :label="m.path + ' · ' + m.repoId"
               :value="key(m)" /></el-select
-        ></el-form-item>
-        <el-button v-if="!selected" class="mb-3" @click="setServiceModel">{{
-          t('setServiceModel')
-        }}</el-button>
+          ><div v-if="!selected" class="settings-field-actions settings-button-row">
+            <el-button @click="setServiceModel">{{ t('setServiceModel') }}</el-button>
+          </div>
+        </el-form-item>
         <el-alert v-if="changedFile" :title="t('replacement')" type="warning" :closable="false"
           ><el-button @click="confirmReplacement">{{
             t('confirmReplacement')
@@ -25,7 +25,7 @@
               :key="r.bin"
               :label="r.version + ' · ' + ((r as any).flag || 'cpu')"
               :value="r.bin" /></el-select
-          ><span class="text-xs opacity-60">{{ t('checkTarget') }}</span></el-form-item
+          ><p class="settings-hint">{{ t('checkTarget') }}</p></el-form-item
         >
         <el-divider content-position="left">{{ t('basic') }}</el-divider>
         <OptionFields
@@ -36,45 +36,66 @@
           group="base"
         />
         <el-divider content-position="left">{{ t('projector') }}</el-divider>
-        <el-form-item
-          ><el-radio-group v-model="draft.value.multimodal.mode" :disabled="!!extraProjector"
-            ><el-radio-button value="unset">{{ t('unset') }}</el-radio-button
-            ><el-radio-button value="text">{{ t('textOnly') }}</el-radio-button
-            ><el-radio-button value="projector">{{
-              t('useProjector')
-            }}</el-radio-button></el-radio-group
-          ></el-form-item
-        >
-        <div v-if="extraProjector" class="mb-4 break-all text-sm"
-          ><el-tag>{{ t('sourceExtra') }}</el-tag> {{ extraProjector.values[0] }}
-          <el-button size="small" @click="moveProjector">{{ t('moveToForm') }}</el-button></div
-        >
-        <template v-if="draft.value.multimodal.mode === 'projector' && !extraProjector">
-          <el-form-item :label="t('projector')"
-            ><div class="flex w-full flex-col gap-2"
-              ><div class="flex gap-2"
-                ><el-select
-                  :model-value="managedKey"
-                  class="min-w-0 flex-1"
-                  filterable
-                  clearable
-                  @change="setProjector"
-                  ><el-option
-                    v-for="c in candidates"
-                    :key="key(c.file)"
-                    :label="c.file.path + ' · ' + c.file.repoId"
-                    :value="key(c.file)" /></el-select
-                ><el-button :loading="picking" @click="pick">{{ t('chooseFile') }}</el-button></div
-              ><span class="break-all text-xs opacity-70">{{
-                externalPath || t('candidateHint')
-              }}</span></div
-            ></el-form-item
+        <el-form-item>
+          <el-radio-group
+            v-model="draft.value.multimodal.mode"
+            class="settings-mode"
+            :disabled="!!extraProjector"
           >
-        </template>
-        <p class="mb-4 text-xs opacity-70">{{ t('projectorHint') }}</p>
-        <el-button size="small" @click="$emit('openRepository', model)">{{
-          t('viewRepository')
-        }}</el-button>
+            <el-radio-button value="unset">{{ t('unset') }}</el-radio-button>
+            <el-radio-button value="text">{{ t('textOnly') }}</el-radio-button>
+            <el-radio-button value="projector">{{ t('useProjector') }}</el-radio-button>
+          </el-radio-group>
+          <p class="settings-hint">{{ t('projectorHint') }}</p>
+        </el-form-item>
+        <el-form-item v-if="extraProjector" :label="t('projector')">
+          <div class="settings-reference-path"
+            ><el-tag>{{ t('sourceExtra') }}</el-tag
+            ><span>{{ extraProjector.values[0] }}</span></div
+          >
+          <div class="settings-field-actions settings-button-row">
+            <el-button size="small" @click="moveProjector">{{ t('moveToForm') }}</el-button>
+            <el-button size="small" :disabled="!model" @click="$emit('openRepository', model)">{{
+              t('viewRepository')
+            }}</el-button>
+          </div>
+        </el-form-item>
+        <el-form-item
+          v-else-if="draft.value.multimodal.mode === 'projector'"
+          :label="t('projector')"
+        >
+          <div class="settings-file-picker">
+            <el-select :model-value="managedKey" filterable clearable @change="setProjector">
+              <el-option
+                v-for="c in candidates"
+                :key="key(c.file)"
+                :label="c.file.path + ' · ' + c.file.repoId"
+                :value="key(c.file)"
+              />
+            </el-select>
+            <el-button :loading="picking" @click="pick">{{ t('chooseFile') }}</el-button>
+          </div>
+          <p v-if="externalPath" class="settings-hint settings-path">{{ externalPath }}</p>
+          <div class="settings-reference-help">
+            <p class="settings-hint">{{ t('candidateHint') }}</p>
+            <el-button
+              link
+              type="primary"
+              :disabled="!model"
+              @click="$emit('openRepository', model)"
+              >{{ t('viewRepository') }}</el-button
+            >
+          </div>
+        </el-form-item>
+        <div v-else class="settings-section-actions settings-button-row">
+          <el-button
+            link
+            type="primary"
+            :disabled="!model"
+            @click="$emit('openRepository', model)"
+            >{{ t('viewRepository') }}</el-button
+          >
+        </div>
         <OptionFields
           v-if="draft.value.multimodal.mode === 'projector' || !!extraProjector"
           v-model:profile="draft.value"
@@ -105,7 +126,7 @@
               :devices="devices"
               @error="error = $event" /></el-collapse-item
           ><el-collapse-item :title="t('sampling')" name="sampling"
-            ><p class="mb-3 text-xs opacity-70">{{ t('samplingHint') }}</p
+            ><p class="settings-hint settings-section-hint">{{ t('samplingHint') }}</p
             ><OptionFields
               v-model:profile="draft.value"
               :backend="backend"
@@ -122,20 +143,25 @@
           :dirty="draft.dirty"
         /> </el-form
     ></el-scrollbar>
-    <div class="flex flex-wrap gap-2 border-t border-current/10 p-3">
-      <el-button @click="defaults">{{ t('restoreDefaults') }}</el-button
-      ><el-button :disabled="!draft.dirty" @click="reload">{{ t('discard') }}</el-button
-      ><el-button type="primary" :loading="saving" @click="save().catch(() => {})">{{
-        t('save')
-      }}</el-button>
-      <el-button
-        v-if="selected && runtime && currentRuntime?.bin === runtime.bin"
-        :loading="applying"
-        @click="apply"
-        >{{ t(currentRuntime?.run ? 'saveAndRestart' : 'saveAndStart') }}</el-button
-      >
+    <div class="settings-actions">
+      <div class="settings-button-row">
+        <el-button @click="defaults">{{ t('restoreDefaults') }}</el-button>
+        <el-button :disabled="!draft.dirty" @click="reload">{{ t('discard') }}</el-button>
+      </div>
+      <div class="settings-button-row">
+        <el-button type="primary" :loading="saving" @click="save().catch(() => {})">{{
+          t('save')
+        }}</el-button>
+        <el-button
+          v-if="selected && runtime && currentRuntime?.bin === runtime.bin"
+          :loading="applying"
+          @click="apply"
+          >{{ t(currentRuntime?.run ? 'saveAndRestart' : 'saveAndStart') }}</el-button
+        >
+      </div>
     </div>
   </div>
+  <el-empty v-else :description="manager.localModelScan?.error || t('noLocalModels')" />
 </template>
 <script lang="ts" setup>
   import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
@@ -407,8 +433,12 @@
     }
   )
   onMounted(async () => {
-    await manager.init()
-    modelKey.value = props.initialModelKey ?? manager.settings.selectedModelKey ?? ''
+    await manager.refreshLocalModels().catch(() => {})
+    if (!mounted) return
+    modelKey.value =
+      [props.initialModelKey, manager.settings.selectedModelKey, ...models.value.map(key)].find(
+        (k) => models.value.some((m) => key(m) === k)
+      ) ?? ''
     if (modelKey.value) await manager.ensureModelProfile(modelKey.value)
     runtimeBin.value = currentRuntime.value?.bin ?? runtimes.value[0]?.bin ?? ''
     reload()

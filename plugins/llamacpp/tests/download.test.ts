@@ -21,7 +21,7 @@ test('redownload replaces catalogue identity and metadata retry never downloads 
     '@/util/NodeFn': `export const dialog={}`,
     '@lang/index': `export const AppI18n=()=>({global:{locale:'en'}});export const I18nT=x=>x`,
     '@/store/brew': `export const BrewStore=()=>({module:()=>({installed:[]})})`,
-    '@/util/IPC': `const ipc={send(_c,method){return {then(cb){const h=globalThis.__llamaDownload;if(method==='downloadHubModelFile')h.count++;queueMicrotask(()=>cb('key',{code:0,data:{...h.data.get('flyenv-llama-cpp-models')[0],sha256:'b'.repeat(64)}}))}}},off(){}};ipc.sendSensitive=ipc.send;export default ipc`
+    '@/util/IPC': `const ipc={send(_c,method,...args){return {then(cb){const h=globalThis.__llamaDownload;if(method==='downloadHubModelFile')h.count++;queueMicrotask(()=>cb('key',{code:0,data:method==='inspectLocalModelFiles'?args[0].map(path=>({path,status:'available'})):{...h.data.get('flyenv-llama-cpp-models')[0],sha256:'b'.repeat(64)}}))}}},off(){}};ipc.sendSensitive=ipc.send;export default ipc`
   }
   const { LlamaCppManager: manager } = await loadBundle(
     join(pluginRoot, 'render/controller.ts'),

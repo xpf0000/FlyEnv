@@ -1,0 +1,223 @@
+.llamacpp-settings .settings-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.llamacpp-settings .settings-scroll {
+  container-type: inline-size;
+  flex: 1;
+  min-height: 0;
+}
+
+.llamacpp-settings .settings-form {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 880px;
+  padding: 24px;
+}
+
+.llamacpp-settings .settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+  align-items: start;
+}
+
+.llamacpp-settings .settings-grid > * {
+  min-width: 0;
+}
+
+.llamacpp-settings .settings-span-full {
+  grid-column: 1 / -1;
+}
+
+@container (max-width: 640px) {
+  .llamacpp-settings .settings-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.llamacpp-settings .settings-form .el-form-item {
+  margin-bottom: 24px;
+}
+
+.llamacpp-settings .settings-form .el-form-item__label {
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
+  min-height: 24px;
+  margin-bottom: 8px;
+  padding: 0;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.llamacpp-settings .settings-field-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 24px;
+}
+
+.llamacpp-settings .settings-field-heading > span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.llamacpp-settings .settings-field-heading .el-button {
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.llamacpp-settings .settings-form .el-form-item__content {
+  display: block;
+  min-width: 0;
+  line-height: 1.5;
+}
+
+.llamacpp-settings .settings-form .el-input,
+.llamacpp-settings .settings-form .el-select,
+.llamacpp-settings .settings-form .el-input-number,
+.llamacpp-settings .settings-form .el-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}
+
+.llamacpp-settings .settings-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+}
+
+.llamacpp-settings .settings-control-row,
+.llamacpp-settings .settings-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.llamacpp-settings .settings-control-input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+.llamacpp-settings .settings-hint {
+  margin: 8px 0 0;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.llamacpp-settings .settings-field > .settings-hint {
+  margin-top: 0;
+}
+
+.llamacpp-settings .settings-section-hint {
+  margin: 0 0 16px;
+}
+
+.llamacpp-settings .settings-field-actions {
+  margin-top: 12px;
+}
+
+.llamacpp-settings .settings-button-row .el-button + .el-button,
+.llamacpp-settings .settings-file-picker .el-button {
+  margin-left: 0;
+}
+
+.llamacpp-settings .settings-inline-button {
+  align-self: flex-start;
+}
+
+.llamacpp-settings .settings-file-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.llamacpp-settings .settings-file-picker .el-select {
+  flex: none;
+  min-width: 0;
+}
+
+.llamacpp-settings .settings-file-picker .el-button {
+  flex-shrink: 0;
+}
+
+.llamacpp-settings .settings-reference-help {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  column-gap: 16px;
+  row-gap: 8px;
+  margin-top: 8px;
+}
+
+.llamacpp-settings .settings-reference-help .settings-hint {
+  flex: 1 1 240px;
+  margin: 0;
+}
+
+.llamacpp-settings .settings-reference-help .el-button {
+  padding: 0;
+  line-height: 1.7;
+}
+
+.llamacpp-settings .settings-reference-path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+
+.llamacpp-settings .settings-section-actions {
+  margin: -12px 0 24px;
+}
+
+.llamacpp-settings .settings-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+@media (max-width: 640px) {
+  .llamacpp-settings .settings-form {
+    padding: 16px;
+  }
+
+  .llamacpp-settings .settings-actions {
+    padding: 12px 16px;
+  }
+
+  .llamacpp-settings .settings-actions > .settings-button-row {
+    flex: 1 1 100%;
+  }
+
+  .llamacpp-settings .settings-mode {
+    max-width: 100%;
+  }
+
+  .llamacpp-settings .settings-mode .el-radio-button__inner {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+}

@@ -45,6 +45,12 @@ export interface HubModelFile {
   downloadUrl: string
 }
 
+export interface LocalModelFileStatus {
+  path: string
+  status: 'available' | 'missing' | 'unverified'
+  reason?: string
+}
+
 export interface LocalModel extends HubModelFile {
   localPath: string
   downloadedAt: number

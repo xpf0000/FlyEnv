@@ -7,13 +7,8 @@
       <Service v-if="tab === 0" type-flag="llama-cpp" title="llama.cpp">
         <template #tool-left>
           <div class="ml-4 flex min-w-0 items-center gap-3">
-            <el-tag v-if="launchSummary.pending" type="warning">{{
-              LlamaCppT('savedPending')
-            }}</el-tag>
-            <el-tooltip :content="launchSummary.detail"
-              ><el-tag :type="launchSummary.unknown ? 'info' : 'success'">{{
-                launchSummary.text
-              }}</el-tag></el-tooltip
+            <el-tooltip v-if="launchSummary" :content="launchSummary.detail"
+              ><el-tag type="success">{{ launchSummary.text }}</el-tag></el-tooltip
             >
             <el-button link @click="openSettings(LlamaCppManager.selectedModel)">{{
               LlamaCppT('configure')
@@ -89,7 +84,6 @@
   import LogsView from './logs/Index.vue'
   import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
   import router from '@/router/index'
-  import { launchConfigKey } from '../shared/settings'
   import { modelFileKey } from '../shared/modelFile'
   import type { LocalModel } from '../shared/types'
   import { ElMessageBox } from 'element-plus'
@@ -163,25 +157,9 @@
   const launchSummary = computed(() => {
     const state = LlamaCppManager.launch.state,
       active = state.active
-    if (state.kind !== 'running-known' || !active)
-      return {
-        text: LlamaCppT(state.kind === 'stopped' ? 'notRunning' : 'unknownConfiguration'),
-        detail: LlamaCppT('unknownConfiguration'),
-        unknown: true,
-        pending: false
-      }
-    let pending = false
-    try {
-      pending =
-        launchConfigKey(LlamaCppManager.launchInput(), active.launch.runtimeKey) !==
-          active.launch.requestKey || currentVersion.value?.bin !== active.launch.bin
-    } catch {
-      pending = true
-    }
+    if (state.kind !== 'running-known' || !active) return undefined
     const projector = active.launch.dependencies.find((d) => d.role === 'projector')
     return {
-      pending,
-      unknown: false,
       text: projector ? LlamaCppT('projectorLoaded') : LlamaCppT('textOnly'),
       detail:
         (projector?.path ?? '') +

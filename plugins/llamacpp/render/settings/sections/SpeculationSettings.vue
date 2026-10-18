@@ -1,6 +1,6 @@
 <template>
-  <div
-    ><p class="mb-3 text-xs opacity-70">{{ t('speculationHint') }}</p
+  <div class="settings-grid"
+    ><p class="settings-hint settings-section-hint settings-span-full">{{ t('speculationHint') }}</p
     ><el-form-item :label="t('speculation')"
       ><el-select :model-value="profile.speculation.mode" @change="change"
         ><el-option value="default" :label="t('defaultValue')" /><el-option
@@ -13,8 +13,8 @@
           :disabled="!supported(m.strategy)" /></el-select
     ></el-form-item>
     <template v-if="profile.speculation.mode === 'draft'"
-      ><el-form-item :label="t('draftFile')"
-        ><div class="flex w-full flex-col gap-2"
+      ><el-form-item class="settings-span-full" :label="t('draftFile')"
+        ><div class="settings-field"
           ><el-select :model-value="managedKey" clearable filterable @change="choose"
             ><el-option
               v-for="m in draftFiles"
@@ -24,7 +24,9 @@
           ><span v-if="profile.speculation.file.kind === 'external'" class="break-all text-xs">{{
             profile.speculation.file.path
           }}</span
-          ><el-button :loading="picking" @click="pick">{{ t('chooseFile') }}</el-button></div
+          ><el-button class="settings-inline-button" :loading="picking" @click="pick">{{
+            t('chooseFile')
+          }}</el-button></div
         ></el-form-item
       ><el-form-item :label="t('draftThreads')"
         ><el-input-number v-model="profile.speculation.threads" :min="1" :max="512" /></el-form-item

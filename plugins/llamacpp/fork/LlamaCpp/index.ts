@@ -28,6 +28,7 @@ import type { PItem } from '@shared/Process'
 import { createApiKeyFile, formatUrlHost, waitForServerHealth } from '../config'
 import { prepareLaunch, modelRoot } from '../prepareLaunch'
 import { inspectGGUF } from '../gguf'
+import { inspectLocalModelFiles } from '../localModelFiles'
 import { resolveModelReference } from '../modelReferences'
 import type {
   LaunchInput,
@@ -305,6 +306,16 @@ export class LlamaCppModule extends Base {
       if (!controller) return resolve(false)
       controller.abort()
       resolve(true)
+    })
+  }
+
+  inspectLocalModelFiles(paths: string[]) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        resolve(await inspectLocalModelFiles(paths))
+      } catch (error) {
+        reject(error)
+      }
     })
   }
 

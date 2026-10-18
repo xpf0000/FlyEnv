@@ -20,3 +20,21 @@ test('reads wrapped runtime value lists, negative aliases and old two-value opti
   assert.equal(c.byAlias['--no-mmproj'].negative, true)
   assert.equal(c.byAlias['--lora-scaled'].arity, 2)
 })
+test('real b10545 wrapped descriptions cannot overwrite a declared option', async () => {
+  const { readFile } = await import('node:fs/promises')
+  const help = await readFile(
+    new URL('./fixtures/b10545-threads-help.txt', import.meta.url),
+    'utf8'
+  )
+  for (const indent of ['', '  ']) {
+    const caps = parseRuntimeHelp(
+      help
+        .split('\n')
+        .map((line) => indent + line)
+        .join('\n')
+    )
+    assert.equal(caps.byAlias['--threads'].arity, 1)
+    assert.deepEqual(caps.byAlias['--threads'].aliases, ['-t', '--threads'])
+    assert.equal(caps.byAlias['--spec-draft-threads'].arity, 1)
+  }
+})

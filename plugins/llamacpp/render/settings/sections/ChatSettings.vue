@@ -1,32 +1,39 @@
 <template>
-  <div
+  <div class="settings-grid"
     ><OptionFields
       v-model:profile="profile"
+      class="settings-span-full"
       :backend="backend"
       :caps="caps"
       group="chat"
-    /><el-form-item :label="t('templateSource')"
-      ><el-select :model-value="profile.chat.template.kind" @change="changeTemplate"
-        ><el-option value="model" :label="t('modelTemplate')" /><el-option
-          value="builtin"
-          :label="t('namedTemplate')" /><el-option
-          value="file"
-          :label="t('localTemplate')" /></el-select></el-form-item
-    ><el-form-item v-if="profile.chat.template.kind === 'builtin'" :label="t('namedTemplate')"
+      ><el-form-item :label="t('templateSource')"
+        ><el-select :model-value="profile.chat.template.kind" @change="changeTemplate"
+          ><el-option value="model" :label="t('modelTemplate')" /><el-option
+            value="builtin"
+            :label="t('namedTemplate')" /><el-option
+            value="file"
+            :label="t('localTemplate')" /></el-select></el-form-item
+    ></OptionFields>
+    <el-form-item v-if="profile.chat.template.kind === 'builtin'" :label="t('namedTemplate')"
       ><el-input v-model="profile.chat.template.name" placeholder="chatml" /></el-form-item
-    ><el-form-item v-if="profile.chat.template.kind === 'file'" :label="t('localTemplate')"
-      ><div class="flex w-full flex-col gap-2"
+    ><el-form-item
+      v-if="profile.chat.template.kind === 'file'"
+      class="settings-span-full"
+      :label="t('localTemplate')"
+      ><div class="settings-field"
         ><span class="break-all text-xs">{{
           profile.chat.template.file.kind === 'external'
             ? profile.chat.template.file.path
             : profile.chat.template.file.fileKey
         }}</span
-        ><el-button :loading="picking" @click="pick">{{ t('chooseFile') }}</el-button></div
+        ><el-button class="settings-inline-button" :loading="picking" @click="pick">{{
+          t('chooseFile')
+        }}</el-button></div
       ></el-form-item
-    ><el-form-item :label="t('templateParameters')"
-      ><div class="flex w-full flex-col gap-1"
+    ><el-form-item class="settings-span-full" :label="t('templateParameters')"
+      ><div class="settings-field"
         ><el-input v-model="kwargs" type="textarea" :rows="4" placeholder="{}" /><span
-          class="text-xs"
+          class="settings-hint"
           >{{ t('templateHint') }}</span
         ><span v-if="invalid" class="text-xs text-red-500">{{ invalid }}</span></div
       ></el-form-item

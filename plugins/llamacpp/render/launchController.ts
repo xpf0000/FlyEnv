@@ -206,12 +206,6 @@ export class LaunchController {
         )
         if (result !== true)
           throw Error(typeof result === 'string' ? result : 'Service operation failed')
-        await this.refreshState()
-        if (
-          this.state.kind !== 'running-known' ||
-          this.state.active?.launch.requestKey !== report.prepared.requestKey
-        )
-          throw Error('Current process configuration could not be confirmed')
         op.applied = true
         op.status = 'success'
         this.deps.notify('Settings applied', false)
@@ -247,8 +241,7 @@ export class LaunchController {
           service.start()
         )
         if (result !== true) throw Error(String(result))
-        await this.refreshState()
-        return this.state
+        return true
       } catch (e) {
         this.deps.notify(String(e), true)
         throw e

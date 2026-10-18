@@ -4,6 +4,14 @@ import type { SoftInstalled } from '@shared/app'
 import type { RuntimeCapabilities, FlagCapability, DeviceInfo } from '../shared/launchOptions'
 export const parseRuntimeHelp = (help: string): RuntimeCapabilities => {
   const byAlias: Record<string, FlagCapability> = {}
+  const lines = help.split(/\r?\n/)
+  // llama.cpp aligns declarations at the left margin and indents descriptions.
+  // Wrapped descriptions can themselves start with an option reference.
+  const declarationIndent = lines.reduce(
+    (indent, line) =>
+      /^[ \t]*-{1,2}[A-Za-z]/.test(line) ? Math.min(indent, line.search(/\S/)) : indent,
+    Infinity
+  )
   let previous: string[] = []
   let continuation = false
   const valuesOf = (value: string) =>
@@ -11,10 +19,13 @@ export const parseRuntimeHelp = (help: string): RuntimeCapabilities => {
       .split(/[,|]/)
       .map((x) => x.trim())
       .filter(Boolean)
-  for (const line of help.split(/\r?\n/)) {
-    const match = line.match(
-      /^\s*((?:-{1,2}[A-Za-z][\w-]*(?:,\s*|\s+(?=-))?)+)(?:\s+(\[[^\]]+\]|<[^>]+>|\{[^}]+\}|[A-Z][A-Z0-9_-]*|(?:[a-z][a-z0-9_-]*,)+[a-z][a-z0-9_-]*))?/
-    )
+  for (const line of lines) {
+    const match =
+      line.search(/\S/) === declarationIndent
+        ? line.match(
+            /^\s*((?:-{1,2}[A-Za-z][\w-]*(?:,\s*|\s+(?=-))?)+)(?=\s|$)(?:\s+(\[[^\]]+\]|<[^>]+>|\{[^}]+\}|[A-Z][A-Z0-9_-]*|(?:[a-z][a-z0-9_-]*,)+[a-z][a-z0-9_-]*))?/
+          )
+        : null
     if (!match) {
       for (const alias of previous) byAlias[alias].helpLine += '\n' + line
       const bullet = line.match(/^\s+- ([a-z][a-z0-9_+-]*):/i)?.[1]

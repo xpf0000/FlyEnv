@@ -98,3 +98,18 @@ test('explicit projector cannot be silently disabled through extra aliases', asy
   assert.equal(r.prepared, undefined)
   assert.match(r.issues.at(-1)!.message, /conflict/i)
 })
+test('b10545 help preserves thread value 4 through the complete prepare path', async () => {
+  const { readFile } = await import('node:fs/promises')
+  const excerpt = await readFile(
+    new URL('./fixtures/b10545-threads-help.txt', import.meta.url),
+    'utf8'
+  )
+  const profile = createModelProfile(model, { contextSize: 8192, threads: 4 })
+  const report = await prepareLaunch(
+    { service: { host: '127.0.0.1', port: 8080, revision: 0 }, profile, model, files: [model] },
+    runtime,
+    { ...deps, capabilities: async () => parseRuntimeHelp(help + '\n' + excerpt) }
+  )
+  assert.ok(report.prepared, report.issues.map((i) => i.message).join('\n'))
+  assert.equal(report.prepared.args[report.prepared.args.indexOf('--threads') + 1], '4')
+})

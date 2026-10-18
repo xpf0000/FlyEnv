@@ -8,7 +8,7 @@
       spellcheck="false"
       placeholder="--no-mmap"
       @update:model-value="$emit('update:modelValue', $event)"
-    /><p class="mt-2 text-xs opacity-70">{{ t('extraHint') }}</p></div
+    /><p class="settings-hint">{{ t('extraHint') }}</p></div
   >
 </template>
 <script lang="ts" setup>

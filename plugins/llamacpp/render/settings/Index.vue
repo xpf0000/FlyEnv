@@ -1,5 +1,5 @@
 <template>
-  <div class="module-config"
+  <div class="module-config llamacpp-settings"
     ><el-card class="h-full"
       ><template #header
         ><el-radio-group :model-value="section" @change="change"
@@ -16,6 +16,7 @@
 </template>
 <script lang="ts" setup>
   import { ref, watch } from 'vue'
+  import './settings.css'
   import { LlamaCppT as t } from '../lang'
   import ServiceSettings from './ServiceSettings.vue'
   import ModelSettings from './ModelSettings.vue'

@@ -512,6 +512,13 @@ assert.match(llamaRuntimePage, /LlamaCppManager\.getRuntimeOperation\(variant\)/
 assert.match(llamaRuntimePage, /LlamaCppManager\.getRuntimeOperation\(runtime\.path\)/)
 assert.match(llamaRuntimePage, /LlamaCppManager\.installRuntime\(row\.variant\)/)
 assert.match(llamaController, /runtimeOperations: Record<string, OperationState>/)
+const llamaModelsPage = readFileSync(
+  join(root, 'plugins/llamacpp/render/models/Index.vue'),
+  'utf-8'
+)
+assert.match(llamaModelsPage, /LlamaCppManager\.refreshLocalModels\(\)/)
+assert.doesNotMatch(llamaModelsPage, /['"]inspectLocalModelFiles['"]/)
+assert.match(llamaController, /private catalogueFlight\?: Promise<void>/)
 assert.match(llamaController, /ipc\.off\(key\)/)
 const llamaLaunchOwner = readFileSync(
   join(root, 'plugins/llamacpp/render/launchController.ts'),

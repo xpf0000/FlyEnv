@@ -12,7 +12,7 @@ const flush = async () => {
   await nextTick()
 }
 test('real mounted model editor keeps draft and service model separate and persists explicit user edits', async () => {
-  const files = ['a.gguf', 'b.gguf', 'mmproj-BF16.gguf'].map((path) => ({
+  const files = ['a.gguf', 'b.gguf', 'mmproj-BF16.gguf', 'missing.gguf'].map((path) => ({
     repoId: 'test/models',
     revision: 'main',
     path,
@@ -23,7 +23,10 @@ test('real mounted model editor keeps draft and service model separate and persi
     standalone: !path.startsWith('mmproj')
   }))
   const state: any = {
-    data: new Map([['flyenv-llama-cpp-models', files]]),
+    data: new Map<string, any>([
+      ['flyenv-llama-cpp-models', files],
+      ['flyenv-llama-cpp-settings', { selectedModel: files[3] }]
+    ]),
     errors: [],
     off: [],
     runtime: {
@@ -45,7 +48,7 @@ test('real mounted model editor keeps draft and service model separate and persi
     '@/store/brew': `export const BrewStore=()=>({currentVersion:()=>globalThis.__llamaUI.runtime,module:()=>({installed:[globalThis.__llamaUI.runtime]})})`,
     '@lang/index': `export const AppI18n=()=>({global:{locale:'en'}});export const I18nT=k=>k`,
     'element-plus': `export const ElMessageBox={confirm:async()=>true}`,
-    '@/util/IPC': `const ipc={send(command,method,...args){const h=globalThis.__llamaUI;h.sent.push(method);return {then(cb){queueMicrotask(()=>cb('key',{code:0,data:method==='getRuntimeCapabilities'?{status:'known',byAlias:{},help:''}:method==='getLaunchState'?{kind:'stopped'}:{requestKey:'test',issues:[]}}))}}},off:k=>globalThis.__llamaUI.off.push(k)};ipc.sendSensitive=ipc.send;export default ipc`
+    '@/util/IPC': `const ipc={send(command,method,...args){const h=globalThis.__llamaUI;h.sent.push(method);return {then(cb){queueMicrotask(()=>cb('key',{code:0,data:method==='inspectLocalModelFiles'?args[0].map(path=>({path,status:path.endsWith('/missing.gguf')?'missing':'available'})):method==='getRuntimeCapabilities'?{status:'known',byAlias:{},help:''}:method==='getLaunchState'?{kind:'stopped'}:{requestKey:'test',issues:[],prepared:{requestKey:'test'}}}))}}},off:k=>globalThis.__llamaUI.off.push(k)};ipc.sendSensitive=ipc.send;export default ipc`
   }
   const component = await loadBundle(
     join(pluginRoot, 'render/settings/ModelSettings.vue'),
@@ -87,7 +90,9 @@ test('real mounted model editor keeps draft and service model separate and persi
     }
   })
   const root = { type: 'root', children: [] }
-  const app = renderer.createApp(component.default, { initialModelKey: keyA })
+  const app = renderer.createApp(component.default, {
+    initialModelKey: '["test/models","main","missing.gguf"]'
+  })
   const warnings: string[] = []
   app.config.warnHandler = (m) => warnings.push(m)
   for (const name of [
@@ -106,6 +111,7 @@ test('real mounted model editor keeps draft and service model separate and persi
     'el-collapse-item',
     'el-tooltip',
     'el-alert',
+    'el-empty',
     'el-tag'
   ])
     app.component(
@@ -127,6 +133,23 @@ test('real mounted model editor keeps draft and service model separate and persi
       (n) => n.type === 'el-select' && n.props.modelValue === keyA
     )
     assert.ok(selector)
+    assert.ok(
+      !flatten(selector).some(
+        (n) => n.type === 'el-option' && String(n.props.value).includes('missing.gguf')
+      )
+    )
+    const setService = flatten(root).find(
+      (n) => n.type === 'el-button' && text(n) === 'Set as service model'
+    )
+    assert.ok(setService)
+    await setService.props.onClick()
+    await flush()
+    assert.equal(state.data.get('flyenv-llama-cpp-settings-v2').selectedModelKey, keyA)
+    assert.ok(
+      state.data.get('flyenv-llama-cpp-settings-v2').modelProfiles[
+        '["test/models","main","missing.gguf"]'
+      ]
+    )
     await selector.props.onChange(keyB)
     await flush()
     const number = flatten(root).find(

@@ -3,7 +3,6 @@
     ><div class="flex flex-wrap items-center gap-2"
       ><el-button :loading="checking" @click="check">{{ t('check') }}</el-button
       ><el-tag v-if="dirty" type="warning">{{ t('draftLabel') }}</el-tag
-      ><el-tag v-else-if="pending" type="warning">{{ t('savedPending') }}</el-tag
       ><el-button
         v-if="manager.launch.state.kind === 'stopped' && manager.launch.state.lastSuccess"
         @click="restore"
@@ -22,7 +21,7 @@
           ><p v-for="(issue, i) in report?.issues" :key="i" class="mt-2 break-words text-sm">{{
             issue.message
           }}</p></template
-        ><p v-if="show === 'active' && !active" class="mt-3">{{ t('unknownConfiguration') }}</p
+        ><p v-if="show === 'active' && !active" class="mt-3">{{ t('launchRecordUnavailable') }}</p
         ><div v-if="show === 'active' && manager.launch.state.active" class="mt-3 text-sm"
           ><p
             >{{ t('modalities') }}:
@@ -80,12 +79,6 @@
     checking = computed(() => operation.value?.status === 'checking')
   const active = computed(() =>
     manager.launch.state.kind === 'running-known' ? manager.launch.state.active?.launch : undefined
-  )
-  const pending = computed(
-    () =>
-      !!active.value &&
-      !!report.value?.prepared &&
-      active.value.requestKey !== report.value.prepared.requestKey
   )
   const invocation = computed(() =>
     show.value === 'active' ? active.value : report.value?.prepared

@@ -408,3 +408,90 @@ assert.equal(startResultAfterObservationFailure.ok, true)
 ## 本地合并授权
 
 用户在实现交付后明确要求“合并到 master 主分支”，授权为本次代码和文档创建本地提交并合并 master；不包含推送或发布。合并前重新运行 36 项聚焦测试、renderer 边界和插件契约，全部通过。原生与视觉待验收项保持记录。
+
+
+## 0.2.1：首次设置读取修复
+
+- 用户报告“模型设置”首次进入因 `StorageGetAsync` 的 `Error('no found')` 中断。使用真实宿主 Storage.ts、仅替换 localForage I/O，已复现缺少 V2、首次安装缺少目录/旧配置三项失败。
+- owner 不变：controller.init 单飞加载模型目录，ProfilesRepository 加载/迁移域配置；无新页面状态、IPC、Pinia、共享配置或服务流程，无需例外授权。
+- 读取为迁移必要依赖：仅宿主约定的 `no found` / `expire` 转为空值；I/O 故障继续拒绝，不能回退默认值或写入新配置。已有 V2 结构损坏仍拒绝并保留原数据；迁移写入失败也继续传播。原有初始化失败后的显式重试保留，不添加自动重试。
+- 回归覆盖真实读取契约：旧配置迁移、新装默认值及重开、过期记录、真实读取故障无写入/恢复后重试、损坏 V2 不覆盖。只修插件存储适配，不修改宿主 Storage.ts。
+
+- 修复验证：新增 5 项使用真实宿主读取函数的回归；修复前 3 项以 `no found` 复现，修复后全部通过，全插件聚焦集合 41/41 PASS，renderer 边界、0.2.1 插件契约、修改文件 ESLint、diff 检查通过。类型检查仍为 53 项既有诊断，本次新增 0。
+- 0.2.1 产物 `/Users/x/Desktop/WorkSpace/GitHub/FlyEnv/dist/plugins/llamacpp/llama-cpp-0.2.1.flyenv-plugin`，346881 字节，SHA-256 `dc7d9eeec1a5aa8de1d80a7760e32c3a39cf105d4fd5dfaead24e754b96cc18d`；7z 完整性、解包内容和 registry 校验匹配，发布 URL 保持空值。本次修复在 master 工作区，未提交、发布或自动替换用户正在使用的插件。
+
+
+## 0.2.2：帮助续行覆盖参数定义
+
+- 用户提供本机 b10545 macOS arm64 Metal 运行时和 JiRackUltra_1b_Q3_K_M.gguf。只读执行该二进制 --help，并走实际 GGUF/sidecar/能力/prepare 路径，精确复现 `Unknown or unverifiable option: 4`。
+- 根因：帮助说明的缩进续行 `--threads)` 被识别为声明，将原始 `-t, --threads N` 的 arity=1 覆盖为 0。仅解析声明列的选项并校验选项 token 边界，说明续行继续归到前一个选项，不推断或强行覆盖参数数目。
+- 生命周期/失败归属不变：capabilities/prepare 属于 Fork；没有新 IPC、持久域状态或服务路径。解析失败仍阻止启动，不能靠跳过裸值 4 放过实际未知参数；已有配置不改变。
+- 先保存本机原始帮助关键片段，新增解析器和完整 prepare 红测。将用用户提供的同一运行时/模型复验，若做原生启动则使用独立临时端口、日志和本次 child PID，结束仅停止本次创建进程，不操作用户现存服务或改写模型。
+
+- 本机结果：修复前相同 runtime/model 的真实 prepare 返回 Unknown or unverifiable option: 4；修复后 issues=[]，argv 保留 --threads 4。独立端口 57290、context=512、GPU layers=0 原生启动，/health=ok、/completion=200 且生成 4 token；仅本次创建 PID 76278 收到 SIGINT 并退出 0，已 wait 确认不再运行。没有测试 GPU 卸载或图片能力。
+
+- 最终验证：新增 2 项针对真实 b10545 帮助片段的回归先失败后通过，全部聚焦 43/43 PASS；边界、0.2.2 插件契约、修改文件 ESLint、diff 检查通过。全仓类型仍为 53 项既有诊断，新增 0。宿主 src 未修改。
+- 0.2.2 包 347096 字节，SHA-256 `f496437f9771831a723366530a79a0cb8965af0720c4d2639ecb955c611f7b7b`；7z 完整性、解包 manifest/README/render/fork 和 registry 校验匹配，发布 URL 保持空值。包含前一轮 0.2.1 的存储修复；master 工作区尚未提交发布/激活。
+
+### 2026-10-17 启动后确认误报修复（0.2.3）
+
+- 实证：宿主 ForkManager 使用 worker 池，start 与 getLaunchState 可落到不同实例；仅内存快照不能满足原计划。修正 Task 4 的“不写磁盘”假设：插件 Fork 在健康成功后原子保存启动凭据，包含实际 argv、PID、进程创建时间，其他 worker 以同一进程表和 PID 文件验证，绝不从保存配置推测运行参数。文件位于插件运行目录，仅为进程证据；配置仍经 Storage，宿主 src、Pinia、共享类型和公共生命周期不变，无新增例外。
+- 所有者/生命周期：Fork 持有进程证据，跨 worker/页面存在；controller 仍持有 apply、generation 与通知。准入、重复调用、start/restart/stop 使用原有 gate 和 ModuleInstalledItem，不新建启停流程。健康成功为启动终态；快照写入和 HTTP observation 是附加动作，失败只使确认未知，不反转启动成功、不停止或重放。保存失败/真实启停失败仍传播。
+- 凭据仅在 PID、创建时间及二进制一致时是 active；缺失/损坏/无法核验为 running-unknown，禁止删除未知依赖。停止和外部退出保留历史 lastSuccess，不能用它证明活进程。观察缓存以启动身份隔离，迟到观察不得覆盖新启动凭据。
+- apply 用本次 refresh 返回值确认，避免后续并发刷新阻止当前响应发布导致误报。start=true 后状态查询失败/unknown/running-unknown 给出 saved=true/applied=false 的警告；确认停止或启动了不同配置仍报告部分失败。
+- 回归：跨 worker 读取与依赖保护、创建时间不同的 PID 复用、缺损凭据、快照写失败仍启动成功、迟到观察隔离、并发 refresh、查询失败不重放；聚焦测试、宿主边界检查及用户 b10545/模型在隔离目录和端口的原生启动验证。保留用户现有 8080 服务。
+
+- 验证完成：先复现跨 worker/并发 refresh/错误通知 3 项红测，修复后共 47/47 PASS；renderer-operation-boundaries、插件契约、修改文件 ESLint 和 git diff --check 通过；全仓类型 53 项既有诊断，新增 0；src 无改动。
+- 原生证据：用户 b10545-macos-arm64-metal + JiRackUltra_1b_Q3_K_M.gguf，以真实 prepare/health/observation、真实 ps 创建时间和 controller apply 验证；仅 spawn/PID 文件边界替换到隔离 BaseDir（不声称覆盖整个宿主公共生命周期）。worker A 启动、worker B 确认，返回 Settings applied/saved=true/applied=true/running-known；端口 59983、PID 78961，/completion HTTP 200 生成 4 token，SIGINT 退出 0。用户原 PID 77918 仍运行。未验证 GPU offload、图片或 Windows 原生流程。
+- 0.2.3 包 347939 字节，SHA-256 `ebfab0153eb6f3c79cd5f5b52e37227837b3617cf402f78662ea9ac5582aa044`；7z 完整性、解包 manifest/README/fork/render 与 registry 均核验；发布 URL 仍空，未提交/发布/激活。包括 0.2.1 存储和 0.2.2 参数解析修复。已有旧版启动进程缺少凭据时保持未确认，用户更新后显式保存并应用建立新凭据。
+
+### 0.2.4：按用户要求移除启动后配置确认
+
+用户明确否决启动后的配置确认流程，本节覆盖之前 0.2.3 的磁盘凭据方案及相关验收要求。应用成功条件改为预检通过、Storage 保存成功、既有 ModuleInstalledItem start/restart 返回 true；不再为成功应用查询运行状态、对比 requestKey，或因快照不可用显示警告。真实保存、停止、启动/健康检查失败仍保留原错误与已保存事实。
+
+所有者/生命周期：仍由插件 controller 持有 apply 单飞和终态通知，Fork 持有服务启停与内存运行依赖，组件只绑定状态；没有新 IPC、Pinia、共享配置或宿主改动，无约束例外。删除仅为该确认新增的 launch-state/launch-observation 磁盘读写、进程创建时间采样及缓存测试；保留原本供展示、依赖删除保护及手动恢复使用的内存记录，worker 无记录不影响应用成功。界面移除运行配置对比标记，缺少记录只显示暂无记录。
+
+回归验证：start/restart 返回 true 时，运行记录缺失/不同且状态查询不可用仍直接成功、只执行一次启停；启动不为配置确认采样进程或写凭据；原有预检失败不停止服务、保存后启停失败保留部分完成、依赖删除保护继续验证。包版本 0.2.4；不操作当前运行服务，不提交发布。
+
+- 完成验证：应用不查配置、启动不采样/写凭据两项回归先失败后通过；全部 44/44 PASS，renderer 边界、0.2.4 插件契约、修改文件 ESLint、diff 检查通过。全仓类型仍为 53 项既有诊断，新增 0，宿主 src 无改动。
+- 产物：dist/plugins/llamacpp/llama-cpp-0.2.4.flyenv-plugin，346692 字节，SHA-256 `d16f11f8248176a1018cce1e726b969e8783648eecfd728bbc03536dd21dbd29`；7z 完整性/解包 manifest、确认代码与文案移除、registry SHA 核验通过，URL 保持空值。未提交发布/激活或操作已有服务。
+
+### 0.2.5：服务与模型设置表单布局
+
+- 用户指定上下结构；现有 Element Plus 表单统一 label-position=top，字段说明跟随控件。投影模式说明、文件选择、外部路径及同仓库文件入口集中到关联区域；选模型后的服务模型按钮归入模型字段。服务/模型共用页内滚动与底部操作区，子表单（模板、投机等）的文件按钮和说明也遵守相同间距；窄窗口换行且长路径不撑开页面。
+- 仅插件组件模板和 scoped-by-root CSS/说明文案，无新 IPC、共享配置、Pinia 或操作。草稿/选择仍归组件，异步保存/应用/文件选择仍由既有 controller/Fork 流程执行，操作准入、生命周期、重复调用、进度和错误边界保持原契约；不重新加入启动后配置确认，无约束例外。
+- 投影限制已核对用户 b10545 --help 和同 tag common/arg.cpp：--mmproj FILE 写入单个 params.mmproj.path；每个实例选择一个文件，不添加多选假支持。
+
+- 验证：44/44 聚焦测试、renderer 边界、0.2.5 插件契约、修改文件 ESLint/diff 检查通过；全仓类型 53 项既有诊断，新增 0，src 无改动。真实组件 + Element Plus 独立浏览器检查服务/模型、深浅色、560px 窄窗和长中文外部路径，viewport/document 均 560px，浏览器异常 0；截图在 /tmp/llamacpp-layout-shots，不等同 Electron 内整体验收。独立预览/浏览器已退出，未操作运行服务。
+- 包 dist/plugins/llamacpp/llama-cpp-0.2.5.flyenv-plugin，347776 字节，SHA-256 `5bb51787430bd3dfa9ed53a4609528bff68beaef9d8f9c9039b82d8d9f32e38e`；7z 完整性、解包 manifest/样式/README 与 registry 校验通过，URL 保持空值，未提交发布激活。
+
+### 0.2.6：设置区域自适应双列
+
+- 按用户反馈，上下结构只约束标签/控件，不要求每个字段整行。基础资源、性能、多模态细项、模板思考、投机数值及采样分组采用两列；服务地址与端口并排。文件路径、模板 JSON、tensor ratio、额外参数等长内容保留整行。保留所有原 v-model、事件和异步流程，仅改插件模板与 CSS，无新增状态/IPC/生命周期或约束例外。
+- 设置滚动区域使用 inline-size container query：按实际内容区宽度（640px 断点）切为单列，避免侧栏占位后仍挤双列。真实 Vue/Element Plus 浏览器验证宽区域双列、同一宽窗口但600px面板单列、560px窗口单列且无横向溢出；深浅色截图继续保存在 /tmp/llamacpp-layout-shots。预览/独立浏览器已退出，未操作服务。
+- 44/44 回归、renderer 边界、0.2.6 契约、修改文件 ESLint 与 diff 检查通过；src 无改动。仅模板和 CSS 调整，未重复全仓类型检查。包 347951 字节，SHA-256 `6762353af4920a7d85a47dc998c6903496057411f1366f7a87e3115a3fbc554d`，7z/解包双列与容器样式/manifest/registry 核验通过；未提交发布激活。
+
+### 0.2.7：标题操作与两组参数并排
+
+- 按用户要求，OptionFields 的跟随运行时默认按钮移入 label slot，标题行满列宽，按钮右对齐并使用 warning link；保留合法零值、false 的重置入口及原 change 行为，点击阻止 label 默认聚焦。统一标签最小高度使同排控件对齐。GPU 分配比例取消跨列，与主 GPU 编号并排；OptionFields 添加尾部默认 slot，让 Jinja 与模板来源在同一个 grid 内并排，避免嵌套分组造成空列。窄区域仍由原容器查询转单列，JSON/文件维持整行。
+- 仅插件模板/CSS，无新状态、IPC、生命周期或约束例外；未加入启动后确认。44/44 回归、renderer 边界、0.2.7 契约、ESLint/格式与diff检查通过，src 无改动，未重复全仓类型检查。
+- 真实组件浏览器检查：两组字段及输入控件 y 坐标分别相同；标题 warning 按钮到字段右边距为 0，点击后输入回到默认且重置入口消失；560px 下单列且无横向溢出，深浅色截图 /tmp/llamacpp-titles-shots。预览与独立浏览器已关闭，未操作服务。
+- 包 348193 字节，SHA-256 `f09ff528860d94ba702e1473a236285bf79d718f831cc5faa1bbfac8d5800c93`；7z完整性、manifest、标题样式和registry核验通过，URL保持空值，未提交发布激活。
+
+### 0.2.8：输入控件占满表单列
+
+- 按用户要求，基础资源、主 GPU 编号及其余设置分组的 input/select/input-number/textarea 统一 width/max-width=100%，移除 input-number 和数字 wrapper 的两处320px上限及数字专属 class。文件选择改为下拉框整行、按钮在下，避免按钮挤占输入宽度；保留双列/单列、自适应、标题warning重置与原绑定。仅模板/CSS，无新状态/IPC/生命周期，无约束例外。
+- 44/44 回归、renderer边界、0.2.8契约、修改文件ESLint/格式/diff检查通过，src未改，未重复全仓类型检查。真实Vue/ElementPlus浏览器展开所有分组并启用draft/builtin模板：模型51个输入控件与服务4个控件均与所属form-item content等宽（差<1px），宽窗和560px窄窗均通过、无横向溢出；截图/tmp/llamacpp-widths-shots，预览与独立浏览器已关闭，未操作服务。
+- 包348201字节，SHA-256 `b7dea3d31a37bab11f7f0207c9a68183e223ee383fce9f76f10dd93281301942`；7z完整性、manifest、无320px残留的打包样式及registry核验通过；URL空，未提交发布激活。
+
+### 0.2.9：本地模型下载记录与磁盘可用性同步
+
+- 根因已确认：controller.init 从 Storage 直接发布全部历史下载记录；模型页、设置候选和仓库已下载标记都把记录当作文件存在。用户目录只有Q3，但历史Q4记录仍被列出，切换预检因此触发ENOENT。
+- Fork 新增插件内批量文件可用性检查：每项检查绝对路径、常规文件和可读性，返回 available/missing/unverified 与原因；ENOENT/ENOTDIR 只影响该文件，权限/I/O错误标未核验，不冒充文件删除。无需扫描权重、散列、停止服务或后台轮询。
+- renderer singleton controller 保留原始下载记录，localModels 只暴露已核验可用项；原始记录与全部profiles仍保存，不自动改选服务模型。初始化、模型页进入/本地刷新时核验；操作owner覆盖单飞promise、状态/错误通知和终态。页面只绑定刷新命令/状态，无新Pinia或共享配置，无约束例外。
+- 文件检查为独立逐项结果；通道失败显示扫描失败，不清空Storage或配置。迟到检查只更新同一记录对象，不能覆盖并发下载的新记录或恢复已删除记录。下载已完成仍独立成功，注册重试只写元数据；所有目录持久化写原始记录。缺失服务模型不自动切换，设置编辑回退到可用候选或显示空状态，实际启动继续严格预检；不重新加入启动后配置确认。
+- 验证：真实临时文件删除/恢复、混合候选、单项权限错误、通道失败不改持久数据、重入复用和迟到扫描/下载竞态，既有存储与UI交互回归，实际用户Q3/Q4路径只读检查；构建0.2.9并验证包，不操作当前服务或自动下载模型。
+
+- 实现完成：原始目录记录独立保留，localModels getter 仅发布 available 状态；模型页添加本地刷新/扫描错误展示，模型设置挂载时重查，缺失选择回退为可用编辑对象或空状态但不改服务默认模型。新增真实Vue回归覆盖原服务模型缺失后编辑可用模型、设置为服务模型及保存，缺失profile与原目录记录均保留。
+- 首个红测准确复现 Q3 存在/Q4 不存在却同时出现在列表；修复后47/47 PASS（3项新增真实文件/竞态测试与扩展Vue流程），renderer边界、0.2.9契约、ESLint/diff通过；全仓类型53项既有，新增0，src无改动。实际用户目录只读调用新检查器，Q3=available/Q4=missing，未写用户文件或启停服务。
+- 0.2.9 包349053字节，SHA-256 `119529165234490db8c0a96918ed9446c768b6fd27cea351c07779317e009699`；7z完整性/解包manifest/render/fork检查与registry核验通过，URL保持空值，未提交发布激活。

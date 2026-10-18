@@ -10,21 +10,32 @@
           </el-radio-group>
         </div>
         <el-button
-          v-if="activeTab === 'library'"
           class="button"
           link
-          :disabled="searching"
-          @click="search(page, true)"
+          :disabled="searching || LlamaCppManager.localModelScan?.status === 'checking'"
+          @click="
+            activeTab === 'library'
+              ? search(page, true)
+              : LlamaCppManager.refreshLocalModels().catch(() => {})
+          "
         >
           <yb-icon
             :svg="import('@/svg/icon_refresh.svg?raw')"
             class="refresh-icon"
-            :class="{ 'fa-spin': searching }"
+            :class="{
+              'fa-spin': searching || LlamaCppManager.localModelScan?.status === 'checking'
+            }"
           />
         </el-button>
       </div>
     </template>
     <el-scrollbar height="100%" view-class="flex h-full min-h-0 flex-col">
+      <el-alert
+        v-if="LlamaCppManager.localModelScan?.error"
+        :title="LlamaCppManager.localModelScan.error"
+        type="warning"
+        :closable="false"
+      />
       <el-alert
         v-if="LlamaCppManager.modelOperation?.status === 'partial'"
         :title="LlamaCppManager.modelOperation.error"
@@ -442,7 +453,7 @@
       if (mounted && response?.code === 0 && response.data)
         Object.assign(hardware, modelHardwareFromReport(response.data))
     })
-    await LlamaCppManager.init()
+    await LlamaCppManager.refreshLocalModels().catch(() => {})
     if (mounted)
       await LlamaCppManager.ensureModelLibrary().catch((error) => {
         if (mounted) showError(error)

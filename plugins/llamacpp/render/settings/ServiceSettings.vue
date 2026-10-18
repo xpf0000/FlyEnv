@@ -1,35 +1,49 @@
 <template>
-  <el-scrollbar
-    ><el-form v-if="draft" class="p-4" label-width="180px" @submit.prevent
-      ><el-form-item :label="t('host')"><el-input v-model="draft.value.host" /></el-form-item
-      ><el-form-item :label="t('port')"
-        ><el-input-number v-model="draft.value.port" :min="1" :max="65535" /></el-form-item
-      ><el-form-item :label="t('apiKeyFile')"
-        ><el-input :model-value="draft.value.apiKeyFile" readonly /></el-form-item
-      ><el-form-item :label="t('newApiKey')"
-        ><div class="flex w-full flex-col gap-2"
-          ><el-input v-model="apiKey" type="password" show-password /><div class="flex gap-2"
-            ><el-button @click="apiKey = generateApiKey()">{{ t('generateKey') }}</el-button
-            ><el-button :disabled="apiKey.length < 16" :loading="saving" @click="saveKey">{{
+  <div v-if="draft" class="settings-page">
+    <el-scrollbar class="settings-scroll">
+      <el-form class="settings-form settings-grid" label-position="top" @submit.prevent>
+        <el-form-item :label="t('host')">
+          <el-input v-model="draft.value.host" />
+          <p class="settings-hint">{{ t('nonLoopbackNote') }}</p>
+        </el-form-item>
+        <el-form-item :label="t('port')">
+          <el-input-number v-model="draft.value.port" :min="1" :max="65535" />
+        </el-form-item>
+        <el-form-item class="settings-span-full" :label="t('apiKeyFile')">
+          <el-input :model-value="draft.value.apiKeyFile" readonly />
+        </el-form-item>
+        <el-form-item class="settings-span-full" :label="t('newApiKey')">
+          <el-input v-model="apiKey" type="password" show-password />
+          <div class="settings-button-row settings-field-actions">
+            <el-button @click="apiKey = generateApiKey()">{{ t('generateKey') }}</el-button>
+            <el-button :disabled="apiKey.length < 16" :loading="saving" @click="saveKey">{{
               t('createKeyFile')
-            }}</el-button></div
-          ></div
-        ></el-form-item
-      ><el-alert :title="t('nonLoopbackNote')" type="info" :closable="false" /><p
-        v-if="error"
-        class="mt-3 break-all"
-        >{{ error }}</p
-      ><div class="mt-4 flex gap-2"
-        ><el-button type="primary" :loading="saving" @click="save().catch(() => {})">{{
+            }}</el-button>
+          </div>
+        </el-form-item>
+        <el-alert
+          v-if="error"
+          class="settings-span-full"
+          :title="error"
+          type="error"
+          :closable="false"
+        />
+      </el-form>
+    </el-scrollbar>
+    <div class="settings-actions">
+      <div class="settings-button-row"
+        ><el-button @click="reload">{{ t('discard') }}</el-button></div
+      >
+      <div class="settings-button-row">
+        <el-button type="primary" :loading="saving" @click="save().catch(() => {})">{{
           t('save')
-        }}</el-button
-        ><el-button @click="reload">{{ t('discard') }}</el-button
-        ><el-button v-if="current" :loading="saving" @click="apply">{{
+        }}</el-button>
+        <el-button v-if="current" :loading="saving" @click="apply">{{
           t(current.run ? 'saveAndRestart' : 'saveAndStart')
-        }}</el-button></div
-      ></el-form
-    ></el-scrollbar
-  >
+        }}</el-button>
+      </div>
+    </div>
+  </div>
 </template>
 <script lang="ts" setup>
   import { ref, reactive, onMounted, computed } from 'vue'

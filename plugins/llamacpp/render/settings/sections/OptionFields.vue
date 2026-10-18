@@ -1,12 +1,29 @@
 <template>
-  <div
-    ><el-form-item v-for="f in fields" :key="f.path" :label="zh ? f.zh : f.en"
-      ><div class="flex w-full flex-col gap-1"
-        ><div class="flex w-full items-center gap-2"
+  <div class="settings-grid"
+    ><el-form-item
+      v-for="f in fields"
+      :key="f.path"
+      :label="zh ? f.zh : f.en"
+      :class="{ 'settings-span-full': f.path === 'base.alias' }"
+      ><template #label>
+        <span class="settings-field-heading">
+          <span>{{ zh ? f.zh : f.en }}</span>
+          <el-button
+            v-if="read(f) !== undefined"
+            type="warning"
+            size="small"
+            link
+            @click.prevent="change(f, undefined)"
+            >{{ t('defaultValue') }}</el-button
+          >
+        </span>
+      </template>
+      <div class="settings-field"
+        ><div class="settings-control-row"
           ><el-tooltip
             :content="f.flag + (unsupported(f) ? ' · ' + t('capabilityUnknown') : '')"
             placement="top"
-            ><div class="min-w-0 flex-1">
+            ><div class="settings-control-input">
               <el-select
                 v-if="f.path.endsWith('Device')"
                 :model-value="
@@ -61,23 +78,16 @@
                 :placeholder="t('defaultValue')"
                 :disabled="disabled(f)"
                 @update:model-value="change(f, $event)"
-              /> </div></el-tooltip
-          ><el-button
-            v-if="read(f) !== undefined"
-            size="small"
-            link
-            @click="change(f, undefined)"
-            >{{ t('defaultValue') }}</el-button
-          ></div
-        ><div v-if="fromExtra(f)" class="text-xs opacity-70"
+              /> </div></el-tooltip></div
+        ><div v-if="fromExtra(f)" class="settings-hint settings-button-row"
           >{{ t('sourceExtra') }}
           <el-button size="small" link @click="move(f)">{{ t('moveToForm') }}</el-button></div
-        ><span v-else-if="unsupported(f)" class="text-xs opacity-60">{{
+        ><span v-else-if="unsupported(f)" class="settings-hint">{{
           t('capabilityUnknown')
         }}</span></div
       ></el-form-item
-    ></div
-  >
+    ><slot />
+  </div>
 </template>
 <script lang="ts" setup>
   import { computed } from 'vue'

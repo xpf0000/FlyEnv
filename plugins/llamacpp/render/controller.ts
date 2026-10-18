@@ -1,4 +1,9 @@
-import { ProfilesRepository, createModelProfile, collectModelReferences } from './profiles'
+import {
+  ProfilesRepository,
+  createModelProfile,
+  collectModelReferences,
+  readOptionalStorage
+} from './profiles'
 import { LaunchController, ModuleMutationGate } from './launchController'
 import { clone, type LaunchInput } from '../shared/settings'
 import type { SoftInstalled } from '@shared/app'
@@ -11,6 +16,7 @@ import type {
   HubModelFile,
   LaunchProfile,
   LocalModel,
+  LocalModelFileStatus,
   RuntimeVariant,
   RuntimeIdentity
 } from '../shared/types'
@@ -219,7 +225,15 @@ export class LlamaCppController {
     gpuLayers: 0
   }
   selectedModel?: LocalModel
-  localModels: LocalModel[] = []
+  private catalogueFiles: LocalModel[] = []
+  private modelFileStates: Record<string, LocalModelFileStatus> = {}
+  private catalogueFlight?: Promise<void>
+  localModelScan?: { status: 'checking' | 'success' | 'partial' | 'failed'; error?: string }
+  get localModels() {
+    return this.catalogueFiles.filter(
+      (m) => this.modelFileStates[m.localPath]?.status === 'available'
+    )
+  }
   modelView: ModelViewState = {
     activeTab: 'local',
     query: '',
@@ -255,15 +269,71 @@ export class LlamaCppController {
     if (this.initialized) return
     if (this.initRequest) return this.initRequest
     this.initRequest = (async () => {
-      const models = await StorageGetAsync<LocalModel[]>(modelsKey)
-      this.localModels = Array.isArray(models) ? models : []
-      await this.repository.load(this.localModels)
+      const models = await readOptionalStorage(() => StorageGetAsync<LocalModel[]>(modelsKey))
+      this.catalogueFiles = Array.isArray(models) ? models : []
+      await this.repository.load(this.catalogueFiles)
+      await this.scanLocalModels().catch(() => {})
       this.syncProfile()
       this.initialized = true
     })().finally(() => {
       this.initRequest = undefined
     })
     return this.initRequest
+  }
+  refreshLocalModels() {
+    return this.initialized ? this.scanLocalModels() : this.init()
+  }
+  private scanLocalModels() {
+    if (this.catalogueFlight) return this.catalogueFlight
+    const snapshot = [...this.catalogueFiles]
+    this.localModelScan = { status: 'checking' }
+    const isCurrent = (m: LocalModel) =>
+      this.catalogueFiles.find((f) => f.localPath === m.localPath) === m
+    const promise = Promise.resolve()
+      .then(async () => {
+        const results = snapshot.length
+          ? await this.request<LocalModelFileStatus[]>(
+              'inspectLocalModelFiles',
+              snapshot.map((m) => m.localPath)
+            )
+          : []
+        if (!Array.isArray(results)) throw Error('Local model file check returned no results')
+        const states = new Map(results.map((r) => [r.path, r]))
+        const warnings: string[] = []
+        for (const model of snapshot) {
+          if (!isCurrent(model)) continue
+          const result = states.get(model.localPath) ?? {
+            path: model.localPath,
+            status: 'unverified' as const,
+            reason: 'No file check result'
+          }
+          this.modelFileStates[model.localPath] = result
+          if (result.status === 'unverified') warnings.push(`${model.path}: ${result.reason}`)
+        }
+        this.localModelScan = warnings.length
+          ? { status: 'partial', error: warnings.join('\n') }
+          : { status: 'success' }
+        this.syncProfile()
+      })
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : String(error)
+        for (const model of snapshot) {
+          if (isCurrent(model))
+            this.modelFileStates[model.localPath] = {
+              path: model.localPath,
+              status: 'unverified',
+              reason: message
+            }
+        }
+        this.localModelScan = { status: 'failed', error: message }
+        this.syncProfile()
+        throw error
+      })
+      .finally(() => {
+        if (this.catalogueFlight === promise) this.catalogueFlight = undefined
+      })
+    this.catalogueFlight = promise
+    return promise
   }
   syncProfile() {
     const s = this.settings
@@ -490,7 +560,6 @@ export class LlamaCppController {
           if (result !== true) throw Error(String(result))
         }
         operation.status = 'success'
-        await this.launch.refreshState()
       } catch (e) {
         const messages = [e instanceof Error ? e.message : String(e)]
         const state = await this.launch.refreshState().catch(() => ({ kind: 'unknown' }))
@@ -646,11 +715,12 @@ export class LlamaCppController {
         }
       )
       active.result = model
-      const i = this.localModels.findIndex((item) => item.localPath === model.localPath)
-      if (i < 0) this.localModels.push(model)
-      else this.localModels.splice(i, 1, model)
+      const i = this.catalogueFiles.findIndex((item) => item.localPath === model.localPath)
+      if (i < 0) this.catalogueFiles.push(model)
+      else this.catalogueFiles.splice(i, 1, model)
+      this.modelFileStates[model.localPath] = { path: model.localPath, status: 'available' }
       try {
-        await StorageSetAsync(modelsKey, storageSnapshot(this.localModels))
+        await StorageSetAsync(modelsKey, storageSnapshot(this.catalogueFiles))
       } catch (error) {
         active.status = 'partial'
         active.error = 'File downloaded; catalogue registration failed: ' + String(error)
@@ -677,7 +747,7 @@ export class LlamaCppController {
     const op = this.modelOperation
     if (!op || op.status !== 'partial') return
     try {
-      await StorageSetAsync(modelsKey, storageSnapshot(this.localModels))
+      await StorageSetAsync(modelsKey, storageSnapshot(this.catalogueFiles))
       op.status = 'success'
       op.error = undefined
       this.error = ''
@@ -721,7 +791,7 @@ export class LlamaCppController {
     return this.mutationGate.run('delete', model.localPath, async () => {
       const key = modelFileKey(model)
       if (!this.deletedPaths.has(model.localPath)) {
-        const usages = collectModelReferences(this.settings, key, this.localModels)
+        const usages = collectModelReferences(this.settings, key, this.catalogueFiles)
         if (usages.length)
           throw Error(
             'Unlink this file from models before deleting: ' +
@@ -731,10 +801,11 @@ export class LlamaCppController {
         this.deletedPaths.add(model.localPath)
       }
       try {
-        const files = this.localModels.filter((m) => m.localPath !== model.localPath)
+        const files = this.catalogueFiles.filter((m) => m.localPath !== model.localPath)
         await StorageSetAsync(modelsKey, storageSnapshot(files))
         await this.repository.removeProfile(key)
-        this.localModels = files
+        this.catalogueFiles = files
+        delete this.modelFileStates[model.localPath]
         this.syncProfile()
         this.deletedPaths.delete(model.localPath)
       } catch (e) {

@@ -70,7 +70,7 @@
     {
       "id": "llama-cpp",
       "name": "llama.cpp",
-      "version": "0.2.0",
+      "version": "0.2.9",
       "description": {
         "en": "Manage llama.cpp local inference runtimes and GGUF models.",
         "zh": "管理 llama.cpp 本地推理运行时和 GGUF 模型。"
@@ -96,7 +96,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "74489d2aebe85ba225cb5a19a678cd1552e016b31bba90a5c1d076f114b7b344"
+        "sha256": "119529165234490db8c0a96918ed9446c768b6fd27cea351c07779317e009699"
       },
       "official": true
     },

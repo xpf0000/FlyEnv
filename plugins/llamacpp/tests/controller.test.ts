@@ -209,3 +209,56 @@ test('apply terminal state remains reactive after the asynchronous service bound
   unwatch()
   assert.equal(seen.at(-1), 'success')
 })
+test('apply succeeds from the service result without querying or comparing process configuration', async () => {
+  const repo = new ProfilesRepository({ get: async () => undefined, set: async () => {} })
+  await repo.load([model])
+  const key = repo.current.selectedModelKey!
+  for (const running of [false, true]) {
+    const requests: string[] = []
+    const notices: any[] = []
+    let starts = 0
+    let restarts = 0
+    const c = new LaunchController({
+      repository: repo,
+      gate: new ModuleMutationGate(),
+      input: () => ({
+        service: repo.current.service,
+        profile: repo.current.modelProfiles[key],
+        model,
+        files: [model]
+      }),
+      request: async (method: string) => {
+        requests.push(method)
+        if (method === 'prepareModelLaunch')
+          return { issues: [], prepared: { requestKey: 'expected' } }
+        throw Error('Post-start configuration query must not be needed')
+      },
+      withInput: async (_i: any, _r: any, fn: any) => fn(),
+      notify: (...args: any[]) => notices.push(args)
+    } as any)
+    c.state = { kind: 'running-known', active: { launch: { requestKey: 'previous' } } } as any
+    const result = await c.applyModel(
+      repo.current.modelProfiles[key],
+      {} as any,
+      {
+        run: running,
+        running: false,
+        start: async () => {
+          starts++
+          return true
+        },
+        restart: async () => {
+          restarts++
+          return true
+        }
+      } as any
+    )
+    assert.equal(result.status, 'success')
+    assert.equal(result.saved, true)
+    assert.equal(result.applied, true)
+    assert.equal(starts, running ? 0 : 1)
+    assert.equal(restarts, running ? 1 : 0)
+    assert.deepEqual(requests, ['prepareModelLaunch'])
+    assert.deepEqual(notices, [['Settings applied', false]])
+  }
+})

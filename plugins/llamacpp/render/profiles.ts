@@ -10,6 +10,15 @@ import {
   type FileFingerprint
 } from '../shared/settings'
 export const SETTINGS_KEY = 'flyenv-llama-cpp-settings-v2'
+export const readOptionalStorage = async <T>(read: () => Promise<T>): Promise<T | undefined> => {
+  try {
+    return await read()
+  } catch (error) {
+    if (error instanceof Error && (error.message === 'no found' || error.message === 'expire'))
+      return undefined
+    throw error
+  }
+}
 interface Storage {
   get(key: string): Promise<unknown>
   set(key: string, value: unknown): Promise<unknown>
@@ -67,14 +76,15 @@ export class ProfilesRepository {
   private queue: Promise<unknown> = Promise.resolve()
   constructor(private storage: Storage) {}
   async load(files: LocalModel[]) {
-    const v = await this.storage.get(SETTINGS_KEY)
+    const v = await readOptionalStorage(() => this.storage.get(SETTINGS_KEY))
     if (v !== undefined && v !== null) {
       const s = v as LlamaCppSettingsV2
       if (s.schemaVersion !== 2 || !s.service || !s.modelProfiles || !Number.isInteger(s.revision))
         throw Error('Invalid llama.cpp V2 settings; original data retained')
       this.current = clone(s)
     } else {
-      const s = migrateSettings(await this.storage.get('flyenv-llama-cpp-settings'), files)
+      const legacy = await readOptionalStorage(() => this.storage.get('flyenv-llama-cpp-settings'))
+      const s = migrateSettings(legacy, files)
       await this.storage.set(SETTINGS_KEY, clone(s))
       this.current = s
     }
