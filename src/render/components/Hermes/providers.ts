@@ -10,14 +10,26 @@ export interface ProviderEndpoint {
 export interface ProviderModel {
   id: string
   contextWindow: number
+  maxOutputTokens: number
   pricingUsdPerMillionTokens: {
     input: number
     output: number
     cacheRead: number
     cacheWrite: number | null
   }
+  pricingTiers?: {
+    inputTokenCondition: '<=512k' | '>512k'
+    input: number
+    output: number
+    cacheRead: number
+  }[]
+  priorityPriceMultiplier?: number
   inputModalities: ('text' | 'image' | 'video')[]
-  thinking: ('adaptive' | 'disabled' | 'always_on')[]
+  thinking: ('adaptive' | 'disabled')[]
+  thinkingDefaults: Record<ProviderProtocol, 'adaptive' | 'disabled'>
+  reasoningEffort: ('low' | 'medium' | 'high' | 'xhigh' | 'max')[]
+  reasoningEffortDefault: 'max' | null
+  serviceTierSupported: boolean
 }
 
 export interface ProviderItem {
@@ -35,21 +47,42 @@ export const HermesProviders: ProviderItem[] = [
   {
     name: 'MiniMax',
     baseUrl: 'https://api.minimax.io/v1',
-    models: ['MiniMax-M3', 'MiniMax-M2.7'],
+    models: ['MiniMax-M3.1-Flash', 'MiniMax-M3'],
     modelDetails: [
+      {
+        id: 'MiniMax-M3.1-Flash',
+        contextWindow: 1000000,
+        maxOutputTokens: 524288,
+        pricingUsdPerMillionTokens: {
+          input: 0.15,
+          output: 0.6,
+          cacheRead: 0.015,
+          cacheWrite: null
+        },
+        inputModalities: ['text', 'image', 'video'],
+        thinking: ['adaptive'],
+        thinkingDefaults: { openai: 'adaptive', anthropic: 'adaptive' },
+        reasoningEffort: ['low', 'medium', 'high', 'xhigh', 'max'],
+        reasoningEffortDefault: 'max',
+        serviceTierSupported: false
+      },
       {
         id: 'MiniMax-M3',
         contextWindow: 1000000,
-        pricingUsdPerMillionTokens: { input: 0.6, output: 2.4, cacheRead: 0.12, cacheWrite: null },
+        maxOutputTokens: 524288,
+        // The flat baseline is Standard <=512k; retain the published threshold verbatim.
+        pricingUsdPerMillionTokens: { input: 0.3, output: 1.2, cacheRead: 0.06, cacheWrite: null },
+        pricingTiers: [
+          { inputTokenCondition: '<=512k', input: 0.3, output: 1.2, cacheRead: 0.06 },
+          { inputTokenCondition: '>512k', input: 0.6, output: 2.4, cacheRead: 0.12 }
+        ],
+        priorityPriceMultiplier: 1.5,
         inputModalities: ['text', 'image', 'video'],
-        thinking: ['adaptive', 'disabled']
-      },
-      {
-        id: 'MiniMax-M2.7',
-        contextWindow: 204800,
-        pricingUsdPerMillionTokens: { input: 0.3, output: 1.2, cacheRead: 0.06, cacheWrite: 0.375 },
-        inputModalities: ['text'],
-        thinking: ['always_on']
+        thinking: ['adaptive', 'disabled'],
+        thinkingDefaults: { openai: 'adaptive', anthropic: 'disabled' },
+        reasoningEffort: [],
+        reasoningEffortDefault: null,
+        serviceTierSupported: true
       }
     ],
     endpoints: [
