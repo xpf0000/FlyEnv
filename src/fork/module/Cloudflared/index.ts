@@ -14,7 +14,7 @@ import {
 } from '../../util/Version'
 import TaskQueue from '../../TaskQueue'
 import { unpack } from '../../util/Zip'
-import { copyFile, mkdirp } from '@shared/fs-extra'
+import { chmod, copyFile, mkdirp } from '@shared/fs-extra'
 import { dirname } from 'node:path'
 import { moveChildDirToParent } from '../../util/Dir'
 import { binXattrFix } from '../../Fn'
@@ -121,6 +121,9 @@ class Cloudflared extends Base {
     } else {
       await mkdirp(dirname(row.bin))
       await copyFile(row.zip, row.bin)
+    }
+    if (!isWindows()) {
+      await chmod(row.bin, '0755')
     }
   }
 
