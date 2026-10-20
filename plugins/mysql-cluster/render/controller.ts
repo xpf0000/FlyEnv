@@ -1,0 +1,191 @@
+import type { CreateRequest, SavedCatalog, InstanceSnapshot, Credentials, OperationResult, ItemOutcome, ClusterSpec, OperationEvent } from '../shared'
+import { emptyCatalog, errorText, summarize } from '../shared'
+import { validateCatalog } from '../policy'
+
+export interface ServiceItem {
+  run: boolean; running: boolean; pid?: string
+  start(): Promise<string | boolean>; stop(): Promise<string | boolean>; restart(): Promise<string | boolean>
+}
+export interface ControllerDependencies {
+  read(): Promise<any>
+  write(value: any): Promise<void>
+  rpc(method: string, args: any[], progress?: (event: OperationEvent) => void): Promise<any>
+  installed(): Promise<void>
+  service(id: string): ServiceItem
+  notify(type: 'success' | 'error', message: string): void
+}
+export interface OperationState {
+  action: string; busy: boolean; stage: string; error: string; result?: OperationResult
+}
+export class MysqlClusterController {
+  catalog: SavedCatalog = emptyCatalog()
+  snapshots: Record<string, InstanceSnapshot> = {}
+  credentials: Credentials = {}
+  preferences: Record<string, any> = {}
+  operations: Record<string, OperationState> = {}
+  initialized = false
+  loadError = ''
+  private flights = new Map<string, { action: string; promise: Promise<OperationResult> }>()
+  private loadFlight?: Promise<void>
+  private refreshFlight?: Promise<void>
+  constructor(readonly deps: ControllerDependencies) {}
+  load(): Promise<void> {
+    if (this.initialized) return Promise.resolve()
+    if (this.loadFlight) return this.loadFlight
+    this.loadFlight = (async () => {
+      try {
+        let saved: any
+        try { saved = await this.deps.read() } catch (error) { if (!['no found', 'expire'].includes(errorText(error))) throw error }
+        if (saved) {
+          if (saved.schemaVersion !== 1) throw new Error('Unknown saved catalog schema')
+          this.preferences = saved.preferences ?? {}
+          for (const [id, pref] of Object.entries(this.preferences)) if (pref.rootCredential) this.credentials[id] = pref.rootCredential
+        }
+        const catalog = validateCatalog(await this.deps.rpc('readCatalog', []))
+        this.catalog = catalog
+        await this.refresh()
+        this.initialized = true; this.loadError = ''
+      } catch (error) { this.loadError = errorText(error); throw error }
+      finally { this.loadFlight = undefined }
+    })()
+    return this.loadFlight
+  }
+  async persist(catalog = this.catalog) {
+    await this.deps.write({ schemaVersion: 1, catalog, preferences: this.preferences })
+  }
+  refresh(): Promise<void> {
+    if (this.refreshFlight) return this.refreshFlight
+    this.refreshFlight = (async () => {
+      await this.deps.installed()
+      const values: InstanceSnapshot[] = await this.deps.rpc('listInstances', [])
+      for (const snapshot of values) {
+        if (this.operations[snapshot.id]?.busy) continue
+        const group = this.groupFor(snapshot.id)
+        if (snapshot.state === 'running' && this.credentials[snapshot.id] && group?.mode !== 'standalone') {
+          try { snapshot.replication = await this.deps.rpc('replicationStatus', [snapshot.id, this.credentials[snapshot.id]]); snapshot.role = snapshot.replication!.role }
+          catch (error) { snapshot.replication = { state: 'unknown', role: 'UNKNOWN', lag: null, error: errorText(error) } }
+        }
+        this.snapshots[snapshot.id] = snapshot
+        const item = this.deps.service(snapshot.id)
+        if (!item.running) { item.run = snapshot.state === 'running'; item.pid = snapshot.pid ?? '' }
+      }
+    })().finally(() => { this.refreshFlight = undefined })
+    return this.refreshFlight
+  }
+  groupFor(id: string): ClusterSpec | undefined { return this.catalog.clusters.find(g => g.memberIds.includes(id)) }
+  private notice(type: 'success' | 'error', message: string) {
+    try { this.deps.notify(type, message) } catch { /* Notification cannot undo a completed operation. */ }
+  }
+  operate(key: string, action: string, task: (op: OperationState) => Promise<OperationResult>): Promise<OperationResult> {
+    const current = this.flights.get(key)
+    if (current) return current.action === action ? current.promise : Promise.resolve(summarize([{ id: key, status: 'failed', stage: 'busy', error: 'An operation is already running' }]))
+    const op: OperationState = { action, busy: true, stage: 'validating', error: '' }
+    this.operations[key] = op
+    const promise = Promise.resolve().then(() => task(op)).catch(error => {
+      op.error = errorText(error)
+      return summarize([{ id: key, status: 'failed', stage: op.stage, error: op.error }])
+    }).then(result => {
+      op.result = result
+      op.error = result.items.filter(i => i.error).map(i => `${i.id}: ${i.error}`).join('\n')
+      this.notice(result.status === 'completed' ? 'success' : 'error', op.error || result.status)
+      return result
+    }).finally(async () => {
+      op.busy = false
+      this.flights.delete(key)
+      try { await this.refresh() } catch (error) { this.loadError = errorText(error) }
+    })
+    this.flights.set(key, { action, promise })
+    return promise
+  }
+  create(input: CreateRequest) {
+    const request: CreateRequest = JSON.parse(JSON.stringify(input))
+    return this.operate(request.cluster.id, 'create', async op => {
+      op.stage = 'preparing'
+      const catalog = validateCatalog(await this.deps.rpc('prepareInstances', [request]))
+      await this.persist(catalog)
+      this.catalog = catalog
+      Object.assign(this.credentials, request.credentials)
+      await this.deps.installed()
+      const items: ItemOutcome[] = []
+      for (const instance of request.instances) {
+        try {
+          op.stage = `initializing: ${instance.name}`
+          await this.deps.rpc('initializeInstance', [instance.id], e => { op.stage = `${e.stage}: ${instance.name}` })
+          op.stage = `starting: ${instance.name}`
+          const result = await this.deps.service(instance.id).start()
+          if (result !== true) throw new Error(String(result))
+          items.push({ id: instance.id, status: 'completed', stage: 'started' })
+        } catch (error) { items.push({ id: instance.id, status: 'failed', stage: op.stage, error: errorText(error) }) }
+      }
+      if (request.cluster.mode !== 'standalone' && items.every(i => i.status === 'completed')) {
+        op.stage = 'configuring-replication'
+        return this.configureGroup(request.cluster, op)
+      }
+      return summarize(items)
+    })
+  }
+  private configureGroup(group: ClusterSpec, op: OperationState) {
+    for (const id of group.memberIds) if (!this.credentials[id]) throw new Error('Enter administrator credentials for each member before configuring replication')
+    return this.deps.rpc(group.mode === 'replication' ? 'configureReplication' : 'configureGroupReplication', [group.id, this.credentials], event => { op.stage = `${event.stage}${event.instanceId ? ': ' + event.instanceId : ''}` }) as Promise<OperationResult>
+  }
+  runInstance(id: string, action: 'start' | 'stop' | 'restart') {
+    const group = this.groupFor(id)
+    if (group && this.operations[group.id]?.busy) return Promise.resolve(summarize([{ id, status: 'failed', stage: 'busy', error: 'Cluster operation is running' }]))
+    return this.operate(id, action, async op => {
+      await this.refresh()
+      if (this.snapshots[id]?.state === 'unknown') throw new Error('Cannot verify instance state')
+      const result = await this.deps.service(id)[action]()
+      if (result !== true) throw new Error(String(result))
+      if (action !== 'stop' && group?.mode !== 'standalone' && group) return this.configureGroup(group, op)
+      return summarize([{ id, status: 'completed', stage: action }])
+    })
+  }
+  runGroup(group: ClusterSpec, action: 'start' | 'stop' | 'restart') {
+    return this.operate(group.id, action, async op => {
+      if (group.memberIds.some(id => this.operations[id]?.busy)) throw new Error('A member operation is running')
+      await this.refresh()
+      const outcomes: ItemOutcome[] = []
+      if (action !== 'start') {
+        for (const id of [...group.memberIds].reverse()) {
+          try { if (this.snapshots[id]?.state === 'unknown') throw new Error('Unknown process state'); const result = await this.deps.service(id).stop(); if (result !== true) throw new Error(String(result)); outcomes.push({ id, status: 'completed', stage: 'stop' }) }
+          catch (error) { outcomes.push({ id, status: 'failed', stage: 'stop', error: errorText(error) }) }
+        }
+        if (action === 'stop' || outcomes.some(i => i.status !== 'completed')) return summarize(outcomes)
+      }
+      outcomes.splice(0)
+      for (const id of group.memberIds) {
+        op.stage = `starting: ${id}`
+        try { const result = await this.deps.service(id).start(); if (result !== true) throw new Error(String(result)); outcomes.push({ id, status: 'completed', stage: 'start' }) }
+        catch (error) { outcomes.push({ id, status: 'failed', stage: 'start', error: errorText(error) }) }
+      }
+      if (outcomes.some(i => i.status !== 'completed') || group.mode === 'standalone') return summarize(outcomes)
+      return this.configureGroup(group, op)
+    })
+  }
+  remove(group: ClusterSpec) {
+    return this.operate(group.id, 'remove', async op => {
+      if (group.memberIds.some(id => this.operations[id]?.busy)) throw new Error('A member operation is running')
+      await this.refresh()
+      op.stage = 'stopping'
+      const outcomes: ItemOutcome[] = []
+      for (const id of [...group.memberIds].reverse()) {
+        try { if (this.snapshots[id]?.state === 'unknown') throw new Error('Unknown process state'); const result = await this.deps.service(id).stop(); if (result !== true) throw new Error(String(result)); outcomes.push({ id, status: 'completed', stage: 'stop' }) }
+        catch (error) { outcomes.push({ id, status: 'failed', stage: 'stop', error: errorText(error) }) }
+      }
+      if (outcomes.some(i => i.status !== 'completed')) return summarize(outcomes)
+      await this.deps.rpc('removeRecords', [group.memberIds])
+      const catalog = validateCatalog(await this.deps.rpc('readCatalog', []))
+      await this.persist(catalog); this.catalog = catalog
+      return summarize(outcomes.map(o => ({ ...o, stage: 'removed-data-retained' })))
+    })
+  }
+  save(input: CreateRequest) {
+    return this.operate(input.cluster.id, 'edit', async () => {
+      await this.refresh()
+      if (input.cluster.memberIds.some(id => this.snapshots[id]?.state !== 'stopped')) throw new Error('Stop every member before editing instance identity')
+      const catalog = validateCatalog(await this.deps.rpc('updateInstances', [input]))
+      await this.persist(catalog); this.catalog = catalog
+      return summarize(input.instances.map(i => ({ id: i.id, status: 'completed', stage: 'saved' })))
+    })
+  }
+}
