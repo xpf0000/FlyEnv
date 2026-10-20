@@ -1,5 +1,8 @@
 # MySQL Cluster Plugin Implementation Plan
 
+> The paired-host approach below is superseded by the 2026-10-21 plugin-only correction.
+> See [correction plan](2026-10-21-mysql-cluster-plugin-only.md).
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans for direct execution in this session, or superpowers:subagent-driven-development if the user selects delegation. Steps use checkbox syntax for tracking. Approved for direct execution; tasks 1–10 implemented. Final evidence: ../reviews/2026-10-21-mysql-cluster.md.
 
 **Goal:** 交付具有实例/服务/版本三个 Tab、独立实例、一键主从复制和单主 Group Replication 的独立 MySQL Cluster 插件。

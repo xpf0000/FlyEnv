@@ -23,16 +23,16 @@ FlyEnv 独立插件，提供 **MySQL 实例 / 服务 / 版本** 三个 Tab。
 普通主从不自动提升副本；GR 自动选主由 MySQL 执行，插件不提供 Router 或统一连接端口。
 多个本机节点仍共享整机故障边界。
 
-## 配套宿主改动
+## 插件独立性
 
-**本插件需要与当前分支的 FlyEnv 宿主改动一起使用。** 仅把插件包安装到较早的宿主，
-不会自动更新宿主代码；缺少必要能力时插件显示升级提示并阻止实例操作。
+0.1.1 起全部适配均在插件内，不需要这次功能新增的宿主接口。服务及版本页面由插件渲染，
+继续使用既有 MySQL 安装源、公共 `ModuleInstalledItem` 启停和主进程进程登记机制。
+宿主普通安装扫描返回空集合；插件专用查询向本地生命周期 registry 提供实例描述，
+因此不会把某个集群实例写为宿主的“当前版本”。未修改宿主类或原型。
 
-这些通用接口默认保持其他模块原行为：
-
-- `AppModuleItem.persistCurrentVersion` 和 `Module.persistCurrentVersion`：实例集合不写共享“当前版本”，BrewStore 首次扫描前应用该元数据。
-- ServiceManager 的 `showServiceControls` / `beforeRemove`。
-- VersionManager 及 Static/Homebrew/MacPorts 视图的 `beforeRemove`。
+安装、卸载、进度、终端输出、取消及清理由插件本地 singleton 持有，切换 Tab 不终止任务。
+MacPorts 卸载不使用 `--follow-dependents`；有其他依赖时由包管理器拒绝卸载，不连带删除。
+下载包卸载只允许 FlyEnv 安装目录内的版本，拒绝含实例数据或仍被进程使用的目录。
 
 插件领域状态始终留在模块本地 singleton，通过 `reactiveBind` 暴露；使用独立
 `StorageGetAsync` / `StorageSetAsync`，不新增 Pinia，不写 `config.setup`。
@@ -83,5 +83,7 @@ MYSQL_CLUSTER_TEST_BIN=/path/to/mysql-8.4.8/bin/mysqld \
 Windows、Linux、MySQL 8.0 与其他 8.4 构建的原生验收仍待完成；Windows 测试还需要
 宿主 Helper/进程查询环境，不能把 macOS 的通过结果视为跨平台通过。
 
-构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.0.flyenv-plugin`；
+构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.1.flyenv-plugin`；
 构建会生成匹配的 registry SHA-256，空下载 URL 表示尚未发布。
+
+0.1.1 的独立宿主回归覆盖本地生命周期身份保持、原宿主零新增配置写入、自动扫描与专用查询隔离、安装进度/取消/重入、失败后的真实安装状态刷新及包目录保护。

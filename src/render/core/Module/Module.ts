@@ -23,7 +23,6 @@ export class Module {
   isService: boolean = true
   isOnlyRunOne: boolean = true
   isPlugin: boolean = false
-  persistCurrentVersion: boolean = true
 
   installedFetched: boolean = false
 
@@ -114,7 +113,6 @@ export class Module {
   }
 
   resetCurrentVersion(autoSave: boolean = false) {
-    if (!this.persistCurrentVersion) return false
     if (this.typeFlag !== 'php' && this.installed.length > 0) {
       const appStore = AppStore()
       const server = appStore.serverCurrent(this.typeFlag)

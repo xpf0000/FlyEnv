@@ -40,16 +40,14 @@
   import { computed } from 'vue'
   import { ElTooltip, ElProgress, ElButton } from 'element-plus'
   import type { Column } from 'element-plus'
-  import { guardedRemoval, type RemovalGuard } from '../RemovalPolicy'
 
   const props = withDefaults(
     defineProps<{
       typeFlag: AllAppModule
       items?: StaticVersionItem[]
       fetching?: boolean
-      beforeRemove?: RemovalGuard
     }>(),
-    { fetching: undefined, beforeRemove: undefined }
+    { fetching: undefined }
   )
   const emit = defineEmits<{ action: [item: StaticVersionItem] }>()
 
@@ -73,13 +71,8 @@
   const setup = props.items === undefined ? Setup(props.typeFlag) : undefined
   const fetching = computed(() => props.fetching ?? setup?.fetching.value ?? false)
   const tableData = computed(() => props.items ?? setup?.tableData.value ?? [])
-  const handleVersion = (row: StaticVersionItem) => {
-    const action = () =>
-      setup ? setup.handleVersion(row as ModuleStaticItem) : emit('action', row)
-    return row.installed
-      ? guardedRemoval({ ...row, source: 'Static' }, props.beforeRemove, action)
-      : action()
-  }
+  const handleVersion = (row: StaticVersionItem) =>
+    setup ? setup.handleVersion(row as ModuleStaticItem) : emit('action', row)
   const fetchCommand = (row: StaticVersionItem) =>
     setup ? setup.fetchCommand(row as ModuleStaticItem) : row.url
   const copyCommand = (row: StaticVersionItem) =>

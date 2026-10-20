@@ -15,8 +15,8 @@ export interface ServiceItem {
   run: boolean
   running: boolean
   pid?: string
-  start(): Promise<string | boolean>
-  stop(): Promise<string | boolean>
+  start(interactive?: boolean): Promise<string | boolean>
+  stop(interactive?: boolean): Promise<string | boolean>
   restart(): Promise<string | boolean>
 }
 export interface ControllerDependencies {
@@ -45,6 +45,7 @@ export class MysqlClusterController {
   refreshing = false
   loadError = ''
   private flights = new Map<string, { action: string; promise: Promise<OperationResult> }>()
+  private visibilityFlight?: Promise<OperationResult[]>
   private loadFlight?: Promise<void>
   private refreshFlight?: Promise<void>
   private persistence: Promise<unknown> = Promise.resolve()
@@ -98,6 +99,7 @@ export class MysqlClusterController {
       await this.deps.installed()
       const values: InstanceSnapshot[] = await this.deps.rpc('listInstances', [])
       this.catalog = catalog
+      const snapshots: Record<string, InstanceSnapshot> = {}
       for (const snapshot of values) {
         const group = this.groupFor(snapshot.id)
         if (
@@ -120,13 +122,14 @@ export class MysqlClusterController {
             }
           }
         }
-        this.snapshots[snapshot.id] = snapshot
+        snapshots[snapshot.id] = snapshot
         const item = this.deps.service(snapshot.id)
         if (!item.running) {
           item.run = snapshot.state === 'running'
           item.pid = snapshot.pid ?? ''
         }
       }
+      this.snapshots = snapshots
     })().finally(() => {
       this.refreshFlight = undefined
       this.refreshing = false
@@ -333,7 +336,23 @@ export class MysqlClusterController {
       return summarize([{ id, status: 'completed', stage: action }])
     })
   }
-  runGroup(group: ClusterSpec, action: 'start' | 'stop' | 'restart') {
+  stopForVisibility(): Promise<OperationResult[]> {
+    if (this.visibilityFlight) return this.visibilityFlight
+    const admitted = [...this.flights.values()].map((value) => value.promise)
+    this.visibilityFlight = Promise.all(admitted)
+      .then(async () => {
+        if (!this.initialized) await this.load()
+        const results: OperationResult[] = []
+        for (const group of this.catalog.clusters)
+          results.push(await this.runGroup(group, 'stop', false))
+        return results
+      })
+      .finally(() => {
+        this.visibilityFlight = undefined
+      })
+    return this.visibilityFlight
+  }
+  runGroup(group: ClusterSpec, action: 'start' | 'stop' | 'restart', interactive = true) {
     return this.operate(group.id, action, async (op) => {
       if (action !== 'stop' && group.mode !== 'standalone') this.requireGroupCredentials(group)
       if (group.memberIds.some((id) => this.operations[id]?.busy))
@@ -344,7 +363,7 @@ export class MysqlClusterController {
         for (const id of [...group.memberIds].reverse()) {
           try {
             if (this.snapshots[id]?.state === 'unknown') throw new Error('Unknown process state')
-            const result = await this.deps.service(id).stop()
+            const result = await this.deps.service(id).stop(interactive)
             if (result !== true) throw new Error(String(result))
             outcomes.push({ id, status: 'completed', stage: 'stop' })
           } catch (error) {
@@ -359,7 +378,7 @@ export class MysqlClusterController {
         op.stage = `starting: ${id}`
         try {
           await this.deps.rpc('initializeInstance', [id])
-          const result = await this.deps.service(id).start()
+          const result = await this.deps.service(id).start(interactive)
           if (result !== true) throw new Error(String(result))
           outcomes.push({ id, status: 'completed', stage: 'start' })
         } catch (error) {

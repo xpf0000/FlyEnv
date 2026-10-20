@@ -1,8 +1,5 @@
 <template>
-  <div v-if="MysqlClusterManager.blocked" class="soft-index-panel main-right-panel"
-    ><el-alert :title="MysqlClusterManager.loadError" type="error" :closable="false"
-  /></div>
-  <div v-else class="soft-index-panel main-right-panel"
+  <div class="soft-index-panel main-right-panel"
     ><el-radio-group v-model="tab" class="mt-3"
       ><el-radio-button v-for="(label, index) in tabs" :key="index" :value="index">{{
         t(label)

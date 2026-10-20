@@ -175,8 +175,6 @@ export type AppModuleItem = {
   isTray?: boolean
 
   isOnlyRunOne?: boolean
-  /** Instance collections can keep their current selection outside shared app configuration. */
-  persistCurrentVersion?: boolean
 
   /**
    * Present only for dynamically loaded FlyEnv plugins.

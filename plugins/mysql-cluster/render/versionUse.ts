@@ -1,6 +1,6 @@
 import { installationSource } from './engine'
 import type { EngineRef } from '../shared'
-import type { RemovalCandidate } from '@/components/VersionManager/RemovalPolicy'
+import type { RemovalCandidate } from './RemovalPolicy'
 export function usesInstallation(engine: EngineRef, candidate: RemovalCandidate): boolean {
   const norm = (s: string) => s.replace(/\\/g, '/').replace(/\/$/, '')
   const source = installationSource(engine)

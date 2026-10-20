@@ -197,13 +197,7 @@
           >
         </template>
       </el-table-column>
-      <el-table-column
-        v-if="showServiceControls !== false"
-        fixed="right"
-        :label="I18nT('base.service')"
-        :prop="null"
-        width="110px"
-      >
+      <el-table-column fixed="right" :label="I18nT('base.service')" :prop="null" width="110px">
         <template #default="scope">
           <template v-if="scope.row.running">
             <el-button :loading="true" link></el-button>
@@ -256,7 +250,7 @@
         align="center"
       >
         <template #default="scope">
-          <EXT :item="scope.row" :type="typeFlag" :before-remove="beforeRemove">
+          <EXT :item="scope.row" :type="typeFlag">
             <template #default>
               <slot name="action" :row="scope.row as ModuleInstalledItem"></slot>
             </template>
@@ -276,15 +270,12 @@
   import { Setup } from './setup'
   import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
   import VersionErrorTips from '@/components/ServiceManager/VersionErrorTips.vue'
-  import type { RemovalGuard } from '@/components/VersionManager/RemovalPolicy'
 
   const props = defineProps<{
     typeFlag: AllAppModule
     title: string
     columnLabel?: string
     columnWidth?: string | number
-    showServiceControls?: boolean
-    beforeRemove?: RemovalGuard
   }>()
 
   const columnLabel = props.columnLabel ?? ''

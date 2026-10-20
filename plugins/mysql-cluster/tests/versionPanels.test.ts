@@ -1,8 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-const api = await import('../../../src/render/components/VersionManager/RemovalPolicy').catch(
-  () => ({}) as any
-)
+const api = await import('../render/RemovalPolicy').catch(() => ({}) as any)
 const policy = await import('../render/versionUse').catch(() => ({}) as any)
 test('blocked or unverifiable removal never reaches the mutation and default allows it', async () => {
   let removed = false

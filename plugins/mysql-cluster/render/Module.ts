@@ -9,7 +9,6 @@ export default {
   isService: true,
   isTray: false,
   isOnlyRunOne: false,
-  persistCurrentVersion: false,
   platform: ['macOS', 'Windows', 'Linux'],
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue'))

@@ -295,3 +295,43 @@ test('start resumes the original prepared group after Storage failed following F
   assert.equal((await c.runGroup(c.catalog.clusters[0], 'start')).status, 'completed')
   assert.equal(prepared, 1)
 })
+test('hiding the plugin waits for admitted lifecycle work before stopping the local collection', async () => {
+  const d = deps(),
+    c = new api.MysqlClusterController(d)
+  await c.create(request)
+  let release!: () => void,
+    stopped = 0
+  const service = d.service()
+  service.start = async () => {
+    await new Promise<void>((r) => (release = r))
+    return true
+  }
+  service.stop = async () => {
+    stopped++
+    return true
+  }
+  const starting = c.runGroup(c.catalog.clusters[0], 'start')
+  await new Promise((r) => setTimeout(r, 0))
+  const hidden = c.stopForVisibility()
+  assert.equal(c.stopForVisibility(), hidden)
+  assert.equal(stopped, 0)
+  release()
+  await starting
+  await hidden
+  assert.equal(stopped, 1)
+})
+test('refresh removes process snapshots of deleted local instances', async () => {
+  const d = deps(),
+    c = new api.MysqlClusterController(d)
+  await c.create(request)
+  assert.equal(c.snapshots.a.state, 'running')
+  const rpc = d.rpc
+  d.rpc = async (method, args) =>
+    method === 'readCatalog'
+      ? { schemaVersion: 1, instances: [], clusters: [] }
+      : method === 'listInstances'
+        ? []
+        : rpc(method, args)
+  await c.refresh()
+  assert.deepEqual(c.snapshots, {})
+})

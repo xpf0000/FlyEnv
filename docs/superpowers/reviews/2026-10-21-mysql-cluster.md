@@ -1,4 +1,7 @@
-# MySQL Cluster execution and review evidence
+# MySQL Cluster 0.1.0 execution and review evidence
+
+> Historical paired-host implementation. Superseded by the user-approved plugin-only correction
+> in `../plans/2026-10-21-mysql-cluster-plugin-only.md`; 0.1.1 restores all host sources.
 
 Implementation branch: `codex/mysql-cluster`, isolated checkout `.worktrees/mysql-cluster`.
 Reviewed range: `619d7c8d..e6968f85`. Independent review returned 7 Important findings,

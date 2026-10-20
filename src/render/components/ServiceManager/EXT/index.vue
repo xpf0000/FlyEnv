@@ -39,7 +39,7 @@
         </template>
       </template>
       <template v-if="isWindows">
-        <li @click.stop="removeVersion">
+        <li @click.stop="ServiceActionStore.delVersion(item, type)">
           <yb-icon :svg="import('@/svg/trash.svg?raw')" width="17" height="17" />
           <span class="ml-3">{{ I18nT('common.action.delete') }}</span>
         </li>
@@ -59,17 +59,11 @@
   import Extension from '@/components/ServiceManager/Pgsql/extension.vue'
   import { I18nT } from '@lang/index'
   import { dirname, join } from '@/util/path-browserify'
-  import { guardedRemoval, type RemovalGuard } from '@/components/VersionManager/RemovalPolicy'
 
   const props = defineProps<{
     item: SoftInstalled
     type: string
-    beforeRemove?: RemovalGuard
   }>()
-  const removeVersion = () =>
-    guardedRemoval(props.item, props.beforeRemove, () =>
-      ServiceActionStore.delVersion(props.item as any, props.type as any)
-    )
 
   const isMacOS = computed(() => {
     return window.Server.isMacOS

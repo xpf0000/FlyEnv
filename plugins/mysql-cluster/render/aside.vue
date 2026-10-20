@@ -11,19 +11,20 @@
   /></li>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue'
+  import { computed, onUnmounted } from 'vue'
   import router from '@/router'
   import { AppServiceModule } from '@/core/ASide'
-  import { MysqlClusterManager as manager, registerLifecycle } from './manager'
+  import { MysqlClusterManager as manager, registerLifecycle, releaseLifecycle } from './manager'
+  import { InstallationManager } from './installations'
   const route = router.currentRoute
   const running = computed(
     () => Object.values(manager.snapshots).filter((s) => s.state === 'running').length
   )
   registerLifecycle()
   AppServiceModule['mysql-cluster'] = {
-    groupDo: (isRunning: boolean) =>
+    groupDo: (isRunning: boolean, interactive = true) =>
       manager.catalog.clusters.map((group) =>
-        manager.runGroup(group, isRunning ? 'stop' : 'start').then((result) =>
+        manager.runGroup(group, isRunning ? 'stop' : 'start', interactive).then((result) =>
           result.status === 'completed'
             ? true
             : result.items
@@ -32,9 +33,19 @@
                 .join('\n')
         )
       ),
+    switchChange: () => {
+      for (const group of manager.catalog.clusters)
+        void manager.runGroup(group, running.value ? 'stop' : 'start')
+    },
+    serviceDisabled: computed(() => Object.values(manager.operations).some((o) => o.busy)),
     serviceRunning: computed(() => running.value > 0),
     serviceFetching: computed(() => Object.values(manager.operations).some((o) => o.busy)),
     showItem: computed(() => true)
   } as any
   manager.load().catch(() => undefined)
+  onUnmounted(() => {
+    releaseLifecycle()
+    delete AppServiceModule['mysql-cluster']
+    void InstallationManager.cancel()
+  })
 </script>

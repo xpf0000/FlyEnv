@@ -75,30 +75,13 @@
   import { I18nT } from '@lang/index'
   import type { AllAppModule } from '@/core/type'
   import { MacPortsSetup, Setup } from './setup'
-  import { guardedRemoval, type RemovalGuard } from '../RemovalPolicy'
 
   const props = defineProps<{
     typeFlag: AllAppModule
-    beforeRemove?: RemovalGuard
   }>()
 
-  const {
-    xtermDom,
-    fetching,
-    tableData,
-    handleVersion: runVersion,
-    fetchCommand,
-    copyCommand,
-    checkMacPorts
-  } = Setup(props.typeFlag)
-  const handleVersion = (row: any) =>
-    row.installed
-      ? guardedRemoval(
-          { ...row, source: 'Macports', dependentRemoval: true },
-          props.beforeRemove,
-          () => runVersion(row)
-        )
-      : runVersion(row)
+  const { xtermDom, fetching, tableData, handleVersion, fetchCommand, copyCommand, checkMacPorts } =
+    Setup(props.typeFlag)
 </script>
 <style lang="scss">
   .app-html-block {

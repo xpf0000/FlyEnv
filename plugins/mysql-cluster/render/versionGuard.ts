@@ -1,12 +1,16 @@
-import { MysqlClusterManager as manager } from './manager'
+import { instanceServices, MysqlClusterManager as manager } from './manager'
 import { usesInstallation } from './versionUse'
-import { MessageError } from '@/util/Element'
-import type { RemovalGuard } from '@/components/VersionManager/RemovalPolicy'
+import { MessageError } from './notice'
+import type { RemovalGuard } from './RemovalPolicy'
 import { t } from './lang'
 export const beforeRemove: RemovalGuard = async (candidate) => {
   try {
     if (!manager.initialized) await manager.load()
     await manager.refresh()
+    if (instanceServices.items.some((item) => item.running)) {
+      MessageError(t('busy'))
+      return false
+    }
     const affected = manager.catalog.instances.filter(
       (i) =>
         usesInstallation(i.engine, candidate) &&

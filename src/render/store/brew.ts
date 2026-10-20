@@ -75,7 +75,6 @@ export const BrewStore = defineStore('brew', {
           existing.isPlugin = isPlugin
           existing.isService = find?.isService ?? false
           existing.isOnlyRunOne = find?.isOnlyRunOne !== false
-          existing.persistCurrentVersion = find?.persistCurrentVersion !== false
           existing.installed.splice(0)
           existing.installedFetched = false
         }
@@ -85,7 +84,6 @@ export const BrewStore = defineStore('brew', {
       module.typeFlag = flag
       module.isService = find?.isService ?? false
       module.isOnlyRunOne = find?.isOnlyRunOne !== false
-      module.persistCurrentVersion = find?.persistCurrentVersion !== false
       module.isPlugin = !!find?.plugin
       module.fetchInstalled = module.fetchInstalled.bind(module)
       module.onItemStart = module.onItemStart.bind(module)

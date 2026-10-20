@@ -1,3 +1,4 @@
+import { preparePackageCommand, cleanupPackageCommand, removeStaticPackage } from './packages'
 import { Base } from '@fork/module/Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { StopProcessListFetch } from '@shared/StopProcessList'
@@ -84,6 +85,24 @@ export class MysqlClusterModule extends Base {
       }
     })
   }
+  preparePackageCommand(source: string, name: string, installed: boolean) {
+    return this.request(() =>
+      preparePackageCommand(this.catalog.root, source, name, installed, {
+        staticDir: global.Server.Static!,
+        arm: process.arch === 'arm64'
+      })
+    )
+  }
+  cleanupPackageCommand(token: string) {
+    return this.request(() => cleanupPackageCommand(this.catalog.root, token))
+  }
+  removeStaticPackage(target: string) {
+    return this.request(() =>
+      removeStaticPackage(this.catalog, target, global.Server.AppDir!, StopProcessListFetch, () =>
+        this.runtime.listInstances()
+      )
+    )
+  }
   readCatalog() {
     return this.request(() => this.catalog.read())
   }
@@ -168,7 +187,11 @@ export class MysqlClusterModule extends Base {
   listInstances() {
     return this.request(() => this.runtime.listInstances())
   }
+  // Host scans must not treat instance descriptors as a selectable installation.
   allInstalledVersions() {
+    return this.request(async () => [])
+  }
+  instanceDescriptors() {
     return this.request(async () =>
       (await this.catalog.read()).instances.map((i) => this.runtime.descriptor(i))
     )
