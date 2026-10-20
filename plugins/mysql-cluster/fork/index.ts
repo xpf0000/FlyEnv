@@ -8,10 +8,13 @@ import { InstanceCatalog } from './catalog'
 import { MysqlInstanceRuntime } from './runtime'
 import { InstanceStopAdapter } from './service'
 import { initializeInstance } from './initialize'
+import { ReplicationService } from './replication'
+import type { Credentials } from '../shared'
 
 export class MysqlClusterModule extends Base {
   private catalogValue?: InstanceCatalog
   private runtimeValue?: MysqlInstanceRuntime
+  private replicationValue?: ReplicationService
   constructor() { super(); this.type = 'mysql-cluster' }
   get catalog() {
     return this.catalogValue ??= new InstanceCatalog(join(global.Server.MysqlDir!, 'mysql-cluster'), process.platform === 'win32' ? 'Windows' : process.platform === 'darwin' ? 'macOS' : 'Linux')
@@ -23,6 +26,14 @@ export class MysqlClusterModule extends Base {
         const res: any = await new InstanceStopAdapter(this.catalog, spec).stopService({ ...this.runtime.descriptor(spec), pid })
         return res['APP-Service-Stop-PID'] ?? []
       }
+    })
+  }
+  get replication() { return this.replicationValue ??= new ReplicationService(this.catalog) }
+  configureReplication(groupId: string, credentials: Credentials) {
+    return this.request(async emit => {
+      const group = (await this.catalog.read()).clusters.find(g => g.id === groupId)
+      if (!group || group.mode !== 'replication') throw new Error('Unknown replication group')
+      return this.replication.configure(group, credentials, emit)
     })
   }
   request<T>(task: (emit: EventSink) => Promise<T>) {
