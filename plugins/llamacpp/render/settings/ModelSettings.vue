@@ -178,6 +178,7 @@
   import { SettingsDraft } from './useSettingsDraft'
   import { parseExtraArgs, tokenizeExtraArgs } from '../../shared/extraArguments'
   import { clone, type LaunchInput, type ModelProfile } from '../../shared/settings'
+  import { runtimeBackend } from '../../shared/runtime'
   import { createModelProfile, fingerprint } from '../profiles'
   import type { LocalModel, RuntimeBackend } from '../../shared/types'
   import CommandPreview from './CommandPreview.vue'
@@ -202,15 +203,7 @@
   const currentRuntime = computed(() => BrewStore().currentVersion('llama-cpp'))
   const runtimes = computed(() => BrewStore().module('llama-cpp').installed)
   const runtime = computed(() => runtimes.value.find((r) => r.bin === runtimeBin.value))
-  const backend = computed(() => {
-    try {
-      return (JSON.parse(runtime.value?.note ?? '{}').backend ??
-        (runtime.value as any)?.flag ??
-        'cpu') as RuntimeBackend
-    } catch {
-      return 'cpu' as RuntimeBackend
-    }
-  })
+  const backend = computed(() => runtimeBackend(runtime.value))
   const caps = computed(() =>
     manager.launch.runtimeCapabilities?.bin === runtime.value?.bin
       ? manager.launch.runtimeCapabilities?.caps

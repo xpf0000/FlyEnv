@@ -41,8 +41,34 @@
                   :value="d.name"
                   :label="d.name + ' · ' + d.description"
               /></el-select>
+              <div v-else-if="f.type === 'layers'" class="settings-layer-control">
+                <el-input-number
+                  :model-value="typeof read(f) === 'number' ? read(f) : undefined"
+                  :min="f.min"
+                  :max="f.max"
+                  :precision="0"
+                  controls-position="right"
+                  :placeholder="t('customLayers')"
+                  :disabled="disabled(f)"
+                  @update:model-value="change(f, $event)"
+                />
+                <el-select
+                  :model-value="layerMode(f)"
+                  :disabled="disabled(f)"
+                  @change="changeLayerMode(f, $event)"
+                >
+                  <el-option :value="empty" :label="t('defaultValue')" />
+                  <el-option
+                    v-for="v in choices(f).filter((value) => typeof value === 'string')"
+                    :key="String(v)"
+                    :value="v"
+                    :label="String(v)"
+                  />
+                  <el-option value="__custom__" :label="t('customLayers')" disabled />
+                </el-select>
+              </div>
               <el-select
-                v-else-if="['boolean', 'enum', 'layers'].includes(f.type)"
+                v-else-if="['boolean', 'enum'].includes(f.type)"
                 :model-value="read(f) ?? empty"
                 class="w-full"
                 filterable
@@ -132,6 +158,15 @@
     )
   }
   const read = (f: SettingField) => getSetting(profile.value, f.path, props.backend)
+  const layerMode = (f: SettingField) => {
+    const value = read(f)
+    if (value === undefined) return empty
+    return value === 'auto' || value === 'all' ? value : '__custom__'
+  }
+  const changeLayerMode = (f: SettingField, value: string) => {
+    if (value === '__custom__') return
+    change(f, value)
+  }
   const unsupported = (f: SettingField) =>
     !!props.caps &&
     !props.caps.byAlias[f.flag] &&
