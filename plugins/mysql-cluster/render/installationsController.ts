@@ -137,3 +137,11 @@ export class InstallationsController {
     }
   }
 }
+export function requireStaticInstallationSuccess(response: {
+  code: number
+  data?: unknown
+  msg?: string
+}): void {
+  if (response.code !== 0 || response.data !== true)
+    throw new Error(response.msg || 'MySQL installation failed; inspect downloaded files and retry')
+}

@@ -56,3 +56,11 @@ No publishing/activation, source merge or user database changes are authorized b
 - Plugin messages render as text. Source views and all operation owners are bundled locally.
 - ESLint clean; renderer boundary audit passes; baseline type diagnostics remain unchanged (53).
 - 0.1.1 package builds on the original unmodified host; browser fixture verification and final review pending.
+
+## Final status
+
+Correction implemented and independently reviewed; both Important findings fixed in one RED→GREEN
+pass. Final evidence and rulings: [0.1.1 review report](../reviews/2026-10-21-mysql-cluster-plugin-only.md).
+78 focused tests (77 pass, 1 explicit native skip), separate native pass; types match the existing
+53-diagnostic baseline, lint/boundaries/build/archive/bundled-Fork checks pass. Browser uses the actual
+packaged renderer and original host bridge shape; all temporary surfaces were cleaned up.

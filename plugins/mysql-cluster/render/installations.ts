@@ -8,10 +8,15 @@ import { shell, clipboard } from '@/util/NodeFn'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 import { installedVersionNote, setInstalledVersionNote } from '@/util/InstalledVersionNote'
 import { VueExtend } from '@/core/VueExtend'
-import { waitForDialog } from './dialog'
+import { waitForDialog, type DialogView } from './dialog'
+import { InstallationTerminal } from './terminal'
 import XTerm from '@/util/XTerm'
 import { findInstalledFormulaConflict } from '@/components/VersionManager/brew/FormulaConflict'
-import { InstallationsController, type InstallationRow } from './installationsController'
+import {
+  InstallationsController,
+  requireStaticInstallationSuccess,
+  type InstallationRow
+} from './installationsController'
 import { installationAdmission } from './admission'
 import { beforeRemove } from './versionGuard'
 import { MysqlClusterManager } from './manager'
@@ -37,6 +42,7 @@ async function pluginRpc(method: string, args: any[]) {
 const quote = (s: string) => "'" + s.replace(/'/g, "'\\''") + "'"
 class InstallationAdapter {
   terminal?: XTerm
+  session?: InstallationTerminal
   container?: HTMLDivElement
   host?: HTMLElement
   token = ''
@@ -48,7 +54,11 @@ class InstallationAdapter {
     this.container.style.height = '280px'
     this.attach(this.host)
     this.terminal = markRaw(new XTerm())
-    await this.terminal.mount(this.container)
+    const terminal = this.terminal
+    this.session = new InstallationTerminal(terminal, () => {
+      InstallationManager.output = terminal.logs.join('').slice(-40000)
+    })
+    await this.session.mount(this.container)
     if (InstallationManager.cancelled) throw new Error('Operation cancelled')
     await this.terminal.send([[command.path, ...command.args].map(quote).join(' ')], true, true)
   }
@@ -66,12 +76,14 @@ class InstallationAdapter {
       document.body.append(this.container)
     }
   }
+  cancel() {
+    return this.session?.stop()
+  }
   async cleanup() {
     try {
-      if (this.terminal && !this.terminal.end) await this.terminal.stop()
+      await this.session?.dispose()
     } finally {
-      if (this.terminal) InstallationManager.output = this.terminal.logs.join('').slice(-40000)
-      this.terminal?.destroy()
+      this.session = undefined
       this.terminal = undefined
       this.container?.remove()
       this.container = undefined
@@ -140,7 +152,7 @@ export const InstallationManager = reactiveBind(
         1_800_000,
         (info) => progress(info.msg)
       )
-      if (response.code !== 0) throw new Error(response.msg || 'Installation failed')
+      requireStaticInstallationSuccess(response)
     },
     remove: async (row) => {
       if (row.source !== 'Static') return adapter.command(row)
@@ -148,7 +160,7 @@ export const InstallationManager = reactiveBind(
       if (!target) throw new Error('Cannot determine the package directory')
       await pluginRpc('removeStaticPackage', [target])
     },
-    cancel: async () => adapter.terminal?.stop(),
+    cancel: async () => adapter.cancel(),
     cleanup: () => adapter.cleanup(),
     notify: (type, message) => (type === 'success' ? MessageSuccess : MessageError)(t(message)),
     admission: (busy) => {
@@ -164,7 +176,7 @@ function ownedDialog(component: any, props: any) {
     document.body.append(element)
     const app = VueExtend(component, props)
     try {
-      const view = app.mount(element)
+      const view = app.mount(element) as unknown as DialogView
       return {
         view,
         dispose: () => {

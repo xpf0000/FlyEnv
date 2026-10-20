@@ -1,3 +1,8 @@
+export interface DialogView<T = unknown> {
+  show: boolean
+  onSubmit(fn: (value: T) => void): void
+  onClosed(fn: () => void): void
+}
 export function waitForDialog<T>(
   mount: () => {
     view: { show: boolean; onSubmit(fn: (value: T) => void): void; onClosed(fn: () => void): void }

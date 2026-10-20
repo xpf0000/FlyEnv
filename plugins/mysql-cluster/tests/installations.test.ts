@@ -128,3 +128,48 @@ test('host dialogs that only emit closed settle their owner and dispose once', a
   assert.equal(await saved, true)
   assert.equal(disposed, 2)
 })
+test('the original host code=0,data=false installation outcome remains a failure and still refreshes state', async () => {
+  const d = deps()
+  let refreshed = 0
+  d.install = async () => api.requireStaticInstallationSuccess({ code: 0, data: false })
+  d.installed = async () => {
+    refreshed++
+  }
+  const c = new api.InstallationsController(d)
+  assert.equal(typeof api.requireStaticInstallationSuccess, 'function')
+  assert.equal(await c.act({ name: 'MySQL8.4', source: 'Static', installed: false }), false)
+  assert.match(c.error, /install/i)
+  assert.equal(refreshed, 1)
+})
+test('cancellation waits for PTY initialization and stops the real key before destroying its view', async () => {
+  const api = await import('../render/terminal').catch(() => ({}) as any)
+  let release!: () => void,
+    destroyed = 0
+  const keys: string[] = []
+  const terminal = {
+    ptyKey: '',
+    end: false,
+    async mount() {
+      await new Promise<void>((r) => (release = r))
+      this.ptyKey = 'owned-pty'
+    },
+    async stop() {
+      keys.push(this.ptyKey)
+      this.end = true
+    },
+    destroy() {
+      destroyed++
+    }
+  }
+  const session = new api.InstallationTerminal(terminal)
+  const mounting = session.mount({})
+  const cancelled = session.stop()
+  assert.deepEqual(keys, [])
+  release()
+  await mounting
+  await cancelled
+  await session.dispose()
+  await session.dispose()
+  assert.deepEqual(keys, ['owned-pty'])
+  assert.equal(destroyed, 1)
+})
