@@ -24,6 +24,7 @@ export class MysqlClusterController {
   preferences: Record<string, any> = {}
   operations: Record<string, OperationState> = {}
   initialized = false
+  refreshing = false
   loadError = ''
   private flights = new Map<string, { action: string; promise: Promise<OperationResult> }>()
   private loadFlight?: Promise<void>
@@ -55,6 +56,7 @@ export class MysqlClusterController {
   }
   refresh(): Promise<void> {
     if (this.refreshFlight) return this.refreshFlight
+    this.refreshing = true
     this.refreshFlight = (async () => {
       await this.deps.installed()
       const values: InstanceSnapshot[] = await this.deps.rpc('listInstances', [])
@@ -68,7 +70,7 @@ export class MysqlClusterController {
         const item = this.deps.service(snapshot.id)
         if (!item.running) { item.run = snapshot.state === 'running'; item.pid = snapshot.pid ?? '' }
       }
-    })().finally(() => { this.refreshFlight = undefined })
+    })().finally(() => { this.refreshFlight = undefined; this.refreshing = false })
     return this.refreshFlight
   }
   groupFor(id: string): ClusterSpec | undefined { return this.catalog.clusters.find(g => g.memberIds.includes(id)) }

@@ -634,4 +634,16 @@ assert.match(damengLogs, /<LogVM ref="log"/)
 assert.match(damengLogs, /<ToolVM :log="log"/)
 assert.doesNotMatch(damengLogs, /IPC\.send|<pre/)
 
+const mysqlClusterDir = join(root, 'plugins/mysql-cluster/render')
+if (existsSync(mysqlClusterDir)) {
+  for (const name of ['Index.vue', 'Instances.vue', 'InstanceDialog.vue', 'InstanceActions.vue', 'InstancePanel.vue']) {
+    const page = readFileSync(join(mysqlClusterDir, name), 'utf8')
+    assert.doesNotMatch(page, /IPC\.send|IPC\.off|forkTerminalRequest|StorageSetAsync|StorageGetAsync/)
+    assert.match(page, /manager|MysqlClusterManager/)
+  }
+  const controller = readFileSync(join(mysqlClusterDir, 'controller.ts'), 'utf8')
+  assert.match(controller, /class MysqlClusterController/)
+  assert.match(controller, /private flights = new Map/)
+  assert.match(controller, /finally/)
+}
 console.log('renderer operation boundary tests passed')
