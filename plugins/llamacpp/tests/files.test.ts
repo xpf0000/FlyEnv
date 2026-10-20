@@ -4,6 +4,7 @@ import { mkdtemp, writeFile, rm, realpath } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { inspectGGUF } from '../fork/gguf'
+import { scanModelsDirectory } from '../fork/models'
 import { rankProjectors, modelFileKey } from '../shared/modelFile'
 import { resolveModelReference } from '../fork/modelReferences'
 const u32 = (n: number) => {
@@ -105,4 +106,37 @@ test('metadata-recognised projectors with arbitrary filenames remain selectable'
     description: { valid: true, role: 'projector', architecture: 'clip' }
   }
   assert.equal(rankProjectors(model, [file]).length, 1)
+})
+test('scans nested selected-folder GGUF files and skips invalid candidates independently', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'llama-model-folder-'))
+  try {
+    const nested = join(dir, 'hub-files', 'repo-a')
+    await import('node:fs/promises').then(({ mkdir }) => mkdir(nested, { recursive: true }))
+    const modelPath = join(nested, 'main.gguf')
+    const invalidPath = join(nested, 'broken.gguf')
+    await writeFile(modelPath, gguf('llama', ['token_embd.weight', 'blk.0.attn.weight']))
+    await writeFile(
+      `${modelPath}.flyenv.json`,
+      JSON.stringify({
+        repoId: 'test/model',
+        revision: 'main',
+        path: 'main.gguf',
+        localPath: modelPath,
+        downloadedAt: 1
+      })
+    )
+    await writeFile(invalidPath, 'not a GGUF')
+
+    const scan = await scanModelsDirectory(dir)
+    assert.equal(scan.models.length, 1)
+    assert.equal(scan.models[0].localPath, await realpath(modelPath))
+    assert.equal(scan.models[0].managedRoot, await realpath(dir))
+    assert.equal(scan.models[0].standalone, true)
+    assert.equal(scan.models[0].repoId, 'test/model')
+    assert.equal(scan.models[0].revision, 'main')
+    assert.equal(scan.skipped.length, 1)
+    assert.match(scan.skipped[0], /broken\.gguf/)
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
 })

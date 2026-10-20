@@ -17,6 +17,7 @@ import {
   deleteLocalModel as deleteLocalModelImpl,
   downloadHubModelFile as downloadHubModelFileImpl,
   getHubModelFiles as getHubModelFilesImpl,
+  scanModelsDirectory as scanModelsDirectoryImpl,
   searchHubModels as searchHubModelsImpl
 } from '../models'
 import type { HubModelFile } from '../../shared/types'
@@ -70,10 +71,11 @@ export const isManagedModelActive = (
   processes: PItem[],
   baseDir: string,
   target: string,
-  pid = ''
+  pid = '',
+  modelsRoot = join(baseDir, 'llama-cpp', 'models')
 ) => {
   const managedRoot = join(baseDir, 'llama-cpp').replace(/\\/g, '/').toLowerCase()
-  const modelRoot = join(baseDir, 'llama-cpp', 'models').replace(/\\/g, '/').toLowerCase()
+  const modelRootPath = modelsRoot.replace(/\\/g, '/').toLowerCase()
   const targetPath = target.replace(/\\/g, '/').toLowerCase()
   return processes.some((process) => {
     const command = process.COMMAND.replace(/\\/g, '/').toLowerCase()
@@ -82,7 +84,7 @@ export const isManagedModelActive = (
     if (command.includes(targetPath)) return true
     // A different managed GGUF is visible in argv; permit deleting this inactive model.
     // If the process list truncated argv, keep deletion blocked rather than guessing.
-    return !command.includes(`${modelRoot}/`) || !command.includes('.gguf')
+    return !command.includes(`${modelRootPath}/`) || !command.includes('.gguf')
   })
 }
 
@@ -274,13 +276,13 @@ export class LlamaCppModule extends Base {
     })
   }
 
-  downloadHubModelFile(operationId: string, file: HubModelFile) {
+  downloadHubModelFile(operationId: string, file: HubModelFile, modelsDirectory?: string) {
     return new ForkPromise(async (resolve, reject, on) => {
       if (this.modelDownloads.has(operationId))
         return reject(new Error('A model download with this operation ID is already active'))
       const controller = new AbortController()
       this.modelDownloads.set(operationId, controller)
-      const modelsRoot = join(global.Server.BaseDir!, 'llama-cpp', 'models')
+      const modelsRoot = modelRoot(modelsDirectory)
       try {
         const model = await downloadHubModelFileImpl(
           operationId,
@@ -319,7 +321,17 @@ export class LlamaCppModule extends Base {
     })
   }
 
-  deleteLocalModel(path: string) {
+  scanModelsDirectory(modelsDirectory?: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        resolve(await scanModelsDirectoryImpl(modelRoot(modelsDirectory)))
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  deleteLocalModel(path: string, managedRoot?: string) {
     return new ForkPromise<boolean>(async (resolve, reject) => {
       try {
         if (this.serverStarting)
@@ -342,10 +354,11 @@ export class LlamaCppModule extends Base {
           )
         )
           throw Error('Stop the server before deleting its dependencies')
-        if (isManagedModelActive(processes, baseDir, path, pid)) {
+        const modelsRoot = modelRoot(managedRoot)
+        if (isManagedModelActive(processes, baseDir, path, pid, modelsRoot)) {
           throw new Error('Stop the active server before deleting a model')
         }
-        await deleteLocalModelImpl(path, join(baseDir, 'llama-cpp', 'models'), undefined)
+        await deleteLocalModelImpl(path, modelsRoot, undefined)
         resolve(true)
       } catch (error) {
         reject(error)
@@ -401,16 +414,27 @@ export class LlamaCppModule extends Base {
   prepareModelLaunch(input: LaunchInput, runtime: SoftInstalled) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        resolve(await prepareLaunch(input, runtime, { modelsRoot: modelRoot() }))
+        resolve(
+          await prepareLaunch(input, runtime, {
+            modelsRoot: modelRoot(input.service.modelsDirectory)
+          })
+        )
       } catch (e) {
         reject(e)
       }
     })
   }
-  inspectModelReference(ref: ModelFileRef, role: ResolvedDependency['role']) {
+  inspectModelReference(
+    ref: ModelFileRef,
+    role: ResolvedDependency['role'],
+    modelsDirectory?: string
+  ) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        const dep = await resolveModelReference(ref, role, { files: [], modelsRoot: modelRoot() })
+        const dep = await resolveModelReference(ref, role, {
+          files: [],
+          modelsRoot: modelRoot(modelsDirectory)
+        })
         resolve({
           ...dep,
           description: role === 'template' ? undefined : await inspectGGUF(dep.path)
@@ -480,7 +504,9 @@ export class LlamaCppModule extends Base {
         return reject(new Error('A llama.cpp runtime operation is already in progress'))
       this.serverStarting = true
       try {
-        const report = await prepareLaunch(input, version, { modelsRoot: modelRoot() })
+        const report = await prepareLaunch(input, version, {
+          modelsRoot: modelRoot(input.service.modelsDirectory)
+        })
         if (!report.prepared) throw Error(report.issues.map((i) => i.message).join('\n'))
         const invocation = report.prepared
         const managedProfile = input.service

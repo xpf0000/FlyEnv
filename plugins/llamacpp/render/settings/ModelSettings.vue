@@ -290,7 +290,12 @@
       const ref = file
         ? managedReference(file)
         : { kind: 'external' as const, path: option.values[0], allowUnverified: true }
-      const checked = await manager.request<any>('inspectModelReference', ref, 'projector')
+      const checked = await manager.request<any>(
+        'inspectModelReference',
+        ref,
+        'projector',
+        manager.modelsRoot
+      )
       if (owner !== draft.value) return
       owner.accept(generation, (p) => {
         p.multimodal = {

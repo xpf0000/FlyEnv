@@ -20,7 +20,7 @@ export const resolveModelReference = async (
   if (!info.isFile()) throw Error('Reference must be a readable file')
   let digest: string | undefined
   if (ref.kind === 'managed') {
-    const root = await realpath(context.modelsRoot)
+    const root = await realpath(record?.managedRoot ?? context.modelsRoot)
     const rel = relative(root, path)
     if (!rel || rel === '..' || rel.startsWith('..' + sep) || isAbsolute(rel))
       throw Error('Managed reference is outside models directory')

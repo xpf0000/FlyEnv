@@ -9,6 +9,18 @@
         <el-form-item :label="t('port')">
           <el-input-number v-model="draft.value.port" :min="1" :max="65535" />
         </el-form-item>
+        <el-form-item class="settings-span-full" :label="t('modelsDirectory')">
+          <el-input :model-value="draft.value.modelsDirectory || manager.defaultModelsRoot" readonly />
+          <div class="settings-button-row settings-field-actions">
+            <el-button @click="chooseModelsDirectory">{{ t('chooseFolder') }}</el-button>
+            <el-button
+              v-if="draft.value.modelsDirectory"
+              @click="draft.value.modelsDirectory = undefined"
+              >{{ t('useDefaultFolder') }}</el-button
+            >
+          </div>
+          <p class="settings-hint">{{ t('modelsDirectoryHint') }}</p>
+        </el-form-item>
         <el-form-item class="settings-span-full" :label="t('apiKeyFile')">
           <el-input :model-value="draft.value.apiKeyFile" readonly />
         </el-form-item>
@@ -86,6 +98,15 @@
       error.value = String(e)
     } finally {
       saving.value = false
+    }
+  }
+  const chooseModelsDirectory = async () => {
+    if (!draft.value) return
+    try {
+      const directory = await manager.chooseModelsDirectory()
+      if (directory) draft.value.value.modelsDirectory = directory
+    } catch (e) {
+      error.value = String(e)
     }
   }
   const apply = async () => {

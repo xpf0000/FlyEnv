@@ -1,5 +1,5 @@
 import { isIP } from 'node:net'
-import { join } from 'node:path'
+import { isAbsolute, join, resolve } from 'node:path'
 import type { SoftInstalled } from '@shared/app'
 import type {
   LaunchInput,
@@ -260,4 +260,7 @@ export const prepareLaunch = async (
   }
   return report
 }
-export const modelRoot = () => join(global.Server.BaseDir!, 'llama-cpp', 'models')
+export const modelRoot = (configured?: string) => {
+  if (configured && !isAbsolute(configured)) throw new Error('Models directory must be absolute')
+  return configured ? resolve(configured) : join(global.Server.BaseDir!, 'llama-cpp', 'models')
+}
