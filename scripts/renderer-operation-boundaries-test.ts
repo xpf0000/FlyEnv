@@ -636,9 +636,18 @@ assert.doesNotMatch(damengLogs, /IPC\.send|<pre/)
 
 const mysqlClusterDir = join(root, 'plugins/mysql-cluster/render')
 if (existsSync(mysqlClusterDir)) {
-  for (const name of ['Index.vue', 'Instances.vue', 'InstanceDialog.vue', 'InstanceActions.vue', 'InstancePanel.vue']) {
+  for (const name of [
+    'Index.vue',
+    'Instances.vue',
+    'InstanceDialog.vue',
+    'InstanceActions.vue',
+    'InstancePanel.vue'
+  ]) {
     const page = readFileSync(join(mysqlClusterDir, name), 'utf8')
-    assert.doesNotMatch(page, /IPC\.send|IPC\.off|forkTerminalRequest|StorageSetAsync|StorageGetAsync/)
+    assert.doesNotMatch(
+      page,
+      /IPC\.send|IPC\.off|forkTerminalRequest|StorageSetAsync|StorageGetAsync/
+    )
     assert.match(page, /manager|MysqlClusterManager/)
   }
   const controller = readFileSync(join(mysqlClusterDir, 'controller.ts'), 'utf8')

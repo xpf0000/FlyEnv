@@ -108,9 +108,11 @@
   import { I18nT } from '@lang/index'
   import type { AllAppModule } from '@/core/type'
   import { BrewSetup, Setup } from './setup'
+  import { guardedRemoval, type RemovalGuard } from '../RemovalPolicy'
 
   const props = defineProps<{
     typeFlag: AllAppModule
+    beforeRemove?: RemovalGuard
   }>()
 
   const {
@@ -118,7 +120,7 @@
     checkBrew,
     fetching,
     tableData,
-    handleBrewVersion,
+    handleBrewVersion: runBrewVersion,
     installBrew,
     fetchCommand,
     copyCommand,
@@ -127,6 +129,12 @@
     brewError,
     brewBin
   } = Setup(props.typeFlag)
+  const handleBrewVersion = (row: any) =>
+    row.installed
+      ? guardedRemoval({ ...row, source: 'Homebrew' }, props.beforeRemove, () =>
+          runBrewVersion(row)
+        )
+      : runBrewVersion(row)
 </script>
 <style lang="scss">
   .app-html-block {

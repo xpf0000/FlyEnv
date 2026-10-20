@@ -7,5 +7,7 @@ export async function writeAtomic(file: string, content: string) {
   try {
     await writeFile(temp, content, { mode: 0o600, flag: 'wx' })
     await rename(temp, file)
-  } finally { await rm(temp, { force: true }).catch(() => undefined) }
+  } finally {
+    await rm(temp, { force: true }).catch(() => undefined)
+  }
 }

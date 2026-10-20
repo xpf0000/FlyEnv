@@ -64,31 +64,32 @@
       :type-flag="typeFlag"
       :items="items"
       :fetching="managerLoading"
+      :before-remove="beforeRemove"
       @action="emit('action', $event)"
     />
     <template v-else-if="isMacOS">
       <template v-if="libSrc === 'brew'">
-        <BrewVM :type-flag="typeFlag" />
+        <BrewVM :type-flag="typeFlag" :before-remove="beforeRemove" />
       </template>
       <template v-else-if="libSrc === 'port'">
-        <PortVM :type-flag="typeFlag" />
+        <PortVM :type-flag="typeFlag" :before-remove="beforeRemove" />
       </template>
       <template v-else-if="libSrc === 'static'">
-        <StaticVM :type-flag="typeFlag" />
+        <StaticVM :type-flag="typeFlag" :before-remove="beforeRemove" />
       </template>
       <template v-else-if="libSrc === 'sdkman'">
         <SdkmanVM :type-flag="typeFlag" />
       </template>
     </template>
     <template v-else-if="isWindows">
-      <StaticVM :type-flag="typeFlag" />
+      <StaticVM :type-flag="typeFlag" :before-remove="beforeRemove" />
     </template>
     <template v-else-if="isLinux">
       <template v-if="libSrc === 'brew'">
-        <BrewVM :type-flag="typeFlag" />
+        <BrewVM :type-flag="typeFlag" :before-remove="beforeRemove" />
       </template>
       <template v-else-if="libSrc === 'static'">
-        <StaticVM :type-flag="typeFlag" />
+        <StaticVM :type-flag="typeFlag" :before-remove="beforeRemove" />
       </template>
       <template v-else-if="libSrc === 'sdkman'">
         <SdkmanVM :type-flag="typeFlag" />
@@ -119,6 +120,7 @@
   import StaticVM from './static/index.vue'
   import SdkmanVM from './sdkman/index.vue'
   import type { StaticVersionItem } from './static/setup'
+  import type { RemovalGuard } from './RemovalPolicy'
 
   const props = withDefaults(
     defineProps<{
@@ -131,13 +133,15 @@
       url?: string
       items?: StaticVersionItem[]
       fetching?: boolean
+      beforeRemove?: RemovalGuard
     }>(),
     {
       hasStatic: false,
       showBrewLib: true,
       showPortLib: true,
       showSdkmanLib: false,
-      fetching: undefined
+      fetching: undefined,
+      beforeRemove: undefined
     }
   )
 

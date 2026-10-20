@@ -31,7 +31,10 @@ export interface SavedCatalog {
   instances: InstanceSpec[]
   clusters: ClusterSpec[]
 }
-export interface Credential { user: string; password: string }
+export interface Credential {
+  user: string
+  password: string
+}
 export type Credentials = Record<InstanceId, Credential>
 export interface CreateRequest {
   cluster: ClusterSpec
@@ -71,8 +74,15 @@ export interface OperationResult {
   items: ItemOutcome[]
 }
 export const emptyCatalog = (): SavedCatalog => ({ schemaVersion: 1, instances: [], clusters: [] })
-export const errorText = (error: unknown): string => error instanceof Error ? error.message : String(error)
+export const errorText = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error)
 export const summarize = (items: ItemOutcome[]): OperationResult => ({
-  status: items.every(i => i.status === 'completed') ? 'completed' : items.some(i => i.status === 'completed') ? 'partial' : items.some(i => i.status === 'unknown') ? 'unknown' : 'failed',
+  status: items.every((i) => i.status === 'completed')
+    ? 'completed'
+    : items.some((i) => i.status === 'completed')
+      ? 'partial'
+      : items.some((i) => i.status === 'unknown')
+        ? 'unknown'
+        : 'failed',
   items
 })

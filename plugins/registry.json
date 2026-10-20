@@ -227,6 +227,39 @@
         "sha256": "1ed94c056043ce242ce175b7a3a706080c4544d55fa063a0e67f082236eb5073"
       },
       "official": true
+    },
+    {
+      "id": "mysql-cluster",
+      "name": "MySQL Cluster",
+      "version": "0.1.0",
+      "description": {
+        "en": "Independent local MySQL instances, one-click GTID source/replica groups and single-primary Group Replication.",
+        "zh": "管理多个独立 MySQL 实例，一键创建 GTID 主从复制及单主 Group Replication。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "mysql-cluster",
+        "moduleType": "dataBaseServer",
+        "label": "MySQL Cluster",
+        "asideIndex": 27,
+        "isService": true,
+        "isTray": false,
+        "platform": [
+          "macOS",
+          "Windows",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "macOS",
+        "Windows",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "37b5c8a054ff9c95366fb8620a09283015e5d6e63a77b61a98885692ed5feaf0"
+      },
+      "official": true
     }
   ]
 }

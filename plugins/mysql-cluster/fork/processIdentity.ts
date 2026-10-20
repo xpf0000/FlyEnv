@@ -1,27 +1,56 @@
-// Preserve backslashes in Windows paths; only quote delimiters affect token boundaries.
-function commandArgs(command: string): string[] {
-  const args: string[] = []; let current = '', quote = ''
-  for (const char of command) {
-    if (quote) { if (char === quote) quote = ''; else current += char }
-    else if (char === '"' || char === "'") quote = char
-    else if (/\s/.test(char)) { if (current) { args.push(current); current = '' } }
-    else current += char
-  }
-  if (quote) return []
-  if (current) args.push(current)
-  return args
-}
+const normalize = (value: string, windows: boolean) =>
+  windows ? value.replace(/\\/g, '/').toLowerCase() : value
+
 export function hasExactDefaultsFile(command: string, config: string, windows: boolean): boolean {
-  const args = commandArgs(command)
-  if (!/(?:^|[\\/])mysqld(?:\.exe)?$/i.test(args[0] ?? '')) return false
-  const norm = (value: string) => windows ? value.replace(/\\/g, '/').toLowerCase() : value
-  const values: string[] = []
-  for (let i = 1; i < args.length; i++) {
-    if (args[i].startsWith('--defaults-file=')) values.push(args[i].slice('--defaults-file='.length))
-    else if (args[i] === '--defaults-file' && args[i + 1]) values.push(args[++i])
+  const program = /^(?:"([^"]+)"|'([^']+)'|(\S+))/.exec(command.trim())
+  if (!/(?:^|[\\/])mysqld(?:\.exe)?$/i.test(program?.[1] ?? program?.[2] ?? program?.[3] ?? ''))
+    return false
+  // ps exposes unquoted argv containing spaces; compare the known complete value, not whitespace tokens.
+  const flags = [...command.matchAll(/(?:^|\s)(["']?)--defaults-file(?:=|\s+)/g)]
+  if (flags.length !== 1) return false
+  const flag = flags[0]
+  let value = command.slice(flag.index! + flag[0].length)
+  const quote = /^["']/.test(value) ? value[0] : flag[1]
+  if (/^["']/.test(value)) value = value.slice(1)
+  const wanted = normalize(config, windows),
+    actual = normalize(value, windows)
+  if (!actual.startsWith(wanted)) return false
+  let suffix = actual.slice(wanted.length)
+  if (quote) {
+    if (!suffix.startsWith(quote)) return false
+    suffix = suffix.slice(1)
   }
-  return values.length === 1 && norm(values[0]) === norm(config)
+  if (suffix && !/^\s/.test(suffix)) return false
+  suffix = suffix.trim()
+  return !suffix || suffix.startsWith('--')
 }
-export function selectInstanceRoots<T extends { PID: string; COMMAND: string }>(list: T[], config: string, windows: boolean): T[] {
-  return list.filter(p => /^\d+$/.test(p.PID) && Number(p.PID) > 0 && !!p.COMMAND && hasExactDefaultsFile(p.COMMAND, config, windows))
+export function selectInstanceRoots<T extends { PID: string; COMMAND: string }>(
+  list: T[],
+  config: string,
+  windows: boolean,
+  executables?: string | string[]
+): T[] {
+  const candidates = typeof executables === 'string' ? [executables] : executables
+  return list.filter((p) => {
+    if (!/^[1-9]\d*$/.test(p.PID) || !p.COMMAND) return false
+    let command = p.COMMAND.trim()
+    if (candidates) {
+      let rest: string | undefined
+      for (const executable of candidates) {
+        for (const prefix of [executable, `"${executable}"`, `'${executable}'`]) {
+          if (
+            normalize(command, windows).startsWith(normalize(prefix, windows)) &&
+            /^\s/.test(command.slice(prefix.length))
+          ) {
+            rest = command.slice(prefix.length)
+            break
+          }
+        }
+        if (rest !== undefined) break
+      }
+      if (rest === undefined) return false
+      command = 'mysqld' + rest
+    }
+    return hasExactDefaultsFile(command, config, windows)
+  })
 }
