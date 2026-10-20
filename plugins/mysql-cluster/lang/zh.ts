@@ -1,0 +1,20 @@
+export default {
+  instances: 'MySQL 实例', services: '服务', versions: '版本', standalone: '独立实例', replication: '主从复制', 'group-replication': 'Group Replication',
+  create: '创建', edit: '编辑', delete: '删除', cancel: '取消', confirm: '确认', save: '保存', close: '关闭', refresh: '刷新', start: '启动', stop: '停止', restart: '重启', actions: '操作',
+  name: '名称', mode: '模式', version: 'MySQL 版本', path: '版本路径', dataDir: '数据目录', rootDir: '数据根目录', port: 'TCP 端口', startPort: '起始 TCP 端口', groupPort: 'GR 通信端口', socket: 'Socket', pipe: '命名管道', nodes: '节点数量', replicas: '从节点数量', password: 'Root 密码',
+  empty: '暂无实例，可创建独立实例或复制组。', noVersions: '请先在“版本”Tab 安装 MySQL。',
+  config: '配置文件编辑', errorLog: '错误日志', slowLog: '慢查询日志', manage: '数据管理', connection: '连接信息',
+  state: '状态', role: '角色', lag: '复制延迟', unknown: '未知', stopped: '已停止', running: '运行中', missing: '版本不可用', online: '正常', recovering: '恢复中', error: '错误',
+  groupHint: '仅新建本机空实例；同组节点使用同一安装版本，默认关闭 X Protocol。', grHint: '采用单主模式，SQL 与组通信端口必须各不相同；本机多个节点仍会同时受整机故障影响。',
+  editHint: '请先停止全部成员。已有数据目录和 MySQL 版本不可替换，实例身份配置由插件管理。',
+  deleteHint: '停止并删除这个实例或复制组？数据库文件将保留在原数据目录。', retained: '数据文件已保留。',
+  connect: '连接', remember: '在本机记住凭据', credentials: '管理员凭据', adminHint: '凭据按实例隔离。创建数据库、用户和修改密码请使用当前可写主节点。',
+  databases: '数据库', users: '用户', database: '数据库', user: '用户名', host: '主机', charset: '字符集', addDatabase: '创建数据库 / 用户', backup: '备份所选数据库', backupDir: '备份目录', mark: '备注', changePassword: '修改密码', newPassword: '新密码',
+  noLog: '暂无日志。', configHint: '保存后下次重启生效，实例身份及复制配置不能在此修改。',
+  readOnly: '当前节点只读，请在当前可写主节点执行修改。', connectionCopied: '已复制连接信息',
+  inUse: '运行中的 MySQL 集群实例正在使用此版本，请先停止对应实例。', references: '使用此版本的实例', rememberPassword: '记住密码', savedPassword: '已保存密码',
+  primary: '主节点', secondary: '副节点', source: '主节点', replica: '从节点', completed: '完成', partial: '部分完成', failed: '失败', busy: '操作进行中',
+  unsupported: '该 MySQL 构建不支持所选复制模式。', all: '全部', retry: '重试创建', preparationFailed: '准备过程曾中断，请检查已保存实例后重试。',
+  reuseUser: '如果用户已存在，将保留原密码并追加新数据库的授权。',
+  seconds: '秒', initialPortHint: '创建前请检查各节点生成的端口、Socket 和数据目录。'
+} as Record<string, string>

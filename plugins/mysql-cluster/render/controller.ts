@@ -59,7 +59,6 @@ export class MysqlClusterController {
       await this.deps.installed()
       const values: InstanceSnapshot[] = await this.deps.rpc('listInstances', [])
       for (const snapshot of values) {
-        if (this.operations[snapshot.id]?.busy) continue
         const group = this.groupFor(snapshot.id)
         if (snapshot.state === 'running' && this.credentials[snapshot.id] && group?.mode !== 'standalone') {
           try { snapshot.replication = await this.deps.rpc('replicationStatus', [snapshot.id, this.credentials[snapshot.id]]); snapshot.role = snapshot.replication!.role }
@@ -76,7 +75,7 @@ export class MysqlClusterController {
   private notice(type: 'success' | 'error', message: string) {
     try { this.deps.notify(type, message) } catch { /* Notification cannot undo a completed operation. */ }
   }
-  operate(key: string, action: string, task: (op: OperationState) => Promise<OperationResult>): Promise<OperationResult> {
+  operate(key: string, action: string, task: (op: OperationState) => Promise<OperationResult>, notify = true): Promise<OperationResult> {
     const current = this.flights.get(key)
     if (current) return current.action === action ? current.promise : Promise.resolve(summarize([{ id: key, status: 'failed', stage: 'busy', error: 'An operation is already running' }]))
     const op: OperationState = { action, busy: true, stage: 'validating', error: '' }
@@ -87,7 +86,7 @@ export class MysqlClusterController {
     }).then(result => {
       op.result = result
       op.error = result.items.filter(i => i.error).map(i => `${i.id}: ${i.error}`).join('\n')
-      this.notice(result.status === 'completed' ? 'success' : 'error', op.error || result.status)
+      if (notify || result.status !== 'completed') this.notice(result.status === 'completed' ? 'success' : 'error', op.error || result.status)
       return result
     }).finally(async () => {
       op.busy = false
@@ -96,6 +95,34 @@ export class MysqlClusterController {
     })
     this.flights.set(key, { action, promise })
     return promise
+  }
+  async command<T>(id: string, method: string, args: any[], write = false): Promise<T | undefined> {
+    const group = this.groupFor(id)
+    if (group && this.operations[group.id]?.busy) { this.notice('error', 'Cluster operation is running'); return undefined }
+    let value: T | undefined
+    const result = await this.operate(id, method, async op => {
+      value = await this.deps.rpc(method, [id, ...JSON.parse(JSON.stringify(args))], event => { op.stage = event.stage })
+      if (value && typeof value === 'object' && 'status' in value && 'items' in value) return value as OperationResult
+      return summarize([{ id, status: 'completed', stage: method }])
+    }, write)
+    return result.status === 'completed' || value !== undefined ? value : undefined
+  }
+  async savePreferences(id: string, patch: Record<string, any>) {
+    return this.operate(id, 'preferences', async () => {
+      const next = JSON.parse(JSON.stringify(this.preferences))
+      next[id] = { ...next[id], ...patch }
+      await this.deps.write({ schemaVersion: 1, catalog: this.catalog, preferences: next })
+      this.preferences = next
+      return summarize([{ id, status: 'completed', stage: 'saved' }])
+    }, false)
+  }
+  async setCredential(id: string, password: string, remember: boolean) {
+    if (!password) return false
+    const credential = { user: 'root', password }
+    const result = await this.savePreferences(id, { rootCredential: remember ? credential : undefined })
+    if (result.status !== 'completed') return false
+    this.credentials[id] = credential
+    return true
   }
   create(input: CreateRequest) {
     const request: CreateRequest = JSON.parse(JSON.stringify(input))
