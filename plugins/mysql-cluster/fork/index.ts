@@ -10,11 +10,13 @@ import { InstanceStopAdapter } from './service'
 import { initializeInstance } from './initialize'
 import { ReplicationService } from './replication'
 import type { Credentials } from '../shared'
+import { GroupReplicationService } from './groupReplication'
 
 export class MysqlClusterModule extends Base {
   private catalogValue?: InstanceCatalog
   private runtimeValue?: MysqlInstanceRuntime
   private replicationValue?: ReplicationService
+  private groupValue?: GroupReplicationService
   constructor() { super(); this.type = 'mysql-cluster' }
   get catalog() {
     return this.catalogValue ??= new InstanceCatalog(join(global.Server.MysqlDir!, 'mysql-cluster'), process.platform === 'win32' ? 'Windows' : process.platform === 'darwin' ? 'macOS' : 'Linux')
@@ -29,6 +31,22 @@ export class MysqlClusterModule extends Base {
     })
   }
   get replication() { return this.replicationValue ??= new ReplicationService(this.catalog) }
+  get groupReplication() { return this.groupValue ??= new GroupReplicationService(this.catalog) }
+  configureGroupReplication(groupId: string, credentials: Credentials) {
+    return this.request(async emit => {
+      const group = (await this.catalog.read()).clusters.find(g => g.id === groupId)
+      if (!group || group.mode !== 'group-replication') throw new Error('Unknown GR group')
+      return this.groupReplication.configure(group, credentials, emit)
+    })
+  }
+  replicationStatus(id: string, credential: Credential) {
+    return this.request(async () => {
+      const { cluster } = await this.catalog.instance(id)
+      return cluster.mode === 'group-replication' ? this.groupReplication.status(id, credential)
+        : cluster.mode === 'replication' ? this.replication.status(id, credential)
+        : { state: 'online', role: 'STANDALONE', lag: null }
+    })
+  }
   configureReplication(groupId: string, credentials: Credentials) {
     return this.request(async emit => {
       const group = (await this.catalog.read()).clusters.find(g => g.id === groupId)
