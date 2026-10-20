@@ -102,6 +102,7 @@
   import { join } from '@/util/path-browserify'
   import { MysqlClusterManager as manager } from './manager'
   import { createDraftRequest } from './form'
+  import { engineFromInstalled } from './engine'
   import { validateCreateRequest } from '../policy'
   import type { ClusterSpec, ClusterMode, EngineRef, InstanceSpec } from '../shared'
   import { t } from './lang'
@@ -133,7 +134,9 @@
     rootDir: join(window.Server.MysqlDir!, 'mysql-cluster', 'data'),
     password: ''
   })
-  const engineBin = ref(existing[0]?.engine.bin ?? versions.value[0]?.bin ?? '')
+  const engineBin = ref(
+    existing[0]?.engine.installationBin ?? existing[0]?.engine.bin ?? versions.value[0]?.bin ?? ''
+  )
   const members = ref<InstanceSpec[]>(JSON.parse(JSON.stringify(existing))),
     error = ref('')
   const busy = computed(() => !!manager.operations[id]?.busy)
@@ -152,12 +155,7 @@
         members.value = []
         return
       }
-      const engine: EngineRef = {
-        version: version.version,
-        path: version.path,
-        bin: version.bin,
-        source: version.source
-      }
+      const engine: EngineRef = engineFromInstalled(version)
       members.value = createDraftRequest({ ...form, engine, id, uuid }, platform).instances
     },
     { immediate: true }

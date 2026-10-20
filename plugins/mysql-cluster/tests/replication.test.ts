@@ -65,3 +65,72 @@ test('configures replica from verified source with the correct version dialect',
     assert.match(commands.at(-1)!.sql, /super_read_only=ON/i)
   }
 })
+test('retargets a managed replica port only when the verified source UUID is unchanged', async () => {
+  for (const version of ['8.0.22', '8.4.8']) {
+    const commands: { sql: string; params?: unknown[] }[] = []
+    const row =
+      version === '8.0.22'
+        ? {
+            Master_Port: 13306,
+            Master_UUID: 'source-uuid',
+            Slave_IO_Running: 'Yes',
+            Slave_SQL_Running: 'Yes'
+          }
+        : {
+            Source_Port: 13306,
+            Source_UUID: 'source-uuid',
+            Replica_IO_Running: 'Yes',
+            Replica_SQL_Running: 'Yes'
+          }
+    const session = {
+      async query(sql: string, params?: unknown[]) {
+        commands.push({ sql, params })
+        return /^SHOW/.test(sql) ? [row] : []
+      }
+    }
+    await api.configureReplicaChannel(
+      session,
+      version,
+      14306,
+      { user: 'repl', password: 'secret' },
+      'source-uuid'
+    )
+    assert.match(commands[1].sql, /^STOP (REPLICA|SLAVE)$/)
+    assert.match(commands[2].sql, /CHANGE .* TO (SOURCE|MASTER)_PORT=\?$/)
+    assert.deepEqual(commands[2].params, [14306])
+    assert.match(commands[3].sql, /^START (REPLICA|SLAVE)$/)
+    commands.splice(0)
+    await assert.rejects(
+      api.configureReplicaChannel(
+        session,
+        version,
+        14306,
+        { user: 'repl', password: 'secret' },
+        'different-source'
+      ),
+      /source/i
+    )
+    assert.equal(commands.length, 1)
+  }
+})
+test('retries the required replication grant after CREATE succeeded and GRANT failed', async () => {
+  let exists = false,
+    creates = 0,
+    grants = 0
+  const session = {
+    async query(sql: string) {
+      if (/^SELECT/.test(sql)) return exists ? [{ User: 'repl' }] : []
+      if (/^CREATE USER/.test(sql)) {
+        exists = true
+        creates++
+      }
+      if (/^GRANT/.test(sql) && ++grants === 1) throw new Error('grant unavailable')
+      return []
+    }
+  }
+  const account = { user: 'repl', password: 'secret' }
+  await assert.rejects(api.ensureReplicationAccount(session, account), /grant unavailable/)
+  await api.ensureReplicationAccount(session, account)
+  assert.equal(creates, 1)
+  assert.equal(grants, 2)
+})

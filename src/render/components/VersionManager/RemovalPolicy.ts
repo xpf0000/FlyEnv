@@ -1,4 +1,5 @@
 export interface RemovalCandidate {
+  dependentRemoval?: boolean
   source?: string
   name?: string
   path?: string

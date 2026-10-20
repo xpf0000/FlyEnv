@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 const gtid = await import('../fork/gtid').catch(() => ({}) as any)
 const group = await import('../fork/groupReplication').catch(() => ({}) as any)
 const uuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'
@@ -66,4 +69,50 @@ test('bootstrap reset failure cannot be reported as successful creation', async 
     group.withBootstrap(s, async () => undefined),
     /bootstrap.*OFF|bootstrap.*reset/i
   )
+})
+test('configuration retries reset bootstrap on every ONLINE member before reporting success', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'mc-bootstrap-'))
+  try {
+    let failReset = true
+    const commands: string[] = []
+    const cluster = {
+      id: 'g',
+      mode: 'group-replication',
+      memberIds: ['a', 'b', 'c'],
+      groupUuid: uuid
+    }
+    const catalog = {
+      operations: { runMany: (_ids: any, _op: any, task: any) => task() },
+      instance: async (id: string) => ({ spec: { id, groupPort: 23300 } }),
+      root
+    }
+    const connect = async (_c: any, id: string, _credential: any, task: any) =>
+      task({
+        async query(sql: string) {
+          commands.push(id + ':' + sql)
+          if (sql.includes('bootstrap_group=OFF') && failReset) throw new Error('reset unavailable')
+          return []
+        }
+      })
+    const service = new group.GroupReplicationService(catalog, connect)
+    service.planRecovery = async () => ({ memberIds: cluster.memberIds })
+    service.status = async (id: string) => ({
+      state: 'online',
+      role: id === 'a' ? 'PRIMARY' : 'SECONDARY'
+    })
+    await assert.rejects(
+      service.configure(cluster, {}, () => {}),
+      /reset unavailable/
+    )
+    failReset = false
+    commands.splice(0)
+    assert.equal((await service.configure(cluster, {}, () => {})).status, 'completed')
+    assert.equal(commands.filter((c) => c.includes('bootstrap_group=OFF')).length, 3)
+    assert.equal(
+      commands.some((c) => c.includes('START GROUP_REPLICATION')),
+      false
+    )
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
 })

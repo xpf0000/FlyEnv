@@ -13,6 +13,7 @@ import { withInstanceConnection } from '../fork/sql'
 import { listDatabases, mutateDatabase, createDatabase, backupDatabase } from '../fork/manage'
 import { StopProcessListFetch } from '../../../src/shared/StopProcessList'
 import { InstanceStopAdapter } from '../fork/service'
+import { engineFromInstalled } from '../render/engine'
 import type { ClusterMode, CreateRequest } from '../shared'
 
 const bin = process.env.MYSQL_CLUSTER_TEST_BIN
@@ -49,12 +50,12 @@ test(
       const instances = Array.from({ length: count }, (_, n) => ({
         id: `${group}_${n}`,
         name: `${group}_${n}`,
-        engine: {
+        engine: engineFromInstalled({
           version: '8.4.8',
           path: engineRoot,
-          bin: join(engineRoot, 'bin/mysqld'),
-          source: 'Static' as const
-        },
+          bin: join(engineRoot, 'bin/mysqld_safe'),
+          source: 'Static'
+        }),
         port: base + n,
         groupPort: mode === 'group-replication' ? base + 100 + n : undefined,
         socket: `/tmp/flyenv-native-${group}_${n}.sock`,
@@ -159,6 +160,33 @@ test(
             if (!copied) await new Promise((r) => setTimeout(r, 200))
           }
           assert.equal(copied, true, `${mode} ${spec.id} received the write`)
+        }
+        if (mode === 'replication') {
+          for (const id of [...request.cluster.memberIds].reverse()) await runtime.stop(id)
+          request.instances[0].port += 200
+          await catalog.update(request)
+          for (const id of request.cluster.memberIds)
+            await runtime.start(id, request.credentials[id])
+          assert.equal(
+            (await replication.configure(request.cluster, request.credentials, () => {})).status,
+            'completed'
+          )
+          await withInstanceConnection(catalog, primary, request.credentials[primary], (s) =>
+            s.query('INSERT INTO acceptance.probe VALUES (2)')
+          )
+          const secondary = request.cluster.memberIds[1],
+            deadline = Date.now() + 15000
+          let copied = false
+          while (!copied && Date.now() < deadline) {
+            copied = await withInstanceConnection(
+              catalog,
+              secondary,
+              request.credentials[secondary],
+              async (s) => (await s.query('SELECT * FROM acceptance.probe')).length === 2
+            )
+            if (!copied) await new Promise((r) => setTimeout(r, 200))
+          }
+          assert.equal(copied, true, 'replica follows the verified source after its port changes')
         }
         if (mode === 'group-replication') {
           await runtime.stop(primary)

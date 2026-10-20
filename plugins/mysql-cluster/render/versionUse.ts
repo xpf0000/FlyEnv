@@ -1,12 +1,22 @@
+import { installationSource } from './engine'
 import type { EngineRef } from '../shared'
 import type { RemovalCandidate } from '@/components/VersionManager/RemovalPolicy'
 export function usesInstallation(engine: EngineRef, candidate: RemovalCandidate): boolean {
   const norm = (s: string) => s.replace(/\\/g, '/').replace(/\/$/, '')
-  if (candidate.source && candidate.source !== engine.source) return false
-  if (candidate.bin && norm(candidate.bin) === norm(engine.bin)) return true
+  const source = installationSource(engine)
+  if (
+    candidate.bin &&
+    [engine.bin, engine.installationBin]
+      .filter(Boolean)
+      .some((bin) => norm(candidate.bin!) === norm(bin!))
+  )
+    return true
   if (candidate.path && norm(candidate.path) === norm(engine.path)) return true
-  if (candidate.name && engine.source !== 'Static') {
+  if (candidate.source && candidate.source !== source) return false
+  if (candidate.dependentRemoval && source === 'Macports') return true
+  if (candidate.name && source !== 'Static') {
     const name = candidate.name.split('/').pop()!
+    if (!/^mysql(?:@?[0-9.]+)?(?:-server)?$/.test(name)) return true
     return (
       norm(engine.path).split('/').includes(name) ||
       norm(engine.bin)

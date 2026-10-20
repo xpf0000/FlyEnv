@@ -227,3 +227,72 @@ test('a transient initialization mysqld is never published as a running service'
     await rm(root, { recursive: true, force: true })
   }
 })
+test('successful initialization survives a failed catalog commit and retries persistence without executing mysqld again', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'mc-init-commit-'))
+  try {
+    const c = new api.InstanceCatalog(join(root, 'owned'), 'macOS')
+    await c.prepare(fixture(root), { probe: async () => undefined, checkPorts: false })
+    const setStage = c.setStage.bind(c)
+    c.setStage = async (id: string, stage: string) => {
+      if (stage === 'initialized') throw new Error('catalog locked')
+      return setStage(id, stage)
+    }
+    let calls = 0
+    await assert.rejects(
+      init.initializeInstance(
+        c,
+        'a',
+        () => {},
+        async () => {
+          calls++
+        }
+      ),
+      /catalog locked/
+    )
+    assert.equal((await c.read()).stages.a, 'initializing')
+    const reopened = new api.InstanceCatalog(join(root, 'owned'), 'macOS')
+    assert.equal(
+      await init.initializeInstance(
+        reopened,
+        'a',
+        () => {},
+        async () => {
+          calls++
+        }
+      ),
+      'initialized'
+    )
+    assert.equal(calls, 1)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+test('starting a prepared instance resumes missing config preparation and initializes only its original identity', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'mc-resume-'))
+  try {
+    const c = new api.InstanceCatalog(join(root, 'owned'), 'macOS'),
+      request = fixture(root)
+    await c.prepare(request, { probe: async () => undefined, checkPorts: false })
+    await rm(c.paths('a').config)
+    let calls = 0
+    assert.equal(
+      await init.initializeInstance(
+        c,
+        'a',
+        () => {},
+        async () => {
+          calls++
+        }
+      ),
+      'initialized'
+    )
+    assert.match(await readFile(c.paths('a').config, 'utf8'), /port=23306/)
+    assert.equal(calls, 1)
+    assert.deepEqual(
+      (await c.read()).instances.map((i: any) => i.id),
+      ['a']
+    )
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})

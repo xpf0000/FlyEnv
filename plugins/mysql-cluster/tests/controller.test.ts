@@ -269,3 +269,29 @@ test('a group restart requires credentials before stopping healthy members', asy
   assert.equal((await c.runGroup(r.cluster, 'restart')).status, 'failed')
   assert.equal(stops, 0)
 })
+test('start resumes the original prepared group after Storage failed following Fork preparation', async () => {
+  const d = deps(),
+    original = d.rpc
+  let initialized = false,
+    prepared = 0,
+    writes = 0
+  d.rpc = async (method, args) => {
+    if (method === 'prepareInstances') prepared++
+    if (method === 'initializeInstance') initialized = true
+    return original(method, args)
+  }
+  d.write = async () => {
+    if (++writes === 1) throw new Error('storage temporarily locked')
+  }
+  const service = d.service()
+  service.start = async () => {
+    if (!initialized) throw new Error('Instance is not safely initialized')
+    return true
+  }
+  const c = new api.MysqlClusterController(d)
+  assert.equal((await c.create(request)).status, 'failed')
+  assert.deepEqual(c.catalog.clusters[0].memberIds, ['a'])
+  assert.equal(c.credentials.a?.password, 'secret')
+  assert.equal((await c.runGroup(c.catalog.clusters[0], 'start')).status, 'completed')
+  assert.equal(prepared, 1)
+})

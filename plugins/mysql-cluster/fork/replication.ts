@@ -46,12 +46,23 @@ export async function configureReplicaChannel(
   session: SqlSession,
   version: string,
   sourcePort: number,
-  account: Credential
+  account: Credential,
+  sourceUuid?: string
 ) {
   const modern = replicationCapabilities(version).sourceSyntax
   const current = await session.query(modern ? 'SHOW REPLICA STATUS' : 'SHOW SLAVE STATUS')
-  if (current.length && Number(current[0].Source_Port ?? current[0].Master_Port) !== sourcePort)
-    throw new Error('Existing replica channel points to another source')
+  const retarget =
+    current.length && Number(current[0].Source_Port ?? current[0].Master_Port) !== sourcePort
+  if (retarget) {
+    const previousUuid = current[0].Source_UUID ?? current[0].Master_UUID
+    if (!sourceUuid || previousUuid !== sourceUuid)
+      throw new Error('Existing replica channel points to another or unknown source')
+    await session.query(modern ? 'STOP REPLICA' : 'STOP SLAVE')
+    await session.query(
+      modern ? 'CHANGE REPLICATION SOURCE TO SOURCE_PORT=?' : 'CHANGE MASTER TO MASTER_PORT=?',
+      [sourcePort]
+    )
+  }
   if (!current.length)
     await session.query(
       modern
@@ -60,6 +71,7 @@ export async function configureReplicaChannel(
       [sourcePort, account.user, account.password]
     )
   if (
+    retarget ||
     !current.length ||
     (current[0].Replica_IO_Running ?? current[0].Slave_IO_Running) !== 'Yes' ||
     (current[0].Replica_SQL_Running ?? current[0].Slave_SQL_Running) !== 'Yes'
@@ -93,14 +105,14 @@ export async function ensureReplicationAccount(session: SqlSession, account: Cre
     "SELECT User FROM mysql.user WHERE User=? AND Host='127.0.0.1'",
     [account.user]
   )
-  if (!rows.length)
-    await localAdmin(session, async () => {
+  await localAdmin(session, async () => {
+    if (!rows.length)
       await session.query("CREATE USER ?@'127.0.0.1' IDENTIFIED BY ?", [
         account.user,
         account.password
       ])
-      await session.query("GRANT REPLICATION SLAVE ON *.* TO ?@'127.0.0.1'", [account.user])
-    })
+    await session.query("GRANT REPLICATION SLAVE ON *.* TO ?@'127.0.0.1'", [account.user])
+  })
 }
 export class ReplicationService {
   readonly locks = new OperationLocks()
@@ -126,11 +138,16 @@ export class ReplicationService {
         const source = await this.catalog.instance(cluster.memberIds[0])
         const account = await replicationAccount(this.catalog, cluster)
         // Source connectivity/account creation is a required prerequisite for every replica.
-        await withInstanceConnection(
+        const sourceUuid = await withInstanceConnection(
           this.catalog,
           source.spec.id,
           credentials[source.spec.id],
-          (s) => ensureReplicationAccount(s, account)
+          async (s) => {
+            await ensureReplicationAccount(s, account)
+            const rows = await s.query('SELECT @@server_uuid AS uuid')
+            if (!rows[0]?.uuid) throw new Error('Cannot verify source UUID')
+            return String(rows[0].uuid)
+          }
         )
         const outcomes: ItemOutcome[] = [
           { id: source.spec.id, status: 'completed', stage: 'replication' }
@@ -140,7 +157,7 @@ export class ReplicationService {
           try {
             const { spec } = await this.catalog.instance(id)
             await withInstanceConnection(this.catalog, id, credentials[id], (s) =>
-              configureReplicaChannel(s, spec.engine.version, source.spec.port, account)
+              configureReplicaChannel(s, spec.engine.version, source.spec.port, account, sourceUuid)
             )
             const deadline = Date.now() + 30_000
             let status: ReplicationStatus

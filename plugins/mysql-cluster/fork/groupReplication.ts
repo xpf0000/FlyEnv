@@ -39,9 +39,12 @@ export interface GroupRecoveryPlan {
 }
 export class GroupReplicationService {
   readonly locks = new OperationLocks()
-  constructor(readonly catalog: InstanceCatalog) {}
+  constructor(
+    readonly catalog: InstanceCatalog,
+    private readonly connect = withInstanceConnection
+  ) {}
   async status(id: string, credential: Credential): Promise<ReplicationStatus> {
-    return withInstanceConnection(this.catalog, id, credential, async (session) => {
+    return this.connect(this.catalog, id, credential, async (session) => {
       const rows = await session.query(
         'SELECT MEMBER_STATE, MEMBER_ROLE FROM performance_schema.replication_group_members WHERE MEMBER_ID=@@server_uuid'
       )
@@ -71,7 +74,7 @@ export class GroupReplicationService {
     const histories: GroupRecoveryPlan['histories'] = []
     let active = false
     for (const id of cluster.memberIds) {
-      await withInstanceConnection(this.catalog, id, credentials[id], async (session) => {
+      await this.connect(this.catalog, id, credentials[id], async (session) => {
         const members = await session.query(
           'SELECT MEMBER_STATE FROM performance_schema.replication_group_members WHERE MEMBER_ID=@@server_uuid'
         )
@@ -107,32 +110,30 @@ export class GroupReplicationService {
           )
           const seeds = members.map((m) => `127.0.0.1:${m.spec.groupPort}`).join(',')
           // Every member must be reachable before deciding whether bootstrap is safe.
+          // ONLINE does not prove a previous bootstrap cleanup completed.
+          for (const id of cluster.memberIds)
+            await this.connect(this.catalog, id, credentials[id], (session) =>
+              session.query('SET GLOBAL group_replication_bootstrap_group=OFF')
+            )
           const plan = await this.planRecovery(cluster, credentials)
           for (const { spec } of members) {
             if ((await this.status(spec.id, credentials[spec.id])).state === 'online') continue
-            await withInstanceConnection(
-              this.catalog,
-              spec.id,
-              credentials[spec.id],
-              async (session) => {
-                const plugins = await session.query(
-                  "SELECT PLUGIN_STATUS FROM information_schema.PLUGINS WHERE PLUGIN_NAME='group_replication'"
-                )
-                if (plugins[0]?.PLUGIN_STATUS !== 'ACTIVE')
-                  throw new Error('Group Replication plugin is unavailable')
-                await ensureReplicationAccount(session, account)
-                await session.query('SET PERSIST group_replication_group_name=?', [
-                  cluster.groupUuid
-                ])
-                await session.query("SET PERSIST group_replication_communication_stack='XCOM'")
-                await session.query('SET PERSIST group_replication_group_seeds=?', [seeds])
-                await session.query('SET PERSIST group_replication_recovery_get_public_key=ON')
-                await session.query(
-                  "CHANGE REPLICATION SOURCE TO SOURCE_USER=?, SOURCE_PASSWORD=? FOR CHANNEL 'group_replication_recovery'",
-                  [account.user, account.password]
-                )
-              }
-            )
+            await this.connect(this.catalog, spec.id, credentials[spec.id], async (session) => {
+              const plugins = await session.query(
+                "SELECT PLUGIN_STATUS FROM information_schema.PLUGINS WHERE PLUGIN_NAME='group_replication'"
+              )
+              if (plugins[0]?.PLUGIN_STATUS !== 'ACTIVE')
+                throw new Error('Group Replication plugin is unavailable')
+              await ensureReplicationAccount(session, account)
+              await session.query('SET PERSIST group_replication_group_name=?', [cluster.groupUuid])
+              await session.query("SET PERSIST group_replication_communication_stack='XCOM'")
+              await session.query('SET PERSIST group_replication_group_seeds=?', [seeds])
+              await session.query('SET PERSIST group_replication_recovery_get_public_key=ON')
+              await session.query(
+                "CHANGE REPLICATION SOURCE TO SOURCE_USER=?, SOURCE_PASSWORD=? FOR CHANNEL 'group_replication_recovery'",
+                [account.user, account.password]
+              )
+            })
           }
           const outcomes: ItemOutcome[] = []
           const order = plan.bootstrapId
@@ -143,7 +144,7 @@ export class GroupReplicationService {
             try {
               const current = await this.status(id, credentials[id])
               if (current.state !== 'online')
-                await withInstanceConnection(this.catalog, id, credentials[id], async (session) => {
+                await this.connect(this.catalog, id, credentials[id], async (session) => {
                   const start = () => session.query('START GROUP_REPLICATION')
                   if (id === plan.bootstrapId) await withBootstrap(session, start)
                   else await start()

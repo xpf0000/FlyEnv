@@ -7,6 +7,7 @@ export interface EngineRef {
   bin: string
   source: 'Static' | 'Homebrew' | 'Macports'
   name?: string
+  installationBin?: string
 }
 export interface InstanceSpec {
   id: InstanceId

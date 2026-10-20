@@ -93,7 +93,11 @@
   } = Setup(props.typeFlag)
   const handleVersion = (row: any) =>
     row.installed
-      ? guardedRemoval({ ...row, source: 'Macports' }, props.beforeRemove, () => runVersion(row))
+      ? guardedRemoval(
+          { ...row, source: 'Macports', dependentRemoval: true },
+          props.beforeRemove,
+          () => runVersion(row)
+        )
       : runVersion(row)
 </script>
 <style lang="scss">

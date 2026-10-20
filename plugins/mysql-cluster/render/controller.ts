@@ -248,11 +248,11 @@ export class MysqlClusterController {
     return this.operate(request.cluster.id, 'create', async (op) => {
       if (request.instances.some((instance) => !request.credentials[instance.id]?.password))
         throw new Error('Initial administrator credentials are required')
+      Object.assign(this.credentials, request.credentials)
       op.stage = 'preparing'
       const catalog = validateCatalog(await this.deps.rpc('prepareInstances', [request]))
       await this.persist(catalog)
       this.catalog = catalog
-      Object.assign(this.credentials, request.credentials)
       await this.deps.installed()
       const items: ItemOutcome[] = []
       for (const instance of request.instances) {
@@ -325,6 +325,7 @@ export class MysqlClusterController {
         this.requireGroupCredentials(group)
       await this.refresh()
       if (this.snapshots[id]?.state === 'unknown') throw new Error('Cannot verify instance state')
+      if (action !== 'stop') await this.deps.rpc('initializeInstance', [id])
       const result = await this.deps.service(id)[action]()
       if (result !== true) throw new Error(String(result))
       if (action !== 'stop' && group?.mode !== 'standalone' && group)
@@ -357,6 +358,7 @@ export class MysqlClusterController {
       for (const id of group.memberIds) {
         op.stage = `starting: ${id}`
         try {
+          await this.deps.rpc('initializeInstance', [id])
           const result = await this.deps.service(id).start()
           if (result !== true) throw new Error(String(result))
           outcomes.push({ id, status: 'completed', stage: 'start' })
