@@ -1,13 +1,13 @@
-import { spawn } from 'node:child_process'
+import { serviceStartSpawn } from '@fork/util/ServiceStart'
 import { mkdir, readFile, rm, access, realpath } from 'node:fs/promises'
 import { dirname } from 'node:path'
-import { createConnection, escape } from 'mysql2/promise'
+import { escape } from 'mysql2/promise'
 import type { Credential, EventSink, InstanceSnapshot, InstanceSpec } from '../shared'
 import { errorText } from '../shared'
+import { replicationCapabilities } from '../policy'
 import { InstanceCatalog, assertFreePort } from './catalog'
 import { selectInstanceRoots } from './processIdentity'
 import { writeAtomic } from './io'
-import { normalizedPath } from '../policy'
 import { renderConfig, validateConfigEdit } from './config'
 
 export type ProcessRow = { PID: string; PPID: string; COMMAND: string }
@@ -106,6 +106,34 @@ export class MysqlInstanceRuntime {
       await assertFreePort(spec.port)
       if (spec.groupPort) await assertFreePort(spec.groupPort)
       const args = [`--defaults-file=${paths.config}`]
+      if (cluster.mode === 'replication') {
+        const skipStart = replicationCapabilities(spec.engine.version).modernReplicaVariables
+          ? 'skip-replica-start'
+          : 'skip-slave-start'
+        args.push(`--${skipStart}=OFF`)
+      }
+      if (
+        stage === 'ready' &&
+        (cluster.mode === 'group-replication' ||
+          (cluster.mode === 'replication' && cluster.memberIds[0] !== id))
+      )
+        args.push('--read-only=ON', '--super-read-only=ON')
+      if (this.catalog.platform !== 'Windows')
+        await mkdir(dirname(spec.socket), { recursive: true })
+      // Initial password setup needs its init-file until MySQL has consumed it.
+      // A PID alone precedes init-file execution, so only first startup waits for
+      // its new server-log completion message. Ordinary service starts use the
+      // shared process startup check and the existing exact identity discovery.
+      const errorLogOffset =
+        stage === 'initialized'
+          ? await readFile(paths.error).then(
+              (log) => log.length,
+              (error: NodeJS.ErrnoException) => {
+                if (error.code === 'ENOENT') return 0
+                throw error
+              }
+            )
+          : 0
       if (stage === 'initialized') {
         if (!credential?.password || credential.user !== 'root')
           throw new Error('Initial root credentials are required')
@@ -115,81 +143,70 @@ export class MysqlInstanceRuntime {
         )
         args.push(`--init-file=${paths.init}`)
       }
-      if (this.catalog.platform !== 'Windows')
-        await mkdir(dirname(spec.socket), { recursive: true })
-      emit({ operationId: id, instanceId: id, stage: 'starting' })
-      const child = spawn(spec.engine.bin, args, {
-        stdio: 'ignore',
-        windowsHide: true,
-        shell: false
-      })
-      let spawnError = false
-      child.on('error', () => {
-        spawnError = true
-      })
-      child.unref()
+      let pid: string | undefined
+      let initConsumed = stage !== 'initialized'
+      let cleanupConfirmed = false
       try {
-        const deadline = Date.now() + 90_000
-        let ready = false
-        while (Date.now() < deadline) {
-          if (spawnError || child.exitCode !== null)
-            throw new Error('MySQL exited during startup; inspect the instance error log')
-          try {
-            const pid = (await readFile(paths.pid, 'utf8')).trim()
-            if (pid !== String(child.pid)) throw new Error('Waiting for owned PID')
-            if (credential) {
-              const connection = await createConnection({
-                host: '127.0.0.1',
-                port: spec.port,
-                user: credential.user,
-                password: credential.password,
-                connectTimeout: 1000
-              })
-              try {
-                const [rows]: any = await connection.query(
-                  'SELECT @@datadir AS dataDir, @@port AS port'
-                )
-                if (
-                  normalizedPath(rows[0].dataDir, this.catalog.platform) !==
-                    normalizedPath(spec.dataDir, this.catalog.platform) ||
-                  Number(rows[0].port) !== spec.port
-                )
-                  throw new Error('Connected instance identity mismatch')
-              } finally {
-                await connection.end()
-              }
-            } else {
-              const { createConnection: connect } = await import('node:net')
-              await new Promise<void>((resolve, reject) => {
-                const socket = connect({ host: '127.0.0.1', port: spec.port })
-                socket.setTimeout(1000)
-                socket.once('connect', () => {
-                  socket.destroy()
-                  resolve()
-                })
-                socket.once('error', reject)
-                socket.once('timeout', () => {
-                  socket.destroy()
-                  reject(new Error('Not ready'))
-                })
-              })
+        emit({ operationId: id, instanceId: id, stage: 'starting' })
+        const started = await serviceStartSpawn({
+          version: this.descriptor(spec),
+          baseDir: paths.dir,
+          bin: spec.engine.bin,
+          execArgs: args,
+          sensitive: true,
+          on: () => {}
+          // Do not pass pidPath: only mysqld may write its managed PID file.
+        })
+        pid = started['APP-Service-Start-PID']
+        const running = await this.discover(id)
+        if (running.state !== 'running' || running.pid !== pid)
+          throw new Error('Cannot verify started instance process identity')
+        if (stage === 'initialized') {
+          const deadline = Date.now() + 90_000
+          let completed = false
+          while (Date.now() < deadline) {
+            const log = await readFile(paths.error).catch((error: NodeJS.ErrnoException) => {
+              if (error.code === 'ENOENT') return Buffer.alloc(0)
+              throw error
+            })
+            if (
+              /ready for connections/i.test(
+                log.subarray(log.length < errorLogOffset ? 0 : errorLogOffset).toString('utf8')
+              )
+            ) {
+              completed = true
+              initConsumed = true
+              break
             }
-            ready = true
-            break
-          } catch {
+            const current = await this.discover(id)
+            if (current.state !== 'running' || current.pid !== pid)
+              throw new Error('MySQL exited during initial startup; inspect the instance error log')
             await sleep(200)
           }
+          if (!completed)
+            throw new Error('MySQL initial startup timed out; inspect the instance error log')
         }
-        if (!ready)
-          throw new Error('MySQL readiness check timed out; inspect credentials and instance log')
         await this.catalog.setStage(id, 'ready')
-        return { pid: String(child.pid), descriptor: this.descriptor(spec) }
+        return { pid, descriptor: this.descriptor(spec) }
       } catch (error) {
-        // Only this newly spawned child is eligible for startup-failure cleanup.
-        if (child.pid && child.exitCode === null) child.kill('SIGTERM')
+        // Cleanup remains with the existing stop owner and the newly launched
+        // PID; an unrelated process is never eligible for startup cleanup.
+        if (pid) {
+          try {
+            await this.deps.stop(spec, pid)
+            cleanupConfirmed = true
+          } catch (cleanupError) {
+            throw new Error(
+              `${errorText(error)}; startup cleanup failed: ${errorText(cleanupError)}`
+            )
+          }
+        }
         throw error
       } finally {
-        await rm(paths.init, { force: true }).catch(() => undefined)
+        // If stopping failed before initial setup consumed this file, retain it
+        // for that still-running process and report the cleanup failure above.
+        if (initConsumed || !pid || cleanupConfirmed)
+          await rm(paths.init, { force: true }).catch(() => undefined)
       }
     })
   }

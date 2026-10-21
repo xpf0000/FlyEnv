@@ -105,14 +105,36 @@ export async function ensureReplicationAccount(session: SqlSession, account: Cre
     "SELECT User FROM mysql.user WHERE User=? AND Host='127.0.0.1'",
     [account.user]
   )
-  await localAdmin(session, async () => {
-    if (!rows.length)
-      await session.query("CREATE USER ?@'127.0.0.1' IDENTIFIED BY ?", [
-        account.user,
-        account.password
-      ])
-    await session.query("GRANT REPLICATION SLAVE ON *.* TO ?@'127.0.0.1'", [account.user])
-  })
+  const protection = await session.query('SELECT @@GLOBAL.super_read_only AS superReadOnly')
+  const original = Number(protection[0]?.superReadOnly)
+  if (original !== 0 && original !== 1)
+    throw new Error('Cannot determine member write protection before account configuration')
+  let failure: unknown
+  try {
+    // Explicit recovery may provision an offline GR member. Keep read_only ON
+    // for application users while allowing this administrator's local DDL.
+    if (original) await session.query('SET GLOBAL super_read_only=OFF')
+    await localAdmin(session, async () => {
+      if (!rows.length)
+        await session.query("CREATE USER ?@'127.0.0.1' IDENTIFIED BY ?", [
+          account.user,
+          account.password
+        ])
+      await session.query("GRANT REPLICATION SLAVE ON *.* TO ?@'127.0.0.1'", [account.user])
+    })
+  } catch (error) {
+    failure = error
+  }
+  if (original) {
+    try {
+      await session.query('SET GLOBAL super_read_only=ON')
+    } catch (error) {
+      throw new Error(
+        `${failure ? errorText(failure) + '; ' : ''}Failed to restore member write protection: ${errorText(error)}`
+      )
+    }
+  }
+  if (failure) throw failure
 }
 export class ReplicationService {
   readonly locks = new OperationLocks()

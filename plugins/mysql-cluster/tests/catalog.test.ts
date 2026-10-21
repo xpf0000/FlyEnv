@@ -27,6 +27,113 @@ export const fixture = (root: string) => ({
   ],
   credentials: { a: { user: 'root', password: 'a b\'"$`\\' } }
 })
+const secondRequest = (root: string) => {
+  const request: any = fixture(root)
+  Object.assign(request.cluster, { id: 'g2', name: 'second', memberIds: ['b'] })
+  Object.assign(request.instances[0], {
+    id: 'b',
+    name: 'b',
+    port: 23307,
+    serverId: 23307,
+    socket: '/tmp/mc-b.sock',
+    dataDir: join(root, 'data-b')
+  })
+  request.credentials = { b: request.credentials.a }
+  return request
+}
+
+test('create rejects normalized name collisions before writing catalog or node files', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'mc-name-create-'))
+  try {
+    const c = new api.InstanceCatalog(join(root, 'owned'), 'macOS')
+    await c.prepare(fixture(root), { probe: async () => undefined, checkPorts: false })
+    const before = await readFile(join(c.root, 'catalog.json'), 'utf8')
+    for (const scope of ['cluster', 'instance']) {
+      const request = secondRequest(root)
+      if (scope === 'cluster') request.cluster.name = ' TEST '
+      else request.instances[0].name = ' A '
+      await assert.rejects(
+        c.prepare(request, { probe: async () => undefined, checkPorts: false }),
+        new RegExp(`${scope} name`, 'i')
+      )
+      assert.equal(await readFile(join(c.root, 'catalog.json'), 'utf8'), before)
+      await assert.rejects(readFile(c.paths('b').config), { code: 'ENOENT' })
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('queued creates recheck names after the previous catalog commit', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'mc-name-race-'))
+  try {
+    const c = new api.InstanceCatalog(join(root, 'owned'), 'macOS')
+    const first = fixture(root),
+      second = secondRequest(root)
+    second.cluster.name = ' TEST '
+    const result = await Promise.allSettled([
+      c.prepare(first, { probe: async () => undefined, checkPorts: false }),
+      c.prepare(second, { probe: async () => undefined, checkPorts: false })
+    ])
+    assert.equal(result[0].status, 'fulfilled')
+    assert.equal(result[1].status, 'rejected')
+    assert.deepEqual(
+      (await c.read()).clusters.map((g: any) => g.id),
+      ['g']
+    )
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('edit preserves own names and rejects other names without journals or config side effects', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'mc-name-edit-'))
+  try {
+    const c = new api.InstanceCatalog(join(root, 'owned'), 'macOS'),
+      first = fixture(root)
+    await c.prepare(first, { probe: async () => undefined, checkPorts: false })
+    await c.prepare(secondRequest(root), { probe: async () => undefined, checkPorts: false })
+    await c.update(first)
+    const before = await readFile(join(c.root, 'catalog.json'), 'utf8')
+    const configBefore = await readFile(c.paths('a').config, 'utf8')
+    for (const scope of ['cluster', 'instance']) {
+      const request = structuredClone(first)
+      if (scope === 'cluster') request.cluster.name = ' SECOND '
+      else request.instances[0].name = ' B '
+      await assert.rejects(c.update(request), new RegExp(`${scope} name`, 'i'))
+      assert.equal(await readFile(join(c.root, 'catalog.json'), 'utf8'), before)
+      assert.equal(await readFile(c.paths('a').config, 'utf8'), configBefore)
+      assert.equal((await c.instance('a')).pendingUpdate, false)
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('legacy duplicate names can be read, resumed and repaired without blocking unrelated groups', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'mc-name-legacy-'))
+  try {
+    const c = new api.InstanceCatalog(join(root, 'owned'), 'macOS'),
+      first = fixture(root)
+    await c.prepare(first, { probe: async () => undefined, checkPorts: false })
+    await c.prepare(secondRequest(root), { probe: async () => undefined, checkPorts: false })
+    const legacy = await c.read()
+    legacy.clusters[1].name = ' TEST '
+    legacy.instances[1].name = ' A '
+    await c.write(legacy)
+    assert.equal((await c.read()).instances.length, 2)
+    await c.prepare(first, { probe: async () => undefined, checkPorts: false })
+    const repair = secondRequest(root)
+    repair.cluster.name = 'repaired'
+    repair.instances[0].name = 'repaired'
+    await c.update(repair)
+    assert.equal((await c.instance('b')).spec.name, 'repaired')
+    assert.equal((await c.instance('a')).cluster.name, 'test')
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
 test('preparation retry repairs a missing managed config without initializing existing data', async () => {
   const root = await mkdtemp(join(tmpdir(), 'mc-prepare-retry-'))
   try {
@@ -195,9 +302,11 @@ test('directory edits reject a symlink alias of another managed empty data direc
     await c.prepare(request, { probe: async () => undefined, checkPorts: false })
     const second: any = structuredClone(request)
     second.cluster.id = 'g2'
+    second.cluster.name = 'second'
     second.cluster.memberIds = ['b']
     Object.assign(second.instances[0], {
       id: 'b',
+      name: 'b',
       port: 23307,
       socket: '/tmp/mc-b.sock',
       dataDir: join(root, 'data-b'),

@@ -1,5 +1,7 @@
 export default {
   required: '请填写必填项：',
+  duplicateClusterName: '集群名称已存在：',
+  duplicateInstanceName: '实例名称已存在：',
   noAvailablePorts: '没有足够的可用端口，请调整已有实例的端口配置。',
   customDirectories: '自定义版本目录',
   environment: '环境变量',
@@ -73,6 +75,9 @@ export default {
   connect: '连接',
   remember: '在本机记住凭据',
   credentials: '管理员凭据',
+  recoverReplication: '配置 / 恢复复制',
+  replicationRecoveryHint:
+    '请先启动全部节点，再使用 Root 凭据配置或恢复复制。普通启停不需要数据库凭据。',
   adminHint: '凭据按实例隔离。创建数据库、用户和修改密码请使用当前可写主节点。',
   databases: '数据库',
   users: '用户',

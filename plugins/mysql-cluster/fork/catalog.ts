@@ -2,7 +2,12 @@ import { access, mkdir, readFile, readdir, realpath, stat } from 'node:fs/promis
 import { constants } from 'node:fs'
 import { dirname, join, basename } from 'node:path'
 import { createServer } from 'node:net'
-import { validateCatalog, validateCreateRequest, normalizedPath } from '../policy'
+import {
+  validateCatalog,
+  validateCreateRequest,
+  validateUniqueNames,
+  normalizedPath
+} from '../policy'
 import { emptyCatalog } from '../shared'
 import type { CreateRequest, InstanceSpec, Platform, SavedCatalog, ClusterMode } from '../shared'
 import { instancePaths } from './paths'
@@ -134,6 +139,7 @@ export class InstanceCatalog {
         await this.finishPreparation(request, catalog)
         return catalog
       }
+      validateUniqueNames(request, catalog)
       const all = [...catalog.instances, ...request.instances]
       const dirs: string[] = [],
         ports = new Set<number>(),
@@ -217,6 +223,7 @@ export class InstanceCatalog {
           JSON.stringify(group.memberIds) !== JSON.stringify(request.cluster.memberIds)
         )
           throw new Error('Cannot change existing topology')
+        validateUniqueNames(request, before, group.id)
         for (const item of request.instances) {
           const old = next.instances.find((i) => i.id === item.id)
           if (

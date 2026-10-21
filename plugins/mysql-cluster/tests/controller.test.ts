@@ -219,7 +219,7 @@ test('replication setup failure retains each completed server start as partial c
   assert.equal(result.status, 'partial')
   assert.equal(result.items.filter((i: any) => i.status === 'completed').length, 2)
 })
-test('a group restart requires credentials before stopping healthy members', async () => {
+test('ordinary group restart uses process state without credentials or replication SQL', async () => {
   const d: any = deps(),
     original = d.rpc
   const r = structuredClone(request)
@@ -250,13 +250,24 @@ test('a group restart requires credentials before stopping healthy members', asy
         async start() {
           this.run = true
           return true
+        },
+        async restart() {
+          await this.stop()
+          return this.start()
         }
       }
     ])
   )
   d.service = (id: string) => services[id]
-  d.rpc = async (method: string, args: any[]) =>
-    method === 'readCatalog'
+  const sqlCalls: string[] = []
+  d.rpc = async (method: string, args: any[]) => {
+    if (
+      ['replicationStatus', 'configureReplication', 'configureGroupReplication'].includes(method)
+    ) {
+      sqlCalls.push(method)
+      throw new Error('SQL credentials are unavailable')
+    }
+    return method === 'readCatalog'
       ? { schemaVersion: 1, instances: r.instances, clusters: [r.cluster] }
       : method === 'listInstances'
         ? r.instances.map((i) => ({
@@ -265,9 +276,14 @@ test('a group restart requires credentials before stopping healthy members', asy
             pid: '123'
           }))
         : original(method, args)
+  }
   const c = new api.MysqlClusterController(d)
-  assert.equal((await c.runGroup(r.cluster, 'restart')).status, 'failed')
-  assert.equal(stops, 0)
+  assert.equal((await c.runGroup(r.cluster, 'restart')).status, 'completed')
+  assert.equal(stops, 2)
+  c.credentials = { a: { user: 'root', password: 'stale' }, b: { user: 'root', password: 'stale' } }
+  assert.equal((await c.runGroup(r.cluster, 'start')).status, 'completed')
+  assert.equal((await c.runInstance('a', 'restart')).status, 'completed')
+  assert.deepEqual(sqlCalls, [])
 })
 test('start resumes the original prepared group after Storage failed following Fork preparation', async () => {
   const d = deps(),
@@ -294,6 +310,103 @@ test('start resumes the original prepared group after Storage failed following F
   assert.equal(c.credentials.a?.password, 'secret')
   assert.equal((await c.runGroup(c.catalog.clusters[0], 'start')).status, 'completed')
   assert.equal(prepared, 1)
+})
+test('explicit replication recovery requires running members and credentials without restarting processes', async () => {
+  const d = deps(),
+    original = d.rpc
+  const r = structuredClone(request)
+  r.cluster.mode = 'replication'
+  r.cluster.memberIds.push('b')
+  r.instances.push({
+    ...r.instances[0],
+    id: 'b',
+    name: 'b',
+    port: 13307,
+    socket: '/tmp/b.sock',
+    dataDir: '/tmp/mc/b',
+    serverId: 2
+  })
+  r.credentials.b = { user: 'root', password: 'secret' }
+  let configured = 0
+  d.rpc = async (method, args) => {
+    if (method === 'configureReplication') {
+      configured++
+      return {
+        status: 'completed',
+        items: [{ id: 'g', status: 'completed', stage: 'replication' }]
+      }
+    }
+    return original(method, args)
+  }
+  const c = new api.MysqlClusterController(d)
+  assert.equal((await c.create(r)).status, 'completed')
+  assert.equal(configured, 1)
+  const starts = d.getStarted()
+  c.credentials = {}
+  assert.equal((await c.recoverReplication(r.cluster)).status, 'failed')
+  assert.equal(configured, 1)
+  c.credentials = r.credentials
+  assert.equal((await c.recoverReplication(r.cluster)).status, 'completed')
+  assert.equal(configured, 2)
+  assert.equal(d.getStarted(), starts)
+  await c.runGroup(r.cluster, 'stop')
+  assert.equal((await c.recoverReplication(r.cluster)).status, 'failed')
+  assert.equal(configured, 2)
+})
+test('a pending SQL status observation cannot delay process lifecycle or overwrite its newer state', async () => {
+  const d = deps(),
+    original = d.rpc,
+    c = new api.MysqlClusterController(d)
+  await c.create(request)
+  c.catalog.clusters[0].mode = 'replication'
+  c.catalog.clusters[0].memberIds.push('b')
+  c.catalog.instances.push({
+    ...request.instances[0],
+    id: 'b',
+    name: 'b',
+    port: 13307,
+    socket: '/tmp/b.sock',
+    dataDir: '/tmp/mc/b',
+    serverId: 2
+  })
+  const catalog = structuredClone(c.catalog)
+  let release!: () => void, queried!: () => void
+  const requested = new Promise<void>((resolve) => {
+    queried = resolve
+  })
+  const blocked = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  d.rpc = async (method, args) => {
+    if (method === 'readCatalog') return catalog
+    if (method === 'listInstances')
+      return catalog.instances.map((item: any) => ({
+        id: item.id,
+        state: d.service().run ? 'running' : 'stopped',
+        pid: d.service().run ? '123' : ''
+      }))
+    if (method === 'replicationStatus') {
+      queried()
+      await blocked
+      return { state: 'online', role: 'SOURCE', lag: 0 }
+    }
+    return original(method, args)
+  }
+  const health = c.refresh(true)
+  await requested
+  let stopped = false
+  const stop = c.runGroup(c.catalog.clusters[0], 'stop').then((result: any) => {
+    stopped = result.status === 'completed'
+  })
+  await new Promise((resolve) => setImmediate(resolve))
+  try {
+    assert.equal(stopped, true, 'process stop must not wait for a SQL status request')
+  } finally {
+    release()
+    await Promise.all([health, stop])
+  }
+  assert.equal(c.snapshots.a.state, 'stopped')
+  assert.equal(c.snapshots.a.replication, undefined)
 })
 test('hiding the plugin waits for admitted lifecycle work before stopping the local collection', async () => {
   const d = deps(),

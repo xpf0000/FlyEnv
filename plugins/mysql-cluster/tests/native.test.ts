@@ -168,6 +168,33 @@ test(
         }
         if (mode === 'replication') {
           for (const id of [...request.cluster.memberIds].reverse()) await runtime.stop(id)
+          for (const id of request.cluster.memberIds) await runtime.start(id, undefined)
+          await withInstanceConnection(catalog, primary, request.credentials[primary], (s) =>
+            s.query('CREATE DATABASE restart_probe')
+          )
+          const replicaId = request.cluster.memberIds[1]
+          const resumed = Date.now() + 15000
+          let received = false
+          while (!received && Date.now() < resumed) {
+            received = await withInstanceConnection(
+              catalog,
+              replicaId,
+              request.credentials[replicaId],
+              async (s) => {
+                const rows = await s.query('SELECT @@read_only AS ro, @@super_read_only AS sro')
+                assert.equal(Number(rows[0].ro), 1)
+                assert.equal(Number(rows[0].sro), 1)
+                return (await s.query("SHOW DATABASES LIKE 'restart_probe'")).length === 1
+              }
+            )
+            if (!received) await new Promise((r) => setTimeout(r, 200))
+          }
+          assert.equal(
+            received,
+            true,
+            'persisted replication resumes after credential-free process start'
+          )
+          for (const id of [...request.cluster.memberIds].reverse()) await runtime.stop(id)
           request.instances[0].port += 200
           await catalog.update(request)
           for (const id of request.cluster.memberIds)
@@ -205,18 +232,52 @@ test(
             if (!elected) await new Promise((r) => setTimeout(r, 250))
           }
           assert.equal(elected, true)
-          await runtime.start(primary, request.credentials[primary])
+          await runtime.start(primary, undefined)
+          await withInstanceConnection(
+            catalog,
+            primary,
+            request.credentials[primary],
+            async (s) => {
+              const flags = await s.query('SELECT @@read_only AS ro, @@super_read_only AS sro')
+              assert.equal(
+                Number(flags[0].ro),
+                1,
+                'offline GR member stays read-only after process restart'
+              )
+              assert.equal(Number(flags[0].sro), 1)
+              await assert.rejects(
+                s.query('CREATE DATABASE unsafe_offline_gr_write'),
+                /ER_OPTION_PREVENTS_STATEMENT/
+              )
+            }
+          )
           assert.equal(
             (await gr.configure(request.cluster, request.credentials, () => {})).status,
             'completed'
           )
           for (const id of [...request.cluster.memberIds].reverse()) await runtime.stop(id)
+          for (const id of request.cluster.memberIds) await runtime.start(id, undefined)
           for (const id of request.cluster.memberIds)
-            await runtime.start(id, request.credentials[id])
+            await withInstanceConnection(catalog, id, request.credentials[id], async (s) => {
+              const flags = await s.query('SELECT @@read_only AS ro, @@super_read_only AS sro')
+              assert.equal(Number(flags[0].ro), 1)
+              assert.equal(Number(flags[0].sro), 1)
+            })
           assert.equal(
             (await gr.configure(request.cluster, request.credentials, () => {})).status,
             'completed'
           )
+        }
+        if (mode === 'standalone') {
+          for (const credential of [undefined, { user: 'root', password: 'deliberately-wrong' }]) {
+            await runtime.stop(primary)
+            await runtime.start(primary, credential)
+            assert.equal((await runtime.discover(primary)).state, 'running')
+            // SQL here verifies preserved test data/password separately from start's process result.
+            await withInstanceConnection(catalog, primary, request.credentials[primary], (s) =>
+              s.query('SELECT * FROM acceptance.probe')
+            )
+          }
         }
         for (const id of [...request.cluster.memberIds].reverse()) await runtime.stop(id)
         console.log('native passed', mode)

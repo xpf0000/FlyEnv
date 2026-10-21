@@ -1,5 +1,39 @@
 import type { CreateRequest, Platform, SavedCatalog } from './shared'
 
+export class DuplicateNameError extends Error {
+  constructor(
+    readonly scope: 'cluster' | 'instance',
+    readonly value: string
+  ) {
+    super(`Duplicate ${scope} name: ${value}`)
+  }
+}
+
+// Mutation-only validation: legacy duplicate names must not prevent catalog reads or recovery.
+export function validateUniqueNames(
+  request: CreateRequest,
+  catalog: SavedCatalog,
+  editingClusterId?: string
+): void {
+  const normalize = (name: string) => name.trim().toLowerCase()
+  const editedMembers = new Set(
+    catalog.clusters.find((group) => group.id === editingClusterId)?.memberIds ?? []
+  )
+  const clusterNames = new Set(
+    catalog.clusters.filter((group) => group.id !== editingClusterId).map((g) => normalize(g.name))
+  )
+  if (clusterNames.has(normalize(request.cluster.name)))
+    throw new DuplicateNameError('cluster', request.cluster.name.trim())
+  const instanceNames = new Set(
+    catalog.instances.filter((item) => !editedMembers.has(item.id)).map((i) => normalize(i.name))
+  )
+  for (const item of request.instances) {
+    const name = normalize(item.name)
+    if (instanceNames.has(name)) throw new DuplicateNameError('instance', item.name.trim())
+    instanceNames.add(name)
+  }
+}
+
 export function normalizedPath(value: string, platform: Platform): string {
   const parts: string[] = []
   for (const part of value.replace(/\\/g, '/').split('/')) {

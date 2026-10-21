@@ -161,7 +161,21 @@ for (const mode of ['replication', 'group-replication'] as ClusterMode[]) {
       const created = await manager.create(reactive(input))
       assert.equal(created.status, 'completed', JSON.stringify(created))
       const group = manager.catalog.clusters[0]
+      const sqlMethods = ['configureReplication', 'configureGroupReplication', 'replicationStatus']
+      const sqlCalls = fixture.state.sent.filter((item: any) =>
+        sqlMethods.includes(item.args[0])
+      ).length
+      manager.credentials = {}
       assert.equal((await manager.runGroup(group, 'restart')).status, 'completed')
+      assert.equal(
+        fixture.state.sent.filter((item: any) => sqlMethods.includes(item.args[0])).length,
+        sqlCalls
+      )
+      assert.equal((await manager.runInstance(group.memberIds[0], 'restart')).status, 'completed')
+      assert.equal(
+        fixture.state.sent.filter((item: any) => sqlMethods.includes(item.args[0])).length,
+        sqlCalls
+      )
       assert.equal((await manager.remove(group)).status, 'completed')
       assert.ok(
         fixture.state.sent.some(

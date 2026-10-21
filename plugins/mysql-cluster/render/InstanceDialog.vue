@@ -109,7 +109,7 @@
   import { MysqlClusterManager as manager } from './manager'
   import { createDraftRequest, defaultDataRoot, suggestStartPort } from './form'
   import { engineFromInstalled } from './engine'
-  import { validateCreateRequest } from '../policy'
+  import { DuplicateNameError, validateCreateRequest, validateUniqueNames } from '../policy'
   import type { ClusterSpec, ClusterMode, EngineRef, InstanceSpec, SavedCatalog } from '../shared'
   import { t } from './lang'
   const props = defineProps<{ group?: ClusterSpec }>()
@@ -211,11 +211,18 @@
       )
         throw new Error(t('noAvailablePorts'))
       validateCreateRequest(request, platform)
+      validateUniqueNames(request, manager.catalog, props.group?.id)
       const result = props.group ? await manager.save(request) : await manager.create(request)
       if (result.status === 'completed') show.value = false
       else if (manager.catalog.clusters.some((g) => g.id === id)) show.value = false
     } catch (e) {
-      manager.reportFormError(e)
+      manager.reportFormError(
+        e instanceof DuplicateNameError
+          ? new Error(
+              t(e.scope === 'cluster' ? 'duplicateClusterName' : 'duplicateInstanceName') + e.value
+            )
+          : e
+      )
     }
   }
   defineExpose({ show, onClosed, onSubmit })

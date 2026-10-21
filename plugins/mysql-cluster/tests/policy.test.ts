@@ -97,6 +97,59 @@ test('validates persisted catalog and drops no malformed rows silently', () => {
   assert.throws(() => policy.validateCatalog({ schemaVersion: 99 }), /schema/i)
 })
 
+test('names are unique after trimming and case folding within separate cluster and instance scopes', () => {
+  const r = request()
+  const catalog = { schemaVersion: 1, clusters: [r.cluster], instances: r.instances }
+  const candidate: any = request()
+  candidate.cluster.id = 'other'
+  candidate.instances[0].id = 'b'
+  candidate.cluster.memberIds = ['b']
+  candidate.cluster.name = ' TEST '
+  candidate.instances[0].name = 'different'
+  assert.throws(() => policy.validateUniqueNames(candidate, catalog), /cluster name/i)
+  candidate.cluster.name = 'different'
+  candidate.instances[0].name = ' A '
+  assert.throws(() => policy.validateUniqueNames(candidate, catalog), /instance name/i)
+  candidate.cluster.name = 'a'
+  candidate.instances[0].name = 'test'
+  assert.doesNotThrow(() => policy.validateUniqueNames(candidate, catalog))
+  candidate.cluster.name = 'one'
+  candidate.instances[0].name = 'one'
+  assert.doesNotThrow(() => policy.validateUniqueNames(candidate, catalog))
+})
+
+test('name validation excludes the edited group identities and rejects duplicate incoming members', () => {
+  const r: any = request()
+  const catalog = { schemaVersion: 1, clusters: [r.cluster], instances: r.instances }
+  r.cluster.name = ' TEST '
+  r.instances[0].name = ' A '
+  assert.doesNotThrow(() => policy.validateUniqueNames(r, catalog, 'g'))
+  r.instances.push({ ...instance('b', 13307), name: 'a' })
+  assert.throws(() => policy.validateUniqueNames(r, catalog, 'g'), /instance name/i)
+})
+
+test('legacy duplicate names remain readable so users can repair individual groups', () => {
+  const r: any = request()
+  r.cluster.mode = 'replication'
+  r.cluster.memberIds.push('b')
+  r.instances.push({ ...instance('b', 13307), name: ' A ' })
+  const second = {
+    ...r.cluster,
+    id: 'other',
+    name: ' TEST ',
+    mode: 'standalone',
+    memberIds: ['c']
+  }
+  assert.equal(
+    policy.validateCatalog({
+      schemaVersion: 1,
+      instances: [...r.instances, { ...instance('c', 13308), name: 'a' }],
+      clusters: [r.cluster, second]
+    }).instances.length,
+    3
+  )
+})
+
 test('permits same-installation MySQL 8 innovation and 9.x replication groups', () => {
   for (const version of ['8.1.0', '8.4.8', '9.0.0', '9.6.0', '9.7.4']) {
     assert.equal(policy.replicationCapabilities(version).supported, true, version)

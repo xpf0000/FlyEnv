@@ -24,7 +24,7 @@
   import { Edit, Delete } from '@element-plus/icons-vue'
   import { t } from './lang'
   const props = defineProps<{
-    action: 'start' | 'stop' | 'restart' | 'edit' | 'delete' | 'credentials'
+    action: 'start' | 'stop' | 'restart' | 'edit' | 'delete' | 'credentials' | 'recoverReplication'
     disabled?: boolean
     loading?: boolean
   }>()
@@ -33,7 +33,8 @@
     start: import('@/svg/play.svg?raw'),
     stop: import('@/svg/stop2.svg?raw'),
     restart: import('@/svg/icon_refresh.svg?raw'),
-    credentials: import('@/svg/setup.svg?raw')
+    credentials: import('@/svg/setup.svg?raw'),
+    recoverReplication: import('@/svg/setup.svg?raw')
   }
 </script>
 <style scoped lang="scss">

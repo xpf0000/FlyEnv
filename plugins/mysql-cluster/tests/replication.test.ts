@@ -119,6 +119,7 @@ test('retries the required replication grant after CREATE succeeded and GRANT fa
     grants = 0
   const session = {
     async query(sql: string) {
+      if (/^SELECT @@GLOBAL.super_read_only/.test(sql)) return [{ superReadOnly: 0 }]
       if (/^SELECT/.test(sql)) return exists ? [{ User: 'repl' }] : []
       if (/^CREATE USER/.test(sql)) {
         exists = true
@@ -133,4 +134,95 @@ test('retries the required replication grant after CREATE succeeded and GRANT fa
   await api.ensureReplicationAccount(session, account)
   assert.equal(creates, 1)
   assert.equal(grants, 2)
+})
+
+function protectedAccountSession(
+  options: { grantFailure?: boolean; restoreFailure?: boolean } = {}
+) {
+  const state = { superReadOnly: true, exists: false, grants: 0, created: 0 }
+  const session = {
+    async query(text: string) {
+      if (/^SELECT User/.test(text)) return state.exists ? [{ User: 'repl' }] : []
+      if (/^SELECT @@GLOBAL.super_read_only/.test(text))
+        return [{ superReadOnly: Number(state.superReadOnly) }]
+      if (text === 'SET GLOBAL super_read_only=OFF') state.superReadOnly = false
+      if (text === 'SET GLOBAL super_read_only=ON') {
+        if (options.restoreFailure) throw new Error('restore unavailable')
+        state.superReadOnly = true
+      }
+      if (/^(CREATE USER|GRANT)/.test(text) && state.superReadOnly)
+        throw new Error('Writes blocked by super_read_only')
+      if (/^CREATE USER/.test(text)) {
+        state.exists = true
+        state.created++
+      }
+      if (/^GRANT/.test(text)) {
+        state.grants++
+        if (options.grantFailure && state.grants === 1) throw new Error('grant unavailable')
+      }
+      assert.doesNotMatch(text, /^SET GLOBAL read_only=OFF$/)
+      return []
+    }
+  }
+  return { state, session }
+}
+
+test('explicit account provisioning restores a protected member after creating its replication user', async () => {
+  const { state, session } = protectedAccountSession()
+  await api.ensureReplicationAccount(session, { user: 'repl', password: 'secret' })
+  assert.equal(state.created, 1)
+  assert.equal(state.grants, 1)
+  assert.equal(state.superReadOnly, true)
+})
+
+test('failed account grant restores member protection and remains retryable', async () => {
+  const { state, session } = protectedAccountSession({ grantFailure: true })
+  const account = { user: 'repl', password: 'secret' }
+  await assert.rejects(api.ensureReplicationAccount(session, account), /grant unavailable/)
+  assert.equal(state.superReadOnly, true)
+  await api.ensureReplicationAccount(session, account)
+  assert.equal(state.created, 1)
+  assert.equal(state.grants, 2)
+  assert.equal(state.superReadOnly, true)
+})
+
+test('account provisioning cannot hide a failure to restore member protection', async () => {
+  const { session } = protectedAccountSession({ restoreFailure: true })
+  await assert.rejects(
+    api.ensureReplicationAccount(session, { user: 'repl', password: 'secret' }),
+    /restore unavailable/
+  )
+})
+
+test('account provisioning preserves both grant and protection restoration failures', async () => {
+  const { session } = protectedAccountSession({ grantFailure: true, restoreFailure: true })
+  await assert.rejects(
+    api.ensureReplicationAccount(session, { user: 'repl', password: 'secret' }),
+    (error: Error) =>
+      /grant unavailable/.test(error.message) && /restore unavailable/.test(error.message)
+  )
+})
+
+test('account provisioning preserves an originally writable source', async () => {
+  const { state, session } = protectedAccountSession()
+  state.superReadOnly = false
+  await api.ensureReplicationAccount(session, { user: 'repl', password: 'secret' })
+  assert.equal(state.superReadOnly, false)
+  assert.equal(state.created, 1)
+  assert.equal(state.grants, 1)
+})
+
+test('unknown member protection blocks account writes', async () => {
+  let writes = 0
+  const session = {
+    async query(text: string) {
+      if (!text.startsWith('SELECT')) writes++
+      return []
+    }
+  }
+  await assert.rejects(
+    api.ensureReplicationAccount(session, { user: 'repl', password: 'secret' }),
+    /Cannot determine member write protection/
+  )
+  assert.equal(writes, 0)
 })

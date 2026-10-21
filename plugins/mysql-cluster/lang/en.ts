@@ -1,5 +1,7 @@
 export default {
   required: 'Required field: ',
+  duplicateClusterName: 'A cluster with this name already exists: ',
+  duplicateInstanceName: 'An instance with this name already exists: ',
   noAvailablePorts: 'No available port range. Adjust the existing instance ports.',
   customDirectories: 'Custom version directories',
   environment: 'Environment',
@@ -77,6 +79,9 @@ export default {
   connect: 'Connect',
   remember: 'Remember credentials on this device',
   credentials: 'Administrator credentials',
+  recoverReplication: 'Configure / recover replication',
+  replicationRecoveryHint:
+    'Start every member, then use Root credentials to configure or recover replication. Ordinary process startup and shutdown do not need database credentials.',
   adminHint:
     'Credentials are isolated by instance. Use the current primary for database, user and password changes.',
   databases: 'Databases',

@@ -52,6 +52,7 @@ export class MysqlClusterController {
   }
   private loadFlight?: Promise<void>
   private refreshFlight?: Promise<void>
+  private replicationRefreshFlight?: Promise<void>
   private persistence: Promise<unknown> = Promise.resolve()
   private serializeWrite<T>(task: () => Promise<T>): Promise<T> {
     const next = this.persistence.then(task, task)
@@ -97,7 +98,11 @@ export class MysqlClusterController {
   async persist(catalog = this.catalog) {
     await this.serializeWrite(() => this.writeState(catalog, this.preferences))
   }
-  refresh(): Promise<void> {
+  refresh(includeReplication = false): Promise<void> {
+    const processes = this.refreshProcesses()
+    return includeReplication ? processes.then(() => this.refreshReplication()) : processes
+  }
+  private refreshProcesses(): Promise<void> {
     if (this.blocked) return Promise.reject(new Error(this.loadError))
     if (this.refreshFlight) return this.refreshFlight
     this.refreshing = true
@@ -108,27 +113,6 @@ export class MysqlClusterController {
       this.catalog = catalog
       const snapshots: Record<string, InstanceSnapshot> = {}
       for (const snapshot of values) {
-        const group = this.groupFor(snapshot.id)
-        if (
-          snapshot.state === 'running' &&
-          this.credentials[snapshot.id] &&
-          group?.mode !== 'standalone'
-        ) {
-          try {
-            snapshot.replication = await this.deps.rpc('replicationStatus', [
-              snapshot.id,
-              this.credentials[snapshot.id]
-            ])
-            snapshot.role = snapshot.replication!.role
-          } catch (error) {
-            snapshot.replication = {
-              state: 'unknown',
-              role: 'UNKNOWN',
-              lag: null,
-              error: errorText(error)
-            }
-          }
-        }
         snapshots[snapshot.id] = snapshot
         const item = this.deps.service(snapshot.id)
         if (!item.running) {
@@ -139,9 +123,47 @@ export class MysqlClusterController {
       this.snapshots = snapshots
     })().finally(() => {
       this.refreshFlight = undefined
-      this.refreshing = false
+      this.refreshing = !!this.replicationRefreshFlight
     })
     return this.refreshFlight
+  }
+  private refreshReplication(): Promise<void> {
+    if (this.replicationRefreshFlight) return this.replicationRefreshFlight
+    this.refreshing = true
+    const targets = Object.values(this.snapshots)
+      .filter(
+        (snapshot) =>
+          snapshot.state === 'running' &&
+          this.credentials[snapshot.id] &&
+          this.groupFor(snapshot.id)?.mode !== 'standalone'
+      )
+      .map((snapshot) => ({
+        id: snapshot.id,
+        pid: snapshot.pid,
+        credential: JSON.parse(JSON.stringify(this.credentials[snapshot.id]))
+      }))
+    this.replicationRefreshFlight = (async () => {
+      for (const target of targets) {
+        const before = this.snapshots[target.id]
+        if (before?.state !== 'running' || before.pid !== target.pid) continue
+        let replication: InstanceSnapshot['replication']
+        try {
+          replication = await this.deps.rpc('replicationStatus', [target.id, target.credential])
+        } catch (error) {
+          replication = { state: 'unknown', role: 'UNKNOWN', lag: null, error: errorText(error) }
+        }
+        // Observation cannot replace a newer stop/restart result or its PID.
+        const current = this.snapshots[target.id]
+        if (current?.state === 'running' && current.pid === target.pid) {
+          current.replication = replication
+          current.role = replication?.role
+        }
+      }
+    })().finally(() => {
+      this.replicationRefreshFlight = undefined
+      this.refreshing = !!this.refreshFlight
+    })
+    return this.replicationRefreshFlight
   }
   groupFor(id: string): ClusterSpec | undefined {
     return this.catalog.clusters.find((g) => g.memberIds.includes(id))
@@ -321,29 +343,37 @@ export class MysqlClusterController {
     this.requireGroupCredentials(group)
     return this.deps.rpc(
       group.mode === 'replication' ? 'configureReplication' : 'configureGroupReplication',
-      [group.id, this.credentials],
+      [group.id, JSON.parse(JSON.stringify(this.credentials))],
       (event) => {
         op.stage = `${event.stage}${event.instanceId ? ': ' + event.instanceId : ''}`
       }
     ) as Promise<OperationResult>
   }
+  recoverReplication(group: ClusterSpec) {
+    return this.operate(group.id, 'configure-replication', async (op) => {
+      if (group.memberIds.some((id) => this.operations[id]?.busy))
+        throw new Error('A member operation is running')
+      await this.refresh()
+      const current = this.catalog.clusters.find((item) => item.id === group.id)
+      if (!current || current.mode === 'standalone') throw new Error('Unknown replication group')
+      if (current.memberIds.some((id) => this.snapshots[id]?.state !== 'running'))
+        throw new Error('Start every member before configuring replication')
+      op.stage = 'configuring-replication'
+      return this.configureGroup(current, op)
+    })
+  }
   runInstance(id: string, action: 'start' | 'stop' | 'restart') {
-    let group = this.groupFor(id)
+    const group = this.groupFor(id)
     if (group && this.operations[group.id]?.busy)
       return Promise.resolve(
         summarize([{ id, status: 'failed', stage: 'busy', error: 'Cluster operation is running' }])
       )
-    return this.operate(id, action, async (op) => {
-      group = this.groupFor(id)
-      if (action !== 'stop' && group && group.mode !== 'standalone')
-        this.requireGroupCredentials(group)
+    return this.operate(id, action, async () => {
       await this.refresh()
       if (this.snapshots[id]?.state === 'unknown') throw new Error('Cannot verify instance state')
       if (action !== 'stop') await this.deps.rpc('initializeInstance', [id])
       const result = await this.deps.service(id)[action]()
       if (result !== true) throw new Error(String(result))
-      if (action !== 'stop' && group?.mode !== 'standalone' && group)
-        return this.configureStartedGroup(group, op, [{ id, status: 'completed', stage: action }])
       return summarize([{ id, status: 'completed', stage: action }])
     })
   }
@@ -423,7 +453,6 @@ export class MysqlClusterController {
   }
   runGroup(group: ClusterSpec, action: 'start' | 'stop' | 'restart', interactive = true) {
     return this.operate(group.id, action, async (op) => {
-      if (action !== 'stop' && group.mode !== 'standalone') this.requireGroupCredentials(group)
       if (group.memberIds.some((id) => this.operations[id]?.busy))
         throw new Error('A member operation is running')
       await this.refresh()
@@ -454,9 +483,7 @@ export class MysqlClusterController {
           outcomes.push({ id, status: 'failed', stage: 'start', error: errorText(error) })
         }
       }
-      if (outcomes.some((i) => i.status !== 'completed') || group.mode === 'standalone')
-        return summarize(outcomes)
-      return this.configureStartedGroup(group, op, outcomes)
+      return summarize(outcomes)
     })
   }
   remove(group: ClusterSpec) {

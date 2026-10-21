@@ -50,7 +50,7 @@
             />
             <ActionButton
               v-if="group.mode !== 'standalone'"
-              action="credentials"
+              action="recoverReplication"
               :disabled="groupBusy(group)"
               @click="credentials(group)"
             />
@@ -148,8 +148,9 @@
         :closable="false"
       />
     </el-scrollbar>
-    <el-dialog v-model="credentialOpen" :title="t('credentials')" width="520px"
-      ><el-form label-position="top"
+    <el-dialog v-model="credentialOpen" :title="t('recoverReplication')" width="520px"
+      ><el-alert class="mb-4" :title="t('replicationRecoveryHint')" type="info" :closable="false" />
+      <el-form label-position="top" :disabled="credentialBusy"
         ><el-form-item
           v-for="id in credentialGroup?.memberIds"
           :key="id"
@@ -158,7 +159,9 @@
         ><el-checkbox v-model="remember">{{ t('remember') }}</el-checkbox></el-form
       ><template #footer
         ><el-button @click="credentialOpen = false">{{ t('cancel') }}</el-button
-        ><el-button type="primary" @click="saveCredentials">{{ t('save') }}</el-button></template
+        ><el-button type="primary" :loading="credentialBusy" @click="saveCredentials">{{
+          t('recoverReplication')
+        }}</el-button></template
       ></el-dialog
     >
   </el-card>
@@ -180,6 +183,7 @@
     credentialGroup = ref<ClusterSpec>(),
     passwords = ref<Record<string, string>>({}),
     remember = ref(false)
+  const credentialBusy = computed(() => !!credentialGroup.value && groupBusy(credentialGroup.value))
   const members = (group: ClusterSpec) =>
     group.memberIds.map((id) => manager.catalog.instances.find((i) => i.id === id)!).filter(Boolean)
   const sharedEngines = computed(() => {
@@ -232,7 +236,7 @@
   async function refresh() {
     try {
       if (!manager.initialized) await manager.load()
-      else await manager.refresh()
+      else await manager.refresh(true)
     } catch {
       /* Singleton retains the error. */
     }
@@ -261,6 +265,7 @@
   }
   function credentials(group: ClusterSpec) {
     credentialGroup.value = group
+    remember.value = false
     passwords.value = Object.fromEntries(
       group.memberIds.map((id) => [id, manager.credentials[id]?.password ?? ''])
     )
@@ -270,18 +275,11 @@
     if (!credentialGroup.value) return
     for (const id of credentialGroup.value.memberIds)
       if (!(await manager.setCredential(id, passwords.value[id], remember.value))) return
-    credentialOpen.value = false
-    await manager.refresh()
+    const result = await manager.recoverReplication(credentialGroup.value)
+    if (result.status === 'completed') credentialOpen.value = false
+    await manager.refresh(true)
   }
   function runGroup(group: ClusterSpec, action: LifecycleAction) {
-    if (
-      action !== 'stop' &&
-      group.mode !== 'standalone' &&
-      group.memberIds.some((id) => !manager.credentials[id])
-    ) {
-      credentials(group)
-      return
-    }
     manager.runGroup(group, action).catch(() => undefined)
   }
 </script>
