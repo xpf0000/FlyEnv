@@ -5,7 +5,9 @@
         ><span>{{ t('instances') }}</span
         ><div class="flex gap-2"
           ><el-button :loading="manager.refreshing" @click="refresh">{{ t('refresh') }}</el-button
-          ><el-button type="primary" @click="create">{{ t('create') }}</el-button></div
+          ><el-button type="primary" :disabled="manager.allBusy" @click="create">{{
+            t('create')
+          }}</el-button></div
         ></div
       ></template
     >
@@ -224,6 +226,7 @@
       : ['start']
   }
   const groupBusy = (group: ClusterSpec) =>
+    manager.allBusy ||
     !!manager.operations[group.id]?.busy ||
     group.memberIds.some((id) => manager.operations[id]?.busy)
   async function refresh() {

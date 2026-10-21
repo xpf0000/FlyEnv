@@ -42,6 +42,7 @@
   const group = computed(() => manager.groupFor(props.instance.id))
   const busy = computed(
     () =>
+      manager.allBusy ||
       !!manager.operations[props.instance.id]?.busy ||
       !!manager.operations[group.value?.id ?? '']?.busy
   )

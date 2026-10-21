@@ -1,6 +1,7 @@
 import { defineAsyncComponent } from 'vue'
 import type { AppModuleItem } from '@/core/type'
-export default {
+import { registerMysqlClusterStartup } from './startup/register'
+const module = {
   moduleType: 'dataBaseServer',
   typeFlag: 'mysql-cluster',
   label: 'MySQL Cluster',
@@ -13,3 +14,6 @@ export default {
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue'))
 } as AppModuleItem
+
+registerMysqlClusterStartup(module)
+export default module

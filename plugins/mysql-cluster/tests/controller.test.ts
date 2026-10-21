@@ -441,3 +441,205 @@ test('failed post-stop refresh releases loading without rejecting or replaying t
   assert.equal(c.operations.g.busy, false)
   assert.match(c.loadError, /status refresh unavailable/)
 })
+
+function batchSetup() {
+  const groups = ['g1', 'g2'].map((id) => ({
+    id,
+    name: id,
+    mode: 'standalone',
+    memberIds: [id + '_1']
+  }))
+  const instances = groups.map((group, index) => ({
+    ...structuredClone(request.instances[0]),
+    id: group.memberIds[0],
+    name: group.id,
+    port: 13306 + index,
+    socket: `/tmp/${group.id}.sock`,
+    dataDir: `/tmp/${group.id}`,
+    serverId: index + 1
+  }))
+  const calls: Array<[string, string, boolean]> = []
+  const services = Object.fromEntries(
+    instances.map((item) => [
+      item.id,
+      {
+        run: false,
+        running: false,
+        async start(interactive = true) {
+          calls.push([item.id, 'start', interactive])
+          this.run = true
+          return true
+        },
+        async stop(interactive = true) {
+          calls.push([item.id, 'stop', interactive])
+          this.run = false
+          return true
+        },
+        async restart() {
+          return true
+        }
+      }
+    ])
+  )
+  const d = {
+    read: async () => undefined,
+    write: async () => {},
+    installed: async () => {},
+    notify() {},
+    service: (id: string) => services[id],
+    rpc: async (method: string, _args: any[]) =>
+      method === 'readCatalog'
+        ? { schemaVersion: 1, clusters: groups, instances }
+        : method === 'listInstances'
+          ? instances.map((item) => ({
+              id: item.id,
+              state: services[item.id].run ? 'running' : 'stopped'
+            }))
+          : true
+  }
+  return { d, services, calls, controller: new api.MysqlClusterController(d) }
+}
+
+test('all-instance operation shares duplicates, excludes opposite action and preserves background intent', async () => {
+  const { controller: c, d, calls } = batchSetup()
+  let release!: () => void
+  d.read = () =>
+    new Promise((resolve) => {
+      release = () => resolve(undefined)
+    })
+  const one = c.runAll('start', false)
+  assert.equal(c.runAll('start'), one)
+  assert.equal(c.allBusy, true)
+  assert.equal((await c.runAll('stop')).status, 'failed')
+  await new Promise((resolve) => setImmediate(resolve))
+  release()
+  assert.equal((await one).status, 'completed')
+  assert.deepEqual(calls, [
+    ['g1_1', 'start', false],
+    ['g2_1', 'start', false]
+  ])
+  assert.equal(c.allBusy, false)
+  assert.equal((await c.runAll('stop', false)).status, 'completed')
+  assert.equal(
+    Object.values(c.snapshots).every((item: any) => item.state === 'stopped'),
+    true
+  )
+})
+test('all-instance operation preserves sibling completion when one group fails', async () => {
+  const { controller: c, services, calls } = batchSetup()
+  services.g1_1.start = async () => {
+    throw new Error('first start failed')
+  }
+  const result = await c.runAll('start')
+  assert.equal(result.status, 'partial')
+  assert.equal(result.items.find((item: any) => item.id === 'g1_1').status, 'failed')
+  assert.equal(result.items.find((item: any) => item.id === 'g2_1').status, 'completed')
+  assert.deepEqual(calls, [['g2_1', 'start', true]])
+  assert.equal(c.allBusy, false)
+})
+test('all-instance load failure admits no service mutation and releases batch state', async () => {
+  const { controller: c, d, calls } = batchSetup()
+  d.read = async () => {
+    throw new Error('storage unavailable')
+  }
+  assert.equal((await c.runAll('start')).status, 'failed')
+  assert.deepEqual(calls, [])
+  assert.equal(c.allBusy, false)
+})
+test('visibility shutdown waits for an admitted all-instance batch before stopping its instances', async () => {
+  const { controller: c, services } = batchSetup()
+  let release!: () => void, entered!: () => void
+  const started = new Promise<void>((resolve) => {
+    entered = resolve
+  })
+  services.g1_1.start = async () => {
+    entered()
+    await new Promise<void>((resolve) => {
+      release = resolve
+    })
+    services.g1_1.run = true
+    return true
+  }
+  const starting = c.runAll('start')
+  await started
+  const hidden = c.stopForVisibility()
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.equal(services.g2_1.run, true)
+  release()
+  await starting
+  await hidden
+  assert.equal(
+    Object.values(services).every((item) => !item.run),
+    true
+  )
+})
+
+test('all-instance terminal refresh cannot retain a stopped snapshot captured before another group started', async () => {
+  const { controller: c, d, services } = batchSetup()
+  const actual = new Set<string>()
+  let releaseSecond!: () => void, releaseStale!: () => void, captured!: () => void
+  const second = new Promise<void>((resolve) => {
+    releaseSecond = resolve
+  })
+  const stale = new Promise<void>((resolve) => {
+    releaseStale = resolve
+  })
+  const staleCaptured = new Promise<void>((resolve) => {
+    captured = resolve
+  })
+  for (const id of ['g1_1', 'g2_1'])
+    services[id].start = async () => {
+      if (id === 'g2_1') await second
+      actual.add(id)
+      services[id].run = true
+      return true
+    }
+  const rpc = d.rpc
+  let held = false
+  d.rpc = async (method, args) => {
+    if (method !== 'listInstances') return rpc(method, args)
+    const snapshots = ['g1_1', 'g2_1'].map((id) => ({
+      id,
+      state: actual.has(id) ? 'running' : 'stopped',
+      pid: actual.has(id) ? '101' : ''
+    }))
+    if (!held && actual.has('g1_1') && !actual.has('g2_1')) {
+      held = true
+      captured()
+      await stale
+    }
+    return snapshots
+  }
+  const batch = c.runAll('start')
+  await staleCaptured
+  releaseSecond()
+  await new Promise((resolve) => setImmediate(resolve))
+  releaseStale()
+  assert.equal((await batch).status, 'completed')
+  assert.equal(actual.has('g2_1'), true)
+  assert.equal(c.snapshots.g2_1.state, 'running')
+  assert.equal(services.g2_1.run, true)
+  assert.equal(c.allBusy, false)
+})
+
+test('failed batch-final refresh reports its own error without replaying completed starts', async () => {
+  const { controller: c, d, calls } = batchSetup()
+  const completed = new Set<string>()
+  const runGroup = c.runGroup.bind(c)
+  c.runGroup = async (...args: any[]) => {
+    const result = await runGroup(...args)
+    completed.add(args[0].id)
+    return result
+  }
+  const rpc = d.rpc
+  d.rpc = async (method, args) => {
+    if (method === 'readCatalog' && completed.size === 2)
+      throw new Error('final refresh unavailable')
+    return rpc(method, args)
+  }
+  const result = await c.runAll('start')
+  assert.equal(result.status, 'completed')
+  assert.equal(calls.filter((call) => call[1] === 'start').length, 2)
+  assert.match(c.loadError, /final refresh unavailable/)
+  assert.equal(c.allBusy, false)
+})

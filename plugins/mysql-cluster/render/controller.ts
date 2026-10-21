@@ -46,6 +46,10 @@ export class MysqlClusterController {
   loadError = ''
   private flights = new Map<string, { action: string; promise: Promise<OperationResult> }>()
   private visibilityFlight?: Promise<OperationResult[]>
+  private allFlight?: { action: 'start' | 'stop'; promise: Promise<OperationResult> }
+  get allBusy() {
+    return !!this.allFlight
+  }
   private loadFlight?: Promise<void>
   private refreshFlight?: Promise<void>
   private persistence: Promise<unknown> = Promise.resolve()
@@ -343,9 +347,67 @@ export class MysqlClusterController {
       return summarize([{ id, status: 'completed', stage: action }])
     })
   }
+  runAll(action: 'start' | 'stop', interactive = true): Promise<OperationResult> {
+    if (this.allFlight) {
+      if (this.allFlight.action === action) return this.allFlight.promise
+      return Promise.resolve(
+        summarize([
+          {
+            id: 'mysql-cluster',
+            status: 'failed',
+            stage: 'busy',
+            error: 'An all-instances operation is already running'
+          }
+        ])
+      )
+    }
+    const promise = Promise.resolve()
+      .then(async () => {
+        if (!this.initialized) await this.load()
+        if (Object.values(this.operations).some((operation) => operation.busy))
+          throw new Error('An instance operation is already running')
+        const groups: ClusterSpec[] = JSON.parse(JSON.stringify(this.catalog.clusters))
+        const results = await Promise.allSettled(
+          groups.map((group) => this.runGroup(group, action, interactive))
+        )
+        // Per-group refreshes can share a snapshot captured before a sibling starts.
+        // Every group has now settled, so this refresh observes the complete batch.
+        try {
+          await this.refresh()
+        } catch (error) {
+          this.loadError = errorText(error)
+          this.notice('error', this.loadError)
+        }
+        return summarize(
+          results.flatMap((result, index) =>
+            result.status === 'fulfilled'
+              ? result.value.items
+              : [
+                  {
+                    id: groups[index].id,
+                    status: 'failed' as const,
+                    stage: action,
+                    error: errorText(result.reason)
+                  }
+                ]
+          )
+        )
+      })
+      .catch((error) => {
+        const message = errorText(error)
+        this.notice('error', message)
+        return summarize([{ id: 'mysql-cluster', status: 'failed', stage: action, error: message }])
+      })
+      .finally(() => {
+        this.allFlight = undefined
+      })
+    this.allFlight = { action, promise }
+    return promise
+  }
   stopForVisibility(): Promise<OperationResult[]> {
     if (this.visibilityFlight) return this.visibilityFlight
     const admitted = [...this.flights.values()].map((value) => value.promise)
+    if (this.allFlight) admitted.push(this.allFlight.promise)
     this.visibilityFlight = Promise.all(admitted)
       .then(async () => {
         if (!this.initialized) await this.load()

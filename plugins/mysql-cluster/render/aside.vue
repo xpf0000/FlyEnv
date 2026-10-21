@@ -4,8 +4,14 @@
       ><div class="icon-block" :class="{ run: running }"
         ><yb-icon :svg="import('@/svg/mysql.svg?raw')" width="30" height="30" /></div
       ><span class="title">MySQL Cluster</span></div
-    ><el-badge v-if="running" :value="running" type="success"
-  /></li>
+    ><el-switch
+      :model-value="running > 0"
+      :disabled="serviceDisabled"
+      :loading="serviceFetching"
+      @click.stop
+      @change="manager.runAll($event ? 'start' : 'stop')"
+    />
+  </li>
 </template>
 <script setup lang="ts">
   import { computed, onUnmounted, watch } from 'vue'
@@ -29,26 +35,32 @@
     () => Object.values(manager.snapshots).filter((s) => s.state === 'running').length
   )
   registerLifecycle()
+  const serviceFetching = computed(
+    () => manager.allBusy || Object.values(manager.operations).some((operation) => operation.busy)
+  )
+  const serviceDisabled = computed(
+    () =>
+      serviceFetching.value ||
+      !manager.initialized ||
+      manager.blocked ||
+      !manager.catalog.instances.length
+  )
   AppServiceModule['mysql-cluster'] = {
-    groupDo: (isRunning: boolean, interactive = true) =>
-      manager.catalog.clusters.map((group) =>
-        manager.runGroup(group, isRunning ? 'stop' : 'start', interactive).then((result) =>
-          result.status === 'completed'
-            ? true
-            : result.items
-                .map((i) => i.error)
-                .filter(Boolean)
-                .join('\n')
-        )
-      ),
-    switchChange: () => {
-      for (const group of manager.catalog.clusters)
-        void manager.runGroup(group, running.value ? 'stop' : 'start')
-    },
-    serviceDisabled: computed(() => Object.values(manager.operations).some((o) => o.busy)),
+    groupDo: (isRunning: boolean, interactive = true) => [
+      manager.runAll(isRunning ? 'stop' : 'start', interactive).then((result) =>
+        result.status === 'completed'
+          ? true
+          : result.items
+              .map((item) => item.error)
+              .filter(Boolean)
+              .join('\n') || result.status
+      )
+    ],
+    switchChange: () => manager.runAll(running.value ? 'stop' : 'start'),
+    serviceDisabled,
     serviceRunning: computed(() => running.value > 0),
-    serviceFetching: computed(() => Object.values(manager.operations).some((o) => o.busy)),
-    showItem: computed(() => true)
+    serviceFetching,
+    showItem: computed(() => appStore.config.setup.common.showItem?.['mysql-cluster'] !== false)
   } as any
   manager.load().catch(() => undefined)
   onUnmounted(() => {
