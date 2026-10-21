@@ -14,7 +14,7 @@
       <section
         v-for="group in manager.catalog.clusters"
         :key="group.id"
-        class="mb-6 rounded border border-[var(--el-border-color-light)]"
+        class="mb-6 rounded border border-b-0 border-[var(--el-border-color-light)]"
       >
         <div
           class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--el-border-color-light)] px-4 py-3"
