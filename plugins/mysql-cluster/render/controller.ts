@@ -113,6 +113,7 @@ export class MysqlClusterController {
       this.catalog = catalog
       const snapshots: Record<string, InstanceSnapshot> = {}
       for (const snapshot of values) {
+        snapshot.role = this.topologyRole(snapshot.id) ?? snapshot.role
         snapshots[snapshot.id] = snapshot
         const item = this.deps.service(snapshot.id)
         if (!item.running) {
@@ -156,7 +157,7 @@ export class MysqlClusterController {
         const current = this.snapshots[target.id]
         if (current?.state === 'running' && current.pid === target.pid) {
           current.replication = replication
-          current.role = replication?.role
+          current.role = this.topologyRole(target.id) ?? replication?.role
         }
       }
     })().finally(() => {
@@ -167,6 +168,11 @@ export class MysqlClusterController {
   }
   groupFor(id: string): ClusterSpec | undefined {
     return this.catalog.clusters.find((g) => g.memberIds.includes(id))
+  }
+  private topologyRole(id: string): InstanceSnapshot['role'] | undefined {
+    const group = this.groupFor(id)
+    if (group?.mode === 'replication') return group.memberIds[0] === id ? 'SOURCE' : 'REPLICA'
+    return undefined
   }
   reportFormError(error: unknown) {
     this.notice('error', errorText(error))

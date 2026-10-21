@@ -2,7 +2,25 @@
   <el-card class="h-full mc-instances">
     <template #header
       ><div class="flex items-center justify-between gap-3"
-        ><span>{{ t('instances') }}</span
+        ><div class="flex items-center gap-2"
+          ><span>{{ t('instances') }}</span
+          ><el-button
+            v-if="hasRunningInstance"
+            link
+            style="color: #01cc74"
+            title="DbGate"
+            aria-label="DbGate"
+            :disabled="dbgate.opening || !dbgate.nodeAvailable || manager.allBusy"
+            @click.stop="dbgate.open()"
+            ><el-icon
+              v-if="dbgate.opening"
+              class="is-loading"
+              style="width: 20px; height: 20px; margin-left: 10px"
+              ><Loading /></el-icon
+            ><yb-icon
+              v-else
+              style="width: 20px; height: 20px; margin-left: 10px"
+              :svg="import('@/svg/http.svg?raw')" /></el-button></div
         ><div class="flex gap-2"
           ><el-button :loading="manager.refreshing" @click="refresh">{{ t('refresh') }}</el-button
           ><el-button type="primary" :disabled="manager.allBusy" @click="create">{{
@@ -71,11 +89,20 @@
             ></el-table-column
           >
           <el-table-column prop="port" :label="t('port')" width="95" />
-          <el-table-column
-            prop="socket"
-            :label="t(isWindows ? 'pipe' : 'socket')"
-            min-width="220"
-          />
+          <el-table-column prop="socket" :label="t(isWindows ? 'pipe' : 'socket')" min-width="220"
+            ><template #default="{ row }"
+              ><span
+                class="cursor-pointer hover:text-yellow-500"
+                role="button"
+                tabindex="0"
+                :title="t('copySocket')"
+                @click.stop="instanceActions.copySocket(row)"
+                @keydown.enter.prevent="instanceActions.copySocket(row)"
+                @keydown.space.prevent="instanceActions.copySocket(row)"
+                >{{ row.socket }}</span
+              ></template
+            ></el-table-column
+          >
           <el-table-column prop="dataDir" :label="t('dataDir')" min-width="220"
             ><template #default="{ row }"
               ><span class="cursor-pointer text-yellow-500" @click="openPath(row.dataDir)">{{
@@ -89,7 +116,7 @@
                 :content="manager.snapshots[row.id]?.replication?.error || ''"
                 :disabled="!manager.snapshots[row.id]?.replication?.error"
               >
-                <span>{{ manager.snapshots[row.id]?.role || t('unknown') }}</span>
+                <span>{{ t((manager.snapshots[row.id]?.role || 'UNKNOWN').toLowerCase()) }}</span>
               </el-tooltip>
             </template>
           </el-table-column>
@@ -169,15 +196,21 @@
 <script setup lang="ts">
   import { computed, ref } from 'vue'
   import { ElMessageBox } from 'element-plus'
+  import { Loading } from '@element-plus/icons-vue'
+  import { MysqlClusterDbGate as dbgate } from './dbgate'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { shell } from '@/util/NodeFn'
   import { BrewStore } from '@/store/brew'
   import { MysqlClusterManager as manager } from './manager'
   import type { ClusterSpec, EngineRef } from '../shared'
   import InstanceActions from './InstanceActions.vue'
+  import { InstanceActions as instanceActions } from './actions'
   import ActionButton from './ActionButton.vue'
   import { t } from './lang'
   type LifecycleAction = 'start' | 'stop' | 'restart'
+  const hasRunningInstance = computed(() =>
+    Object.values(manager.snapshots).some((item) => item.state === 'running')
+  )
   const isWindows = !!window.Server.isWindows
   const credentialOpen = ref(false),
     credentialGroup = ref<ClusterSpec>(),

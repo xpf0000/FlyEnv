@@ -71,9 +71,9 @@ export class MysqlInstanceRuntime {
     }
     return { id, state: 'stopped' }
   }
-  async listInstances(): Promise<InstanceSnapshot[]> {
+  async listInstances(observation?: ProcessRow[]): Promise<InstanceSnapshot[]> {
     const c = await this.catalog.read(),
-      list = await this.deps.list()
+      list = observation ?? (await this.deps.list())
     return Promise.all(
       c.instances.map(async (i) => {
         try {

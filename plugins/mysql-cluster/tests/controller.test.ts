@@ -448,6 +448,44 @@ test('refresh removes process snapshots of deleted local instances', async () =>
   await c.refresh()
   assert.deepEqual(c.snapshots, {})
 })
+test('source/replica roles come from saved topology without credentials or SQL and survive status failure', async () => {
+  const d = deps(),
+    original = d.rpc
+  const r = structuredClone(request)
+  r.cluster.mode = 'replication'
+  r.cluster.memberIds.push('b')
+  r.instances.push({
+    ...r.instances[0],
+    id: 'b',
+    name: 'b',
+    port: 13307,
+    socket: '/tmp/b.sock',
+    dataDir: '/tmp/mc/b',
+    serverId: 2
+  })
+  let sql = 0
+  d.rpc = async (method, args) => {
+    if (method === 'replicationStatus') {
+      sql++
+      throw new Error('saved credentials expired')
+    }
+    return original(method, args)
+  }
+  // This test concerns existing topology; initial SQL provisioning is not part of refresh.
+  await d.rpc('prepareInstances', [r])
+  const c = new api.MysqlClusterController(d)
+  await c.load()
+  assert.equal(c.snapshots.a.role, 'SOURCE')
+  assert.equal(c.snapshots.b.role, 'REPLICA')
+  assert.equal(sql, 0)
+  await c.runGroup(r.cluster, 'start')
+  c.credentials = { a: { user: 'root', password: 'stale' }, b: { user: 'root', password: 'stale' } }
+  await c.refresh(true)
+  assert.equal(c.snapshots.a.role, 'SOURCE')
+  assert.equal(c.snapshots.b.role, 'REPLICA')
+  assert.equal(c.snapshots.b.replication.state, 'unknown')
+  assert.equal(sql, 2)
+})
 
 test('reactive create and preference persistence submit plain structured-cloneable records', async () => {
   const d = deps()

@@ -6,7 +6,7 @@ import {
 } from './packages'
 import { Base } from '@fork/module/Base'
 import { ForkPromise } from '@shared/ForkPromise'
-import { StopProcessListFetch } from '@shared/StopProcessList'
+import { StopProcessListFetch, fetchStopProcessListLocal } from '@shared/StopProcessList'
 import { join } from 'node:path'
 import type { SoftInstalled } from '@shared/app'
 import type { Credential, CreateRequest, EventSink } from '../shared'
@@ -23,12 +23,14 @@ import { validateConfigEdit } from './config'
 import { listDatabases, mutateDatabase, createDatabase, backupDatabase, readLog } from './manage'
 import type { DatabaseInput } from './manage'
 import { validateCreateRequest } from '../policy'
+import { MysqlClusterDbGate } from './dbgate'
 
 export class MysqlClusterModule extends Base {
   private catalogValue?: InstanceCatalog
   private runtimeValue?: MysqlInstanceRuntime
   private replicationValue?: ReplicationService
   private groupValue?: GroupReplicationService
+  private dbGateValue?: MysqlClusterDbGate
   constructor() {
     super()
     this.type = 'mysql-cluster'
@@ -50,6 +52,21 @@ export class MysqlClusterModule extends Base {
         return res['APP-Service-Stop-PID'] ?? []
       }
     }))
+  }
+  private get dbGate() {
+    return (this.dbGateValue ??= new MysqlClusterDbGate(global.Server.BaseDir!, {
+      // Companion lifetime observes what remains NOW, not a batch's original
+      // stop-candidate table. Actual MySQL termination keeps that original contract.
+      listInstances: async () => this.runtime.listInstances(await fetchStopProcessListLocal()),
+      stop: (id, pid) => this.runtime.stop(id, pid)
+    }))
+  }
+  openDbGate(node: SoftInstalled) {
+    return this.dbGate.open(node)
+  }
+  companionStopArgs(command: string, pid: string, _args: any[]): any[] | undefined {
+    if (command === 'openDbGate') return [this.dbGate.descriptor(pid), { dbGateOnly: true }]
+    return undefined
   }
   get replication() {
     return (this.replicationValue ??= new ReplicationService(this.catalog))
@@ -234,11 +251,16 @@ export class MysqlClusterModule extends Base {
   }
   stopService(item: SoftInstalled, context?: any) {
     return this.request(async () => {
+      if (context?.dbGateOnly) {
+        if (item.bin !== this.dbGate.descriptor().bin)
+          throw new Error('Unknown DbGate companion identity')
+        return { 'APP-Service-Stop-PID': await this.dbGate.stop(item.pid) }
+      }
       const c = await this.catalog.read()
       const spec = c.instances.find((i) => this.catalog.paths(i.id).config === item.bin)
       if (!spec || (context?.id && context.id !== spec.id))
         throw new Error('Unknown instance identity')
-      return { 'APP-Service-Stop-PID': await this.runtime.stop(spec.id, item.pid) }
+      return { 'APP-Service-Stop-PID': await this.dbGate.stopInstance(spec.id, item.pid) }
     })
   }
 }

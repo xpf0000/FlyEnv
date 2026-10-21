@@ -116,6 +116,11 @@ export default {
     'Save affects the next restart. Managed identity and replication options cannot be changed here.',
   readOnly: 'This member is read-only. Use the current writable primary for changes.',
   connectionCopied: 'Connection information copied',
+  copySocket: 'Copy Socket address',
+  dbgateRequiresInstance:
+    'Start a MySQL Cluster instance and wait for lifecycle operations to finish before opening DbGate.',
+  dbgateBrowserFailed:
+    'DbGate started, but the browser could not open. Click its entry again to retry.',
   inUse:
     'This installation is used by running MySQL Cluster instances. Stop those instances first.',
   references: 'Instances using this version',

@@ -66,7 +66,7 @@
               <el-form
                 v-if="!connected || !listing"
                 label-position="top"
-                class="mb-3"
+                class="mb-3 p-5"
                 @submit.prevent="connect"
               >
                 <el-form-item :label="t('password')" required>

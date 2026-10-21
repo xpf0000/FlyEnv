@@ -52,6 +52,34 @@ test('clipboard rejection shows an error and allows a later retry', async () => 
     ['success', 'Copied']
   ])
 })
+test('Socket click copies only the captured address, shares duplicates and confirms after completion', async () => {
+  let finish!: () => void
+  const copies: string[] = [],
+    notices: unknown[] = []
+  const controller = new InstanceActionController({
+    copy: async (text) => {
+      copies.push(text)
+      await new Promise<void>((resolve) => {
+        finish = resolve
+      })
+    },
+    open: async () => {},
+    copied: () => 'Copied',
+    notify: (...args) => {
+      notices.push(args)
+    }
+  })
+  const item = { ...instance }
+  const pending = controller.copySocket(item)
+  item.socket = '/tmp/changed.sock'
+  assert.equal(controller.copySocket(item), pending)
+  await Promise.resolve()
+  assert.deepEqual(copies, ['/tmp/mysql-a.sock'])
+  assert.deepEqual(notices, [])
+  finish()
+  await pending
+  assert.deepEqual(notices, [['success', 'Copied']])
+})
 test('panel opening is shared through close, then permits reopening', async () => {
   let close!: () => void,
     calls = 0

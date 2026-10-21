@@ -38,6 +38,13 @@ export class InstanceActionController {
       this.notice('success', this.deps.copied())
     })
   }
+  copySocket(instance: InstanceSpec) {
+    const address = instance.socket
+    return this.run(`copy-socket:${instance.id}`, async () => {
+      await this.deps.copy(address)
+      this.notice('success', this.deps.copied())
+    })
+  }
   open(id: string, view: InstanceView) {
     return this.run(`open:${id}:${view}`, async () => {
       await this.deps.open(id, view)
