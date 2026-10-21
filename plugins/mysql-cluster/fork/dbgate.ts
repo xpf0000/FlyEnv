@@ -1,4 +1,3 @@
-import { join } from 'node:path'
 import { existsSync } from 'node:fs'
 import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -9,7 +8,7 @@ import { installDbGate } from './dbgateInstall'
 import { dbGateListeningPids } from './dbgateListeners'
 
 /**
- * Fork owns this private companion for the module lifetime. Opens and parent /
+ * Fork manages the shared global panel for the module lifetime. Opens and parent /
  * companion stops share one admission queue; duplicate opens share their result
  * and raw progress. A verified final parent requires companion cleanup BEFORE
  * MySQL stop. Unknown peers are not proof of all-stopped. Cleanup failure blocks
@@ -26,7 +25,7 @@ export class MysqlClusterDbGate {
     baseDir: string,
     private readonly instances: Pick<MysqlInstanceRuntime, 'listInstances' | 'stop'>
   ) {
-    this.runtime = new DbGateRuntime(join(baseDir, 'mysql-cluster'), {
+    this.runtime = new DbGateRuntime(baseDir, {
       installer: installDbGate,
       listeningPids: dbGateListeningPids,
       starter: (node, paths, port, credentials, on) =>
@@ -108,7 +107,7 @@ export class MysqlClusterDbGate {
     if (!expectedPid && !existsSync(this.runtime.paths.root)) return []
     const stopped = await this.runtime.stop(expectedPid)
     if (existsSync(this.runtime.paths.pid))
-      throw new Error('DbGate stop could not be confirmed; its private PID record is retained')
+      throw new Error('DbGate stop could not be confirmed; its global PID record is retained')
     return stopped
   }
 

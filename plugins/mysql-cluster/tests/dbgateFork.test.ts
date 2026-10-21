@@ -114,7 +114,7 @@ const item = (id: string): any => ({
   pid: id === 'a' ? '101' : '102'
 })
 
-test('private DbGate open relays raw install notices and registers its private entry for host exit', async () => {
+test('global DbGate open relays install notices and registers its shared entry for plugin exit', async () => {
   const { module, state } = await fixture()
   const events: any[] = []
   const result = await module.openDbGate(node).on((event: any) => events.push(event))
@@ -123,8 +123,8 @@ test('private DbGate open relays raw install notices and registers its private e
   assert.deepEqual(result['APP-Service-Start-Item'], {
     typeFlag: 'mysql-cluster',
     version: 'dbgate',
-    bin: '/isolated/server/mysql-cluster/dbgate/node_modules/dbgate-serve/bin/dbgate-serve.js',
-    path: '/isolated/server/mysql-cluster/dbgate'
+    bin: '/isolated/server/dbgate/node_modules/dbgate-serve/bin/dbgate-serve.js',
+    path: '/isolated/server/dbgate'
   })
   const stopArgs = module.companionStopArgs('openDbGate', '900', [node])
   assert.equal(stopArgs[0].bin, result['APP-Service-Start-Item'].bin)
@@ -137,7 +137,7 @@ test('private DbGate open relays raw install notices and registers its private e
   assert.equal(state.expectedPid, '900')
 })
 
-test('DbGate spawn uses private service identity and suppresses credential logging', async () => {
+test('DbGate spawn uses plugin service identity with the global entry and suppresses credential logging', async () => {
   const { module, state } = await fixture()
   await module.openDbGate(node)
   await state.panel.options.starter(
@@ -238,7 +238,7 @@ test('an unknown target cannot authorize final-parent panel shutdown', async () 
   await module.stopService(item('a'), { id: 'a' })
   assert.equal(state.panelStops, 0)
 })
-test('retained private PID after native stop blocks final-parent shutdown', async () => {
+test('retained global PID after native stop blocks final-parent shutdown', async () => {
   const { module, state } = await fixture()
   state.retainedPid = true
   await assert.rejects(module.stopService(item('a'), { id: 'a' }), /confirm|running|DbGate/i)

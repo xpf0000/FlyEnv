@@ -10,7 +10,7 @@ async function fixture(body: string, run: (node: string, paths: any) => Promise<
   const root = await mkdtemp(join(tmpdir(), 'mc-dbgate-npm space-'))
   const node = join(root, 'node', 'bin', process.platform === 'win32' ? 'node.exe' : 'node')
   const npm = join(dirname(node), 'node_modules/npm/bin/npm-cli.js')
-  const paths = dbGatePaths(join(root, 'private'), false)
+  const paths = dbGatePaths(root, false)
   await mkdir(dirname(npm), { recursive: true })
   // Use a real Node subprocess and fake npm program, not an accepting spawn mock.
   await writeFile(npm, body)
@@ -21,7 +21,7 @@ async function fixture(body: string, run: (node: string, paths: any) => Promise<
   }
 }
 
-test('plugin installer pins published dumpers and forces local real installation while preserving private files', async () => {
+test('plugin installer pins published dumpers and forces local real installation in the global directory while preserving existing files', async () => {
   await fixture(
     `const fs=require('node:fs'),path=require('node:path');fs.writeFileSync(path.join(process.cwd(),'args.json'),JSON.stringify(process.argv.slice(2)));fs.mkdirSync('node_modules/dbgate-serve/bin',{recursive:true});fs.writeFileSync('node_modules/dbgate-serve/bin/dbgate-serve.js','entry');`,
     async (node, paths) => {
@@ -29,12 +29,14 @@ test('plugin installer pins published dumpers and forces local real installation
       await writeFile(
         join(paths.root, 'package.json'),
         JSON.stringify({
-          name: 'private-panel',
+          name: 'global-panel',
           dependencies: { custom: '1' },
           overrides: { custom: '2' }
         })
       )
       await writeFile(paths.credentials, 'keep')
+      await mkdir(paths.workspace, { recursive: true })
+      await writeFile(join(paths.workspace, 'existing.json'), 'saved connection')
       await api.installDbGate(node, paths, { npmCli: paths.npm })
       const manifest = JSON.parse(await readFile(join(paths.root, 'package.json'), 'utf8'))
       assert.equal(manifest.overrides['dbgate-mysql-dumper'], '0.1.3')
@@ -42,6 +44,10 @@ test('plugin installer pins published dumpers and forces local real installation
       assert.equal(manifest.overrides.custom, '2')
       assert.equal(manifest.dependencies.custom, '1')
       assert.equal(await readFile(paths.credentials, 'utf8'), 'keep')
+      assert.equal(
+        await readFile(join(paths.workspace, 'existing.json'), 'utf8'),
+        'saved connection'
+      )
       const args = JSON.parse(await readFile(join(paths.root, 'args.json'), 'utf8'))
       assert.equal(args[args.indexOf('--prefix') + 1], await realpath(paths.root))
       for (const option of ['--global=false', '--dry-run=false', '--package-lock-only=false'])

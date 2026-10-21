@@ -9,7 +9,7 @@ FlyEnv 独立插件，提供 **MySQL 实例 / 服务 / 版本** 三个 Tab。
 - 一键 Group Replication：3/5/7/9 个本机节点、单主、XCom，自动建组及检查 ONLINE/PRIMARY。
 - 实例与组的启动、停止、重启；通用操作菜单含编辑、配置、错误/慢日志、数据管理和连接信息。
 - 数据管理包含数据库/用户列表、新建数据库及授权、密码管理、备注、备份目录和逐库导出。
-- 任意实例运行时，实例标题右侧显示 DbGate 入口；自动读取已安装的 NodeJS 运行时，无需显示 NodeJS 模块，首次打开会安装面板。面板使用插件自己的目录和进程，最后一个实例停止时清理，不影响 MongoDB 的 DbGate。
+- 任意实例运行时，实例标题右侧显示 DbGate 入口；自动读取已安装的 NodeJS 运行时，无需显示 NodeJS 模块，首次打开会安装面板。面板与 MongoDB 共用 `server/dbgate/` 的安装、工作区、凭据及进程；已安装时直接复用，缺失时安装到该全局目录。最后一个实例停止时关闭全局面板，MongoDB 下次使用时再开启。
 - 安装版本继续由内置 MySQL 管理；服务页隐藏运行操作，插件入口阻止卸载运行实例依赖的版本。
 - 中文/英文界面；其他语言回退英文；深浅色及窄窗布局。
 - 创建/编辑表单逐项显示必填、名称重复、端口冲突、Socket 与数据目录的校验原因，顶层“集群名称”与内部“实例名称”明确区分。数据目录可直接输入，也可通过输入框右侧文件夹按钮选择；已初始化实例的目录仍保持锁定。
@@ -87,7 +87,7 @@ MYSQL_CLUSTER_TEST_BIN=/path/to/mysql-8.4.8/bin/mysqld \
 Windows、Linux、MySQL 8.0 与其他 MySQL 构建的原生验收仍待完成；Windows 测试还需要
 宿主 Helper/进程查询环境，不能把 macOS 的通过结果视为跨平台通过。
 
-构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.14.flyenv-plugin`；
+构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.15.flyenv-plugin`；
 构建会生成匹配的 registry SHA-256，空下载 URL 表示尚未发布。
 
 0.1.1 的独立宿主回归覆盖本地生命周期身份保持、原宿主零新增配置写入、自动扫描与专用查询隔离、安装进度/取消/重入、失败后的真实安装状态刷新及包目录保护。
@@ -119,3 +119,5 @@ Windows、Linux、MySQL 8.0 与其他 MySQL 构建的原生验收仍待完成；
 0.1.13 修复 DbGate 首次 npm 安装：兼容上游错误的 MySQL dumper 依赖版本，使用真实安装目录并保留 npm 退出码、信号及输出。DbGate 打开时按需加载隐藏 NodeJS 模块的安装列表，优先原选择，失效时使用可用安装，不修改模块显示或选中配置。补上 IPv6 监听归属查询，重复打开复用插件面板。
 
 0.1.14 移除 DbGate 已废弃的运行时可用性 getter，避免 reactiveBind 在插件导入时读取尚未初始化的宿主 AppStore，修复 plugin:dev 启动后插件不显示。Node 发现仍在点击打开时执行，隐藏 NodeJS 模块的支持保持不变。
+
+0.1.15 DbGate 统一使用全局 `server/dbgate/`，已有安装直接复用，缺失时仍执行安装；停止最后一个 MySQL 实例时关闭全局面板，MongoDB 下次使用可重新打开。不自动迁移或删除此前的插件独立面板文件。
