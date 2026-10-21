@@ -14,101 +14,139 @@
         :closable="false"
         class="mb-4"
       />
-      <el-form label-position="top" class="grid grid-cols-1 gap-x-5 md:grid-cols-2" @submit.prevent>
-        <el-form-item required :label="t('name')"><el-input v-model="form.name" /></el-form-item>
-        <el-form-item required :label="t('mode')"
-          ><el-select v-model="form.mode" :disabled="!!group"
-            ><el-option
-              v-for="mode in modes"
-              :key="mode"
-              :label="t(mode)"
-              :value="mode" /></el-select
-        ></el-form-item>
-        <el-form-item required :label="t('version')"
-          ><el-select v-model="engineBin" :disabled="!!group" filterable
-            ><el-option
-              v-for="version in versions"
-              :key="version.bin"
-              :value="version.bin"
-              :label="`${version.version} — ${version.path}`" /></el-select
-        ></el-form-item>
-        <el-form-item
-          v-if="form.mode !== 'standalone'"
-          required
-          :label="t(form.mode === 'replication' ? 'replicas' : 'nodes')"
-          ><el-select
-            v-if="form.mode === 'group-replication'"
-            v-model="form.count"
-            :disabled="!!group"
-            ><el-option
-              v-for="n in [3, 5, 7, 9]"
-              :key="n"
-              :value="n"
-              :label="String(n)" /></el-select
-          ><el-input-number v-else v-model="form.count" :min="1" :max="15" :disabled="!!group"
-        /></el-form-item>
-        <el-form-item required :label="t('startPort')"
-          ><el-input-number
-            v-model="form.startPort"
-            :min="1"
-            :max="65535"
-            :disabled="!!group"
-            @input="portEdited = true"
-        /></el-form-item>
-        <el-form-item v-if="!group" required :label="t('password')"
-          ><el-input
-            v-model="form.password"
-            type="password"
-            show-password
-            autocomplete="new-password"
-        /></el-form-item>
+      <el-form
+        ref="formRef"
+        :model="validationModel"
+        :rules="rules"
+        :validate-on-rule-change="false"
+        :disabled="busy || directoryPicking"
+        label-position="top"
+        scroll-to-error
+        @submit.prevent
+      >
+        <div class="grid grid-cols-1 gap-x-5 md:grid-cols-2">
+          <el-form-item prop="name" required :label="t('clusterName')"
+            ><el-input v-model="form.name"
+          /></el-form-item>
+          <el-form-item prop="mode" required :label="t('mode')"
+            ><el-select v-model="form.mode" :disabled="!!group"
+              ><el-option
+                v-for="mode in modes"
+                :key="mode"
+                :label="t(mode)"
+                :value="mode" /></el-select
+          ></el-form-item>
+          <el-form-item prop="engineBin" required :label="t('version')"
+            ><el-select v-model="engineBin" :disabled="!!group" filterable
+              ><el-option
+                v-for="version in versions"
+                :key="version.bin"
+                :value="version.bin"
+                :label="`${version.version} — ${version.path}`" /></el-select
+          ></el-form-item>
+          <el-form-item
+            v-if="form.mode !== 'standalone'"
+            prop="count"
+            required
+            :label="t(form.mode === 'replication' ? 'replicas' : 'nodes')"
+            ><el-select
+              v-if="form.mode === 'group-replication'"
+              v-model="form.count"
+              :disabled="!!group"
+              ><el-option
+                v-for="n in [3, 5, 7, 9]"
+                :key="n"
+                :value="n"
+                :label="String(n)" /></el-select
+            ><el-input-number v-else v-model="form.count" :min="1" :max="15" :disabled="!!group"
+          /></el-form-item>
+          <el-form-item prop="startPort" required :label="t('startPort')"
+            ><el-input-number
+              v-model="form.startPort"
+              :min="1"
+              :max="65535"
+              :disabled="!!group"
+              @input="portEdited = true"
+          /></el-form-item>
+          <el-form-item v-if="!group" prop="password" required :label="t('password')"
+            ><el-input
+              v-model="form.password"
+              type="password"
+              show-password
+              autocomplete="new-password"
+          /></el-form-item>
+        </div>
+        <el-alert
+          v-if="form.mode === 'group-replication'"
+          :title="t('grHint')"
+          type="warning"
+          :closable="false"
+          class="mb-4"
+        />
+        <p class="mb-3 text-xs opacity-70">{{ t('initialPortHint') }}</p>
+        <el-card v-for="(member, index) in members" :key="member.id" class="mb-3" shadow="never">
+          <div class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
+            <el-form-item :prop="`members.${index}.name`" required :label="t('instanceName')"
+              ><el-input v-model="member.name"
+            /></el-form-item>
+            <el-form-item :prop="`members.${index}.port`" required :label="t('port')"
+              ><el-input-number v-model="member.port" :min="1" :max="65535"
+            /></el-form-item>
+            <el-form-item
+              :prop="`members.${index}.socket`"
+              required
+              :label="t(isWindows ? 'pipe' : 'socket')"
+              ><el-input v-model="member.socket"
+            /></el-form-item>
+            <el-form-item
+              v-if="form.mode === 'group-replication'"
+              :prop="`members.${index}.groupPort`"
+              required
+              :label="t('groupPort')"
+              ><el-input-number v-model="member.groupPort" :min="1" :max="65535"
+            /></el-form-item>
+            <el-form-item
+              :prop="`members.${index}.dataDir`"
+              required
+              :label="t('dataDir')"
+              class="md:col-span-2"
+              ><el-input v-model="member.dataDir" :readonly="directoryLocked(member.id)">
+                <template #append
+                  ><el-button
+                    :icon="FolderOpened"
+                    :title="t('selectDataDirectory')"
+                    :aria-label="t('selectDataDirectory')"
+                    :disabled="directoryLocked(member.id) || busy || directoryPicking"
+                    @click="chooseDirectory(member)"
+                /></template>
+              </el-input>
+              <p v-if="directoryLocked(member.id)" class="mt-1 text-xs opacity-70">{{
+                t('dataDirLockedHint')
+              }}</p>
+            </el-form-item>
+          </div>
+        </el-card>
       </el-form>
-      <el-alert
-        v-if="form.mode === 'group-replication'"
-        :title="t('grHint')"
-        type="warning"
-        :closable="false"
-        class="mb-4"
-      />
-      <p class="mb-3 text-xs opacity-70">{{ t('initialPortHint') }}</p>
-      <el-card v-for="member in members" :key="member.id" class="mb-3" shadow="never">
-        <el-form label-position="top" class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-          <el-form-item required :label="t('name')"
-            ><el-input v-model="member.name"
-          /></el-form-item>
-          <el-form-item required :label="t('port')"
-            ><el-input-number v-model="member.port" :min="1" :max="65535"
-          /></el-form-item>
-          <el-form-item required :label="t(isWindows ? 'pipe' : 'socket')"
-            ><el-input v-model="member.socket"
-          /></el-form-item>
-          <el-form-item v-if="form.mode === 'group-replication'" required :label="t('groupPort')"
-            ><el-input-number v-model="member.groupPort" :min="1" :max="65535"
-          /></el-form-item>
-          <el-form-item required :label="t('dataDir')" class="md:col-span-2"
-            ><el-input v-model="member.dataDir" :readonly="directoryLocked(member.id)" />
-            <p v-if="directoryLocked(member.id)" class="mt-1 text-xs opacity-70">{{
-              t('dataDirLockedHint')
-            }}</p>
-          </el-form-item>
-        </el-form>
-      </el-card>
     </el-scrollbar>
     <template #footer
       ><el-button @click="show = false">{{ t('cancel') }}</el-button
-      ><el-button type="primary" :loading="busy" @click="submit">{{
+      ><el-button type="primary" :loading="busy" :disabled="directoryPicking" @click="submit">{{
         t(group ? 'save' : 'create')
       }}</el-button></template
     >
   </el-dialog>
 </template>
 <script setup lang="ts">
-  import { computed, reactive, ref, watch } from 'vue'
+  import { computed, nextTick, reactive, ref, watch } from 'vue'
+  import type { FormInstance, FormRules } from 'element-plus'
+  import { FolderOpened } from '@element-plus/icons-vue'
+  import { dialog } from '@/util/NodeFn'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { BrewStore } from '@/store/brew'
   import { MysqlClusterManager as manager } from './manager'
   import { createDraftRequest, defaultDataRoot, suggestStartPort } from './form'
   import { engineFromInstalled } from './engine'
+  import { instanceFormErrors } from './formValidation'
   import { DuplicateNameError, validateCreateRequest, validateUniqueNames } from '../policy'
   import type { ClusterSpec, ClusterMode, EngineRef, InstanceSpec, SavedCatalog } from '../shared'
   import { t } from './lang'
@@ -152,6 +190,98 @@
     (manager.catalog as SavedCatalog & { stages?: Record<string, string> }).stages?.[memberId] !==
       'prepared'
   const busy = computed(() => !!manager.operations[id]?.busy)
+  const formRef = ref<FormInstance>()
+  const directoryPicking = ref(false)
+  const validationModel = computed(() => ({
+    ...form,
+    engineBin: engineBin.value,
+    members: members.value
+  }))
+  const fieldErrors = computed(() => {
+    const version = versions.value.find((i) => i.bin === engineBin.value)
+    let engine: EngineRef | undefined
+    try {
+      engine = props.group
+        ? existing[0]?.engine
+        : version
+          ? engineFromInstalled(version)
+          : undefined
+    } catch {
+      /* Version field reports the unavailable engine. */
+    }
+    return instanceFormErrors(validationModel.value, {
+      catalog: manager.catalog,
+      editingGroupId: props.group?.id,
+      platform,
+      engine,
+      t
+    })
+  })
+  const rules = computed<FormRules>(() => {
+    const keys = [
+      'name',
+      'mode',
+      'engineBin',
+      'startPort',
+      ...(!props.group ? ['password'] : []),
+      ...(form.mode !== 'standalone' ? ['count'] : [])
+    ]
+    members.value.forEach((_, index) => {
+      for (const field of [
+        'name',
+        'port',
+        'socket',
+        'dataDir',
+        ...(form.mode === 'group-replication' ? ['groupPort'] : [])
+      ])
+        keys.push(`members.${index}.${field}`)
+    })
+    return Object.fromEntries(
+      keys.map((key) => [
+        key,
+        [
+          {
+            trigger: ['change', 'blur'],
+            validator: (_rule: unknown, _value: unknown, callback: (error?: Error) => void) =>
+              callback(fieldErrors.value[key] ? new Error(fieldErrors.value[key]) : undefined)
+          }
+        ]
+      ])
+    )
+  })
+  watch(fieldErrors, () => {
+    const invalid = formRef.value?.fields
+      .filter((field) => field.validateState === 'error')
+      .map((field) => field.propString)
+    if (invalid?.length) void formRef.value?.validateField(invalid).catch(() => undefined)
+  })
+  async function chooseDirectory(member: InstanceSpec) {
+    if (busy.value || directoryPicking.value || directoryLocked(member.id)) return
+    directoryPicking.value = true
+    try {
+      const result = await dialog.showOpenDialog({
+        defaultPath: member.dataDir,
+        properties: ['openDirectory', 'createDirectory', 'showHiddenFiles']
+      })
+      if (
+        result.canceled ||
+        !result.filePaths.length ||
+        !show.value ||
+        directoryLocked(member.id) ||
+        !members.value.includes(member)
+      )
+        return
+      member.dataDir = result.filePaths[0]
+      await nextTick()
+      await formRef.value
+        ?.validateField(`members.${members.value.indexOf(member)}.dataDir`)
+        .catch(() => undefined)
+    } catch (error) {
+      manager.reportFormError(error)
+    } finally {
+      directoryPicking.value = false
+    }
+  }
   watch(
     () => form.mode,
     (mode) => {
@@ -176,7 +306,13 @@
         members.value = []
         return
       }
-      const engine: EngineRef = engineFromInstalled(version)
+      let engine: EngineRef
+      try {
+        engine = engineFromInstalled(version)
+      } catch {
+        members.value = []
+        return
+      }
       members.value = createDraftRequest(
         { ...form, engine, id, uuid, dataDirs },
         platform
@@ -185,7 +321,8 @@
     { immediate: true }
   )
   async function submit() {
-    if (busy.value) return
+    if (busy.value || directoryPicking.value) return
+    if (!(await formRef.value?.validate().catch(() => false))) return
     const request = {
       cluster: {
         id,
@@ -200,10 +337,6 @@
       )
     }
     try {
-      if (!form.name.trim()) throw new Error(t('required') + t('name'))
-      if (!members.value.length)
-        throw new Error(versions.value.length ? t('required') + t('version') : t('noVersions'))
-      if (!props.group && !form.password) throw new Error(t('required') + t('password'))
       if (
         !props.group &&
         !portEdited.value &&
@@ -213,6 +346,7 @@
       validateCreateRequest(request, platform)
       validateUniqueNames(request, manager.catalog, props.group?.id)
       const result = props.group ? await manager.save(request) : await manager.create(request)
+      if (result.status !== 'completed') await formRef.value?.validate().catch(() => false)
       if (result.status === 'completed') show.value = false
       else if (manager.catalog.clusters.some((g) => g.id === id)) show.value = false
     } catch (e) {
