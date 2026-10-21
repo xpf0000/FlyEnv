@@ -9,6 +9,7 @@ export interface DbGateNode {
 interface DbGateDependencies {
   available(): boolean
   node(): DbGateNode | undefined
+  loadNode?(): Promise<DbGateNode | undefined>
   request(node: DbGateNode, progress: (info: any) => void): Promise<{ url: string }>
   openBrowser(url: string): Promise<unknown>
   installNotice(): { close(): void }
@@ -45,17 +46,13 @@ export class MysqlClusterDbGateController {
   open(): Promise<void> {
     if (this.flight) return this.flight
     const node = this.deps.node()
-    if (!node?.bin) {
-      this.error(this.deps.runtimeRequired())
-      return Promise.resolve()
-    }
     if (!this.deps.available()) {
       this.error(this.deps.unavailable())
       return Promise.resolve()
     }
-    let snapshot: DbGateNode
+    let snapshot: DbGateNode | undefined
     try {
-      snapshot = JSON.parse(JSON.stringify(node))
+      snapshot = node?.bin ? JSON.parse(JSON.stringify(node)) : undefined
     } catch (error) {
       this.error(errorText(error))
       return Promise.resolve()
@@ -63,7 +60,16 @@ export class MysqlClusterDbGateController {
     this.opening = true
     this.flight = Promise.resolve()
       .then(async () => {
-        const result = await this.deps.request(snapshot, (info) => {
+        if (!snapshot) {
+          const loaded = await this.deps.loadNode?.()
+          if (!loaded?.bin) {
+            this.error(this.deps.runtimeRequired())
+            return
+          }
+          snapshot = JSON.parse(JSON.stringify(loaded))
+        }
+        if (!this.deps.available()) return
+        const result = await this.deps.request(snapshot!, (info) => {
           if (info?.code !== 200 || !isWebPanelInstallNotice(info.msg)) return
           this.closeNotice()
           try {

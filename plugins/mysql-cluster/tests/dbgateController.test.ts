@@ -105,3 +105,43 @@ test('notice failure is supplementary and browser failure releases opening witho
   assert.equal(f.state.requests.length, 1)
   assert.deepEqual(f.state.errors, ['Browser failed'])
 })
+
+test('cold Node inventory is loaded once independently of sidebar visibility and remains busy until terminal', async () => {
+  const f = fixture()
+  f.state.node = undefined
+  let loaded!: (node: any) => void,
+    loads = 0
+  ;(f.deps as any).loadNode = () => {
+    loads++
+    return new Promise((resolve) => {
+      loaded = resolve
+    })
+  }
+  const pending = f.controller.open()
+  assert.equal(f.controller.opening, true)
+  assert.equal(f.controller.open(), pending)
+  await Promise.resolve()
+  assert.equal(loads, 1)
+  loaded({ bin: '/hidden-node/bin/node' })
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.equal(f.state.requests[0].bin, '/hidden-node/bin/node')
+  f.finish({ url: 'http://127.0.0.1:3000' })
+  await pending
+  assert.equal(f.controller.opening, false)
+})
+test('failed discovery releases busy for retry and stopped parents prevent a late panel request', async () => {
+  const f = fixture()
+  f.state.node = undefined
+  ;(f.deps as any).loadNode = async () => {
+    throw Error('Node scan failed')
+  }
+  await f.controller.open()
+  assert.equal(f.controller.opening, false)
+  assert.deepEqual(f.state.errors, ['Node scan failed'])
+  ;(f.deps as any).loadNode = async () => {
+    f.state.running = false
+    return { bin: '/node' }
+  }
+  await f.controller.open()
+  assert.equal(f.state.requests.length, 0)
+})

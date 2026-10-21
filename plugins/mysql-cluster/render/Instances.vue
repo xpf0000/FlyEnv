@@ -10,7 +10,7 @@
             style="color: #01cc74"
             title="DbGate"
             aria-label="DbGate"
-            :disabled="dbgate.opening || !dbgate.nodeAvailable || manager.allBusy"
+            :disabled="dbgate.opening || manager.allBusy"
             @click.stop="dbgate.open()"
             ><el-icon
               v-if="dbgate.opening"

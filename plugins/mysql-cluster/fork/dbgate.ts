@@ -5,6 +5,8 @@ import { ForkPromise } from '@shared/ForkPromise'
 import { DbGateRuntime, dbGateEnv, type DbGateOpenResult } from '@fork/module/DbGate'
 import { serviceStartSpawn } from '@fork/util/ServiceStart'
 import type { MysqlInstanceRuntime } from './runtime'
+import { installDbGate } from './dbgateInstall'
+import { dbGateListeningPids } from './dbgateListeners'
 
 /**
  * Fork owns this private companion for the module lifetime. Opens and parent /
@@ -25,6 +27,8 @@ export class MysqlClusterDbGate {
     private readonly instances: Pick<MysqlInstanceRuntime, 'listInstances' | 'stop'>
   ) {
     this.runtime = new DbGateRuntime(join(baseDir, 'mysql-cluster'), {
+      installer: installDbGate,
+      listeningPids: dbGateListeningPids,
       starter: (node, paths, port, credentials, on) =>
         serviceStartSpawn({
           version: this.descriptor(),

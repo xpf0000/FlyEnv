@@ -52,6 +52,8 @@ async function fixture(states: Record<string, string> = { a: 'running', b: 'stop
                   'export const StopProcessListFetch=async()=>[];export const fetchStopProcessListLocal=async()=>Object.entries(globalThis.__mcDbGateFork.states).map(([id,state])=>({id,state}));'
               }
             const names: Record<string, string[]> = {
+              './dbgateInstall': ['installDbGate'],
+              './dbgateListeners': ['dbGateListeningPids'],
               './packages': [
                 'preparePackageCommand',
                 'prepareHomebrewInstall',

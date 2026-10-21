@@ -5,9 +5,15 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { MysqlClusterDbGate } from '../fork/dbgate'
 
+const freshInstall = process.env.MYSQL_CLUSTER_DBGATE_INSTALL_TEST === '1'
 test(
-  'native companion smoke: isolated Node process, private identity, reuse and final-parent cleanup',
-  { skip: process.env.MYSQL_CLUSTER_DBGATE_NATIVE_TEST !== '1', timeout: 90_000 },
+  freshInstall
+    ? 'native DbGate fresh npm install, real panel health, reuse and final-parent cleanup'
+    : 'native companion smoke: isolated Node process, private identity, reuse and final-parent cleanup',
+  {
+    skip: !freshInstall && process.env.MYSQL_CLUSTER_DBGATE_NATIVE_TEST !== '1',
+    timeout: freshInstall ? 600_000 : 90_000
+  },
   async () => {
     const root = await mkdtemp(join(tmpdir(), 'mc-dbgate-native space-'))
     const previous = (globalThis as any).Server
@@ -30,13 +36,15 @@ test(
       const descriptor = panel.descriptor()
       await mkdir(dirname(descriptor.bin), { recursive: true })
       // Fixture verifies the real runtime/start/health/stop boundary without npm or a user database.
-      await writeFile(
-        descriptor.bin,
-        `const http=require('node:http');const auth='Basic '+Buffer.from(process.env.LOGIN+':'+process.env.PASSWORD).toString('base64');http.createServer((req,res)=>{res.statusCode=req.headers.authorization===auth?200:401;res.end('isolated fixture')}).listen(Number(process.env.PORT),'127.0.0.1');`
-      )
+      if (!freshInstall)
+        await writeFile(
+          descriptor.bin,
+          `const http=require('node:http');const auth='Basic '+Buffer.from(process.env.LOGIN+':'+process.env.PASSWORD).toString('base64');http.createServer((req,res)=>{res.statusCode=req.headers.authorization===auth?200:401;res.end('isolated fixture')}).listen(Number(process.env.PORT));`
+        )
+      const nodeBin = process.env.MYSQL_CLUSTER_DBGATE_NODE_BIN || process.execPath
       const node = {
-        bin: process.execPath,
-        path: dirname(process.execPath),
+        bin: nodeBin,
+        path: dirname(nodeBin),
         version: process.version.slice(1)
       } as any
       const opened = await panel.open(node)
@@ -49,7 +57,7 @@ test(
       const stopped = await panel.stopInstance('a', '101')
       assert.ok(stopped.includes(pid))
       assert.equal(running, false)
-      await assert.rejects(panel.open(node), /running MySQL/)
+      await assert.rejects(Promise.resolve(panel.open(node)), /running MySQL/)
     } finally {
       try {
         await panel.stop()

@@ -117,6 +117,9 @@ export default {
   readOnly: 'This member is read-only. Use the current writable primary for changes.',
   connectionCopied: 'Connection information copied',
   copySocket: 'Copy Socket address',
+  dbgateRequiresNode:
+    'DbGate requires an installed, available NodeJS runtime. Install NodeJS first; its module may remain hidden.',
+  dbgateNodeScanFailed: 'Could not load installed NodeJS runtimes. Please retry.',
   dbgateRequiresInstance:
     'Start a MySQL Cluster instance and wait for lifecycle operations to finish before opening DbGate.',
   dbgateBrowserFailed:

@@ -110,6 +110,9 @@ export default {
   readOnly: '当前节点只读，请在当前可写主节点执行修改。',
   connectionCopied: '已复制连接信息',
   copySocket: '复制 Socket 地址',
+  dbgateRequiresNode:
+    'DbGate 需要已安装且可用的 NodeJS，请先安装 NodeJS。无需显示或启用 NodeJS 模块。',
+  dbgateNodeScanFailed: '无法读取已安装的 NodeJS，请重试。',
   dbgateRequiresInstance: '请先启动一个 MySQL 集群实例，待当前启停操作完成后再打开 DbGate。',
   dbgateBrowserFailed: 'DbGate 已启动，但未能打开浏览器，请再次点击入口重试。',
   inUse: '运行中的 MySQL 集群实例正在使用此版本，请先停止对应实例。',
