@@ -83,7 +83,7 @@ MYSQL_CLUSTER_TEST_BIN=/path/to/mysql-8.4.8/bin/mysqld \
 Windows、Linux、MySQL 8.0 与其他 MySQL 构建的原生验收仍待完成；Windows 测试还需要
 宿主 Helper/进程查询环境，不能把 macOS 的通过结果视为跨平台通过。
 
-构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.4.flyenv-plugin`；
+构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.5.flyenv-plugin`；
 构建会生成匹配的 registry SHA-256，空下载 URL 表示尚未发布。
 
 0.1.1 的独立宿主回归覆盖本地生命周期身份保持、原宿主零新增配置写入、自动扫描与专用查询隔离、安装进度/取消/重入、失败后的真实安装状态刷新及包目录保护。
@@ -93,3 +93,5 @@ Windows、Linux、MySQL 8.0 与其他 MySQL 构建的原生验收仍待完成；
 0.1.3 修复节点启动凭据及复制 RPC 参数的 Electron 克隆错误；创建/编辑错误改为模态提示，必填项显示标识；停止的节点只显示启动，运行的节点显示停止/重启；创建默认端口根据已有 SQL/GR 端口自动分配，可手动覆盖。
 
 0.1.4 将创建/编辑错误改用公共 Element 消息，隐藏数据根目录并保留逐节点自定义路径；卡片和列表统一图标及状态颜色。配置沿用 PHP 抽屉/编辑器工具布局并保留插件配置校验，日志直接复用公共 Log 组件；数据管理复制主程序 MySQL 页面、按实例适配列表/密码/备注/备份，连接信息复制后显示结果提示。
+
+0.1.5 将卡片内相同的 MySQL 版本/路径集中到头部（不同则保留逐行列）；编辑/删除统一 Element Plus 图标，启停/重启加载动画与操作图标互斥，重启进度显示在重启按钮。

@@ -27,3 +27,11 @@ Data management copies the MySQL drawer/table/add/password/backup-directory view
 Independent review found no additional Important/Critical issue. Its minor backup-directory edit-during-save issue was fixed by disabling that input while persistence/picking runs. Config writes, initialization guards and required catalog/config failures continue to propagate; notifications, post-SQL preferences/list refresh and opening backup folders remain supplementary.
 
 No user service, installed plugin or database was changed. No package-manager install, publication, activation or push. Temporary preview tab/server/files were cleaned. Windows/Linux native acceptance and initialized-data migration are outside the verified scope.
+
+## 0.1.5 card follow-up
+
+Per-card computed engine summaries display version/path in the header only when all members share both values; mixed installations retain both row columns. Edit/Delete use actual Element Plus icon components in the header/menu. ActionButton suppresses its entire icon slot while Element Plus renders its spinner; the row restart button owns restart loading instead of the stop button.
+
+Real SFC compilation + Vue SSR checks verify shared/mixed column rendering and exactly one SVG (action icon or native loading spinner) for start/stop/restart/Edit/Delete in both loading states. Complete suite remains 115 tests / 114 pass / 1 default native skip. ESLint has zero errors / three inherited warnings, types remain byte-identical to the 53-diagnostic baseline, renderer boundary check and package build pass. No Fork changes, so the native 9.6 run was not repeated for this view-only follow-up. Host src/scripts remain unchanged.
+
+Package `dist/plugins/mysql-cluster/mysql-cluster-0.1.5.flyenv-plugin`: 1,636,244 bytes, SHA-256 `b38a9f4afee10fd817d1604a7f5cc1290d202d90d8962980be8b98f698751b75`, matching registry. Temporary render-check script cleaned; no activation/publication/push.

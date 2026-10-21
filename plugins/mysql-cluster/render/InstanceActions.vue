@@ -9,7 +9,7 @@
   >
     <ul v-poper-fix class="host-list-menu">
       <li @click="openEdit"
-        ><EditPen width="17" height="17" /><span class="ml-3">{{ t('edit') }}</span></li
+        ><Edit width="17" height="17" /><span class="ml-3">{{ t('edit') }}</span></li
       >
       <li v-for="view in views" :key="view" @click="openPanel(view)"
         ><Setting width="17" height="17" /><span class="ml-3">{{ t(view) }}</span></li
@@ -29,7 +29,7 @@
 </template>
 <script setup lang="ts">
   import { computed, ref } from 'vue'
-  import { EditPen, Setting, CopyDocument, Delete } from '@element-plus/icons-vue'
+  import { Edit, Setting, CopyDocument, Delete } from '@element-plus/icons-vue'
   import { ElMessageBox } from 'element-plus'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { InstanceActions } from './actions'

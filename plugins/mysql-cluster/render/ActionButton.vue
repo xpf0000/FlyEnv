@@ -12,11 +12,16 @@
     :disabled="disabled"
     :loading="loading"
   >
-    <yb-icon :key="action" :svg="icons[action]" width="22" height="22" />
+    <template v-if="!loading">
+      <Edit v-if="action === 'edit'" width="22" height="22" />
+      <Delete v-else-if="action === 'delete'" width="22" height="22" />
+      <yb-icon v-else :key="action" :svg="icons[action]" width="22" height="22" />
+    </template>
   </el-button>
 </template>
 <script setup lang="ts">
   import { computed } from 'vue'
+  import { Edit, Delete } from '@element-plus/icons-vue'
   import { t } from './lang'
   const props = defineProps<{
     action: 'start' | 'stop' | 'restart' | 'edit' | 'delete' | 'credentials'
@@ -28,8 +33,6 @@
     start: import('@/svg/play.svg?raw'),
     stop: import('@/svg/stop2.svg?raw'),
     restart: import('@/svg/icon_refresh.svg?raw'),
-    edit: import('@/svg/edit.svg?raw'),
-    delete: import('@/svg/delete.svg?raw'),
     credentials: import('@/svg/setup.svg?raw')
   }
 </script>

@@ -19,9 +19,17 @@
         <div
           class="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--el-border-color-light)] px-4 py-3"
         >
-          <div class="flex items-center gap-3"
+          <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2"
             ><strong>{{ group.name }}</strong
             ><el-tag size="small">{{ t(group.mode) }}</el-tag
+            ><template v-if="sharedEngines[group.id]">
+              <el-tag size="small">MySQL {{ sharedEngines[group.id]!.version }}</el-tag>
+              <span
+                class="min-w-0 max-w-full cursor-pointer truncate text-yellow-500"
+                :title="sharedEngines[group.id]!.path"
+                @click="openPath(sharedEngines[group.id]!.path)"
+                >{{ sharedEngines[group.id]!.path }}</span
+              > </template
             ><el-tag v-if="manager.operations[group.id]?.busy" type="warning" size="small">{{
               manager.operations[group.id].stage
             }}</el-tag></div
@@ -46,10 +54,10 @@
         </div>
         <el-table :data="members(group)" show-overflow-tooltip>
           <el-table-column prop="name" :label="t('name')" min-width="130" />
-          <el-table-column :label="t('version')" width="110"
+          <el-table-column v-if="!sharedEngines[group.id]" :label="t('version')" width="110"
             ><template #default="{ row }">{{ row.engine.version }}</template></el-table-column
           >
-          <el-table-column :label="t('path')" min-width="220"
+          <el-table-column v-if="!sharedEngines[group.id]" :label="t('path')" min-width="220"
             ><template #default="{ row }"
               ><span class="cursor-pointer text-yellow-500" @click="openPath(row.engine.path)">{{
                 row.engine.path
@@ -110,7 +118,10 @@
               ><div class="flex items-center justify-center gap-2"
                 ><ActionButton
                   :action="manager.snapshots[row.id]?.state === 'running' ? 'stop' : 'start'"
-                  :loading="!!manager.operations[row.id]?.busy"
+                  :loading="
+                    !!manager.operations[row.id]?.busy &&
+                    manager.operations[row.id]?.action !== 'restart'
+                  "
                   :disabled="groupBusy(group)"
                   @click="
                     manager.runInstance(
@@ -120,6 +131,10 @@
                   " /><ActionButton
                   v-if="manager.snapshots[row.id]?.state === 'running'"
                   action="restart"
+                  :loading="
+                    !!manager.operations[row.id]?.busy &&
+                    manager.operations[row.id]?.action === 'restart'
+                  "
                   :disabled="groupBusy(group) || !!manager.operations[row.id]?.busy"
                   @click="manager.runInstance(row.id, 'restart')" /><InstanceActions
                   :instance="row" /></div></template
@@ -162,13 +177,13 @@
   </el-card>
 </template>
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { computed, ref } from 'vue'
   import { ElMessageBox } from 'element-plus'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
   import { shell } from '@/util/NodeFn'
   import { BrewStore } from '@/store/brew'
   import { MysqlClusterManager as manager } from './manager'
-  import type { ClusterSpec } from '../shared'
+  import type { ClusterSpec, EngineRef } from '../shared'
   import InstanceActions from './InstanceActions.vue'
   import ActionButton from './ActionButton.vue'
   import { t } from './lang'
@@ -180,6 +195,21 @@
     remember = ref(false)
   const members = (group: ClusterSpec) =>
     group.memberIds.map((id) => manager.catalog.instances.find((i) => i.id === id)!).filter(Boolean)
+  const sharedEngines = computed(() => {
+    const engines: Record<string, EngineRef | undefined> = {}
+    for (const group of manager.catalog.clusters) {
+      const nodes = members(group)
+      const engine = nodes[0]?.engine
+      if (
+        engine &&
+        nodes.every(
+          (node) => node.engine.version === engine.version && node.engine.path === engine.path
+        )
+      )
+        engines[group.id] = engine
+    }
+    return engines
+  })
   const groupActions = (group: ClusterSpec): Array<LifecycleAction> => {
     const nodes = members(group)
     if (nodes.length && nodes.every((node) => manager.snapshots[node.id]?.state === 'running'))
