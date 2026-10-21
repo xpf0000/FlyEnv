@@ -437,6 +437,70 @@ function reportDuplicateCandidates() {
   })
 }
 
+// 检查翻译中的占位符是否会导致 vue-i18n 渲染异常
+// 1. 机器翻译残留的占位符标记, 如 "__ PH0 __"
+// 2. 英文中不存在的占位符, 如把 {service} 翻译成了其他语言
+// 3. 未转义的 @ (vue-i18n 链接语法), 需写成 {'@'}
+function checkPlaceholders() {
+  const PH_LEFTOVER_PATTERN = /_*\s*PH\s*\d+\s*_+/
+  const NAMED_PLACEHOLDER_PATTERN = /\{\s*([^{}'\s][^{}]*?)\s*\}/g
+  const ESCAPED_AT_PATTERN = /\{\s*'@'\s*\}/g
+
+  const getPlaceholders = (text) =>
+    new Set(Array.from(text.matchAll(NAMED_PLACEHOLDER_PATTERN), (match) => match[1]))
+
+  const languagePacks = fs
+    .readdirSync(LANG_DIR)
+    .filter((file) => fs.statSync(path.join(LANG_DIR, file)).isDirectory() && file !== 'en')
+  const enFiles = fs.readdirSync(path.join(LANG_DIR, 'en')).filter((file) => file.endsWith('.json'))
+  const problems = []
+
+  enFiles.forEach((file) => {
+    const enJson = JSON.parse(fs.readFileSync(path.join(LANG_DIR, 'en', file), 'utf8'))
+    languagePacks.forEach((pack) => {
+      const filePath = path.join(LANG_DIR, pack, file)
+      if (!fs.existsSync(filePath)) {
+        return
+      }
+      const json = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+      getFlattenedKeys(json).forEach((key) => {
+        const value = getValueByPath(json, key)
+        const enValue = getValueByPath(enJson, key)
+        if (typeof value !== 'string') {
+          return
+        }
+        const where = `[${pack}/${file}] ${key}`
+        if (PH_LEFTOVER_PATTERN.test(value)) {
+          problems.push(`${where}: 机器翻译残留的占位符标记`)
+        }
+        if (typeof enValue === 'string') {
+          const enPlaceholders = getPlaceholders(enValue)
+          getPlaceholders(value).forEach((name) => {
+            if (!enPlaceholders.has(name)) {
+              problems.push(`${where}: 英文中不存在的占位符 {${name}}`)
+            }
+          })
+        }
+        if (value.replace(ESCAPED_AT_PATTERN, '').includes('@')) {
+          problems.push(`${where}: 未转义的 @, 请写成 {'@'}`)
+        }
+      })
+    })
+  })
+
+  console.log('\n🔍 占位符检查\n')
+
+  if (problems.length === 0) {
+    console.log('✅ 所有语言包占位符正常')
+    return
+  }
+
+  problems.forEach((problem) => {
+    console.log(`• ${problem}`)
+  })
+}
+
 diffKey()
 checkNoUseKey()
 reportDuplicateCandidates()
+checkPlaceholders()
