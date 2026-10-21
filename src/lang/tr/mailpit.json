@@ -28,7 +28,7 @@
   "MP_SMTP_AUTH_ALLOW_INSECURE": "Genellikle tüm SMTP kimlik doğrulamaları için STARTTLS veya TLS zorunludur. Bu seçenek, PLAIN ve LOGIN gibi güvensiz kimlik doğrulamalarına izin verir.",
   "MP_SMTP_STRICT_RFC_HEADERS": "Mesaj başlıkları \\n içerdiğinde SMTP hatası döndür. Varsayılan olarak Mailpit bozuk satır sonlarını otomatik olarak düzeltir.",
   "MP_SMTP_MAX_RECIPIENTS": "Mesaj başına izin verilen maksimum SMTP alıcısı sayısı.",
-  "MP_SMTP_ALLOWED_RECIPIENTS": "Yalnızca belirli desenle eşleşen SMTP alıcılarına izin ver. Örnek: --smtp-allowed-recipients '@example.com$'",
+  "MP_SMTP_ALLOWED_RECIPIENTS": "Yalnızca belirli desenle eşleşen SMTP alıcılarına izin ver. Örnek: --smtp-allowed-recipients '{'@'}example.com$'",
   "MP_SMTP_DISABLE_RDNS": "SMTP ters DNS sorgularını devre dışı bırak.",
   "MP_SMTP_RELAY_CONFIG": "Mesaj yönlendirme/salımı etkinleştirmek için SMTP yapılandırma dosyası.",
   "MP_SMTP_RELAY_ALL": "Tüm gelen mesajları harici SMTP sunucusu üzerinden otomatik olarak yönlendir. Çok dikkatli kullanılmalıdır!",

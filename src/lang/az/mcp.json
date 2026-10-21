@@ -17,7 +17,7 @@
   "enabledTools": "Aktiv Alətlər",
   "copyConfig": "Konfiqurasiyanı kop",
   "copied": "Kopyalandı",
-  "addToClient": "__ PH0 __ ünvanına əlavə edin",
+  "addToClient": "{client} siyahısına əlavə edin",
   "addToClientTip": "Bu FlyEnv MCP Serverini seçilmiş AI CLI-nin MCP siyahısına daxil edərək qeydiyyatdan keçirin.",
   "regenerateToken": "Tokeni bərpa edin",
   "configHint": "Aşağıdakı parçanı AI müştərinizin MCP konfiqurasiyasına yapışdırın.",

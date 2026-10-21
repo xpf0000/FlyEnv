@@ -17,7 +17,7 @@
   "enabledTools": "সক্রিয় টুলস",
   "copyConfig": "কনফিগার অনুলিপি করুন",
   "copied": "অনুলিপি করা হয়েছে",
-  "addToClient": "__ PH0 __ এ যোগ করুন",
+  "addToClient": "{client}-এ যোগ করুন",
   "addToClientTip": "নির্বাচিত AI CLI এর MCP তালিকায় এই FlyEnv MCP সার্ভারটি নিবন্ধন করুন ।",
   "regenerateToken": "টোকেন পুনর্জন্ম করুন",
   "configHint": "আপনার AI ক্লায়েন্টের MCP কনফিগারেশনে নিচের স্নিপেটটি পেস্ট করুন ।",
