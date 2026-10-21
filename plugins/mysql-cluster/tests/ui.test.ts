@@ -65,3 +65,20 @@ test('replica count adds a source and Windows previews use pipe names', () => {
   assert.equal(request.instances[0].socket, 'FlyEnvMC_abc_1')
   assert.equal(request.credentials.abc_1.password, 'pw')
 })
+
+test('initial ports advance after existing SQL nodes and reserve existing GR ports for whole groups', () => {
+  const existing = [
+    { port: 13306, groupPort: 13406 },
+    { port: 13307, groupPort: 13408 }
+  ]
+  assert.equal(api.suggestStartPort(existing, 'standalone', 1), 13308)
+  assert.equal(api.suggestStartPort(existing, 'replication', 2), 13308)
+  assert.equal(api.suggestStartPort(existing, 'group-replication', 3), 13309)
+  assert.equal(api.suggestStartPort([{ port: 13307, groupPort: 13309 }], 'replication', 2), 13310)
+})
+test('port suggestions remain within TCP limits and fall back when the highest port is already used', () => {
+  assert.equal(api.suggestStartPort([], 'standalone', 1), 13306)
+  assert.equal(api.suggestStartPort([{ port: 65535 }], 'group-replication', 9), 13306)
+  const all = Array.from({ length: 65535 }, (_, n) => ({ port: n + 1 }))
+  assert.equal(api.suggestStartPort(all, 'standalone', 1), undefined)
+})

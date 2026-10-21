@@ -83,9 +83,11 @@ MYSQL_CLUSTER_TEST_BIN=/path/to/mysql-8.4.8/bin/mysqld \
 Windows、Linux、MySQL 8.0 与其他 MySQL 构建的原生验收仍待完成；Windows 测试还需要
 宿主 Helper/进程查询环境，不能把 macOS 的通过结果视为跨平台通过。
 
-构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.2.flyenv-plugin`；
+构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.3.flyenv-plugin`；
 构建会生成匹配的 registry SHA-256，空下载 URL 表示尚未发布。
 
 0.1.1 的独立宿主回归覆盖本地生命周期身份保持、原宿主零新增配置写入、自动扫描与专用查询隔离、安装进度/取消/重入、失败后的真实安装状态刷新及包目录保护。
 
 0.1.2 将服务/版本页面按主程序页面复制适配，服务页移除启停及 phpMyAdmin 入口；修复侧栏重复选中和响应式设置写入 IndexedDB 的克隆错误。复制模式不再限制 8.0/8.4 系列，9.6.0 已通过实际主从及 GR 验收。
+
+0.1.3 修复节点启动凭据及复制 RPC 参数的 Electron 克隆错误；创建/编辑错误改为模态提示，必填项显示标识；停止的节点只显示启动，运行的节点显示停止/重启；创建默认端口根据已有 SQL/GR 端口自动分配，可手动覆盖。

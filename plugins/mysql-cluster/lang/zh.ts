@@ -1,4 +1,6 @@
 export default {
+  required: '请填写必填项：',
+  noAvailablePorts: '没有足够的可用端口，请调整已有实例的端口配置。',
   customDirectories: '自定义版本目录',
   environment: '环境变量',
   enabled: '已启用',

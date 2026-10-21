@@ -28,7 +28,7 @@
           >
           <div class="flex flex-wrap gap-2"
             ><el-button
-              v-for="action in actions"
+              v-for="action in groupActions(group)"
               :key="action"
               size="small"
               :disabled="groupBusy(group)"
@@ -129,6 +129,7 @@
                     )
                   "
                   ><yb-icon
+                    :key="manager.snapshots[row.id]?.state === 'running' ? 'stop' : 'start'"
                     :svg="
                       manager.snapshots[row.id]?.state === 'running'
                         ? import('@/svg/stop2.svg?raw')
@@ -137,6 +138,7 @@
                     width="20"
                     height="20" /></el-button
                 ><el-button
+                  v-if="manager.snapshots[row.id]?.state === 'running'"
                   link
                   :title="t('restart')"
                   :disabled="groupBusy(group) || !!manager.operations[row.id]?.busy"
@@ -194,7 +196,7 @@
   import type { ClusterSpec } from '../shared'
   import InstanceActions from './InstanceActions.vue'
   import { t } from './lang'
-  const actions = ['start', 'stop', 'restart'] as const
+  type LifecycleAction = 'start' | 'stop' | 'restart'
   const isWindows = !!window.Server.isWindows
   const credentialOpen = ref(false),
     credentialGroup = ref<ClusterSpec>(),
@@ -202,6 +204,14 @@
     remember = ref(false)
   const members = (group: ClusterSpec) =>
     group.memberIds.map((id) => manager.catalog.instances.find((i) => i.id === id)!).filter(Boolean)
+  const groupActions = (group: ClusterSpec): Array<LifecycleAction> => {
+    const nodes = members(group)
+    if (nodes.length && nodes.every((node) => manager.snapshots[node.id]?.state === 'running'))
+      return ['stop', 'restart']
+    return nodes.some((node) => manager.snapshots[node.id]?.state === 'running')
+      ? ['start', 'stop']
+      : ['start']
+  }
   const groupBusy = (group: ClusterSpec) =>
     !!manager.operations[group.id]?.busy ||
     group.memberIds.some((id) => manager.operations[id]?.busy)
@@ -249,7 +259,7 @@
     credentialOpen.value = false
     await manager.refresh()
   }
-  function runGroup(group: ClusterSpec, action: (typeof actions)[number]) {
+  function runGroup(group: ClusterSpec, action: LifecycleAction) {
     if (
       action !== 'stop' &&
       group.mode !== 'standalone' &&

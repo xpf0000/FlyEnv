@@ -7,7 +7,7 @@ import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
 import { forkTerminalRequest } from '@/util/ForkTerminalRequest'
 import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
-import { MessageError, MessageSuccess } from './notice'
+import { MessageError, MessageSuccess, MessageErrorDialog } from './notice'
 import { join } from '@/util/path-browserify'
 import { MysqlClusterController } from './controller'
 import { t } from './lang'
@@ -30,8 +30,9 @@ export const MysqlClusterManager = reactiveBind(
   new MysqlClusterController({
     read: () => StorageGetAsync(key),
     write: (value) => StorageSetAsync(key, value),
-    notify: (type, message) => {
-      ;(type === 'success' ? MessageSuccess : MessageError)(t(message))
+    notify: (type, message, display) => {
+      if (display === 'dialog') void MessageErrorDialog(t(message))
+      else (type === 'success' ? MessageSuccess : MessageError)(t(message))
     },
     installed: async () => {
       registerLifecycle()
@@ -50,7 +51,7 @@ export const MysqlClusterManager = reactiveBind(
     rpc: async (method, args, progress) => {
       const response = await forkTerminalRequest(
         `app-fork:${flag}`,
-        [method, ...args],
+        [method, ...JSON.parse(JSON.stringify(args))],
         'MySQL operation timed out; inspect instance state before retrying',
         360_000,
         (info) => {
@@ -91,7 +92,7 @@ export function registerLifecycle() {
   }
   module.startExtParam = async (item) => {
     const id = idFor(item)
-    return [{ id, credential: MysqlClusterManager.credentials[id] }]
+    return JSON.parse(JSON.stringify([{ id, credential: MysqlClusterManager.credentials[id] }]))
   }
   module.stopExtParam = async (item) => [{ id: idFor(item) }]
   return true

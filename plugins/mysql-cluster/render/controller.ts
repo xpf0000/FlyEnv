@@ -25,7 +25,7 @@ export interface ControllerDependencies {
   rpc(method: string, args: any[], progress?: (event: OperationEvent) => void): Promise<any>
   installed(): Promise<void>
   service(id: string): ServiceItem
-  notify(type: 'success' | 'error', message: string): void
+  notify(type: 'success' | 'error', message: string, display?: 'dialog'): void
 }
 export interface OperationState {
   action: string
@@ -142,9 +142,13 @@ export class MysqlClusterController {
   groupFor(id: string): ClusterSpec | undefined {
     return this.catalog.clusters.find((g) => g.memberIds.includes(id))
   }
-  private notice(type: 'success' | 'error', message: string) {
+  reportFormError(error: unknown) {
+    this.notice('error', errorText(error), 'dialog')
+  }
+  private notice(type: 'success' | 'error', message: string, display?: 'dialog') {
     try {
-      this.deps.notify(type, message)
+      if (display) this.deps.notify(type, message, display)
+      else this.deps.notify(type, message)
     } catch {
       /* Notification cannot undo a completed operation. */
     }
@@ -185,7 +189,10 @@ export class MysqlClusterController {
         if (notify || result.status !== 'completed')
           this.notice(
             result.status === 'completed' ? 'success' : 'error',
-            op.error || result.status
+            op.error || result.status,
+            result.status !== 'completed' && (action === 'create' || action === 'edit')
+              ? 'dialog'
+              : undefined
           )
         return result
       })

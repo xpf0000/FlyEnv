@@ -356,3 +356,32 @@ test('reactive create and preference persistence submit plain structured-cloneab
   assert.equal(saved[1].preferences.a.rootCredential.password, 'remembered')
   assert.equal(saved[2].preferences.a.backup.directory, '/backup')
 })
+
+test('creation failure requests one modal notice and retains the failure result for recovery', async () => {
+  const d = deps()
+  const notices: any[] = []
+  d.notify = (...args: any[]) => {
+    notices.push(args)
+  }
+  d.write = async () => {
+    throw new Error('settings unavailable')
+  }
+  const c = new api.MysqlClusterController(d)
+  const result = await c.create(request)
+  assert.equal(result.status, 'failed')
+  assert.equal(d.getStarted(), 0)
+  assert.equal(notices.length, 1)
+  assert.deepEqual(notices[0], ['error', 'g: settings unavailable', 'dialog'])
+})
+test('form validation errors request a modal without making an operation or overwriting saved state', () => {
+  const d = deps()
+  const notices: any[] = []
+  d.notify = (...args: any[]) => {
+    notices.push(args)
+  }
+  const c = new api.MysqlClusterController(d)
+  c.reportFormError(new Error('Root password is required'))
+  assert.deepEqual(notices, [['error', 'Root password is required', 'dialog']])
+  assert.deepEqual(c.operations, {})
+  assert.equal(d.getSaved(), undefined)
+})

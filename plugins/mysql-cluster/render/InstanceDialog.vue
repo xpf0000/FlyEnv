@@ -15,8 +15,8 @@
         class="mb-4"
       />
       <el-form label-position="top" class="grid grid-cols-1 gap-x-5 md:grid-cols-2" @submit.prevent>
-        <el-form-item :label="t('name')"><el-input v-model="form.name" /></el-form-item>
-        <el-form-item :label="t('mode')"
+        <el-form-item required :label="t('name')"><el-input v-model="form.name" /></el-form-item>
+        <el-form-item required :label="t('mode')"
           ><el-select v-model="form.mode" :disabled="!!group"
             ><el-option
               v-for="mode in modes"
@@ -24,7 +24,7 @@
               :label="t(mode)"
               :value="mode" /></el-select
         ></el-form-item>
-        <el-form-item :label="t('version')"
+        <el-form-item required :label="t('version')"
           ><el-select v-model="engineBin" :disabled="!!group" filterable
             ><el-option
               v-for="version in versions"
@@ -34,6 +34,7 @@
         ></el-form-item>
         <el-form-item
           v-if="form.mode !== 'standalone'"
+          required
           :label="t(form.mode === 'replication' ? 'replicas' : 'nodes')"
           ><el-select
             v-if="form.mode === 'group-replication'"
@@ -46,13 +47,18 @@
               :label="String(n)" /></el-select
           ><el-input-number v-else v-model="form.count" :min="1" :max="15" :disabled="!!group"
         /></el-form-item>
-        <el-form-item :label="t('startPort')"
-          ><el-input-number v-model="form.startPort" :min="1" :max="65535" :disabled="!!group"
+        <el-form-item required :label="t('startPort')"
+          ><el-input-number
+            v-model="form.startPort"
+            :min="1"
+            :max="65535"
+            :disabled="!!group"
+            @input="portEdited = true"
         /></el-form-item>
-        <el-form-item :label="t('rootDir')"
+        <el-form-item required :label="t('rootDir')"
           ><el-input v-model="form.rootDir" :disabled="!!group"
         /></el-form-item>
-        <el-form-item v-if="!group" :label="t('password')"
+        <el-form-item v-if="!group" required :label="t('password')"
           ><el-input
             v-model="form.password"
             type="password"
@@ -70,26 +76,27 @@
       <p class="mb-3 text-xs opacity-70">{{ t('initialPortHint') }}</p>
       <el-card v-for="member in members" :key="member.id" class="mb-3" shadow="never">
         <el-form label-position="top" class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-          <el-form-item :label="t('name')"><el-input v-model="member.name" /></el-form-item>
-          <el-form-item :label="t('port')"
+          <el-form-item required :label="t('name')"
+            ><el-input v-model="member.name"
+          /></el-form-item>
+          <el-form-item required :label="t('port')"
             ><el-input-number v-model="member.port" :min="1" :max="65535"
           /></el-form-item>
-          <el-form-item :label="t(isWindows ? 'pipe' : 'socket')"
+          <el-form-item required :label="t(isWindows ? 'pipe' : 'socket')"
             ><el-input v-model="member.socket"
           /></el-form-item>
-          <el-form-item v-if="form.mode === 'group-replication'" :label="t('groupPort')"
+          <el-form-item v-if="form.mode === 'group-replication'" required :label="t('groupPort')"
             ><el-input-number v-model="member.groupPort" :min="1" :max="65535"
           /></el-form-item>
-          <el-form-item :label="t('dataDir')" class="md:col-span-2"
+          <el-form-item required :label="t('dataDir')" class="md:col-span-2"
             ><el-input v-model="member.dataDir" :disabled="!!group"
           /></el-form-item>
         </el-form>
       </el-card>
-      <el-alert v-if="error" :title="error" type="error" :closable="false" />
     </el-scrollbar>
     <template #footer
       ><el-button @click="show = false">{{ t('cancel') }}</el-button
-      ><el-button type="primary" :loading="busy" :disabled="!members.length" @click="submit">{{
+      ><el-button type="primary" :loading="busy" @click="submit">{{
         t(group ? 'save' : 'create')
       }}</el-button></template
     >
@@ -101,7 +108,7 @@
   import { BrewStore } from '@/store/brew'
   import { join } from '@/util/path-browserify'
   import { MysqlClusterManager as manager } from './manager'
-  import { createDraftRequest } from './form'
+  import { createDraftRequest, suggestStartPort } from './form'
   import { engineFromInstalled } from './engine'
   import { validateCreateRequest } from '../policy'
   import type { ClusterSpec, ClusterMode, EngineRef, InstanceSpec } from '../shared'
@@ -121,6 +128,7 @@
     : []
   const id = props.group?.id ?? crypto.randomUUID().replace(/-/g, '').slice(0, 12)
   const uuid = props.group?.groupUuid ?? crypto.randomUUID()
+  const portEdited = ref(false)
   const form = reactive({
     name: props.group?.name ?? 'MySQL',
     mode: props.group?.mode ?? ('standalone' as ClusterMode),
@@ -130,20 +138,28 @@
         : props.group?.mode === 'group-replication'
           ? existing.length
           : 1,
-    startPort: 13306,
+    startPort:
+      existing[0]?.port ?? suggestStartPort(manager.catalog.instances, 'standalone', 1) ?? 13306,
     rootDir: join(window.Server.MysqlDir!, 'mysql-cluster', 'data'),
     password: ''
   })
   const engineBin = ref(
     existing[0]?.engine.installationBin ?? existing[0]?.engine.bin ?? versions.value[0]?.bin ?? ''
   )
-  const members = ref<InstanceSpec[]>(JSON.parse(JSON.stringify(existing))),
-    error = ref('')
+  const members = ref<InstanceSpec[]>(JSON.parse(JSON.stringify(existing)))
   const busy = computed(() => !!manager.operations[id]?.busy)
   watch(
     () => form.mode,
     (mode) => {
       if (!props.group) form.count = mode === 'group-replication' ? 3 : 1
+    }
+  )
+  watch(
+    () => [form.mode, form.count, manager.catalog.instances],
+    () => {
+      if (props.group || portEdited.value) return
+      const port = suggestStartPort(manager.catalog.instances, form.mode, form.count)
+      if (port !== undefined) form.startPort = port
     }
   )
   watch(
@@ -161,7 +177,7 @@
     { immediate: true }
   )
   async function submit() {
-    error.value = ''
+    if (busy.value) return
     const request = {
       cluster: {
         id,
@@ -176,19 +192,23 @@
       )
     }
     try {
+      if (!form.name.trim()) throw new Error(t('required') + t('name'))
+      if (!members.value.length)
+        throw new Error(versions.value.length ? t('required') + t('version') : t('noVersions'))
+      if (!form.rootDir.trim()) throw new Error(t('required') + t('rootDir'))
+      if (!props.group && !form.password) throw new Error(t('required') + t('password'))
+      if (
+        !props.group &&
+        !portEdited.value &&
+        suggestStartPort(manager.catalog.instances, form.mode, form.count) === undefined
+      )
+        throw new Error(t('noAvailablePorts'))
       validateCreateRequest(request, platform)
-      if (!props.group && !form.password) throw new Error(t('password'))
       const result = props.group ? await manager.save(request) : await manager.create(request)
       if (result.status === 'completed') show.value = false
-      else {
-        error.value = result.items
-          .map((i) => i.error)
-          .filter(Boolean)
-          .join('\n')
-        if (manager.catalog.clusters.some((g) => g.id === id)) show.value = false
-      }
+      else if (manager.catalog.clusters.some((g) => g.id === id)) show.value = false
     } catch (e) {
-      error.value = e instanceof Error ? e.message : String(e)
+      manager.reportFormError(e)
     }
   }
   defineExpose({ show, onClosed, onSubmit })
@@ -199,5 +219,14 @@
   .el-input-number {
     width: 100%;
     max-width: none;
+  }
+</style>
+
+<style lang="scss">
+  .mc-error-dialog .el-message-box__message {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    max-height: 60vh;
+    overflow-y: auto;
   }
 </style>

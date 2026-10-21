@@ -1,4 +1,4 @@
-import type { ClusterMode, EngineRef, CreateRequest, Platform } from '../shared'
+import type { ClusterMode, EngineRef, CreateRequest, Platform, InstanceSpec } from '../shared'
 export interface Draft {
   id: string
   uuid: string
@@ -44,4 +44,40 @@ export function createDraftRequest(draft: Draft, platform: Platform): CreateRequ
       instances.map((i) => [i.id, { user: 'root', password: draft.password }])
     )
   }
+}
+
+export function suggestStartPort(
+  instances: readonly Pick<InstanceSpec, 'port' | 'groupPort'>[],
+  mode: ClusterMode,
+  count: number
+): number | undefined {
+  const members = mode === 'standalone' ? 1 : mode === 'replication' ? count + 1 : count
+  if (!Number.isInteger(members) || members < 1 || members > 32) return undefined
+  const used = new Set<number>()
+  let highestSql = 0
+  for (const instance of instances) {
+    for (const port of [instance.port, instance.groupPort])
+      if (port && Number.isInteger(port) && port > 0 && port <= 65535) used.add(port)
+    if (Number.isInteger(instance.port) && instance.port > 0 && instance.port <= 65535)
+      highestSql = Math.max(highestSql, instance.port)
+  }
+  const limit = 65535 - members + 1 - (mode === 'group-replication' ? 100 : 0)
+  const find = (from: number, to: number) => {
+    for (let start = from; start <= to; start++) {
+      let available = true
+      for (let n = 0; n < members; n++)
+        if (used.has(start + n) || (mode === 'group-replication' && used.has(start + 100 + n))) {
+          available = false
+          break
+        }
+      if (available) return start
+    }
+    return undefined
+  }
+  const preferred = Math.max(13306, highestSql + 1)
+  return (
+    find(preferred, limit) ??
+    find(13306, Math.min(preferred - 1, limit)) ??
+    find(1, Math.min(13305, limit))
+  )
 }

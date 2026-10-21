@@ -1,4 +1,6 @@
 export default {
+  required: 'Required field: ',
+  noAvailablePorts: 'No available port range. Adjust the existing instance ports.',
   customDirectories: 'Custom version directories',
   environment: 'Environment',
   enabled: 'Enabled',
