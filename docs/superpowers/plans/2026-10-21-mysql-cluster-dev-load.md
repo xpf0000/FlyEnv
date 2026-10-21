@@ -1,0 +1,5 @@
+# MySQL Cluster cold development import
+
+Actual Electron console and user report agree: reactiveBind enumerates prototype properties and evaluates the obsolete DbGate nodeAvailable getter during plugin import, before the host AppStore bridge is ready. It calls selectedNode and throws, preventing registration. The previous test replaced reactiveBind with identity and missed the real import order.
+
+Plugin-only fix: remove the now-unused getter (the button already admits cold Node inventory). Keep Node/store reads inside explicit open/discovery after mount. No new owner, IPC, lifecycle, persistence or failure propagation; the singleton still owns discovery and opening. Test the actual singleton plus actual reactiveBind with a host store that throws until explicitly marked ready: import must perform no store access, then the existing hidden/cold Node open must work. Verify actual development and production artifacts in browser with deferred host-store readiness, full plugin suite, lint/boundaries, package and host zero diff. No host/scripts modification or user service operation.

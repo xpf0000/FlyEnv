@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { build } from 'esbuild'
+import { resolve } from 'node:path'
 
 async function fixture() {
   const state: any = {
+    ready: false,
+    storeReads: 0,
     installed: [],
     requests: [],
     errors: [],
@@ -23,14 +26,18 @@ async function fixture() {
         name: 'node-boundaries',
         setup(b) {
           b.onResolve(
-            { filter: /^(@|\.\/manager|\.\/notice|\.\/lang|\.\/dbgateRequest)/ },
-            (a) => ({ path: a.path, namespace: 'fixture' })
+            {
+              filter: /^(@\/|@lang\/|@shared\/|\.\/manager|\.\/notice|\.\/lang|\.\/dbgateRequest)/
+            },
+            (a) =>
+              a.path === '@/util/Index'
+                ? { path: resolve('src/render/util/Index.ts') }
+                : { path: a.path, namespace: 'fixture' }
           )
           b.onLoad({ filter: /.*/, namespace: 'fixture' }, (a) => {
             const code: Record<string, string> = {
               '@/store/brew': `export const BrewStore=()=>({currentVersion(){throw Error('Must not change selected runtime')},module(flag){if(flag!=='node')throw Error(flag);return {get installed(){return globalThis.__dbgateNode.installed},async fetchInstalled(){const s=globalThis.__dbgateNode;s.loads++;if(s.fail)return false;if(s.wait)await s.wait;s.installed=s.versions??[{bin:'/node24',path:'/preferred',version:'24',enable:true}];return true}}}})`,
-              '@/store/app': `export const AppStore=()=>({config:{server:{node:{get current(){return globalThis.__dbgateNode.selected}}}}})`,
-              '@/util/Index': 'export const reactiveBind=x=>x',
+              '@/store/app': `export const AppStore=()=>{const s=globalThis.__dbgateNode;s.storeReads++;if(!s.ready)throw Error('FlyEnv plugin AppStore is not initialized');return {config:{server:{node:{get current(){return s.selected}}}}}}`,
               '@/util/NodeFn': 'export const shell={openExternal:async()=>{}}',
               '@lang/index': `export const I18nT=x=>x`,
               './manager': `export const MysqlClusterManager={snapshots:{a:{state:'running'}},allBusy:false,operations:{}}`,
@@ -58,6 +65,8 @@ async function fixture() {
   const module = await import(
     `data:text/javascript;base64,${Buffer.from(text).toString('base64')}#${Math.random()}`
   )
+  assert.equal(state.storeReads, 0, 'cold import must not read the uninitialized host store')
+  state.ready = true
   return { state, controller: module.MysqlClusterDbGate }
 }
 test('actual singleton loads a hidden cold Node module and shares discovery without modifying its selection', async () => {

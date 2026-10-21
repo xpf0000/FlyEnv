@@ -87,7 +87,7 @@ MYSQL_CLUSTER_TEST_BIN=/path/to/mysql-8.4.8/bin/mysqld \
 Windows、Linux、MySQL 8.0 与其他 MySQL 构建的原生验收仍待完成；Windows 测试还需要
 宿主 Helper/进程查询环境，不能把 macOS 的通过结果视为跨平台通过。
 
-构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.13.flyenv-plugin`；
+构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.14.flyenv-plugin`；
 构建会生成匹配的 registry SHA-256，空下载 URL 表示尚未发布。
 
 0.1.1 的独立宿主回归覆盖本地生命周期身份保持、原宿主零新增配置写入、自动扫描与专用查询隔离、安装进度/取消/重入、失败后的真实安装状态刷新及包目录保护。
@@ -117,3 +117,5 @@ Windows、Linux、MySQL 8.0 与其他 MySQL 构建的原生验收仍待完成；
 0.1.12 为 Root 登录表单补上内边距；主从角色按已保存拓扑显示主节点/从节点，无需凭据，复制健康仍由显式查询确认。Socket 文本悬停变黄，点击或键盘操作可复制地址并反馈结果。实例标题旁新增与 MongoDB 一致的 DbGate 图标入口，安装进度、重复调用、超时及伴随进程清理由插件持有，数据位于 `server/mysql-cluster/dbgate/`。
 
 0.1.13 修复 DbGate 首次 npm 安装：兼容上游错误的 MySQL dumper 依赖版本，使用真实安装目录并保留 npm 退出码、信号及输出。DbGate 打开时按需加载隐藏 NodeJS 模块的安装列表，优先原选择，失效时使用可用安装，不修改模块显示或选中配置。补上 IPv6 监听归属查询，重复打开复用插件面板。
+
+0.1.14 移除 DbGate 已废弃的运行时可用性 getter，避免 reactiveBind 在插件导入时读取尚未初始化的宿主 AppStore，修复 plugin:dev 启动后插件不显示。Node 发现仍在点击打开时执行，隐藏 NodeJS 模块的支持保持不变。

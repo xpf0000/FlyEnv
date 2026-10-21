@@ -25,9 +25,6 @@ export class MysqlClusterDbGateController {
   private flight?: Promise<void>
   private notice?: { close(): void }
   constructor(private readonly deps: DbGateDependencies) {}
-  get nodeAvailable() {
-    return !!this.deps.node()?.bin
-  }
   private error(message: string) {
     try {
       this.deps.error(message)

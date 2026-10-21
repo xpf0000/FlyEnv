@@ -70,7 +70,6 @@ test('DbGate open snapshots Node, shares duplicate clicks and retains loading th
 test('missing runtime or stopped instances admit no DbGate request', async () => {
   const f = fixture()
   f.state.node = undefined
-  assert.equal(f.controller.nodeAvailable, false)
   await f.controller.open()
   f.state.node = { bin: '/node' }
   f.state.running = false
