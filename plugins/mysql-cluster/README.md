@@ -83,7 +83,7 @@ MYSQL_CLUSTER_TEST_BIN=/path/to/mysql-8.4.8/bin/mysqld \
 Windows、Linux、MySQL 8.0 与其他 MySQL 构建的原生验收仍待完成；Windows 测试还需要
 宿主 Helper/进程查询环境，不能把 macOS 的通过结果视为跨平台通过。
 
-构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.7.flyenv-plugin`；
+构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.8.flyenv-plugin`；
 构建会生成匹配的 registry SHA-256，空下载 URL 表示尚未发布。
 
 0.1.1 的独立宿主回归覆盖本地生命周期身份保持、原宿主零新增配置写入、自动扫描与专用查询隔离、安装进度/取消/重入、失败后的真实安装状态刷新及包目录保护。
@@ -99,3 +99,5 @@ Windows、Linux、MySQL 8.0 与其他 MySQL 构建的原生验收仍待完成；
 0.1.6 按模式显示状态列：独立实例隐藏角色/复制延迟，GR 隐藏复制延迟，主从复制保留两列。
 
 0.1.7 头部启停/重启操作显示互斥的 loading，运行状态刷新完成后再切换按钮；状态列仅显示进程状态，复制异常提示保留在角色列。
+
+0.1.8 批量启停/重启时，列表每个成员同步显示对应操作的 loading，保持其他操作不可点击；单实例操作同样只显示当前动作。

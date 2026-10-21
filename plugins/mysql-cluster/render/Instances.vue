@@ -114,28 +114,14 @@
           >
           <el-table-column :label="t('actions')" fixed="right" width="155" align="center"
             ><template #default="{ row }"
-              ><div class="flex items-center justify-center gap-2"
-                ><ActionButton
-                  :action="manager.snapshots[row.id]?.state === 'running' ? 'stop' : 'start'"
-                  :loading="
-                    !!manager.operations[row.id]?.busy &&
-                    manager.operations[row.id]?.action !== 'restart'
-                  "
+              ><div class="flex items-center justify-center gap-2">
+                <ActionButton
+                  v-for="action in rowActions(group, row.id)"
+                  :key="action"
+                  :action="action"
+                  :loading="lifecycleAction(group, row.id) === action"
                   :disabled="groupBusy(group)"
-                  @click="
-                    manager.runInstance(
-                      row.id,
-                      manager.snapshots[row.id]?.state === 'running' ? 'stop' : 'start'
-                    )
-                  " /><ActionButton
-                  v-if="manager.snapshots[row.id]?.state === 'running'"
-                  action="restart"
-                  :loading="
-                    !!manager.operations[row.id]?.busy &&
-                    manager.operations[row.id]?.action === 'restart'
-                  "
-                  :disabled="groupBusy(group) || !!manager.operations[row.id]?.busy"
-                  @click="manager.runInstance(row.id, 'restart')" /><InstanceActions
+                  @click="manager.runInstance(row.id, action)" /><InstanceActions
                   :instance="row" /></div></template
           ></el-table-column>
         </el-table>
@@ -209,10 +195,27 @@
     }
     return engines
   })
-  const groupActions = (group: ClusterSpec): Array<LifecycleAction> => {
-    const operation = manager.operations[group.id]
+  const lifecycleAction = (
+    group: ClusterSpec,
+    instanceId?: string
+  ): LifecycleAction | undefined => {
+    const operation = manager.operations[group.id]?.busy
+      ? manager.operations[group.id]
+      : instanceId
+        ? manager.operations[instanceId]
+        : undefined
     if (operation?.busy && ['start', 'stop', 'restart'].includes(operation.action))
-      return [operation.action as LifecycleAction]
+      return operation.action as LifecycleAction
+    return undefined
+  }
+  const rowActions = (group: ClusterSpec, instanceId: string): LifecycleAction[] => {
+    const action = lifecycleAction(group, instanceId)
+    if (action) return [action]
+    return manager.snapshots[instanceId]?.state === 'running' ? ['stop', 'restart'] : ['start']
+  }
+  const groupActions = (group: ClusterSpec): Array<LifecycleAction> => {
+    const action = lifecycleAction(group)
+    if (action) return [action]
     const nodes = members(group)
     if (nodes.length && nodes.every((node) => manager.snapshots[node.id]?.state === 'running'))
       return ['stop', 'restart']

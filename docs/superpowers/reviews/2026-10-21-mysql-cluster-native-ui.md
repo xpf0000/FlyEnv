@@ -51,3 +51,10 @@ Status displays only the process state. Replication health text is removed; repl
 A delayed-final-refresh regression failed before the guard change and passes after it; a supplementary-refresh failure test confirms completed stop is not rejected or repeated. Complete suite: 117 tests, 116 pass, 1 default native skip. Nine real-SFC/Vue render scenarios verify idle/mixed actions, active action loading through snapshot changes, and process-only status. ESLint: 0 errors/3 inherited warnings; full types identical to existing 53-diagnostic baseline; boundary audit/build passed. No Fork or host-source changes; native daemon tests were not repeated for this renderer-only operation-lifetime fix.
 
 Package `dist/plugins/mysql-cluster/mysql-cluster-0.1.7.flyenv-plugin`: 1636478 bytes, SHA-256 `d4b99fc5f00a482c347926cee327b632e3c3c731b2b355cd108d95c4d0d0b1df`, matching registry. Temporary render script cleaned; no activation/push/publication.
+
+
+## 0.1.8 batch loading on member rows
+
+Rows use the group lifecycle action while busy, otherwise their own member lifecycle action. The active action remains visible alone with loading, and all competing actions retain the existing groupBusy disabled guard. No renderer operation flags, extra lifecycle calls or Fork changes. Eight actual SFC/Vue render scenarios verify group start/stop/restart across changing mixed snapshots, isolated single-member loading, sibling disabling, and idle restoration. Full suite: 117 tests / 116 pass / 1 default native skip; ESLint: 0 errors/3 inherited warnings; types identical to 53-diagnostic baseline; boundary/build passed. Host src/scripts unchanged.
+
+Package `dist/plugins/mysql-cluster/mysql-cluster-0.1.8.flyenv-plugin`: 1636726 bytes, SHA-256 `4c2f49daf9ffa341a999cb77cbca1c49a4e463a0d7f59fed134c0522168b75f6`, matching registry. Temporary render script cleaned. No activation/publication/push.
