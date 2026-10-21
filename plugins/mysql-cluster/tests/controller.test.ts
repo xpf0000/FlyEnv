@@ -385,3 +385,59 @@ test('form validation errors request a public notice without making an operation
   assert.deepEqual(c.operations, {})
   assert.equal(d.getSaved(), undefined)
 })
+
+test('group lifecycle keeps its busy guard until the final process snapshot refresh settles', async () => {
+  const d = deps()
+  const c = new api.MysqlClusterController(d)
+  await c.create(request)
+  const group = c.catalog.clusters[0]
+  const rpc = d.rpc
+  let release!: () => void, entered!: () => void
+  const refreshing = new Promise<void>((resolve) => {
+    entered = resolve
+  })
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  d.rpc = async (method, args) => {
+    if (method === 'listInstances' && !d.service().run) {
+      entered()
+      await gate
+    }
+    return rpc(method, args)
+  }
+  const stopping = c.runGroup(group, 'stop')
+  await refreshing
+  assert.equal(d.service().run, false)
+  assert.equal(c.snapshots.a.state, 'running')
+  assert.equal(c.operations.g.busy, true)
+  assert.equal(c.runGroup(group, 'stop'), stopping)
+  assert.equal((await c.runGroup(group, 'start')).status, 'failed')
+  release()
+  assert.equal((await stopping).status, 'completed')
+  assert.equal(c.snapshots.a.state, 'stopped')
+  assert.equal(c.operations.g.busy, false)
+})
+
+test('failed post-stop refresh releases loading without rejecting or replaying the completed stop', async () => {
+  const d = deps()
+  const c = new api.MysqlClusterController(d)
+  await c.create(request)
+  const rpc = d.rpc
+  let stops = 0
+  const service = d.service()
+  service.stop = async () => {
+    stops++
+    service.run = false
+    return true
+  }
+  d.rpc = async (method, args) => {
+    if (method === 'listInstances' && !service.run) throw new Error('status refresh unavailable')
+    return rpc(method, args)
+  }
+  const result = await c.runGroup(c.catalog.clusters[0], 'stop')
+  assert.equal(result.status, 'completed')
+  assert.equal(stops, 1)
+  assert.equal(c.operations.g.busy, false)
+  assert.match(c.loadError, /status refresh unavailable/)
+})

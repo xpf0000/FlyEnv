@@ -39,6 +39,10 @@
               v-for="action in groupActions(group)"
               :key="action"
               :action="action"
+              :loading="
+                !!manager.operations[group.id]?.busy &&
+                manager.operations[group.id]?.action === action
+              "
               :disabled="groupBusy(group)"
               @click="runGroup(group, action)"
             />
@@ -77,35 +81,30 @@
               }}</span></template
             ></el-table-column
           >
-          <el-table-column v-if="group.mode !== 'standalone'" :label="t('role')" width="125"
-            ><template #default="{ row }">{{
-              manager.snapshots[row.id]?.role || t('unknown')
-            }}</template></el-table-column
-          >
-          <el-table-column :label="t('state')" min-width="170"
-            ><template #default="{ row }"
-              ><el-tooltip
-                :content="
-                  manager.snapshots[row.id]?.replication?.error ||
-                  manager.snapshots[row.id]?.error ||
-                  ''
-                "
-                :disabled="
-                  !manager.snapshots[row.id]?.replication?.error &&
-                  !manager.snapshots[row.id]?.error
-                "
-                ><div class="flex items-center gap-2"
-                  ><el-tag
-                    :type="manager.snapshots[row.id]?.state === 'running' ? 'success' : 'info'"
-                    size="small"
-                    >{{ t(manager.snapshots[row.id]?.state || 'unknown') }}</el-tag
-                  ><span v-if="manager.snapshots[row.id]?.replication" class="text-xs">{{
-                    t(manager.snapshots[row.id].replication!.state)
-                  }}</span></div
-                ></el-tooltip
-              ></template
-            ></el-table-column
-          >
+          <el-table-column v-if="group.mode !== 'standalone'" :label="t('role')" width="125">
+            <template #default="{ row }">
+              <el-tooltip
+                :content="manager.snapshots[row.id]?.replication?.error || ''"
+                :disabled="!manager.snapshots[row.id]?.replication?.error"
+              >
+                <span>{{ manager.snapshots[row.id]?.role || t('unknown') }}</span>
+              </el-tooltip>
+            </template>
+          </el-table-column>
+          <el-table-column :label="t('state')" min-width="110">
+            <template #default="{ row }">
+              <el-tooltip
+                :content="manager.snapshots[row.id]?.error || ''"
+                :disabled="!manager.snapshots[row.id]?.error"
+              >
+                <el-tag
+                  :type="manager.snapshots[row.id]?.state === 'running' ? 'success' : 'info'"
+                  size="small"
+                  >{{ t(manager.snapshots[row.id]?.state || 'unknown') }}</el-tag
+                >
+              </el-tooltip>
+            </template>
+          </el-table-column>
           <el-table-column v-if="group.mode === 'replication'" :label="t('lag')" width="105"
             ><template #default="{ row }">{{
               manager.snapshots[row.id]?.replication?.lag == null
@@ -211,6 +210,9 @@
     return engines
   })
   const groupActions = (group: ClusterSpec): Array<LifecycleAction> => {
+    const operation = manager.operations[group.id]
+    if (operation?.busy && ['start', 'stop', 'restart'].includes(operation.action))
+      return [operation.action as LifecycleAction]
     const nodes = members(group)
     if (nodes.length && nodes.every((node) => manager.snapshots[node.id]?.state === 'running'))
       return ['stop', 'restart']

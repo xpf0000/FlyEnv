@@ -40,3 +40,14 @@ Package `dist/plugins/mysql-cluster/mysql-cluster-0.1.5.flyenv-plugin`: 1,636,24
 ## 0.1.6 mode-specific columns
 
 Standalone hides role/lag; Group Replication keeps role and hides lag; source/replica keeps both. Actual SFC/Vue SSR checks verify all three modes and the table control column is rendered. Full suite: 115 tests, 114 pass, 1 default native skip; lint: 0 errors/3 inherited warnings; build passed. No lifecycle, Fork or host changes; no new operation contract. Package dist/plugins/mysql-cluster/mysql-cluster-0.1.6.flyenv-plugin: 1636434 bytes, SHA-256 `dde7eef94741b9cdb4c43d137152be18b3a181ecb252853cf5d1fede58deb2b6`, matching registry.
+
+
+## 0.1.7 header lifecycle and process status
+
+Header start/stop/restart now binds loading to the admitted group operation and renders only that active action until it settles. Idle all-stopped exposes start, all-running exposes stop/restart, mixed exposes start/stop. Other commands remain disabled during the group operation. The controller now keeps busy/duplicate guard until its existing final refresh finishes, preventing a stale-state button flash and a second admitted operation during refresh. A failed supplementary refresh retains the completed service result and releases busy; no new queries or retries were introduced.
+
+Status displays only the process state. Replication health text is removed; replication errors remain available on the role tooltip. Process errors stay on the process status tooltip.
+
+A delayed-final-refresh regression failed before the guard change and passes after it; a supplementary-refresh failure test confirms completed stop is not rejected or repeated. Complete suite: 117 tests, 116 pass, 1 default native skip. Nine real-SFC/Vue render scenarios verify idle/mixed actions, active action loading through snapshot changes, and process-only status. ESLint: 0 errors/3 inherited warnings; full types identical to existing 53-diagnostic baseline; boundary audit/build passed. No Fork or host-source changes; native daemon tests were not repeated for this renderer-only operation-lifetime fix.
+
+Package `dist/plugins/mysql-cluster/mysql-cluster-0.1.7.flyenv-plugin`: 1636478 bytes, SHA-256 `d4b99fc5f00a482c347926cee327b632e3c3c731b2b355cd108d95c4d0d0b1df`, matching registry. Temporary render script cleaned; no activation/push/publication.

@@ -193,12 +193,13 @@ export class MysqlClusterController {
         return result
       })
       .finally(async () => {
-        op.busy = false
-        this.flights.delete(key)
         try {
           await this.refresh()
         } catch (error) {
           this.loadError = errorText(error)
+        } finally {
+          op.busy = false
+          this.flights.delete(key)
         }
       })
     this.flights.set(key, { action, promise })
