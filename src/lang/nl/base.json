@@ -73,7 +73,7 @@
   "autoUpdate": "Automatisch bijwerken",
   "loading": "Laden...",
   "parkTitle": "Subdomeinen in submappen oplossen",
-  "parkTips": "Oplossen subdomeinen als subdomein naam overeenkomt met een submap (Voorbeeld: {subfoldername}.mydomain.tld)",
+  "parkTips": "Oplossen subdomeinen als subdomein naam overeenkomt met een submap (Voorbeeld: subfoldername.mydomain.tld)",
   "parkConfirm": "Dit zal alle submappen toegankelijk maken als subdomein sites, wilt u doorgaan?",
   "ftpDirNotExists": "Map bestaat niet, probeer het opnieuw",
   "editorSettings": "Bewerker instellingen",

@@ -73,7 +73,7 @@
   "autoUpdate": "Tự động cập nhật",
   "loading": "Đang tải...",
   "parkTitle": "Phân giải tên miền phụ vào thư mục con",
-  "parkTips": "Phân giải tên miền phụ nếu tên của nó khớp với tên thư mục con (Ví dụ: {subfoldername}.mydomain.tld)",
+  "parkTips": "Phân giải tên miền phụ nếu tên của nó khớp với tên thư mục con (Ví dụ: subfoldername.mydomain.tld)",
   "parkConfirm": "Điều này sẽ làm cho tất cả các thư mục con có thể truy cập dưới dạng các trang web tên miền phụ, bạn có muốn tiếp tục không?",
   "ftpDirNotExists": "Thư mục không tồn tại, vui lòng thử lại",
   "editorSettings": "Cài đặt trình soạn thảo",

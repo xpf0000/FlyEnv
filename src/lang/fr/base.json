@@ -73,7 +73,7 @@
   "autoUpdate": "Mise à jour automatique",
   "loading": "Chargement...",
   "parkTitle": "Résoudre les sous-domaines en sous-dossiers",
-  "parkTips": "Résout les sous-domaines si le nom du sous-domaine correspond à un nom de sous-dossier (Exemple : {subfoldername}.mondomaine.tld)",
+  "parkTips": "Résout les sous-domaines si le nom du sous-domaine correspond à un nom de sous-dossier (Exemple : subfoldername.mondomaine.tld)",
   "parkConfirm": "Cela rendra tous les sous-dossiers accessibles en tant que sites de sous-domaines, voulez-vous continuer ?",
   "ftpDirNotExists": "Le dossier n'existe pas, veuillez réessayer",
   "editorSettings": "Paramètres de l'éditeur",

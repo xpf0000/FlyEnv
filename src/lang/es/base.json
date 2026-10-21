@@ -73,7 +73,7 @@
   "autoUpdate": "Actualización Automática",
   "loading": "Cargando...",
   "parkTitle": "Resolver subdominios a subcarpetas",
-  "parkTips": "Resuelve subdominios si el nombre coincide con el nombre de una subcarpeta (Ejemplo: {subfoldername}.midominio.tld)",
+  "parkTips": "Resuelve subdominios si el nombre coincide con el nombre de una subcarpeta (Ejemplo: subfoldername.midominio.tld)",
   "parkConfirm": "Esto hará que todas las subcarpetas sean accesibles como sitios subdominio, ¿quieres continuar?",
   "ftpDirNotExists": "La carpeta no existe, por favor intenta de nuevo",
   "editorSettings": "Configuración del Editor",

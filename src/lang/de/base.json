@@ -73,7 +73,7 @@
   "autoUpdate": "Auto-Update",
   "loading": "Wird geladen...",
   "parkTitle": "Subdomains in Unterordner auflösen",
-  "parkTips": "Löst Subdomains auf, wenn der Subdomainname mit einem Unterordnernamen übereinstimmt (Beispiel: {subfoldername}.mydomain.tld)",
+  "parkTips": "Löst Subdomains auf, wenn der Subdomainname mit einem Unterordnernamen übereinstimmt (Beispiel: subfoldername.mydomain.tld)",
   "parkConfirm": "Dadurch werden alle Unterordner als Subdomain-Seiten zugänglich. Möchten Sie fortfahren?",
   "ftpDirNotExists": "Ordner existiert nicht, bitte versuche es erneut",
   "editorSettings": "Editor-Einstellungen",

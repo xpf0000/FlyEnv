@@ -73,7 +73,7 @@
   "autoUpdate": "Automatisk Opdatering",
   "loading": "Indlæser...",
   "parkTitle": "Løs underdomæner til undermapper",
-  "parkTips": "Behandler underdomæner, hvis underdomænenavnet matcher et undermappenavn (Eksempel: {subfoldername}.mydomain.tld)",
+  "parkTips": "Behandler underdomæner, hvis underdomænenavnet matcher et undermappenavn (Eksempel: subfoldername.mydomain.tld)",
   "parkConfirm": "Dette vil gøre alle undermapper tilgængelige som underdomæne websteder, vil du fortsætte?",
   "ftpDirNotExists": "Mappen findes ikke. Prøv igen",
   "editorSettings": "Indstillinger For Editor",

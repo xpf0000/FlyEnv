@@ -73,7 +73,7 @@
   "autoUpdate": "Aggiornamento automatico",
   "loading": "Caricamento...",
   "parkTitle": "Associa sottodomini a sottocartelle",
-  "parkTips": "Associa sottodomini a sottocartelle se il nome del sottodominio corrisponde al nome della sottocartella (Esempio: {subfoldername}.miodominio.tld)",
+  "parkTips": "Associa sottodomini a sottocartelle se il nome del sottodominio corrisponde al nome della sottocartella (Esempio: subfoldername.miodominio.tld)",
   "parkConfirm": "Questo renderà accessibili tutte le sottocartelle come sottodomini. Vuoi continuare?",
   "ftpDirNotExists": "Cartella inesistente, riprova",
   "editorSettings": "Impostazioni Editor",

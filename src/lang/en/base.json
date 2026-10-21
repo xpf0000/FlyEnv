@@ -73,7 +73,7 @@
   "autoUpdate": "Auto Update",
   "loading": "Loading...",
   "parkTitle": "Resolve subdomains to subfolders",
-  "parkTips": "Resolves subdomains if subdomain name is matching a subfolder name (Example: {subfoldername}.mydomain.tld)",
+  "parkTips": "Resolves subdomains if subdomain name is matching a subfolder name (Example: subfoldername.mydomain.tld)",
   "parkConfirm": "This will make all subfolders accessible as subdomain sites, do you want to continue?",
   "ftpDirNotExists": "Folder doesn't exist, please try again",
   "editorSettings": "Editor Settings",

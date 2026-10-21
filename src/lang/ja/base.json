@@ -73,7 +73,7 @@
   "autoUpdate": "自動更新",
   "loading": "読み込み中...",
   "parkTitle": "サブドメインをサブフォルダに解決",
-  "parkTips": "サブドメイン名がサブフォルダ名と一致する場合、サブドメインを解決します（例：{subfoldername}.mydomain.tld）",
+  "parkTips": "サブドメイン名がサブフォルダ名と一致する場合、サブドメインを解決します（例：subfoldername.mydomain.tld）",
   "parkConfirm": "これにより、すべてのサブフォルダがサブドメインサイトとしてアクセス可能になります。続行しますか？",
   "ftpDirNotExists": "フォルダが存在しません。再試行してください",
   "editorSettings": "エディター設定",

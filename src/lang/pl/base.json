@@ -73,7 +73,7 @@
   "autoUpdate": "Automatyczna aktualizacja",
   "loading": "Ładowanie...",
   "parkTitle": "Rozwiąż subdomeny do podfolderów",
-  "parkTips": "Rozwiązuje subdomeny, jeśli nazwa poddomeny pasuje do nazwy podfolderu (na przykład: {subfoldername}.mydomain.tld)",
+  "parkTips": "Rozwiązuje subdomeny, jeśli nazwa poddomeny pasuje do nazwy podfolderu (na przykład: subfoldername.mydomain.tld)",
   "parkConfirm": "To sprawi, że wszystkie podfoldery będą dostępne jako poddomeny, czy chcesz kontynuować?",
   "ftpDirNotExists": "Folder nie istnieje, spróbuj ponownie",
   "editorSettings": "Ustawienia edytora",

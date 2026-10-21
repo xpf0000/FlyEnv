@@ -73,7 +73,7 @@
   "autoUpdate": "Automatisk uppdatering",
   "loading": "Laddar...",
   "parkTitle": "Lös underdomäner till undermappar",
-  "parkTips": "Löser underdomäner om underdomännamnet matchar ett undermappsnamn, t.ex. {undermappsnamn}.mydomain.tld",
+  "parkTips": "Löser underdomäner om underdomännamnet matchar ett undermappsnamn, t.ex. undermappsnamn.mydomain.tld",
   "parkConfirm": "Detta gör att alla undermappar blir tillgängliga som underdomäner, vill du fortsätta?",
   "ftpDirNotExists": "Mappen finns inte, vänligen välj igen.",
   "editorSettings": "Inställningar redigerare",

@@ -73,7 +73,7 @@
   "autoUpdate": "Pembaruan Otomatis",
   "loading": "Memuat...",
   "parkTitle": "Subdomain ke Subfolder",
-  "parkTips": "Arahkan subdomain ke subfolder jika nama subdomain sama dengan nama folder (Contoh: {subfoldername}.mydomain.tld)",
+  "parkTips": "Arahkan subdomain ke subfolder jika nama subdomain sama dengan nama folder (Contoh: subfoldername.mydomain.tld)",
   "parkConfirm": "Ini akan membuat semua subfolder dapat diakses sebagai subdomain. Lanjutkan?",
   "ftpDirNotExists": "Folder tidak ditemukan, coba lagi",
   "editorSettings": "Pengaturan Editor",
