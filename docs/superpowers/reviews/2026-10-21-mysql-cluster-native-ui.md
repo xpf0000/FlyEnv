@@ -35,3 +35,8 @@ Per-card computed engine summaries display version/path in the header only when 
 Real SFC compilation + Vue SSR checks verify shared/mixed column rendering and exactly one SVG (action icon or native loading spinner) for start/stop/restart/Edit/Delete in both loading states. Complete suite remains 115 tests / 114 pass / 1 default native skip. ESLint has zero errors / three inherited warnings, types remain byte-identical to the 53-diagnostic baseline, renderer boundary check and package build pass. No Fork changes, so the native 9.6 run was not repeated for this view-only follow-up. Host src/scripts remain unchanged.
 
 Package `dist/plugins/mysql-cluster/mysql-cluster-0.1.5.flyenv-plugin`: 1,636,244 bytes, SHA-256 `b38a9f4afee10fd817d1604a7f5cc1290d202d90d8962980be8b98f698751b75`, matching registry. Temporary render-check script cleaned; no activation/publication/push.
+
+
+## 0.1.6 mode-specific columns
+
+Standalone hides role/lag; Group Replication keeps role and hides lag; source/replica keeps both. Actual SFC/Vue SSR checks verify all three modes and the table control column is rendered. Full suite: 115 tests, 114 pass, 1 default native skip; lint: 0 errors/3 inherited warnings; build passed. No lifecycle, Fork or host changes; no new operation contract. Package dist/plugins/mysql-cluster/mysql-cluster-0.1.6.flyenv-plugin: 1636434 bytes, SHA-256 `dde7eef94741b9cdb4c43d137152be18b3a181ecb252853cf5d1fede58deb2b6`, matching registry.

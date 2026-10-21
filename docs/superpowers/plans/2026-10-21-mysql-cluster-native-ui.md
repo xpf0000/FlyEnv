@@ -16,3 +16,5 @@ Independent tasks delegated under dispatching-parallel-agents skill: native file
 File path resolution is a guarded instanceFiles(id) Fork query; config read/save stay plugin methods. Management per-id flights survive drawer close and share duplicate requests. Account password save updates local credentials only; reset uses guarded SQL. SQL success remains success if preference/list refresh fails.
 
 Follow-up (0.1.5): view-only shared engine summary per card, preserving per-row version/path for mixed installations; Edit/Delete use native Element Plus icons; each lifecycle button renders either its icon or spinner, and restart busy binds to restart. No new operation/state owner, persistence, IPC, process or failure boundaries; existing controller progress/terminal lifecycle remains unchanged.
+
+Follow-up (0.1.6): mounted view alone hides standalone role/lag and GR lag columns. No new state owner, IPC, operation or failure-boundary changes; verify actual rendered columns for all three modes.

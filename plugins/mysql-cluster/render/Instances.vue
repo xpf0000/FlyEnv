@@ -77,9 +77,9 @@
               }}</span></template
             ></el-table-column
           >
-          <el-table-column :label="t('role')" width="125"
+          <el-table-column v-if="group.mode !== 'standalone'" :label="t('role')" width="125"
             ><template #default="{ row }">{{
-              manager.snapshots[row.id]?.role || (group.mode === 'standalone' ? '—' : t('unknown'))
+              manager.snapshots[row.id]?.role || t('unknown')
             }}</template></el-table-column
           >
           <el-table-column :label="t('state')" min-width="170"
@@ -106,7 +106,7 @@
               ></template
             ></el-table-column
           >
-          <el-table-column :label="t('lag')" width="105"
+          <el-table-column v-if="group.mode === 'replication'" :label="t('lag')" width="105"
             ><template #default="{ row }">{{
               manager.snapshots[row.id]?.replication?.lag == null
                 ? '—'
