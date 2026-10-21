@@ -96,3 +96,24 @@ test('validates persisted catalog and drops no malformed rows silently', () => {
   )
   assert.throws(() => policy.validateCatalog({ schemaVersion: 99 }), /schema/i)
 })
+
+test('permits same-installation MySQL 8 innovation and 9.x replication groups', () => {
+  for (const version of ['8.1.0', '8.4.8', '9.0.0', '9.6.0', '9.7.4']) {
+    assert.equal(policy.replicationCapabilities(version).supported, true, version)
+    assert.equal(policy.replicationCapabilities(version).groupSupported, true, version)
+    for (const mode of ['replication', 'group-replication']) {
+      const r: any = request()
+      r.cluster.mode = mode
+      r.instances = ['a', 'b', 'c'].map((id, n) => ({
+        ...instance(id, 14000 + n),
+        engine: { ...engine, version },
+        groupPort: 15000 + n
+      }))
+      r.cluster.memberIds = r.instances.map((i: any) => i.id)
+      assert.equal(policy.validateCreateRequest(r, 'macOS'), true, version + ' ' + mode)
+    }
+  }
+  for (const version of ['8.0.12', '5.7.44', '9.6.0-MariaDB', 'invalid'])
+    assert.equal(policy.replicationCapabilities(version).supported, false, version)
+  assert.equal(policy.replicationCapabilities('8.0.26').groupSupported, false)
+})

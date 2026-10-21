@@ -85,10 +85,13 @@ export class MysqlClusterController {
     })()
     return this.loadFlight
   }
+  private writeState(catalog: SavedCatalog, preferences: Record<string, any>) {
+    // IndexedDB cannot clone Vue proxies, including proxies nested in a plain envelope.
+    const snapshot = JSON.parse(JSON.stringify({ schemaVersion: 1, catalog, preferences }))
+    return this.deps.write(snapshot)
+  }
   async persist(catalog = this.catalog) {
-    await this.serializeWrite(() =>
-      this.deps.write({ schemaVersion: 1, catalog, preferences: this.preferences })
-    )
+    await this.serializeWrite(() => this.writeState(catalog, this.preferences))
   }
   refresh(): Promise<void> {
     if (this.blocked) return Promise.reject(new Error(this.loadError))
@@ -228,7 +231,7 @@ export class MysqlClusterController {
         await this.serializeWrite(async () => {
           const next = JSON.parse(JSON.stringify(this.preferences))
           next[id] = { ...next[id], ...patch }
-          await this.deps.write({ schemaVersion: 1, catalog: this.catalog, preferences: next })
+          await this.writeState(this.catalog, next)
           this.preferences = next
         })
         return summarize([{ id, status: 'completed', stage: 'saved' }])

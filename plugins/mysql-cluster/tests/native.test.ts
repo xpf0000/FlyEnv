@@ -14,6 +14,7 @@ import { listDatabases, mutateDatabase, createDatabase, backupDatabase } from '.
 import { StopProcessListFetch } from '../../../src/shared/StopProcessList'
 import { InstanceStopAdapter } from '../fork/service'
 import { engineFromInstalled } from '../render/engine'
+import { runCommand } from '../fork/command'
 import type { ClusterMode, CreateRequest } from '../shared'
 
 const bin = process.env.MYSQL_CLUSTER_TEST_BIN
@@ -21,6 +22,10 @@ test(
   'native: isolated instances, real GTID replication, GR election and full-stop recovery',
   { skip: !bin, timeout: 300_000 },
   async () => {
+    const versionOutput = await runCommand(bin!, ['--no-defaults', '--version'])
+    const version = /Ver (\d+\.\d+\.\d+)/.exec(versionOutput)?.[1]
+    assert.ok(version, versionOutput)
+    console.log('native MySQL version', version)
     const root = await mkdtemp(join(tmpdir(), 'mc-native space-'))
     const engineRoot = join(root, 'MySQL Engine')
     await symlink(dirname(dirname(bin!)), engineRoot, 'dir')
@@ -51,7 +56,7 @@ test(
         id: `${group}_${n}`,
         name: `${group}_${n}`,
         engine: engineFromInstalled({
-          version: '8.4.8',
+          version,
           path: engineRoot,
           bin: join(engineRoot, 'bin/mysqld_safe'),
           source: 'Static'

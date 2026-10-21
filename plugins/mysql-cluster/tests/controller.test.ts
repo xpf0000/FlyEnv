@@ -335,3 +335,24 @@ test('refresh removes process snapshots of deleted local instances', async () =>
   await c.refresh()
   assert.deepEqual(c.snapshots, {})
 })
+
+test('reactive create and preference persistence submit plain structured-cloneable records', async () => {
+  const d = deps()
+  const saved: any[] = []
+  d.write = async (value: unknown) => {
+    saved.push(structuredClone(value))
+  }
+  const c = reactive(new api.MysqlClusterController(d))
+  assert.equal((await c.create(reactive(structuredClone(request)))).status, 'completed')
+  assert.equal(await c.setCredential('a', 'remembered', true), true)
+  assert.equal(
+    (await c.savePreferences('a', reactive({ backup: { directory: '/backup' } }))).status,
+    'completed'
+  )
+  await c.persist()
+  assert.equal(saved.length, 4)
+  assert.equal(saved[0].catalog.instances[0].id, 'a')
+  assert.equal(saved[0].preferences.a, undefined)
+  assert.equal(saved[1].preferences.a.rootCredential.password, 'remembered')
+  assert.equal(saved[2].preferences.a.backup.directory, '/backup')
+})

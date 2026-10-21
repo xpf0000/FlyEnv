@@ -1,10 +1,13 @@
 import { markRaw } from 'vue'
 import { reactiveBind } from '@/util/Index'
 import { BrewStore } from '@/store/brew'
+import { AppStore } from '@/store/app'
+import IPC from '@/util/IPC'
 import { fetchVerion, brewInfo, portInfo } from '@/util/Brew'
 import { forkTerminalRequest } from '@/util/ForkTerminalRequest'
 import { MessageError, MessageSuccess } from './notice'
 import { shell, clipboard } from '@/util/NodeFn'
+import { I18nT } from '@lang/index'
 import { ServiceActionStore } from '@/components/ServiceManager/EXT/store'
 import { installedVersionNote, setInstalledVersionNote } from '@/util/InstalledVersionNote'
 import { VueExtend } from '@/core/VueExtend'
@@ -21,6 +24,8 @@ import { installationAdmission } from './admission'
 import { beforeRemove } from './versionGuard'
 import { MysqlClusterManager } from './manager'
 import { t } from './lang'
+import { waitForSharedBackup } from './backup'
+import { waitForHomebrewDiscovery } from './environment'
 
 const mysql = () => BrewStore().module('mysql')
 export async function refreshMysqlInstallations() {
@@ -47,7 +52,9 @@ class InstallationAdapter {
   host?: HTMLElement
   token = ''
   async command(row: InstallationRow) {
-    const command = await pluginRpc('preparePackageCommand', [row.source, row.name, row.installed])
+    const command = row.bootstrapHomebrew
+      ? await pluginRpc('prepareHomebrewInstall', [AppStore().config.setup.lang])
+      : await pluginRpc('preparePackageCommand', [row.source, row.name, row.installed])
     this.token = command.token
     if (InstallationManager.cancelled) throw new Error('Operation cancelled')
     this.container = markRaw(document.createElement('div'))
@@ -69,10 +76,16 @@ class InstallationAdapter {
       this.container.style.position = ''
       this.container.style.left = ''
       this.container.style.width = '100%'
+      this.container.style.height = '100%'
       host.append(this.container)
       this.terminal?.onWindowResit()
     } else {
-      Object.assign(this.container.style, { position: 'fixed', left: '-10000px', width: '900px' })
+      Object.assign(this.container.style, {
+        position: 'fixed',
+        left: '-10000px',
+        width: '900px',
+        height: '280px'
+      })
       document.body.append(this.container)
     }
   }
@@ -144,7 +157,29 @@ export const InstallationManager = reactiveBind(
       return true
     },
     install: async (row, progress) => {
-      if (row.source !== 'Static') return adapter.command(row)
+      if (row.source !== 'Static') {
+        await adapter.command(row)
+        if (row.bootstrapHomebrew) {
+          let request: ReturnType<typeof IPC.send> | undefined
+          try {
+            await waitForHomebrewDiscovery(
+              () => window.Server.BrewCellar,
+              () => InstallationManager.cancelled,
+              () =>
+                new Promise<void>((resolve) => {
+                  request = IPC.send('app-check-brewport')
+                  request.then((key: string) => {
+                    IPC.off(key)
+                    resolve()
+                  })
+                })
+            )
+          } finally {
+            if (request) IPC.off(request.key)
+          }
+        }
+        return
+      }
       const response = await forkTerminalRequest(
         'app-fork:mysql',
         ['installSoft', row],
@@ -223,6 +258,81 @@ class InstallationActions {
   }
   copy(value: string) {
     return this.run('copy', () => clipboard.writeText(value))
+  }
+  openURL(url: string) {
+    return this.run('url:' + url, () => shell.openExternal(url))
+  }
+  fetchCommand(row: InstallationRow) {
+    const action = row.installed ? 'uninstall' : 'install'
+    if (row.source === 'Homebrew') return `brew ${action} ${row.name}`
+    if (row.source === 'Macports') {
+      const names = `${row.name} ${row.name}-server`
+      return `sudo port clean -v ${names}\nsudo port ${action} -v ${names}`
+    }
+    return row.url ?? ''
+  }
+  copyCommand(row: InstallationRow) {
+    return this.run('copy-command', async () => {
+      await clipboard.writeText(this.fetchCommand(row))
+      MessageSuccess(I18nT('base.copySuccess'))
+    })
+  }
+  manage(row: any) {
+    return this.run('manage:' + row.bin, async () => {
+      const { MySQLManage } = await import('@/components/Mysql/Manage/manage')
+      MySQLManage.init('mysql')
+      const component = await import('./InstallationManage.vue')
+      await ownedDialog(component.default, { item: row })
+    })
+  }
+  managementDialog(row: any, kind: 'setPassword' | 'addDatabase' | 'setBackupDir') {
+    return this.run(`manage-${kind}:${row.bin}`, async () => {
+      const component = await {
+        setPassword: () => import('@/components/Mysql/Manage/setPassword.vue'),
+        addDatabase: () => import('@/components/Mysql/Manage/addDatabase.vue'),
+        setBackupDir: () => import('@/components/Mysql/Manage/setBackupDir.vue')
+      }[kind]()
+      await ownedDialog(component.default, {
+        item: row,
+        ...(kind === 'setPassword' ? { user: 'root', showUpdateBtn: true, showResetBtn: true } : {})
+      })
+    })
+  }
+  refreshDatabases(row: any) {
+    return this.run('manage-refresh:' + row.bin, async () => {
+      const { MySQLManage } = await import('@/components/Mysql/Manage/manage')
+      await MySQLManage.fetchDatabase(row)
+    })
+  }
+  backupDatabases(row: any, names: string[]) {
+    const snapshot = [...names]
+    return this.run('manage-backup:' + row.bin, async () => {
+      const { MySQLManage } = await import('@/components/Mysql/Manage/manage')
+      await waitForSharedBackup(MySQLManage.backuping, row.bin, () =>
+        MySQLManage.backupDatabase(row, snapshot)
+      )
+    })
+  }
+  removeService(row: any) {
+    const setup = AppStore().config.setup
+    const isCustom = setup.mysql?.dirs?.some((directory: string) => row.bin.includes(directory))
+    if (!row.isLocal7Z && !isCustom) {
+      return InstallationManager.act({
+        ...row,
+        name: 'MySQL ' + row.version,
+        source: 'Static',
+        installed: true
+      })
+    }
+    return this.run('remove-service:' + row.bin, async () => {
+      if (!(await beforeRemove(row))) return
+      if (row.run || row.running) {
+        MessageError(t('nativeInUse'))
+        return
+      }
+      // The established owner hides a bundled/custom entry rather than deleting its directory.
+      ServiceActionStore.delVersion(row, 'mysql')
+    })
   }
   environment(row: any) {
     return this.run('env:' + row.bin, () => ServiceActionStore.updatePath(row, 'mysql'))

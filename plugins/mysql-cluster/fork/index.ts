@@ -1,4 +1,9 @@
-import { preparePackageCommand, cleanupPackageCommand, removeStaticPackage } from './packages'
+import {
+  preparePackageCommand,
+  prepareHomebrewInstall,
+  cleanupPackageCommand,
+  removeStaticPackage
+} from './packages'
 import { Base } from '@fork/module/Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { StopProcessListFetch } from '@shared/StopProcessList'
@@ -91,6 +96,11 @@ export class MysqlClusterModule extends Base {
         staticDir: global.Server.Static!,
         arm: process.arch === 'arm64'
       })
+    )
+  }
+  prepareHomebrewInstall(language: string) {
+    return this.request(() =>
+      prepareHomebrewInstall(this.catalog.root, global.Server.Static!, language)
     )
   }
   cleanupPackageCommand(token: string) {

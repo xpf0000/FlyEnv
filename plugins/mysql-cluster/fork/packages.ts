@@ -49,6 +49,14 @@ export async function preparePackageCommand(
   await chmod(path, 0o700)
   return { token, path, args: source === 'Homebrew' ? [arch, action, name] : [] }
 }
+export async function prepareHomebrewInstall(root: string, staticDir: string, language: string) {
+  const token = randomUUID() + '.sh'
+  const path = join(root, 'commands', token)
+  const name = language === 'zh' ? 'brew-install.sh' : 'brew-install-en.sh'
+  await writeAtomic(path, await readFile(join(staticDir, 'sh', name), 'utf8'))
+  await chmod(path, 0o700)
+  return { token, path, args: [] as string[] }
+}
 export async function cleanupPackageCommand(root: string, token: string) {
   if (!/^[a-f0-9-]+\.sh$/.test(token)) throw new Error('Invalid command identity')
   await rm(join(root, 'commands', token), { force: true })

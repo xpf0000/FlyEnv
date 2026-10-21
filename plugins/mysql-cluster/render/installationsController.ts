@@ -23,6 +23,7 @@ export class InstallationsController {
   fetching: Partial<Record<InstallationSource, boolean>> = {}
   sourceErrors: Partial<Record<InstallationSource, string>> = {}
   busy = false
+  taskVisible = false
   current?: InstallationRow
   progress = 0
   error = ''
@@ -54,6 +55,14 @@ export class InstallationsController {
     this.loads.set(source, result)
     return result
   }
+  installHomebrew(): Promise<boolean> {
+    return this.act({
+      source: 'Homebrew',
+      name: 'Homebrew',
+      installed: false,
+      bootstrapHomebrew: true
+    })
+  }
   act(input: InstallationRow): Promise<boolean> {
     const key = JSON.stringify([input.source, input.name, input.bin, input.installed])
     if (this.flight) return this.key === key ? this.flight : Promise.resolve(false)
@@ -61,6 +70,7 @@ export class InstallationsController {
     this.key = key
     this.busy = true
     this.current = row
+    this.taskVisible = row.source !== 'Static'
     this.progress = 0
     this.error = ''
     this.warning = ''
@@ -115,6 +125,11 @@ export class InstallationsController {
         this.deps.admission?.(false)
       })
     return this.flight
+  }
+  confirmTask(): boolean {
+    if (this.busy) return false
+    this.taskVisible = false
+    return true
   }
   cancel(): Promise<unknown> {
     if (!this.busy || this.current?.source === 'Static') return Promise.resolve(false)

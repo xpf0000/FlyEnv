@@ -81,3 +81,24 @@ test('static removal refuses running instances, foreign processes and aliased da
     await rm(root, { recursive: true, force: true })
   }
 })
+
+test('Homebrew bootstrap prepares a private localized host script without executing it', async () => {
+  const api = (await import('../fork/packages')) as any
+  const root = await mkdtemp(join(tmpdir(), 'mc-brew-bootstrap-'))
+  try {
+    const staticDir = join(root, 'static')
+    await mkdir(join(staticDir, 'sh'), { recursive: true })
+    await writeFile(join(staticDir, 'sh/brew-install.sh'), '#!/bin/sh\nprintf zh')
+    await writeFile(join(staticDir, 'sh/brew-install-en.sh'), '#!/bin/sh\nprintf en')
+    const zh = await api.prepareHomebrewInstall(root, staticDir, 'zh')
+    const en = await api.prepareHomebrewInstall(root, staticDir, 'en')
+    assert.notEqual(zh.path, en.path)
+    assert.equal(await readFile(zh.path, 'utf8'), '#!/bin/sh\nprintf zh')
+    assert.equal(await readFile(en.path, 'utf8'), '#!/bin/sh\nprintf en')
+    assert.deepEqual(en.args, [])
+    await cleanupPackageCommand(root, zh.token)
+    await assert.rejects(readFile(zh.path))
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})

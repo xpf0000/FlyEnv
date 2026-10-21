@@ -19,13 +19,11 @@ export function replicationCapabilities(version: string) {
     supported:
       !!match &&
       !/maria/i.test(version) &&
-      major === 8 &&
-      (minor === 4 || (minor === 0 && patch >= 13)),
+      (major > 8 || (major === 8 && (minor > 0 || patch >= 13))),
     groupSupported:
       !!match &&
       !/maria/i.test(version) &&
-      major === 8 &&
-      (minor === 4 || (minor === 0 && patch >= 27)),
+      (major > 8 || (major === 8 && (minor > 0 || patch >= 27))),
     sourceSyntax: major > 8 || (major === 8 && (minor > 0 || patch >= 23)),
     modernReplicaVariables: major > 8 || (major === 8 && (minor > 0 || patch >= 26))
   }
@@ -75,12 +73,12 @@ export function validateCreateRequest(request: CreateRequest, platform: Platform
       throw new Error('Invalid MySQL version')
     if (cluster.mode !== 'standalone') {
       if (!replicationCapabilities(item.engine.version).supported)
-        throw new Error('Replication requires MySQL 8.0 or 8.4')
+        throw new Error('Replication requires MySQL 8.0.13 or later')
       if (
         cluster.mode === 'group-replication' &&
         !replicationCapabilities(item.engine.version).groupSupported
       )
-        throw new Error('Group Replication requires MySQL 8.0.27 or later in 8.0, or MySQL 8.4')
+        throw new Error('Group Replication requires MySQL 8.0.27 or later')
       if (
         item.engine.bin !== instances[0].engine.bin ||
         item.engine.version !== instances[0].engine.version

@@ -1,8 +1,5 @@
 <template>
-  <li
-    class="non-draggable"
-    :class="{ active: route.path === '/mysql-cluster' }"
-    @click="router.push('/mysql-cluster')"
+  <li class="non-draggable" :class="{ active: route.path === '/mysql-cluster' }" @click="nav"
     ><div class="left"
       ><div class="icon-block" :class="{ run: running }"
         ><yb-icon :svg="import('@/svg/mysql.svg?raw')" width="30" height="30" /></div
@@ -11,12 +8,23 @@
   /></li>
 </template>
 <script setup lang="ts">
-  import { computed, onUnmounted } from 'vue'
+  import { computed, onUnmounted, watch } from 'vue'
   import router from '@/router'
-  import { AppServiceModule } from '@/core/ASide'
+  import { AsideSetup, AppServiceModule } from '@/core/ASide'
+  import { AppStore } from '@/store/app'
   import { MysqlClusterManager as manager, registerLifecycle, releaseLifecycle } from './manager'
   import { InstallationManager } from './installations'
   const route = router.currentRoute
+  const { nav } = AsideSetup('mysql-cluster')
+  // Host sidebar entries read currentPage; keep it aligned on history navigation too.
+  const appStore = AppStore()
+  watch(
+    () => route.value.path,
+    (path) => {
+      appStore.currentPage = path
+    },
+    { immediate: true }
+  )
   const running = computed(
     () => Object.values(manager.snapshots).filter((s) => s.state === 'running').length
   )

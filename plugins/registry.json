@@ -231,7 +231,7 @@
     {
       "id": "mysql-cluster",
       "name": "MySQL Cluster",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "description": {
         "en": "Independent local MySQL instances, one-click GTID source/replica groups and single-primary Group Replication.",
         "zh": "管理多个独立 MySQL 实例，一键创建 GTID 主从复制及单主 Group Replication。"
@@ -257,7 +257,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "fdcb38d42347461d1d5817bb36a8c1ccc4916304e182df27a86a872e895f7ec0"
+        "sha256": "f96cc38eec9274977b10e5d949bc635905f3c179302d90a5b055cb55e787bb18"
       },
       "official": true
     }

@@ -14,8 +14,8 @@ FlyEnv 独立插件，提供 **MySQL 实例 / 服务 / 版本** 三个 Tab。
 
 ## 使用范围
 
-一键复制面向 **MySQL 8.0 / 8.4**，同组使用完全相同的安装版本；异步复制至少需要
-8.0.13，GR 至少需要 8.0.27，且安装包必须实际包含 GR 插件。
+一键复制支持 **MySQL 8.0.13 及以上版本（包含 8.x Innovation 和 9.x）**，同组使用完全相同的安装版本；
+GR 至少需要 8.0.27，且安装包必须实际包含 GR 插件。
 独立实例还支持具有 `--initialize-insecure` 的 MySQL 5.7 安装；MariaDB 不作为 MySQL 接纳。
 创建前会检查真实二进制版本、目录、端口、Socket 和数据路径重叠。
 
@@ -61,7 +61,7 @@ yarn test:renderer-operation-boundaries
 yarn plugin:build mysql-cluster
 ```
 
-原生验收须显式提供 MySQL 8.4.8 测试二进制。测试仅创建临时空目录和自己的进程，
+原生验收须显式提供 MySQL 测试二进制，测试会读取其实际版本。测试仅创建临时空目录和自己的进程，
 不读取或操作用户现有服务；未设置环境变量时原生测试跳过。
 
 ```sh
@@ -69,7 +69,7 @@ MYSQL_CLUSTER_TEST_BIN=/path/to/mysql-8.4.8/bin/mysqld \
   node --import tsx --test plugins/mysql-cluster/tests/native.test.ts
 ```
 
-当前原生验收环境为 **macOS arm64 / Oracle MySQL Community 8.4.8**，已验证：
+当前原生验收环境为 **macOS arm64 / Oracle MySQL Community 8.4.8 及 Homebrew MySQL 9.6.0**，已验证：
 
 - 带空格的引擎/配置/数据路径、带引号与反斜线的测试密码。
 - 同一二进制的独立实例及精确停止。
@@ -80,10 +80,12 @@ MYSQL_CLUSTER_TEST_BIN=/path/to/mysql-8.4.8/bin/mysqld \
 三模式表单、全宽控件、600px 窄窗、深浅色、双语、数据库管理及副本只读按钮。
 这类界面验收不等同于 Electron 或其他平台的原生联调。
 
-Windows、Linux、MySQL 8.0 与其他 8.4 构建的原生验收仍待完成；Windows 测试还需要
+Windows、Linux、MySQL 8.0 与其他 MySQL 构建的原生验收仍待完成；Windows 测试还需要
 宿主 Helper/进程查询环境，不能把 macOS 的通过结果视为跨平台通过。
 
-构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.1.flyenv-plugin`；
+构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.2.flyenv-plugin`；
 构建会生成匹配的 registry SHA-256，空下载 URL 表示尚未发布。
 
 0.1.1 的独立宿主回归覆盖本地生命周期身份保持、原宿主零新增配置写入、自动扫描与专用查询隔离、安装进度/取消/重入、失败后的真实安装状态刷新及包目录保护。
+
+0.1.2 将服务/版本页面按主程序页面复制适配，服务页移除启停及 phpMyAdmin 入口；修复侧栏重复选中和响应式设置写入 IndexedDB 的克隆错误。复制模式不再限制 8.0/8.4 系列，9.6.0 已通过实际主从及 GR 验收。

@@ -173,3 +173,30 @@ test('cancellation waits for PTY initialization and stops the real key before de
   assert.deepEqual(keys, ['owned-pty'])
   assert.equal(destroyed, 1)
 })
+
+test('Homebrew bootstrap uses the same owned terminal flight and never triggers removal', async () => {
+  const d = deps()
+  let release!: () => void
+  let executed: any
+  let removed = false
+  d.install = async (row) => {
+    executed = row
+    await new Promise<void>((r) => {
+      release = r
+    })
+  }
+  d.remove = async () => {
+    removed = true
+  }
+  const c = new api.InstallationsController(d)
+  const first = c.installHomebrew()
+  assert.equal(c.installHomebrew(), first)
+  assert.equal(await c.act({ name: 'mysql', source: 'Homebrew', installed: false }), false)
+  await new Promise((r) => setTimeout(r, 0))
+  assert.equal(executed.bootstrapHomebrew, true)
+  assert.equal(executed.installed, false)
+  release()
+  assert.equal(await first, true)
+  assert.equal(removed, false)
+  assert.equal(c.busy, false)
+})
