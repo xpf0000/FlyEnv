@@ -28,7 +28,7 @@ test('backup directory picker shares duplicate requests and cancellation preserv
       {
         name: 'native-transport',
         setup(builder) {
-          builder.onResolve({ filter: /^(?:@|\.\/manager$)/ }, (args) => ({
+          builder.onResolve({ filter: /^(?:@|\.\/manager$|element-plus$)/ }, (args) => ({
             path: args.path,
             namespace: 'host'
           }))
@@ -36,9 +36,13 @@ test('backup directory picker shares duplicate requests and cancellation preserv
             contents:
               args.path === '@/util/Index'
                 ? 'export const reactiveBind=x=>x'
-                : args.path === './manager'
-                  ? 'export const MysqlClusterManager=globalThis.__mcPicker.manager'
-                  : 'export const dialog={showOpenDialog:()=>globalThis.__mcPicker.pick()};export const shell={openPath:async()=>true}'
+                : args.path === 'element-plus'
+                  ? 'export const ElMessageBox={confirm:async()=>true}'
+                  : args.path === '@lang/index'
+                    ? 'export const I18nT=x=>x'
+                    : args.path === './manager'
+                      ? 'export const MysqlClusterManager=globalThis.__mcPicker.manager'
+                      : 'export const clipboard={writeText:()=>{}};export const dialog={showOpenDialog:()=>globalThis.__mcPicker.pick()};export const shell={openPath:async()=>true}'
           }))
         }
       }

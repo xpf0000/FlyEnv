@@ -37,6 +37,8 @@ export default {
   version: 'MySQL version',
   path: 'Installation path',
   dataDir: 'Data directory',
+  dataDirLockedHint:
+    'Initialized data stays in its current directory. Existing database files are never moved by this form.',
   rootDir: 'Data root directory',
   port: 'TCP port',
   startPort: 'Starting TCP port',
@@ -68,7 +70,7 @@ export default {
   grHint:
     'Single-primary mode. SQL and group communication ports must be unique. Same-machine nodes share a machine failure boundary.',
   editHint:
-    'Stop all members first. Existing data directories and MySQL versions cannot be replaced. Configuration identity options are managed by the plugin.',
+    'Stop all members first. Data directories can change only before initialization while both directories are empty. MySQL versions cannot be replaced.',
   deleteHint:
     'Stop and remove this instance / group? Database files will be retained in their data directories.',
   retained: 'Data files are retained.',

@@ -223,22 +223,55 @@ export class InstanceCatalog {
             !old ||
             old.engine.bin !== item.engine.bin ||
             old.engine.version !== item.engine.version ||
-            old.dataDir !== item.dataDir ||
             old.serverId !== item.serverId
           )
-            throw new Error('Existing data directory, engine and server identity cannot change')
+            throw new Error('Existing engine and server identity cannot change')
+          if (old.dataDir !== item.dataDir) {
+            if (before.stages[item.id] !== 'prepared')
+              throw new Error('An initialized or uncertain data directory cannot be replaced')
+            try {
+              await access(join(this.paths(item.id).dir, 'initialized.json'))
+              throw new Error('An initialized data directory cannot be replaced')
+            } catch (error: any) {
+              if (error.code !== 'ENOENT') throw error
+            }
+            // Never relocate MySQL files or reinterpret a nonempty directory as uninitialized.
+            for (const directory of [old.dataDir, item.dataDir]) {
+              try {
+                if ((await readdir(directory)).length)
+                  throw new Error(
+                    'Only empty data directories can be changed before initialization'
+                  )
+              } catch (error: any) {
+                if (error.code !== 'ENOENT') throw error
+              }
+            }
+          }
           Object.assign(old, {
             name: item.name,
             port: item.port,
             socket: item.socket,
+            dataDir: item.dataDir,
             groupPort: item.groupPort
           })
         }
         group.name = request.cluster.name
         validateCatalog(next)
-        const sockets = new Set<string>(),
+        const directories: string[] = [],
+          sockets = new Set<string>(),
           ports = new Set<number>()
         for (const item of next.instances) {
+          const directory = normalizedPath(await canonical(item.dataDir), this.platform)
+          if (
+            directories.some(
+              (old) =>
+                directory === old ||
+                directory.startsWith(old + '/') ||
+                old.startsWith(directory + '/')
+            )
+          )
+            throw new Error('Overlapping real data directories')
+          directories.push(directory)
           const socket =
             this.platform === 'Windows' ? item.socket.toLowerCase() : await canonical(item.socket)
           if (sockets.has(socket)) throw new Error('Duplicate socket')
@@ -253,6 +286,10 @@ export class InstanceCatalog {
         // Journal first: a partially updated group cannot start with mismatched catalog/config identity.
         for (const item of request.instances) {
           const paths = this.paths(item.id)
+          if (before.instances.find((old) => old.id === item.id)!.dataDir !== item.dataDir) {
+            await mkdir(item.dataDir, { recursive: true })
+            await access(item.dataDir, constants.W_OK)
+          }
           let current = ''
           try {
             current = await readFile(paths.config, 'utf8')

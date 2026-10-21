@@ -2,7 +2,7 @@
   "apiVersion": 1,
   "id": "mysql-cluster",
   "name": "MySQL Cluster",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": {
     "en": "Independent local MySQL instances, one-click GTID source/replica groups and single-primary Group Replication.",
     "zh": "管理多个独立 MySQL 实例，一键创建 GTID 主从复制及单主 Group Replication。"
@@ -15,7 +15,11 @@
     "asideIndex": 27,
     "isService": true,
     "isTray": false,
-    "platform": ["macOS", "Windows", "Linux"]
+    "platform": [
+      "macOS",
+      "Windows",
+      "Linux"
+    ]
   },
   "entry": {
     "render": "render/Module.ts",

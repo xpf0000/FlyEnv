@@ -95,6 +95,125 @@ test('prepares config and catalog atomically, retaining initialized data on retr
     await rm(root, { recursive: true, force: true })
   }
 })
+test('prepared empty instance directories can change without moving or deleting data', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'mc-dir-edit-'))
+  try {
+    const c = new api.InstanceCatalog(join(root, 'owned'), 'macOS'),
+      request = fixture(root)
+    await c.prepare(request, { probe: async () => undefined, checkPorts: false })
+    const changed = structuredClone(request)
+    changed.instances[0].dataDir = join(root, 'custom data')
+    await c.update(changed)
+    assert.equal((await c.instance('a')).spec.dataDir, changed.instances[0].dataDir)
+    assert.match(await readFile(c.paths('a').config, 'utf8'), /datadir=.*custom data/)
+    await writeFile(join(request.instances[0].dataDir, 'untouched'), 'old directory remains')
+    let calls = 0
+    await init.initializeInstance(
+      c,
+      'a',
+      () => {},
+      async () => {
+        calls++
+        return ''
+      }
+    )
+    assert.equal(calls, 1)
+    assert.equal(
+      await readFile(join(request.instances[0].dataDir, 'untouched'), 'utf8'),
+      'old directory remains'
+    )
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+test('directory edits reject initialized, uncertain, nonempty and receipted data without side effects', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'mc-dir-guard-'))
+  try {
+    const c = new api.InstanceCatalog(join(root, 'owned'), 'macOS'),
+      request = fixture(root)
+    await c.prepare(request, { probe: async () => undefined, checkPorts: false })
+    const changed = structuredClone(request)
+    changed.instances[0].dataDir = join(root, 'replacement')
+    const configBefore = await readFile(c.paths('a').config, 'utf8')
+    for (const stage of ['initialized', 'ready', 'unknown', 'initializing']) {
+      await c.setStage('a', stage)
+      await assert.rejects(c.update(changed), /initializ|empty|directory/i)
+    }
+    await c.setStage('a', 'prepared')
+    await writeFile(join(request.instances[0].dataDir, 'ibdata1'), 'keep')
+    await assert.rejects(c.update(changed), /empty/i)
+    await rm(join(request.instances[0].dataDir, 'ibdata1'))
+    await writeFile(join(c.paths('a').dir, 'initialized.json'), 'receipt')
+    await assert.rejects(c.update(changed), /initializ/i)
+    await rm(join(c.paths('a').dir, 'initialized.json'))
+    await mkdir(changed.instances[0].dataDir)
+    await writeFile(join(changed.instances[0].dataDir, 'business'), 'keep')
+    await assert.rejects(c.update(changed), /empty/i)
+    assert.equal((await c.instance('a')).spec.dataDir, request.instances[0].dataDir)
+    assert.equal(await readFile(c.paths('a').config, 'utf8'), configBefore)
+    assert.equal((await c.instance('a')).pendingUpdate, false)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+test('prepared directory edit failures retain the old catalog and block startup until retry', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'mc-dir-retry-'))
+  try {
+    const c = new api.InstanceCatalog(join(root, 'owned'), 'macOS'),
+      request = fixture(root)
+    await c.prepare(request, { probe: async () => undefined, checkPorts: false })
+    const changed = structuredClone(request)
+    changed.instances[0].dataDir = join(root, 'new data')
+    await rm(c.paths('a').config)
+    await mkdir(c.paths('a').config)
+    await assert.rejects(c.update(changed))
+    assert.equal((await c.instance('a')).spec.dataDir, request.instances[0].dataDir)
+    assert.equal((await c.instance('a')).pendingUpdate, true)
+    await assert.rejects(
+      init.initializeInstance(
+        c,
+        'a',
+        () => {},
+        async () => ''
+      ),
+      /incomplete/i
+    )
+    await rm(c.paths('a').config, { recursive: true })
+    await c.update(changed)
+    assert.equal((await c.instance('a')).spec.dataDir, changed.instances[0].dataDir)
+    assert.equal((await c.instance('a')).pendingUpdate, false)
+    assert.match(await readFile(c.paths('a').config, 'utf8'), /datadir=.*new data/)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+test('directory edits reject a symlink alias of another managed empty data directory', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'mc-dir-alias-'))
+  try {
+    const c = new api.InstanceCatalog(join(root, 'owned'), 'macOS'),
+      request = fixture(root)
+    await c.prepare(request, { probe: async () => undefined, checkPorts: false })
+    const second: any = structuredClone(request)
+    second.cluster.id = 'g2'
+    second.cluster.memberIds = ['b']
+    Object.assign(second.instances[0], {
+      id: 'b',
+      port: 23307,
+      socket: '/tmp/mc-b.sock',
+      dataDir: join(root, 'data-b'),
+      serverId: 23307
+    })
+    await c.prepare(second, { probe: async () => undefined, checkPorts: false })
+    await symlink(second.instances[0].dataDir, join(root, 'alias'))
+    const changed = structuredClone(request)
+    changed.instances[0].dataDir = join(root, 'alias')
+    await assert.rejects(c.update(changed), /overlapping real data directories/i)
+    assert.equal((await c.instance('a')).pendingUpdate, false)
+    assert.equal((await c.instance('a')).spec.dataDir, request.instances[0].dataDir)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
 test('rejects nonempty and aliased directories before writing managed configuration', async () => {
   const root = await mkdtemp(join(tmpdir(), 'mc-dirs-'))
   try {

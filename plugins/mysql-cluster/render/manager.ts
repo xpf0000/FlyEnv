@@ -7,7 +7,7 @@ import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
 import { forkTerminalRequest } from '@/util/ForkTerminalRequest'
 import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
-import { MessageError, MessageSuccess, MessageErrorDialog } from './notice'
+import { MessageError, MessageSuccess } from './notice'
 import { join } from '@/util/path-browserify'
 import { MysqlClusterController } from './controller'
 import { t } from './lang'
@@ -30,9 +30,8 @@ export const MysqlClusterManager = reactiveBind(
   new MysqlClusterController({
     read: () => StorageGetAsync(key),
     write: (value) => StorageSetAsync(key, value),
-    notify: (type, message, display) => {
-      if (display === 'dialog') void MessageErrorDialog(t(message))
-      else (type === 'success' ? MessageSuccess : MessageError)(t(message))
+    notify: (type, message) => {
+      ;(type === 'success' ? MessageSuccess : MessageError)(t(message))
     },
     installed: async () => {
       registerLifecycle()

@@ -6,7 +6,8 @@ import { parse, compileScript } from '@vue/compiler-sfc'
 const api = await import('../render/form').catch(() => ({}) as any)
 test('all plugin views compile their real template expressions after formatting', async () => {
   const root = join(import.meta.dirname, '../render')
-  for (const file of (await readdir(root)).filter((f) => f.endsWith('.vue'))) {
+  const files = (await readdir(root, { recursive: true })).filter((f) => f.endsWith('.vue'))
+  for (const file of files) {
     const { descriptor, errors } = parse(await readFile(join(root, file), 'utf8'), {
       filename: file
     })
@@ -64,6 +65,31 @@ test('replica count adds a source and Windows previews use pipe names', () => {
   assert.equal(request.instances.length, 3)
   assert.equal(request.instances[0].socket, 'FlyEnvMC_abc_1')
   assert.equal(request.credentials.abc_1.password, 'pw')
+})
+
+test('draft changes preserve custom member directories and use the application data root', () => {
+  assert.equal(api.defaultDataRoot('/server/'), '/server/mysql-cluster/data')
+  assert.equal(api.defaultDataRoot('C:\\server\\'), 'C:/server/mysql-cluster/data')
+  const draft = {
+    id: 'abc',
+    uuid: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    name: 'dev',
+    mode: 'standalone',
+    count: 1,
+    startPort: 13306,
+    rootDir: api.defaultDataRoot('/server'),
+    password: 'pw',
+    engine: { version: '8.4.8', path: '/mysql', bin: '/mysql/bin/mysqld', source: 'Static' },
+    dataDirs: { abc_1: '/user/custom data' }
+  }
+  assert.equal(api.createDraftRequest(draft, 'macOS').instances[0].dataDir, '/user/custom data')
+  const changed = api.createDraftRequest(
+    { ...draft, mode: 'replication', count: 2, startPort: 14400 },
+    'macOS'
+  )
+  assert.equal(changed.instances[0].dataDir, '/user/custom data')
+  assert.equal(changed.instances[1].dataDir, '/server/mysql-cluster/data/abc/node-2')
+  assert.equal(changed.instances[2].port, 14402)
 })
 
 test('initial ports advance after existing SQL nodes and reserve existing GR ports for whole groups', () => {

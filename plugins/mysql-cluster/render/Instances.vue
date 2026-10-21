@@ -26,32 +26,23 @@
               manager.operations[group.id].stage
             }}</el-tag></div
           >
-          <div class="flex flex-wrap gap-2"
-            ><el-button
+          <div class="flex flex-wrap items-center gap-3">
+            <ActionButton
               v-for="action in groupActions(group)"
               :key="action"
-              size="small"
+              :action="action"
               :disabled="groupBusy(group)"
               @click="runGroup(group, action)"
-              >{{ t(action) }}</el-button
-            ><el-button
+            />
+            <ActionButton
               v-if="group.mode !== 'standalone'"
-              size="small"
+              action="credentials"
               :disabled="groupBusy(group)"
               @click="credentials(group)"
-              >{{ t('credentials') }}</el-button
-            ><el-button size="small" :disabled="groupBusy(group)" @click="edit(group)">{{
-              t('edit')
-            }}</el-button
-            ><el-button
-              size="small"
-              type="danger"
-              plain
-              :disabled="groupBusy(group)"
-              @click="remove(group)"
-              >{{ t('delete') }}</el-button
-            ></div
-          >
+            />
+            <ActionButton action="edit" :disabled="groupBusy(group)" @click="edit(group)" />
+            <ActionButton action="delete" :disabled="groupBusy(group)" @click="remove(group)" />
+          </div>
         </div>
         <el-table :data="members(group)" show-overflow-tooltip>
           <el-table-column prop="name" :label="t('name')" min-width="130" />
@@ -117,9 +108,8 @@
           <el-table-column :label="t('actions')" fixed="right" width="155" align="center"
             ><template #default="{ row }"
               ><div class="flex items-center justify-center gap-2"
-                ><el-button
-                  link
-                  :title="t(manager.snapshots[row.id]?.state === 'running' ? 'stop' : 'start')"
+                ><ActionButton
+                  :action="manager.snapshots[row.id]?.state === 'running' ? 'stop' : 'start'"
                   :loading="!!manager.operations[row.id]?.busy"
                   :disabled="groupBusy(group)"
                   @click="
@@ -127,27 +117,12 @@
                       row.id,
                       manager.snapshots[row.id]?.state === 'running' ? 'stop' : 'start'
                     )
-                  "
-                  ><yb-icon
-                    :key="manager.snapshots[row.id]?.state === 'running' ? 'stop' : 'start'"
-                    :svg="
-                      manager.snapshots[row.id]?.state === 'running'
-                        ? import('@/svg/stop2.svg?raw')
-                        : import('@/svg/play.svg?raw')
-                    "
-                    width="20"
-                    height="20" /></el-button
-                ><el-button
+                  " /><ActionButton
                   v-if="manager.snapshots[row.id]?.state === 'running'"
-                  link
-                  :title="t('restart')"
+                  action="restart"
                   :disabled="groupBusy(group) || !!manager.operations[row.id]?.busy"
-                  @click="manager.runInstance(row.id, 'restart')"
-                  ><yb-icon
-                    :svg="import('@/svg/icon_refresh.svg?raw')"
-                    width="20"
-                    height="20" /></el-button
-                ><InstanceActions :instance="row" /></div></template
+                  @click="manager.runInstance(row.id, 'restart')" /><InstanceActions
+                  :instance="row" /></div></template
           ></el-table-column>
         </el-table>
         <el-alert
@@ -195,6 +170,7 @@
   import { MysqlClusterManager as manager } from './manager'
   import type { ClusterSpec } from '../shared'
   import InstanceActions from './InstanceActions.vue'
+  import ActionButton from './ActionButton.vue'
   import { t } from './lang'
   type LifecycleAction = 'start' | 'stop' | 'restart'
   const isWindows = !!window.Server.isWindows

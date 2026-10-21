@@ -41,11 +41,11 @@ MacPorts 卸载不使用 `--follow-dependents`；有其他依赖时由包管理�
 ## 数据与恢复
 
 - 程序安装目录与实例数据分离，多个实例可共享同一套 mysqld。
-- Fork 清单、配置、PID 和日志位于 `<MysqlDir>/mysql-cluster/`；数据目录可单独指定。
+- Fork 清单、配置、PID 和日志位于 `<MysqlDir>/mysql-cluster/`；新建数据默认位于 `<BaseDir>/mysql-cluster/data/`（即 `server/mysql-cluster/data/`），逐实例目录可单独指定。
 - renderer Storage key 为 `flyenv-plugin-mysql-cluster-v1`，按实例隔离备注、备份设置及明确保存的凭据。
 - 新建时的 Root 密码默认仅保留在当前会话；在数据管理或组凭据窗口中可选择在本机记住。
 - 初始化未知或目录非空时不自动重建；失败后保留数据和逐节点结果。
-- 编辑已有实例时可改名称、端口和 Socket；已有数据目录、引擎版本和拓扑不可直接替换。
+- 编辑已有实例时可改名称、端口和 Socket；未初始化且为空的数据目录可修改，已初始化数据目录、引擎版本和拓扑不可直接替换。
 - 多节点配置更新使用持久化中间记录；中断后禁止启动不一致的节点，显式重试编辑可恢复配置一致性。
 - 删除先确认所有目标已停止，只移除管理记录，保留原数据与可检查的配置/日志。
 - 全组停止后的 GR 恢复比较所有成员事务历史；GTID 分叉、无法确认成员或尚有未应用事务时拒绝强制 bootstrap。
@@ -83,7 +83,7 @@ MYSQL_CLUSTER_TEST_BIN=/path/to/mysql-8.4.8/bin/mysqld \
 Windows、Linux、MySQL 8.0 与其他 MySQL 构建的原生验收仍待完成；Windows 测试还需要
 宿主 Helper/进程查询环境，不能把 macOS 的通过结果视为跨平台通过。
 
-构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.3.flyenv-plugin`；
+构建产物为 `dist/plugins/mysql-cluster/mysql-cluster-0.1.4.flyenv-plugin`；
 构建会生成匹配的 registry SHA-256，空下载 URL 表示尚未发布。
 
 0.1.1 的独立宿主回归覆盖本地生命周期身份保持、原宿主零新增配置写入、自动扫描与专用查询隔离、安装进度/取消/重入、失败后的真实安装状态刷新及包目录保护。
@@ -91,3 +91,5 @@ Windows、Linux、MySQL 8.0 与其他 MySQL 构建的原生验收仍待完成；
 0.1.2 将服务/版本页面按主程序页面复制适配，服务页移除启停及 phpMyAdmin 入口；修复侧栏重复选中和响应式设置写入 IndexedDB 的克隆错误。复制模式不再限制 8.0/8.4 系列，9.6.0 已通过实际主从及 GR 验收。
 
 0.1.3 修复节点启动凭据及复制 RPC 参数的 Electron 克隆错误；创建/编辑错误改为模态提示，必填项显示标识；停止的节点只显示启动，运行的节点显示停止/重启；创建默认端口根据已有 SQL/GR 端口自动分配，可手动覆盖。
+
+0.1.4 将创建/编辑错误改用公共 Element 消息，隐藏数据根目录并保留逐节点自定义路径；卡片和列表统一图标及状态颜色。配置沿用 PHP 抽屉/编辑器工具布局并保留插件配置校验，日志直接复用公共 Log 组件；数据管理复制主程序 MySQL 页面、按实例适配列表/密码/备注/备份，连接信息复制后显示结果提示。

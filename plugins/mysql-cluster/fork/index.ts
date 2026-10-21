@@ -151,6 +151,18 @@ export class MysqlClusterModule extends Base {
       return readFile(this.catalog.paths(id).config, 'utf8')
     })
   }
+  instanceFiles(id: string) {
+    return this.request(async () => {
+      await this.catalog.instance(id)
+      const paths = this.catalog.paths(id)
+      return {
+        config: paths.config,
+        errorLog: paths.error,
+        slowLog: paths.slow,
+        root: this.catalog.root
+      }
+    })
+  }
   saveConfig(id: string, text: string) {
     return this.request(() =>
       this.catalog.operations.run(id, 'save-config', async () => {

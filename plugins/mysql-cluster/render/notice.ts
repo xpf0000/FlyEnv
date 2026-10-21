@@ -1,23 +1,20 @@
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { t } from './lang'
-const show = (type: 'error' | 'success', message: string) =>
-  ElMessage({ message, type, showClose: true, customClass: 'app-el-message', zIndex: 99999 })
-export const MessageError = (message: string) => show('error', message)
-export const MessageSuccess = (message: string) => show('success', message)
+import {
+  MessageError as PublicMessageError,
+  MessageSuccess as PublicMessageSuccess
+} from '@/util/Element'
 
-let errorDialog: Promise<unknown> | undefined
-export function MessageErrorDialog(message: string): Promise<unknown> {
-  if (errorDialog) return errorDialog
-  errorDialog = ElMessageBox.alert(message, t('error'), {
-    confirmButtonText: t('confirm'),
-    type: 'error',
-    customClass: 'mc-error-dialog',
-    closeOnClickModal: false,
-    dangerouslyUseHTMLString: false
-  })
-    .catch(() => undefined)
-    .finally(() => {
-      errorDialog = undefined
-    })
-  return errorDialog
-}
+// Public Element helpers render HTML. Keep database/process errors as plain text.
+const escape = (message: string) =>
+  message.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[character]!
+  )
+export const MessageError = (message: string) => PublicMessageError(escape(message))
+export const MessageSuccess = (message: string) => PublicMessageSuccess(escape(message))

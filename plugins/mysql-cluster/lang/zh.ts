@@ -37,6 +37,7 @@ export default {
   version: 'MySQL 版本',
   path: '版本路径',
   dataDir: '数据目录',
+  dataDirLockedHint: '已初始化的数据目录不可修改，此表单不会迁移已有数据库文件。',
   rootDir: '数据根目录',
   port: 'TCP 端口',
   startPort: '起始 TCP 端口',
@@ -65,7 +66,8 @@ export default {
   error: '错误',
   groupHint: '仅新建本机空实例；同组节点使用同一安装版本，默认关闭 X Protocol。',
   grHint: '采用单主模式，SQL 与组通信端口必须各不相同；本机多个节点仍会同时受整机故障影响。',
-  editHint: '请先停止全部成员。已有数据目录和 MySQL 版本不可替换，实例身份配置由插件管理。',
+  editHint:
+    '请先停止全部成员。仅未初始化且原目录和目标目录均为空的实例可以修改数据目录；MySQL 版本不可替换。',
   deleteHint: '停止并删除这个实例或复制组？数据库文件将保留在原数据目录。',
   retained: '数据文件已保留。',
   connect: '连接',

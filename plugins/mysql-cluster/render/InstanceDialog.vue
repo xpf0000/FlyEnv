@@ -55,9 +55,6 @@
             :disabled="!!group"
             @input="portEdited = true"
         /></el-form-item>
-        <el-form-item required :label="t('rootDir')"
-          ><el-input v-model="form.rootDir" :disabled="!!group"
-        /></el-form-item>
         <el-form-item v-if="!group" required :label="t('password')"
           ><el-input
             v-model="form.password"
@@ -89,8 +86,11 @@
             ><el-input-number v-model="member.groupPort" :min="1" :max="65535"
           /></el-form-item>
           <el-form-item required :label="t('dataDir')" class="md:col-span-2"
-            ><el-input v-model="member.dataDir" :disabled="!!group"
-          /></el-form-item>
+            ><el-input v-model="member.dataDir" :readonly="directoryLocked(member.id)" />
+            <p v-if="directoryLocked(member.id)" class="mt-1 text-xs opacity-70">{{
+              t('dataDirLockedHint')
+            }}</p>
+          </el-form-item>
         </el-form>
       </el-card>
     </el-scrollbar>
@@ -106,12 +106,11 @@
   import { computed, reactive, ref, watch } from 'vue'
   import { AsyncComponentSetup } from '@/util/AsyncComponent'
   import { BrewStore } from '@/store/brew'
-  import { join } from '@/util/path-browserify'
   import { MysqlClusterManager as manager } from './manager'
-  import { createDraftRequest, suggestStartPort } from './form'
+  import { createDraftRequest, defaultDataRoot, suggestStartPort } from './form'
   import { engineFromInstalled } from './engine'
   import { validateCreateRequest } from '../policy'
-  import type { ClusterSpec, ClusterMode, EngineRef, InstanceSpec } from '../shared'
+  import type { ClusterSpec, ClusterMode, EngineRef, InstanceSpec, SavedCatalog } from '../shared'
   import { t } from './lang'
   const props = defineProps<{ group?: ClusterSpec }>()
   const { show, onClosed, onSubmit, closedFn } = AsyncComponentSetup()
@@ -140,13 +139,18 @@
           : 1,
     startPort:
       existing[0]?.port ?? suggestStartPort(manager.catalog.instances, 'standalone', 1) ?? 13306,
-    rootDir: join(window.Server.MysqlDir!, 'mysql-cluster', 'data'),
+    rootDir: defaultDataRoot(window.Server.BaseDir!),
     password: ''
   })
   const engineBin = ref(
     existing[0]?.engine.installationBin ?? existing[0]?.engine.bin ?? versions.value[0]?.bin ?? ''
   )
   const members = ref<InstanceSpec[]>(JSON.parse(JSON.stringify(existing)))
+  const dataDirs: Record<string, string> = {}
+  const directoryLocked = (memberId: string) =>
+    !!props.group &&
+    (manager.catalog as SavedCatalog & { stages?: Record<string, string> }).stages?.[memberId] !==
+      'prepared'
   const busy = computed(() => !!manager.operations[id]?.busy)
   watch(
     () => form.mode,
@@ -166,13 +170,17 @@
     () => [engineBin.value, form.mode, form.count, form.startPort, form.rootDir],
     () => {
       if (props.group) return
+      for (const member of members.value) dataDirs[member.id] = member.dataDir
       const version = versions.value.find((i) => i.bin === engineBin.value)
       if (!version) {
         members.value = []
         return
       }
       const engine: EngineRef = engineFromInstalled(version)
-      members.value = createDraftRequest({ ...form, engine, id, uuid }, platform).instances
+      members.value = createDraftRequest(
+        { ...form, engine, id, uuid, dataDirs },
+        platform
+      ).instances
     },
     { immediate: true }
   )
@@ -195,7 +203,6 @@
       if (!form.name.trim()) throw new Error(t('required') + t('name'))
       if (!members.value.length)
         throw new Error(versions.value.length ? t('required') + t('version') : t('noVersions'))
-      if (!form.rootDir.trim()) throw new Error(t('required') + t('rootDir'))
       if (!props.group && !form.password) throw new Error(t('required') + t('password'))
       if (
         !props.group &&
@@ -219,14 +226,5 @@
   .el-input-number {
     width: 100%;
     max-width: none;
-  }
-</style>
-
-<style lang="scss">
-  .mc-error-dialog .el-message-box__message {
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    max-height: 60vh;
-    overflow-y: auto;
   }
 </style>

@@ -1,5 +1,6 @@
 <template>
   <el-popover
+    ref="popover"
     :show-arrow="false"
     effect="dark"
     popper-class="host-list-poper"
@@ -27,15 +28,16 @@
   </el-popover>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue'
+  import { computed, ref } from 'vue'
   import { EditPen, Setting, CopyDocument, Delete } from '@element-plus/icons-vue'
   import { ElMessageBox } from 'element-plus'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
-  import { clipboard } from '@/util/NodeFn'
+  import { InstanceActions } from './actions'
   import { MysqlClusterManager as manager } from './manager'
   import type { InstanceSpec } from '../shared'
   import { t } from './lang'
   const props = defineProps<{ instance: InstanceSpec }>()
+  const popover = ref<{ hide(): void }>()
   const views = ['config', 'errorLog', 'slowLog', 'manage'] as const
   const group = computed(() => manager.groupFor(props.instance.id))
   const busy = computed(
@@ -44,17 +46,17 @@
       !!manager.operations[group.value?.id ?? '']?.busy
   )
   async function openPanel(view: (typeof views)[number]) {
-    const component = await import('./InstancePanel.vue')
-    await AsyncComponentShow(component.default, { id: props.instance.id, view })
+    popover.value?.hide()
+    await InstanceActions.open(props.instance.id, view)
   }
   async function openEdit() {
+    popover.value?.hide()
     const component = await import('./InstanceDialog.vue')
     await AsyncComponentShow(component.default, { group: group.value })
   }
   function copyConnection() {
-    clipboard.writeText(
-      `Host: 127.0.0.1\nPort: ${props.instance.port}\nSocket: ${props.instance.socket}\nUser: root`
-    )
+    popover.value?.hide()
+    return InstanceActions.copyConnection(props.instance)
   }
   async function remove() {
     if (!group.value) return

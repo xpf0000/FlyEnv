@@ -357,7 +357,7 @@ test('reactive create and preference persistence submit plain structured-cloneab
   assert.equal(saved[2].preferences.a.backup.directory, '/backup')
 })
 
-test('creation failure requests one modal notice and retains the failure result for recovery', async () => {
+test('creation failure requests one public notice and retains the failure result for recovery', async () => {
   const d = deps()
   const notices: any[] = []
   d.notify = (...args: any[]) => {
@@ -371,9 +371,9 @@ test('creation failure requests one modal notice and retains the failure result 
   assert.equal(result.status, 'failed')
   assert.equal(d.getStarted(), 0)
   assert.equal(notices.length, 1)
-  assert.deepEqual(notices[0], ['error', 'g: settings unavailable', 'dialog'])
+  assert.deepEqual(notices[0], ['error', 'g: settings unavailable'])
 })
-test('form validation errors request a modal without making an operation or overwriting saved state', () => {
+test('form validation errors request a public notice without making an operation or overwriting saved state', () => {
   const d = deps()
   const notices: any[] = []
   d.notify = (...args: any[]) => {
@@ -381,7 +381,7 @@ test('form validation errors request a modal without making an operation or over
   }
   const c = new api.MysqlClusterController(d)
   c.reportFormError(new Error('Root password is required'))
-  assert.deepEqual(notices, [['error', 'Root password is required', 'dialog']])
+  assert.deepEqual(notices, [['error', 'Root password is required']])
   assert.deepEqual(c.operations, {})
   assert.equal(d.getSaved(), undefined)
 })

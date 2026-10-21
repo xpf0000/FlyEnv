@@ -7,9 +7,13 @@ export interface Draft {
   count: number
   startPort: number
   rootDir: string
+  dataDirs?: Readonly<Record<string, string>>
   password: string
   engine: EngineRef
 }
+export const defaultDataRoot = (baseDir: string): string =>
+  `${baseDir.replace(/\\/g, '/').replace(/\/$/, '')}/mysql-cluster/data`
+
 export function createDraftRequest(draft: Draft, platform: Platform): CreateRequest {
   const count =
     draft.mode === 'standalone' ? 1 : draft.mode === 'replication' ? draft.count + 1 : draft.count
@@ -24,7 +28,9 @@ export function createDraftRequest(draft: Draft, platform: Platform): CreateRequ
         platform === 'Windows'
           ? `FlyEnvMC_${draft.id}_${n + 1}`
           : `/tmp/flyenv-mc-${draft.id.slice(0, 12)}-${n + 1}.sock`,
-      dataDir: `${draft.rootDir.replace(/\\/g, '/').replace(/\/$/, '')}/${draft.id}/node-${n + 1}`,
+      dataDir:
+        draft.dataDirs?.[id] ??
+        `${draft.rootDir.replace(/\\/g, '/').replace(/\/$/, '')}/${draft.id}/node-${n + 1}`,
       serverId:
         Number.parseInt(draft.id.replace(/[^a-f0-9]/gi, '').slice(0, 6) || '1', 16) * 32 + n + 1,
       groupId: draft.id,
