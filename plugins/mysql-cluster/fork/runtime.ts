@@ -45,8 +45,12 @@ export class MysqlInstanceRuntime {
     )
     if (roots.some((root) => /\s--initialize(?:-insecure)?(?:\s|=|$)/.test(root.COMMAND)))
       return { id, state: 'unknown', error: 'Instance initialization is in progress' }
-    if (roots.length === 1) return { id, state: 'running', pid: roots[0].PID }
-    if (roots.length > 1)
+    // mysqld on Windows re-launches itself, so one instance appears as a
+    // parent/child pair sharing one defaults-file. Only the tree roots that are
+    // not children of another match identify separate processes.
+    const leaders = roots.filter((root) => !roots.some((other) => other.PID === root.PPID))
+    if (leaders.length === 1) return { id, state: 'running', pid: leaders[0].PID }
+    if (leaders.length > 1)
       return { id, state: 'unknown', error: 'Multiple processes use this instance configuration' }
     let recorded = ''
     try {
@@ -154,7 +158,10 @@ export class MysqlInstanceRuntime {
           bin: spec.engine.bin,
           execArgs: args,
           sensitive: true,
-          on: () => {}
+          on: () => {},
+          // DETACHED_PROCESS leaves the launcher without a console; the mysqld child it
+          // re-launches then allocates its own visible console window on Windows.
+          detached: this.catalog.platform === 'Windows' ? false : undefined
           // Do not pass pidPath: only mysqld may write its managed PID file.
         })
         pid = started['APP-Service-Start-PID']

@@ -291,7 +291,9 @@
   watch(
     () => [form.mode, form.count, manager.catalog.instances],
     () => {
-      if (props.group || portEdited.value) return
+      // A create in flight already committed these ports; the next suggestion belongs
+      // to the next dialog, not to the form the user just confirmed.
+      if (props.group || portEdited.value || busy.value) return
       const port = suggestStartPort(manager.catalog.instances, form.mode, form.count)
       if (port !== undefined) form.startPort = port
     }

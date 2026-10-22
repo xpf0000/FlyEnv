@@ -257,7 +257,40 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "823f631fdc9b109ba206440916d5a107c5c1f546bf9176cd60a6dd7bc17cdd84"
+        "sha256": "3949d85287af524193ac7bdc1938f6320f86be280caaae2595844aa4cbc8cf32"
+      },
+      "official": true
+    },
+    {
+      "id": "mariadb-cluster",
+      "name": "MariaDB Cluster",
+      "version": "0.1.0",
+      "description": {
+        "en": "Independent local MariaDB instances and one-click GTID source/replica groups.",
+        "zh": "管理多个独立 MariaDB 实例，一键创建 GTID 主从复制组。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "mariadb-cluster",
+        "moduleType": "dataBaseServer",
+        "label": "MariaDB Cluster",
+        "asideIndex": 28,
+        "isService": true,
+        "isTray": false,
+        "platform": [
+          "macOS",
+          "Windows",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "macOS",
+        "Windows",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "c934d64bd49ed5a1b9cf80364561fe04a73af3d5881c29a2aa9151e1eb94e68a"
       },
       "official": true
     }

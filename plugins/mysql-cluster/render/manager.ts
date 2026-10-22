@@ -1,5 +1,5 @@
 import { reactive, watch } from 'vue'
-import { InstanceServices } from './services'
+import { InstanceServices, instanceBinKey } from './services'
 import { installationAdmission } from './admission'
 import { reactiveBind } from '@/util/Index'
 import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
@@ -85,7 +85,9 @@ export function registerLifecycle() {
     )
   }
   const idFor = (item: ModuleInstalledItem) => {
-    const spec = MysqlClusterManager.catalog.instances.find((i) => binFor(i.id) === item.bin)
+    const spec = MysqlClusterManager.catalog.instances.find(
+      (i) => instanceBinKey(binFor(i.id)) === instanceBinKey(item.bin)
+    )
     if (!spec) throw new Error('Instance is unavailable')
     return spec.id
   }
