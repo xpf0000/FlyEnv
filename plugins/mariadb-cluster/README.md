@@ -54,6 +54,10 @@ MacPorts 卸载不使用 `--follow-dependents`；有其他依赖时由包管理�
 
 ## 验证
 
+插件入口会将本地 Tailwind utilities 编译进 `render/style.css`，使用宿主相同的主题，
+仅扫描本插件的 renderer，不重复注入 Preflight；安装版无需依赖宿主预先生成插件新增的工具类。
+打包样式回归：`node --import tsx --test plugins/tests/cluster-styles.test.ts`。
+
 聚焦回归：
 
 ```sh

@@ -1,3 +1,4 @@
+import './style.css'
 import { defineAsyncComponent } from 'vue'
 import type { AppModuleItem } from '@/core/type'
 import { registerMysqlClusterStartup } from './startup/register'

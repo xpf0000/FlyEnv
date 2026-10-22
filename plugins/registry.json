@@ -30,7 +30,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "f8dd348b1c0718d26c84cbb51151de111563bc047382f6e4845bb79a8ab3be40"
+        "sha256": "003be12da8248d4e549e061b0144250bdf88ac0a7fbfac7021c35561c9aeb5f3"
       },
       "official": true
     },
@@ -63,7 +63,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "a90babc99a690949f4d38ee678adece24d4a51be77d7eaba3c77b1f378d74c4b"
+        "sha256": "365615279444c589f7b7ad16031ca41a14a5b55d983380a6cdd4ab0a5d5b7ce6"
       },
       "official": true
     },
@@ -96,7 +96,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "484563e31c8099a7a4daef7d2c2036ec82bc84290ff91bd348ba2a6b639471cb"
+        "sha256": "0dd15dfd3ddc15e6320808225e3f98e45003ebf7844375c1276fbec7ebd3dffd"
       },
       "official": true
     },
@@ -129,7 +129,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "44a9c34490bbb408736a3aa3c96554e8cfbad7780320b98a33e659ef9faed730"
+        "sha256": "867daa21f456180ee8bbc6fe093d43d9c2f770b85baf4a1203482c3592e24967"
       },
       "official": true
     },
@@ -160,7 +160,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "0960dd88fd4f7ef054ea7b611f3a070593647c4f0d7e84bfa17f3c268a6dbe90"
+        "sha256": "9a65f69a9b8a08d0899640a28291016aaa7226a883366dcee9276ed07045121b"
       },
       "official": true
     },
@@ -191,7 +191,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "2acd75d9962b29167e6d788cffa9af45406f1093ff13eaada3dd4d5c510b46af"
+        "sha256": "bb029a1016096a78e9a144eb489e2f61d80b9c613f479a8b523a83aa9285b7da"
       },
       "official": true
     },
@@ -224,17 +224,17 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "1ed94c056043ce242ce175b7a3a706080c4544d55fa063a0e67f082236eb5073"
+        "sha256": "c50aa6ed64bc53851ef8bdfe8012732e227f2e2464a9dc192fe95b4c58ad1763"
       },
       "official": true
     },
     {
       "id": "mysql-cluster",
       "name": "MySQL Cluster",
-      "version": "0.1.15",
+      "version": "0.1.16",
       "description": {
-        "en": "Independent local MySQL instances, one-click GTID source/replica groups and single-primary Group Replication.",
-        "zh": "管理多个独立 MySQL 实例，一键创建 GTID 主从复制及单主 Group Replication。"
+        "en": "MySQL Cluster plugin: run multiple independent MySQL instances simultaneously on different ports, with one-click setup of GTID source/replica groups and single-primary Group Replication.",
+        "zh": "MySQL集群插件, 使用不同的端口号同时运行多个独立 MySQL 实例，一键创建 GTID 主从复制及单主 Group Replication。"
       },
       "author": "FlyEnv",
       "module": {
@@ -257,17 +257,17 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "3949d85287af524193ac7bdc1938f6320f86be280caaae2595844aa4cbc8cf32"
+        "sha256": "19963528504f5e5956e494ebca8e44b0f98880a0007a97a597e238fc1bf1af4c"
       },
       "official": true
     },
     {
       "id": "mariadb-cluster",
       "name": "MariaDB Cluster",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": {
-        "en": "Independent local MariaDB instances and one-click GTID source/replica groups.",
-        "zh": "管理多个独立 MariaDB 实例，一键创建 GTID 主从复制组。"
+        "en": "MariaDB Cluster plugin: run multiple independent MariaDB instances simultaneously on different ports, with one-click setup of GTID source/replica groups.",
+        "zh": "MariaDB集群插件, 使用不同的端口号同时运行多个独立 MariaDB 实例，一键创建 GTID 主从复制组。"
       },
       "author": "FlyEnv",
       "module": {
@@ -290,7 +290,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "c934d64bd49ed5a1b9cf80364561fe04a73af3d5881c29a2aa9151e1eb94e68a"
+        "sha256": "9d354f16bdf65b782634977113bd17f898886180e2d49fb4da104911f8c4738a"
       },
       "official": true
     }
