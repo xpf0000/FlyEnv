@@ -5,6 +5,7 @@ import { I18nT } from '@lang/runtime'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   execPromise,
+  spawnPromiseWithEnv,
   getAllFileAsync,
   versionLocalFetch,
   versionMacportsFetch,
@@ -40,8 +41,22 @@ import { IniParse } from '../../../render/util/IniParse'
 import { isWindows, uuid } from '@shared/utils'
 import { createHash } from 'node:crypto'
 import { qualifyHomebrewCoreFormula } from '../../util/BrewFormula'
+import { loadedExtensionsCommand, parseLoadedExtensions } from './LoadedExtensions'
 
 class Php extends Base {
+  fetchLoadedExtensions(version: SoftInstalled) {
+    return new ForkPromise(async (resolve) => {
+      const ini = await this.getIniPath(version)
+      const command = loadedExtensionsCommand(version, ini, false)
+      const { stdout } = await spawnPromiseWithEnv(command.bin, command.args, {
+        cwd: command.cwd,
+        shell: false,
+        timeout: 30000
+      })
+      resolve(parseLoadedExtensions(stdout))
+    })
+  }
+
   constructor() {
     super()
     this.type = 'php'

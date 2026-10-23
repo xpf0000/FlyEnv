@@ -44,6 +44,22 @@ const actualDirectIpcIndexPages = walk(componentsDir)
   .sort()
 
 assert.deepEqual(actualDirectIpcIndexPages, legacyDirectIpcIndexPages)
+
+const phpWindowsPage = readFileSync(join(componentsDir, 'PHP/Extension/Windows/index.vue'), 'utf-8')
+const phpWindowsController = readFileSync(
+  join(componentsDir, 'PHP/Extension/Windows/controller.ts'),
+  'utf-8'
+)
+assert.doesNotMatch(phpWindowsPage, /from\s+['"]@\/util\/IPC['"]|IPC\.send/)
+assert.match(phpWindowsPage, /windowsExtensions\.install\(version,/)
+assert.match(phpWindowsController, /reactiveBind\(\s*new WindowsExtensionController/)
+
+const loadedPhpSetup = readFileSync(join(componentsDir, 'PHP/Extension/Loaded/setup.ts'), 'utf-8')
+const loadedPhpPage = readFileSync(join(componentsDir, 'PHP/Extension/Loaded/index.vue'), 'utf-8')
+assert.match(loadedPhpSetup, /reactiveBind\(\s*new LoadedExtensionsController/)
+assert.doesNotMatch(loadedPhpSetup, /exec\.exec|IPC\.send|LoadedSetup\.reFetch\s*=/)
+assert.match(loadedPhpPage, /v-if="error"/)
+
 assert.match(agentsSource, /## Module Boundaries and Operation Ownership/)
 assert.match(agentsSource, /UI state belongs to the mounted Vue component only/)
 assert.match(
