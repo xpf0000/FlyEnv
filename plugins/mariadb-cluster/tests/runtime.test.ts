@@ -47,7 +47,9 @@ test('recognizes OS process snapshots with unquoted space-containing config and 
     ),
     true
   )
-  const rows = [{ PID: '123', COMMAND: '/tmp/Maria DB/bin/mariadbd --defaults-file=/tmp/a b/my.cnf' }]
+  const rows = [
+    { PID: '123', COMMAND: '/tmp/Maria DB/bin/mariadbd --defaults-file=/tmp/a b/my.cnf' }
+  ]
   assert.deepEqual(
     identity
       .selectInstanceRoots(rows, '/tmp/a b/my.cnf', false, '/tmp/Maria DB/bin/mariadbd')
@@ -63,6 +65,34 @@ test('recognizes OS process snapshots with unquoted space-containing config and 
     true
   )
 })
+for (const executable of ['mariadbd.exe', 'mysqld.exe']) {
+  test(`Windows startup and cleanup select ${executable} before subsequent quoted options`, () => {
+    const bin = `D:\\Program Files\\PhpWebStudy-Data\\app\\mariadb-12.0.1\\bin\\${executable}`
+    const config =
+      'D:\\Program Files\\PhpWebStudy-Data\\server\\mariadb\\mariadb-cluster\\instances\\node1\\my.cnf'
+    for (const next of [
+      '"--init-file=D:\\My Data\\initialize.sql"',
+      "'--init-file=D:/My Data/initialize.sql'",
+      '--read-only=ON'
+    ]) {
+      const command = `"${bin}" "--defaults-file=${config}" ${next}`
+      const rows = [
+        { PID: '123', PPID: '1', COMMAND: command },
+        { PID: '124', PPID: '123', COMMAND: command },
+        { PID: '125', PPID: '1', COMMAND: command.replace('node1', 'node2') },
+        { PID: '126', PPID: '1', COMMAND: command.replace('my.cnf', 'my.cnf.other') },
+        { PID: '127', PPID: '1', COMMAND: command.replace('mariadb-12.0.1', 'other-installation') },
+        { PID: '128', PPID: '1', COMMAND: `${command} "--defaults-file=${config}"` }
+      ]
+      assert.equal(identity.hasExactDefaultsFile(command, config, true), true)
+      assert.deepEqual(
+        identity.selectInstanceRoots(rows, config, true, bin).map((p: any) => p.PID),
+        ['123', '124']
+      )
+    }
+  })
+}
+
 test('shares duplicate operations and rejects conflicting actions until the first finishes', async () => {
   assert.equal(typeof locks.OperationLocks, 'function')
   const lock = new locks.OperationLocks()

@@ -22,9 +22,11 @@ async function fixture(
     version?: string
     noCompletion?: boolean
     failStop?: boolean
+    windows?: boolean
   } = {}
 ) {
-  const root = await mkdtemp(join(tmpdir(), 'mc-start-'))
+  const root = await mkdtemp(join(tmpdir(), options.windows ? 'mc-start space-' : 'mc-start-'))
+  const platform = options.windows ? 'Windows' : 'macOS'
   const paths = instancePaths(root, 'node1')
   await mkdir(paths.dir, { recursive: true })
   const spec: InstanceSpec = {
@@ -35,7 +37,7 @@ async function fixture(
     socket: join(root, 'mysql.sock'),
     dataDir: join(root, 'data'),
     engine: {
-      bin: join(root, 'mysqld'),
+      bin: join(root, options.windows ? 'mysqld.exe' : 'mysqld'),
       path: root,
       version: options.version ?? '9.6.0',
       source: 'Static'
@@ -52,7 +54,7 @@ async function fixture(
           ? 'replication'
           : 'standalone',
       paths,
-      'macOS'
+      platform
     )
   )
   // An old successful start must not satisfy the initial setup completion check.
@@ -81,7 +83,9 @@ async function fixture(
       {
         PID: '44123',
         PPID: '1',
-        COMMAND: `${options.identity === false ? '/unrelated/mysqld' : spec.engine.bin} --defaults-file=${paths.config}`
+        COMMAND: options.windows
+          ? `"${spec.engine.bin}" ${args.map((arg) => (arg.includes(' ') ? `"${arg}"` : arg)).join(' ')}`
+          : `${options.identity === false ? '/unrelated/mysqld' : spec.engine.bin} --defaults-file=${paths.config}`
       }
     ]
     void writeFile(paths.pid, '44123')
@@ -93,7 +97,7 @@ async function fixture(
     return child
   }
   const catalog = {
-    platform: 'macOS',
+    platform,
     operations: new OperationLocks(),
     paths: () => paths,
     instance: async () => ({
@@ -140,10 +144,11 @@ async function fixture(
         name: 'process-boundaries',
         setup(builder) {
           builder.onResolve({ filter: /.*/ }, (args) => {
+            const importer = args.importer.replace(/\\/g, '/')
             const key =
-              args.importer.endsWith('/util/ServiceStart.ts') && args.path === '../Fn'
+              importer.endsWith('/util/ServiceStart.ts') && args.path === '../Fn'
                 ? 'service-fn'
-                : args.importer.endsWith('/util/ServiceStart.ts') && args.path === '../Helper'
+                : importer.endsWith('/util/ServiceStart.ts') && args.path === '../Helper'
                   ? 'service-helper'
                   : args.path
             if (overrides[key]) return { path: key, namespace: 'boundary' }
@@ -259,6 +264,20 @@ test('initial root password remains required before a first startup', async () =
   try {
     await assert.rejects(f.runtime.start('node1', undefined), /Initial root credentials/)
     assert.equal(f.state.spawnCount, 0)
+  } finally {
+    await f.cleanup()
+  }
+})
+
+test('Windows first startup verifies quoted init-file arguments and keeps the file until consumed', async () => {
+  const f = await fixture({ stage: 'initialized', windows: true })
+  try {
+    const result = await f.runtime.start('node1', { user: 'root', password: 'Chosen-password-19' })
+    assert.equal(result.pid, '44123')
+    assert.equal(f.state.stage, 'ready')
+    assert.match(f.state.initAtConsumption, /ALTER USER/)
+    assert.equal(f.state.stops, undefined)
+    await assert.rejects(readFile(f.paths.init), { code: 'ENOENT' })
   } finally {
     await f.cleanup()
   }

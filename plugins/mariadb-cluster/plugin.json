@@ -2,7 +2,7 @@
   "apiVersion": 1,
   "id": "mariadb-cluster",
   "name": "MariaDB Cluster",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": {
     "en": "MariaDB Cluster plugin: run multiple independent MariaDB instances simultaneously on different ports, with one-click setup of GTID source/replica groups.",
     "zh": "MariaDB集群插件, 使用不同的端口号同时运行多个独立 MariaDB 实例，一键创建 GTID 主从复制组。"

@@ -63,6 +63,33 @@ test('recognizes OS process snapshots with unquoted space-containing config and 
     true
   )
 })
+test('Windows startup and cleanup select the exact instance before subsequent quoted options', () => {
+  const bin =
+    'D:\\Program Files\\PhpWebStudy-Data\\app\\mysql-26.7.0\\mysql-26.7.0-winx64\\bin\\mysqld.exe'
+  const config =
+    'D:\\Program Files\\PhpWebStudy-Data\\server\\mysql\\mysql-cluster\\instances\\node1\\my.cnf'
+  for (const next of [
+    '"--init-file=D:\\My Data\\initialize.sql"',
+    "'--init-file=D:/My Data/initialize.sql'",
+    '--read-only=ON'
+  ]) {
+    const command = `"${bin}" "--defaults-file=${config}" ${next}`
+    const rows = [
+      { PID: '123', PPID: '1', COMMAND: command },
+      { PID: '124', PPID: '123', COMMAND: command },
+      { PID: '125', PPID: '1', COMMAND: command.replace('node1', 'node2') },
+      { PID: '126', PPID: '1', COMMAND: command.replace('my.cnf', 'my.cnf.other') },
+      { PID: '127', PPID: '1', COMMAND: command.replace('mysql-26.7.0', 'other-installation') },
+      { PID: '128', PPID: '1', COMMAND: `${command} "--defaults-file=${config}"` }
+    ]
+    assert.equal(identity.hasExactDefaultsFile(command, config, true), true)
+    assert.deepEqual(
+      identity.selectInstanceRoots(rows, config, true, bin).map((p: any) => p.PID),
+      ['123', '124']
+    )
+  }
+})
+
 test('shares duplicate operations and rejects conflicting actions until the first finishes', async () => {
   assert.equal(typeof locks.OperationLocks, 'function')
   const lock = new locks.OperationLocks()

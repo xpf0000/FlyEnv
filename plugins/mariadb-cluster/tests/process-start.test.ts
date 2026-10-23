@@ -22,9 +22,11 @@ async function fixture(
     version?: string
     noCompletion?: boolean
     failStop?: boolean
+    windowsBin?: string
   } = {}
 ) {
-  const root = await mkdtemp(join(tmpdir(), 'mc-start-'))
+  const root = await mkdtemp(join(tmpdir(), options.windowsBin ? 'mdbc-start space-' : 'mc-start-'))
+  const platform = options.windowsBin ? 'Windows' : 'macOS'
   const paths = instancePaths(root, 'node1')
   await mkdir(paths.dir, { recursive: true })
   const spec: InstanceSpec = {
@@ -35,7 +37,7 @@ async function fixture(
     socket: join(root, 'mariadb.sock'),
     dataDir: join(root, 'data'),
     engine: {
-      bin: join(root, 'mariadbd'),
+      bin: join(root, options.windowsBin ?? 'mariadbd'),
       path: root,
       version: options.version ?? '10.11.9',
       source: 'Static'
@@ -44,7 +46,7 @@ async function fixture(
   await writeFile(spec.engine.bin, '')
   await writeFile(
     paths.config,
-    renderConfig(spec, options.replication ? 'replication' : 'standalone', paths, 'macOS')
+    renderConfig(spec, options.replication ? 'replication' : 'standalone', paths, platform)
   )
   // An old successful start must not satisfy the initial setup completion check.
   await writeFile(paths.error, 'old ready for connections\n')
@@ -72,7 +74,9 @@ async function fixture(
       {
         PID: '44123',
         PPID: '1',
-        COMMAND: `${options.identity === false ? '/unrelated/mariadbd' : spec.engine.bin} --defaults-file=${paths.config}`
+        COMMAND: options.windowsBin
+          ? `"${spec.engine.bin}" ${args.map((arg) => (arg.includes(' ') ? `"${arg}"` : arg)).join(' ')}`
+          : `${options.identity === false ? '/unrelated/mariadbd' : spec.engine.bin} --defaults-file=${paths.config}`
       }
     ]
     void writeFile(paths.pid, '44123')
@@ -84,7 +88,7 @@ async function fixture(
     return child
   }
   const catalog = {
-    platform: 'macOS',
+    platform,
     operations: new OperationLocks(),
     paths: () => paths,
     instance: async () => ({
@@ -252,6 +256,25 @@ test('initial root password remains required before a first startup', async () =
   }
 })
 
+for (const windowsBin of ['mariadbd.exe', 'mysqld.exe']) {
+  test(`Windows first startup verifies ${windowsBin} quoted init-file arguments until consumed`, async () => {
+    const f = await fixture({ stage: 'initialized', windowsBin })
+    try {
+      const result = await f.runtime.start('node1', {
+        user: 'root',
+        password: 'Chosen-password-19'
+      })
+      assert.equal(result.pid, '44123')
+      assert.equal(f.state.stage, 'ready')
+      assert.match(f.state.initAtConsumption, /ALTER USER/)
+      assert.equal(f.state.stops, undefined)
+      await assert.rejects(readFile(f.paths.init), { code: 'ENOENT' })
+    } finally {
+      await f.cleanup()
+    }
+  })
+}
+
 test('startup does not accept a process outside the managed installation identity', async () => {
   const f = await fixture({ identity: false })
   try {
@@ -281,10 +304,7 @@ test('replication source resumes without replica read-only flags', async () => {
   const f = await fixture({ replication: true, source: true })
   try {
     await f.runtime.start('node1', undefined)
-    assert.deepEqual(f.state.args, [
-      `--defaults-file=${f.paths.config}`,
-      '--skip-slave-start=OFF'
-    ])
+    assert.deepEqual(f.state.args, [`--defaults-file=${f.paths.config}`, '--skip-slave-start=OFF'])
   } finally {
     await f.cleanup()
   }
@@ -352,7 +372,12 @@ test('initialization resolves mariadb-install-db and passes Unix install argumen
       serverId: 13307,
       socket: join(root, 'mariadb.sock'),
       dataDir,
-      engine: { bin: join(enginePath, 'bin', 'mariadbd'), path: enginePath, version: '10.11.9', source: 'Static' }
+      engine: {
+        bin: join(enginePath, 'bin', 'mariadbd'),
+        path: enginePath,
+        version: '10.11.9',
+        source: 'Static'
+      }
     }
     await writeFile(paths.config, renderConfig(spec, 'standalone', paths, 'macOS'))
     let stage = 'prepared'
@@ -420,7 +445,12 @@ test('Windows initialization uses mariadb-install-db.exe with --config arguments
       serverId: 13307,
       socket: 'FlyEnvMDBC-node1',
       dataDir,
-      engine: { bin: join(enginePath, 'bin', 'mariadbd.exe'), path: enginePath, version: '10.11.9', source: 'Static' }
+      engine: {
+        bin: join(enginePath, 'bin', 'mariadbd.exe'),
+        path: enginePath,
+        version: '10.11.9',
+        source: 'Static'
+      }
     }
     await writeFile(paths.config, renderConfig(spec, 'standalone', paths, 'Windows'))
     let stage = 'prepared'
@@ -479,7 +509,12 @@ test('initialization refuses an installation without mariadb-install-db', async 
       serverId: 13307,
       socket: join(root, 'mariadb.sock'),
       dataDir,
-      engine: { bin: join(enginePath, 'bin', 'mariadbd'), path: enginePath, version: '10.11.9', source: 'Static' }
+      engine: {
+        bin: join(enginePath, 'bin', 'mariadbd'),
+        path: enginePath,
+        version: '10.11.9',
+        source: 'Static'
+      }
     }
     await writeFile(paths.config, renderConfig(spec, 'standalone', paths, 'macOS'))
     let stage = 'prepared'

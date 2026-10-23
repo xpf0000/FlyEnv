@@ -4,7 +4,9 @@ const normalize = (value: string, windows: boolean) =>
 export function hasExactDefaultsFile(command: string, config: string, windows: boolean): boolean {
   const program = /^(?:"([^"]+)"|'([^']+)'|(\S+))/.exec(command.trim())
   if (
-    !/(?:^|[\\/])(?:mysqld|mariadbd)(?:\.exe)?$/i.test(program?.[1] ?? program?.[2] ?? program?.[3] ?? '')
+    !/(?:^|[\\/])(?:mysqld|mariadbd)(?:\.exe)?$/i.test(
+      program?.[1] ?? program?.[2] ?? program?.[3] ?? ''
+    )
   )
     return false
   // ps exposes unquoted argv containing spaces; compare the known complete value, not whitespace tokens.
@@ -24,7 +26,8 @@ export function hasExactDefaultsFile(command: string, config: string, windows: b
   }
   if (suffix && !/^\s/.test(suffix)) return false
   suffix = suffix.trim()
-  return !suffix || suffix.startsWith('--')
+  // Windows quotes whole argv entries with spaces, including the following init-file option.
+  return !suffix || /^["']?--/.test(suffix)
 }
 export function selectInstanceRoots<T extends { PID: string; COMMAND: string }>(
   list: T[],

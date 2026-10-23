@@ -22,7 +22,8 @@ export function hasExactDefaultsFile(command: string, config: string, windows: b
   }
   if (suffix && !/^\s/.test(suffix)) return false
   suffix = suffix.trim()
-  return !suffix || suffix.startsWith('--')
+  // Windows quotes whole argv entries with spaces, including the following init-file option.
+  return !suffix || /^["']?--/.test(suffix)
 }
 export function selectInstanceRoots<T extends { PID: string; COMMAND: string }>(
   list: T[],
