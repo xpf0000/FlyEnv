@@ -30,7 +30,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "003be12da8248d4e549e061b0144250bdf88ac0a7fbfac7021c35561c9aeb5f3"
+        "sha256": "63a6412bc4e7da3644949b7be9c8ac5184cd6b3d8cdee4f90309c655e359575e"
       },
       "official": true
     },
@@ -63,7 +63,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "365615279444c589f7b7ad16031ca41a14a5b55d983380a6cdd4ab0a5d5b7ce6"
+        "sha256": "26b4e69da18cc41ad3dfb0fd934a381df7d23dcbf83acf6e7a59ba3d35c0c2cc"
       },
       "official": true
     },
@@ -96,7 +96,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "0dd15dfd3ddc15e6320808225e3f98e45003ebf7844375c1276fbec7ebd3dffd"
+        "sha256": "b098c20364e359068ed7b334fc8e1cd5cfd270fe8ea8e7bd7d8900fe74606843"
       },
       "official": true
     },
@@ -129,7 +129,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "867daa21f456180ee8bbc6fe093d43d9c2f770b85baf4a1203482c3592e24967"
+        "sha256": "d68112964c031c44ba344bd7f0f1a838079f9fd32c2294a21379c5494b5f065d"
       },
       "official": true
     },
@@ -160,7 +160,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "9a65f69a9b8a08d0899640a28291016aaa7226a883366dcee9276ed07045121b"
+        "sha256": "642be25023b780dd856b49241d34c14d6761f76964f44c5c9d7c0bc071d84313"
       },
       "official": true
     },
@@ -191,7 +191,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "bb029a1016096a78e9a144eb489e2f61d80b9c613f479a8b523a83aa9285b7da"
+        "sha256": "41d75f6814ea6df0c08aa42bf75d0cda9739507d382dd8c4b92d84a36c0f0fe0"
       },
       "official": true
     },
@@ -224,14 +224,14 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "c50aa6ed64bc53851ef8bdfe8012732e227f2e2464a9dc192fe95b4c58ad1763"
+        "sha256": "42e2dd359b1521a213c2ff4ec1057f8a6b7160f3f669f6ce9b70d3313b585918"
       },
       "official": true
     },
     {
       "id": "mysql-cluster",
       "name": "MySQL Cluster",
-      "version": "0.1.16",
+      "version": "0.1.17",
       "description": {
         "en": "MySQL Cluster plugin: run multiple independent MySQL instances simultaneously on different ports, with one-click setup of GTID source/replica groups and single-primary Group Replication.",
         "zh": "MySQL集群插件, 使用不同的端口号同时运行多个独立 MySQL 实例，一键创建 GTID 主从复制及单主 Group Replication。"
@@ -257,14 +257,14 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "19963528504f5e5956e494ebca8e44b0f98880a0007a97a597e238fc1bf1af4c"
+        "sha256": "966d624b170559eebaf465142d2c38be43a0c70d0a2b7ee5ced9523cb35c9889"
       },
       "official": true
     },
     {
       "id": "mariadb-cluster",
       "name": "MariaDB Cluster",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "description": {
         "en": "MariaDB Cluster plugin: run multiple independent MariaDB instances simultaneously on different ports, with one-click setup of GTID source/replica groups.",
         "zh": "MariaDB集群插件, 使用不同的端口号同时运行多个独立 MariaDB 实例，一键创建 GTID 主从复制组。"
@@ -290,7 +290,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "9d354f16bdf65b782634977113bd17f898886180e2d49fb4da104911f8c4738a"
+        "sha256": "8d681bf2599769cde93ca0abf768f1413ea8ef499c59c2d3c15faf21d7969767"
       },
       "official": true
     }
