@@ -73,7 +73,7 @@
   "autoUpdate": "Otomatik Güncelleme",
   "loading": "Yükleniyor...",
   "parkTitle": "Alt alan adlarını klasörlere yönlendir",
-  "parkTips": "Alt alan adlarını eşleşen alt klasörlere yönlendirir (Örnek: {subfoldername}.alanadiniz.com)",
+  "parkTips": "Alt alan adlarını eşleşen alt klasörlere yönlendirir (Örnek: subfoldername.alanadiniz.com)",
   "parkConfirm": "Tüm alt klasörlerin alt alan adı siteleri olarak erişilebilir olmasını sağlayacak, devam etmek istiyor musunuz?",
   "ftpDirNotExists": "Klasör mevcut değil, lütfen tekrar deneyin",
   "editorSettings": "Editör Ayarları",

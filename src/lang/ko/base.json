@@ -73,7 +73,7 @@
   "autoUpdate": "자동 업데이트",
   "loading": "로딩 중...",
   "parkTitle": "서브도메인을 서브폴더로 연결",
-  "parkTips": "서브도메인 이름이 서브폴더 이름과 일치하면 해당 서브폴더로 연결합니다 (예: {subfoldername}.mydomain.tld)",
+  "parkTips": "서브도메인 이름이 서브폴더 이름과 일치하면 해당 서브폴더로 연결합니다 (예: subfoldername.mydomain.tld)",
   "parkConfirm": "이 작업을 수행하면 모든 서브폴더가 서브도메인 사이트로 접근 가능해집니다. 계속하시겠습니까?",
   "ftpDirNotExists": "폴더가 존재하지 않습니다. 다시 시도하세요",
   "editorSettings": "편집기 설정",

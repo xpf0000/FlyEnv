@@ -73,7 +73,7 @@
   "autoUpdate": "Actualizare automată",
   "loading": "Încărcare...",
   "parkTitle": "Rezolvați subdomenii în subdosare",
-  "parkTips": "Rezolvă subdomeniile dacă numele subdomeniului se potrivește cu numele unui subfolder (Exemplu: {subfoldername}.mydomain.tld)",
+  "parkTips": "Rezolvă subdomeniile dacă numele subdomeniului se potrivește cu numele unui subfolder (Exemplu: subfoldername.mydomain.tld)",
   "parkConfirm": "Aceasta va face toate subfolderele accesibile ca site-uri de subdomeniu, doriţi să continuaţi?",
   "ftpDirNotExists": "Dosarul nu există, încercați din nou",
   "editorSettings": "Setări editor",

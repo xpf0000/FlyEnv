@@ -73,7 +73,7 @@
   "autoUpdate": "Automaattinen Päivitys",
   "loading": "Ladataan...",
   "parkTitle": "Selvitä aliverkkotunnukset alikansioihin",
-  "parkTips": "Selvittää aliverkkotunnukset, jos aliverkkotunnus vastaa alikansion nimeä (ample: {subfoldername}.mydomain.tld)",
+  "parkTips": "Selvittää aliverkkotunnukset, jos aliverkkotunnus vastaa alikansion nimeä (ample: subfoldername.mydomain.tld)",
   "parkConfirm": "Tämä asettaa kaikki alikansiot saataville aliverkkotunnuksen sivustoina, haluatko jatkaa?",
   "ftpDirNotExists": "Kansiota ei ole olemassa, yritä uudelleen",
   "editorSettings": "Muokkaimen Asetukset",

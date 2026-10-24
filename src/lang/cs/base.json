@@ -73,7 +73,7 @@
   "autoUpdate": "Automatická aktualizace",
   "loading": "Načítám...",
   "parkTitle": "Směrovat poddomény do podsložek",
-  "parkTips": "Přeloží poddomény, pokud název poddomény odpovídá názvu podsložky (Např: {subfoldername}.mydomain.tld)",
+  "parkTips": "Přeloží poddomény, pokud název poddomény odpovídá názvu podsložky (Např: subfoldername.mydomain.tld)",
   "parkConfirm": "Tímto se zpřístupní všechny podsložky jako poddoménové stránky. Chcete pokračovat?",
   "ftpDirNotExists": "Složka neexistuje, zkuste to prosím znovu",
   "editorSettings": "Nastavení editoru",

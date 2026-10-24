@@ -73,7 +73,7 @@
   "autoUpdate": "Avtomatik Yeniləmə",
   "loading": "Yüklənir...",
   "parkTitle": "Alt domenləri qovluqlara yönləndir",
-  "parkTips": "Alt domenləri uyğun alt qovluqlara yönləndirir (Nümunə: {subfoldername}.sizin-domeniniz.com)",
+  "parkTips": "Alt domenləri uyğun alt qovluqlara yönləndirir (Nümunə: subfoldername.sizin-domeniniz.com)",
   "parkConfirm": "Bütün alt qovluqların alt domen saytları kimi əlçatan olmasını təmin edəcək, davam etmək istəyirsiniz?",
   "ftpDirNotExists": "Qovluq mövcud deyil, zəhmət olmasa yenidən cəhd edin",
   "editorSettings": "Redaktor Ayarları",

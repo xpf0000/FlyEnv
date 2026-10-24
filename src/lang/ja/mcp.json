@@ -17,7 +17,7 @@
   "enabledTools": "有効なツール",
   "copyConfig": "構成をコピー",
   "copied": "コピーしました",
-  "addToClient": "__ PH 0 __に追加",
+  "addToClient": "{client}に追加",
   "addToClientTip": "このFlyEnv MCPサーバーを選択したAI CLIのMCPリストに登録します。",
   "regenerateToken": "トークンの再生成",
   "configHint": "以下のスニペットをAIクライアントのMCP構成に貼り付けます。",

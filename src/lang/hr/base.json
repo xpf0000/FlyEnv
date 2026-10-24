@@ -73,7 +73,7 @@
   "autoUpdate": "Automatsko Ažuriranje",
   "loading": "Učitavanje...",
   "parkTitle": "Razriješi poddomene u podmape",
-  "parkTips": "Razrješava poddomene ako naziv poddomene odgovara nazivu podmape (Primjer: {subfoldername}.mojadomena.tld)",
+  "parkTips": "Razrješava poddomene ako naziv poddomene odgovara nazivu podmape (Primjer: subfoldername.mojadomena.tld)",
   "parkConfirm": "Ovo će učiniti sve podmape dostupnima kao stranice poddomene, želite li nastaviti?",
   "ftpDirNotExists": "Mapa ne postoji, molimo pokušajte ponovo",
   "editorSettings": "Postavke Uređivača",
