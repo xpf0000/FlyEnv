@@ -78,7 +78,7 @@ const conf: Configuration = {
     ]
   },
   mac: {
-    icon: 'build/Icon.icon',
+    icon: 'build/Icon.icns',
     target: {
       target: 'default',
       // target: 'pkg',
