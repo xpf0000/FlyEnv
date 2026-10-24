@@ -11,11 +11,17 @@ BIN_DEST=/usr/local/bin/flyenv-helper
 SERVICE_PATH=/etc/systemd/system/flyenv-helper.service
 
 check_directory() {
-  local path="$1" owner mode
+  local path="$1"
   [ -d "$path" ] && [ ! -L "$path" ] || { echo "Unsafe install directory: $path"; exit 1; }
-  owner=$(stat -c %u "$path")
-  mode=$(stat -c %a "$path")
-  [ "$owner" = 0 ] && (( (8#$mode & 0022) == 0 )) || { echo "Unprotected install directory: $path"; exit 1; }
+}
+
+ensure_helper_directory() {
+  local path="$1"
+  if [ -e "$path" ] || [ -L "$path" ]; then
+    check_directory "$path"
+  else
+    install -d -o root -g root -m 0755 "$path"
+  fi
 }
 
 stop_existing_helper() {
@@ -30,11 +36,9 @@ stop_existing_helper() {
     return 1
   fi
 }
-if [ -e /etc/flyenv-helper ] || [ -L /etc/flyenv-helper ]; then check_directory /etc/flyenv-helper; fi
-
 # Preserve administrator-configured system directories; only manage our own assets.
 mkdir -p /usr/local/bin
-install -d -o root -g root -m 0755 /etc/flyenv-helper
+ensure_helper_directory /etc/flyenv-helper
 TEMP_BIN=$(mktemp /usr/local/bin/.flyenv-helper.XXXXXX)
 trap 'rm -f "$TEMP_BIN"' EXIT
 install -o root -g root -m 0755 "$BIN" "$TEMP_BIN"

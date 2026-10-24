@@ -47,6 +47,11 @@ static int copy_acl(int source,int target){
  acl_t acl=acl_get_fd_np(source,ACL_TYPE_EXTENDED);if(!acl){if(errno!=ENOENT)return errno;acl=acl_init(0);if(!acl)return errno;}
  int r=acl_set_fd_np(target,acl,ACL_TYPE_EXTENDED),e=r?errno:0;acl_free(acl);return e;
 }
+static int clear_acl(int fd){
+ acl_t acl=acl_init(0);if(!acl)return errno;
+ int result=acl_set_fd_np(fd,acl,ACL_TYPE_EXTENDED),error=result?errno:0;
+ acl_free(acl);return error;
+}
 static int process_birth(int pid,uint64_t *seconds,uint64_t *micros){
  struct proc_bsdinfo info;int n=proc_pidinfo(pid,PROC_PIDTBSDINFO,0,&info,sizeof(info));if(n!=(int)sizeof(info))return errno?errno:ESRCH;*seconds=info.pbi_start_tvsec;*micros=info.pbi_start_tvusec;return 0;
 }
@@ -65,6 +70,7 @@ func nativeACLError(code C.int) error {
 	return nil
 }
 func validateProtectedACL(f *os.File) error { return nativeACLError(C.protected_acl(C.int(f.Fd()))) }
+func clearInheritedACL(f *os.File) error    { return nativeACLError(C.clear_acl(C.int(f.Fd()))) }
 func setDarwinKeyACL(f *os.File, uid int) error {
 	return nativeACLError(C.key_acl(C.int(f.Fd()), C.uid_t(uid), 1))
 }

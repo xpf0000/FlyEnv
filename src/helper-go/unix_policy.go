@@ -25,22 +25,14 @@ type unixPolicy struct {
 	DataRoot string `json:"dataRoot"`
 }
 
-func protectedDirectory(path string) error {
-	// Only FlyEnv-managed directories belong to this policy. System ancestors
-	// retain their administrator-configured ownership, modes and ACLs.
+// Directories are user-managed. Require an accessible real directory, without
+// imposing ownership, mode or ACL policy on its contents or callers.
+func unixDirectory(path string) error {
 	f, err := openNoSymlinks(path, unix.O_RDONLY|unix.O_DIRECTORY, 0)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	st, err := f.Stat()
-	if err != nil {
-		return err
-	}
-	if st.Sys().(*syscall.Stat_t).Uid != 0 || st.Mode().Perm()&0022 != 0 {
-		return fmt.Errorf("unprotected directory: %s", path)
-	}
-	return validateProtectedACL(f)
+	return f.Close()
 }
 
 func openNoSymlinks(path string, flags int, mode uint32) (*os.File, error) {
@@ -74,7 +66,7 @@ func openNoSymlinks(path string, flags int, mode uint32) (*os.File, error) {
 }
 
 func protectedFile(path string, size int64) ([]byte, error) {
-	if err := protectedDirectory(filepath.Dir(path)); err != nil {
+	if err := unixDirectory(filepath.Dir(path)); err != nil {
 		return nil, err
 	}
 	f, err := openProtectedFile(path, size)
@@ -167,6 +159,10 @@ func writeProtectedFile(path string, data []byte, mode os.FileMode, gid int) err
 		return err
 	}
 	if err = temp.Chmod(mode); err != nil {
+		return err
+	}
+	// Normalize only the new file, without imposing an ACL policy on its directory.
+	if err = clearInheritedACL(temp); err != nil {
 		return err
 	}
 	if _, err = temp.Write(data); err != nil {

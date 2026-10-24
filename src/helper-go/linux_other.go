@@ -2,11 +2,20 @@
 
 package main
 
+import (
+	"fmt"
+	"net"
+)
+
 type linuxPolicy struct{}
 
 var installedLinuxPolicy linuxPolicy
 
 const linuxSocketPath = ""
+
+func listenLinuxSocket() (net.Listener, error) {
+	return nil, fmt.Errorf("Linux socket is unavailable on this platform")
+}
 
 func prepareLinuxSocket() error { return nil }
 

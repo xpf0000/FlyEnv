@@ -251,6 +251,9 @@ func TestLinuxServiceCredentials(t *testing.T) {
 	if err = os.WriteFile(self, data, 0755); err != nil {
 		t.Fatal(err)
 	}
+	if err = os.Chmod(self, 0755); err != nil {
+		t.Fatal(err)
+	}
 	userDir := filepath.Join(dir, "data")
 	os.Mkdir(userDir, 0755)
 	os.Chown(userDir, 1000, 1000)
@@ -263,6 +266,9 @@ func TestLinuxServiceCredentials(t *testing.T) {
 		t.Fatal(err)
 	}
 	os.Chown(service, 1000, 1000)
+	if err = os.Chmod(service, 0755); err != nil {
+		t.Fatal(err)
+	}
 	errFile := filepath.Join(userDir, "err")
 	prefix := filepath.Join(userDir, "server/nginx/common")
 	request := linuxLaunch{Service: "nginx", Bin: service, Args: []string{"-p", prefix, "-e", errFile, "-c", filepath.Join(userDir, "nginx.conf"), "-g", fmt.Sprintf("pid %s;error_log %s;daemon off;", filepath.Join(prefix, "logs/nginx.pid"), errFile)}, Cwd: userDir, OutFile: out, ErrFile: errFile, Env: map[string]string{"PATH": "/usr/bin:/bin", "USER_FILE": filepath.Join(userDir, "owned"), "ROOT_FILE": rootFile}}
@@ -275,9 +281,33 @@ func TestLinuxServiceCredentials(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, line := range []string{"Uid:\t1000\t1000\t1000\t1000", "Gid:\t1000\t1000\t1000\t1000", "Groups:\t1000", "CapEff:\t0000000000000400", "CapAmb:\t0000000000000400", "NoNewPrivs:\t1"} {
+	for _, line := range []string{"Uid:\t1000\t1000\t1000\t1000", "Gid:\t1000\t1000\t1000\t1000", "CapEff:\t0000000000000400", "CapAmb:\t0000000000000400", "NoNewPrivs:\t1"} {
 		if !strings.Contains(string(status), line) {
 			t.Fatalf("missing %q in %s", line, status)
+		}
+	}
+	account, err := user.LookupId("1000")
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedGroups, err := account.GroupIds()
+	if err != nil {
+		t.Fatal(err)
+	}
+	actualGroups := map[string]bool{}
+	for _, line := range strings.Split(string(status), "\n") {
+		if strings.HasPrefix(line, "Groups:") {
+			for _, group := range strings.Fields(strings.TrimPrefix(line, "Groups:")) {
+				actualGroups[group] = true
+			}
+		}
+	}
+	if len(actualGroups) != len(expectedGroups) {
+		t.Fatalf("unexpected supplementary groups: %v, want %v", actualGroups, expectedGroups)
+	}
+	for _, group := range expectedGroups {
+		if !actualGroups[group] {
+			t.Fatalf("missing supplementary group %s in %v", group, actualGroups)
 		}
 	}
 	got, _ := os.ReadFile(rootFile)

@@ -5,7 +5,7 @@ import path from 'node:path'
 const repoRoot = process.cwd()
 // Go 源码变更的发布版本必须与 Go、应用端同时递增；检查双方一致仍不足以
 // 防止两边一起漏升版本，因此保留独立的本次发布版本断言。
-const expectedVersion = 48
+const expectedVersion = 49
 
 function readFile(relPath: string): string {
   return fs.readFileSync(path.join(repoRoot, relPath), 'utf8')
@@ -39,7 +39,7 @@ assert.equal(sharedVersion, helperVersion, 'shared helper check and helper go ve
 assert.equal(
   macInstallProtocol,
   helperVersion,
-  'signed macOS snapshot must require the current helper protocol'
+  'signed macOS source must require the current helper protocol'
 )
 
 console.log('helper version sync test passed')

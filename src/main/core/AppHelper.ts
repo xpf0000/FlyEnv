@@ -159,8 +159,8 @@ const linuxInstallCommand = (
   return { command: `/bin/bash ${args.map(quoteLinuxShell).join(' ')}` }
 }
 
-// Fixed system bootstrap: only arguments are caller data; no user-writable script
-// is executed before the protected copy passes the release publisher requirement.
+// Verify the source application in place, then stage only the three installer
+// resources. Byte copies avoid importing Finder flags, ACLs and quarantine.
 export const macOSHelperBootstrap = `set -eu
 umask 077
 mode="$1"
@@ -173,37 +173,42 @@ for parent in / /private /private/var /private/var/root; do
 done
 stage=$(/usr/bin/mktemp -d /private/var/root/flyenv-helper-install.XXXXXXXX)
 trap '/bin/rm -rf "$stage"' EXIT HUP INT TERM
+# This newly created staging directory is private to the elevated operation.
+# Remove inherited ACLs before creating the files that will run as root.
+/bin/chmod -N "$stage"
 if [ "$mode" = production ]; then
-  /usr/bin/ditto "$source" "$stage/FlyEnv.app"
-  /bin/chmod -RN "$stage"
-  /usr/sbin/chown -RP root:wheel "$stage"
-  /bin/chmod -R go-w "$stage"
-  resources="$stage/FlyEnv.app/Contents/Resources"
-  for path in "$stage/FlyEnv.app" "$stage/FlyEnv.app/Contents" "$resources" "$resources/helper" "$resources/plist" "$resources/helper/flyenv-helper-init.sh" "$resources/helper/flyenv-helper" "$resources/plist/com.flyenv.helper.plist"; do
+  resources="$source/Contents/Resources"
+  for path in "$source" "$source/Contents" "$resources" "$resources/helper" "$resources/plist" "$resources/helper/flyenv-helper-init.sh" "$resources/helper/flyenv-helper" "$resources/plist/com.flyenv.helper.plist"; do
     [ ! -L "$path" ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_signature_invalid:Symlink in installer resource path' >&2; exit 1; }
   done
-  /usr/bin/codesign --verify --deep --strict --all-architectures -R '=identifier "phpstudy.xpfme.com" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = "956BZQ2F2P"' "$stage/FlyEnv.app" || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_signature_invalid:FlyEnv application signature or resources are invalid. Use an officially signed build.' >&2; exit 1; }
-  [ "$(/usr/libexec/PlistBuddy -c 'Print :FlyEnvHelperProtocolVersion' "$stage/FlyEnv.app/Contents/Info.plist")" = ${HelperVersion} ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_version_mismatch:Unsupported signed helper installation protocol' >&2; exit 1; }
-  /usr/bin/codesign --verify --strict --all-architectures -R '=identifier "flyenv-helper" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = "956BZQ2F2P"' "$resources/helper/flyenv-helper" || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_signature_invalid:FlyEnv helper signature is invalid. Use an officially signed build.' >&2; exit 1; }
-  binary="$resources/helper/flyenv-helper"
-  installer="$resources/helper/flyenv-helper-init.sh"
-  plist="$resources/plist/com.flyenv.helper.plist"
+  /usr/bin/codesign --verify --deep --strict --all-architectures -R '=identifier "phpstudy.xpfme.com" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = "956BZQ2F2P"' "$source" || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_signature_invalid:FlyEnv application signature or resources are invalid. Use an officially signed build.' >&2; exit 1; }
+  [ "$(/usr/libexec/PlistBuddy -c 'Print :FlyEnvHelperProtocolVersion' "$source/Contents/Info.plist")" = ${HelperVersion} ] || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_version_mismatch:Unsupported signed helper installation protocol' >&2; exit 1; }
+  binary_source="$resources/helper/flyenv-helper"
+  installer_source="$resources/helper/flyenv-helper-init.sh"
+  plist_source="$resources/plist/com.flyenv.helper.plist"
 elif [ "$mode" = development ]; then
   echo 'Explicit administrator development installation: unsigned helper and installer.' >&2
-  /bin/cp "$3" "$stage/flyenv-helper"
-  /bin/cp "$4" "$stage/flyenv-helper-init.sh"
-  /bin/cp "$5" "$stage/com.flyenv.helper.plist"
-  binary="$stage/flyenv-helper"
-  installer="$stage/flyenv-helper-init.sh"
-  plist="$stage/com.flyenv.helper.plist"
+  binary_source="$3"
+  installer_source="$4"
+  plist_source="$5"
 else
   echo 'Invalid installer mode' >&2
   exit 1
 fi
-/usr/sbin/chown -RP root:wheel "$stage"
-/bin/chmod -RN "$stage"
-/bin/chmod -R go-w "$stage"
+binary="$stage/flyenv-helper"
+installer="$stage/flyenv-helper-init.sh"
+plist="$stage/com.flyenv.helper.plist"
+for file in "$binary_source" "$installer_source" "$plist_source"; do
+  [ -f "$file" ] && [ ! -L "$file" ] || { echo 'Invalid installer resource' >&2; exit 1; }
+done
+/bin/cat "$binary_source" > "$binary"
+/bin/cat "$installer_source" > "$installer"
+/bin/cat "$plist_source" > "$plist"
 /bin/chmod 0700 "$stage" "$binary"
+/usr/bin/xattr -dr com.apple.quarantine "$binary" "$installer" "$plist"
+if [ "$mode" = production ]; then
+  /usr/bin/codesign --verify --strict --all-architectures -R '=identifier "flyenv-helper" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] and certificate leaf[field.1.2.840.113635.100.6.1.13] and certificate leaf[subject.OU] = "956BZQ2F2P"' "$binary" || { echo 'FLYENV_HELPER_INSTALL_ERROR:helper_signature_invalid:FlyEnv helper signature is invalid. Use an officially signed build.' >&2; exit 1; }
+fi
 /bin/sh "$installer" "$binary" "$plist" "$role" "$data"
 `
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Invoked only from AppHelper's root-private verified snapshot. Unsigned sources
+# Invoked only from AppHelper's root-private resource copies. Unsigned sources
 # require the separate explicit administrator development bootstrap.
 set -eu
 umask 077
@@ -23,6 +23,13 @@ done
 case "$ROLE" in *[!0-9:]*|:*|*:|*:*:*|'') fail 'invalid installation account' ;; esac
 case "$ROLE" in *:*) ;; *) fail 'invalid installation account' ;; esac
 case "$DATA_ROOT" in /*) ;; *) fail 'data root must be absolute' ;; esac
+# Initialize only missing directories; existing ownership, modes and ACLs belong
+# to the administrator. New directories must allow clients to traverse to the key.
+for directory in "${HELPER_DIR%/*}" "$HELPER_DIR"; do
+  if [ ! -e "$directory" ] && [ ! -L "$directory" ]; then
+    /usr/bin/install -d -o root -g wheel -m 0755 "$directory"
+  fi
+done
 # Existing authorization assets are not changed until both launchd registration
 # and the actual old process have stopped. Errors are required prerequisites.
 job_query() {
@@ -35,26 +42,22 @@ job_query() {
 if job_query; then
   OLD_PID=$(printf '%s\n' "$JOB_INFO" | /usr/bin/sed -n 's/^[[:space:]]*pid = \([0-9][0-9]*\)$/\1/p')
   /bin/launchctl bootout "system/$LABEL" || fail 'cannot stop existing helper'
-  attempt=0
   while :; do
     registered=0
     alive=0
     if job_query; then registered=1; fi
     if [ -n "$OLD_PID" ] && /bin/kill -0 "$OLD_PID" 2>/dev/null; then alive=1; fi
     if [ "$registered" = 0 ] && [ "$alive" = 0 ]; then break; fi
-    attempt=$((attempt + 1))
-    [ "$attempt" -lt 20 ] || fail 'old helper has not exited; existing authorization assets retained'
     /bin/sleep 0.25
   done
 fi
 
 # Go owns policy/key validation and ACLs; no /tmp role or legacy roots.
 "$BIN" --install-darwin-policy "$ROLE" "$DATA_ROOT"
-# Policy installation validates these FlyEnv-owned directories.
-# mkdir(0755) under umask 077 produces 0700; existing directories also retain that
-# mode on reinstall. Clients need traversal to reach the UID-readable key.
-/bin/chmod 0755 "${HELPER_DIR%/*}" "$HELPER_DIR"
-# Publish only the protected verified snapshot, never reopen the desktop source.
+# Normalize the new policy file, not the user's directory ACL. Otherwise an
+# inherited allow entry can make the file fail its own integrity check on start.
+/bin/chmod -N "$HELPER_DIR/policy.json"
+# Publish the private copies without reopening the desktop source.
 /usr/bin/install -o root -g wheel -m 0755 "$BIN" "$BIN_DEST.new"
 /bin/mv -f "$BIN_DEST.new" "$BIN_DEST"
 /usr/bin/install -o root -g wheel -m 0644 "$PLIST_SRC" "$PLIST_PATH.new"

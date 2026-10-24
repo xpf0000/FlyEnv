@@ -25,10 +25,7 @@ type darwinPolicy = unixPolicy
 var installedDarwinPolicy darwinPolicy
 
 func listenDarwinSocket() (net.Listener, error) {
-	// Socket creation precedes accepting clients; never expose a world-connectable inode.
-	previous := unix.Umask(0077)
-	defer unix.Umask(previous)
-	return net.Listen("unix", SOCKET_PATH)
+	return listenUnixHelperSocket(SOCKET_PATH, installedDarwinPolicy.UID, installedDarwinPolicy.GID)
 }
 
 func validateDarwinUID(uid int) error {
@@ -41,19 +38,16 @@ func prepareDarwinSocket() error {
 	if err := os.MkdirAll(filepath.Dir(darwinSocketPath), 0755); err != nil {
 		return err
 	}
-	return protectedDirectory(filepath.Dir(darwinSocketPath))
+	return unixDirectory(filepath.Dir(darwinSocketPath))
 }
 func darwinSocketReady() error {
-	if err := protectedDirectory(filepath.Dir(darwinSocketPath)); err != nil {
+	if err := unixDirectory(filepath.Dir(darwinSocketPath)); err != nil {
 		return err
 	}
-	if err := os.Chown(darwinSocketPath, installedDarwinPolicy.UID, installedDarwinPolicy.GID); err != nil {
-		return err
-	}
-	return os.Chmod(darwinSocketPath, 0600)
+	return unixSocketReady(darwinSocketPath, installedDarwinPolicy.UID)
 }
 func loadDarwinKey() error {
-	if err := protectedDirectory(filepath.Dir(darwinKeyPath)); err != nil {
+	if err := unixDirectory(filepath.Dir(darwinKeyPath)); err != nil {
 		return err
 	}
 	f, err := openNoSymlinks(darwinKeyPath, unix.O_RDONLY|unix.O_NONBLOCK, 0)
@@ -108,7 +102,7 @@ func installDarwinPolicy(args []string) error {
 	if err = os.MkdirAll(darwinPolicyDir, 0755); err != nil {
 		return err
 	}
-	if err = protectedDirectory(darwinPolicyDir); err != nil {
+	if err = unixDirectory(darwinPolicyDir); err != nil {
 		return err
 	}
 
@@ -146,7 +140,7 @@ func validateDarwinHealth(p darwinPolicy) error {
 	if current != p {
 		return fmt.Errorf("macOS policy changed; restart helper")
 	}
-	if err = protectedDirectory(filepath.Dir(darwinKeyPath)); err != nil {
+	if err = unixDirectory(filepath.Dir(darwinKeyPath)); err != nil {
 		return err
 	}
 	f, err := openNoSymlinks(darwinKeyPath, unix.O_RDONLY|unix.O_NONBLOCK, 0)
@@ -172,7 +166,7 @@ func validateDarwinHealth(p darwinPolicy) error {
 	if !bytes.Equal(key, helperKey) {
 		return fmt.Errorf("macOS helper key changed; restart helper")
 	}
-	if err = protectedDirectory(filepath.Dir(darwinSocketPath)); err != nil {
+	if err = unixDirectory(filepath.Dir(darwinSocketPath)); err != nil {
 		return err
 	}
 	socket, err := os.Lstat(darwinSocketPath)

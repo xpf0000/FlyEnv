@@ -198,7 +198,7 @@ func startDarwinFTP(req unixFTPStart, p darwinPolicy) (int, error) {
 	if err = os.MkdirAll(dir, 0700); err != nil {
 		return 0, err
 	}
-	if err = protectedDirectory(dir); err != nil {
+	if err = unixDirectory(dir); err != nil {
 		return 0, err
 	}
 	if err = writeProtectedFile(filepath.Join(dir, "pure-ftpd.conf"), []byte(config), 0600, 0); err != nil {

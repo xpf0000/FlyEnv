@@ -84,35 +84,79 @@ func TestUnixFTPDatabaseGenerationRunsOrdinaryAndKeepsOldResultOnFailure(t *test
 		t.Skip("ordinary account fixture required")
 	}
 	dir := canonicalTempDir(t)
+	if err := os.Chmod(dir, 0775); err != nil {
+		t.Fatal(err)
+	}
 	old := filepath.Join(dir, "users.pdb")
 	if err := os.WriteFile(old, []byte("old database"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	pw := filepath.Join(canonicalTempDir(t), "pure-pw")
-	script := "#!/bin/sh\n[ \"$(id -u)\" != 0 ] || exit 91\n[ \"$1\" = mkdb ] && [ \"$3\" = -f ] || exit 92\ncat \"$4\" > \"$2\"\n"
+	record := filepath.Join(canonicalTempDir(t), "scratch-path")
+	recordCommand := "printf '%s' \"$2\" > '" + strings.ReplaceAll(record, "'", "'\\''") + "'\n"
+	assertScratchRemoved := func() {
+		t.Helper()
+		path, err := os.ReadFile(record)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := os.Stat(filepath.Dir(string(path))); !os.IsNotExist(err) {
+			t.Fatal("database scratch directory leaked", string(path), err)
+		}
+	}
+	script := "#!/bin/sh\n" + recordCommand + "[ \"$(id -u)\" != 0 ] || exit 91\n[ \"$1\" = mkdb ] && [ \"$3\" = -f ] || exit 92\ncat \"$4\" > \"$2\"\n"
 	if err := os.WriteFile(pw, []byte(script), 0755); err != nil {
 		t.Fatal(err)
 	}
-	data, err := generateUnixFTPDatabase(unixPolicy{UID: uid, GID: gid}, pw, "ordinary user data", dir)
+	data, err := generateUnixFTPDatabase(unixPolicy{UID: uid, GID: gid}, pw, "ordinary user data")
 	if err != nil || string(data) != "ordinary user data" {
 		t.Fatal("ordinary generation failed", string(data), err)
 	}
-	if err := os.WriteFile(pw, []byte("#!/bin/sh\necho real-generation-failure >&2\nexit 7\n"), 0755); err != nil {
+	assertScratchRemoved()
+	if err := os.WriteFile(pw, []byte("#!/bin/sh\n"+recordCommand+"echo real-generation-failure >&2\nexit 7\n"), 0755); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := generateUnixFTPDatabase(unixPolicy{UID: uid, GID: gid}, pw, "new data", dir); err == nil || !strings.Contains(err.Error(), "real-generation-failure") {
+	if _, err := generateUnixFTPDatabase(unixPolicy{UID: uid, GID: gid}, pw, "new data"); err == nil || !strings.Contains(err.Error(), "real-generation-failure") {
 		t.Fatal("generation failure lost", err)
 	}
+	assertScratchRemoved()
 	retained, err := os.ReadFile(old)
 	if err != nil || string(retained) != "old database" {
 		t.Fatal("failed build destroyed old database", err)
 	}
 	entries, err := os.ReadDir(dir)
 	if err != nil || len(entries) != 1 {
-		t.Fatal("database staging leaked", err, entries)
+		t.Fatal("runtime directory contents changed", err, entries)
 	}
 	stat, err := os.Stat(dir)
-	if err != nil || stat.Mode().Perm() != 0700 {
-		t.Fatal("private runtime permissions not restored", err)
+	if err != nil || stat.Mode().Perm() != 0775 {
+		t.Fatal("user runtime directory permissions were changed", err)
+	}
+}
+
+func TestUnixFTPDatabaseScratchReplacementKeepsUnrelatedFiles(t *testing.T) {
+	uid, gid := os.Getuid(), os.Getgid()
+	if uid == 0 {
+		t.Skip("ordinary account fixture required")
+	}
+	dir := canonicalTempDir(t)
+	record, pw := filepath.Join(dir, "scratch-path"), filepath.Join(dir, "pure-pw")
+	quote := func(path string) string { return "'" + strings.ReplaceAll(path, "'", "'\\''") + "'" }
+	script := "#!/bin/sh\nset -eu\nstage=$(dirname \"$2\")\nprintf '%s' \"$stage\" > " + quote(record) + "\ncat \"$4\" > \"$2\"\nmv \"$stage\" \"$stage-moved\"\nmkdir \"$stage\"\nprintf preserved > \"$stage/unrelated\"\n"
+	if err := os.WriteFile(pw, []byte(script), 0755); err != nil {
+		t.Fatal(err)
+	}
+	data, generationErr := generateUnixFTPDatabase(unixPolicy{UID: uid, GID: gid}, pw, "database")
+	stage, err := os.ReadFile(record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.RemoveAll(string(stage)); os.RemoveAll(string(stage) + "-moved") })
+	preserved, err := os.ReadFile(filepath.Join(string(stage), "unrelated"))
+	if err != nil || string(preserved) != "preserved" {
+		t.Fatal("scratch cleanup removed unrelated replacement contents", err)
+	}
+	if generationErr != nil || string(data) != "database" {
+		t.Fatal("the pinned generation result was lost", string(data), generationErr)
 	}
 }

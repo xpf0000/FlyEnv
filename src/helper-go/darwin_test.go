@@ -174,6 +174,9 @@ func TestDarwinSocketIsPrivateAtCreation(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 	previousPath := SOCKET_PATH
+	previousPolicy := installedDarwinPolicy
+	installedDarwinPolicy = darwinPolicy{UID: os.Getuid(), GID: os.Getgid()}
+	defer func() { installedDarwinPolicy = previousPolicy }()
 	SOCKET_PATH = filepath.Join(dir, "socket")
 	defer func() { SOCKET_PATH = previousPath }()
 	previousMask := unix.Umask(0)

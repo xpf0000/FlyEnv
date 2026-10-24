@@ -14,6 +14,34 @@ import (
 	"testing"
 )
 
+func TestUnixDirectoryAllowsInheritedACL(t *testing.T) {
+	dir := canonicalTempDir(t)
+	if output, err := exec.Command("/bin/chmod", "+a", "everyone allow read,write,search,file_inherit,directory_inherit", dir).CombinedOutput(); err != nil {
+		t.Fatal(err, string(output))
+	}
+	if err := unixDirectory(dir); err != nil {
+		t.Fatal("user directory ACL blocked the operation", err)
+	}
+	temp, err := os.CreateTemp(dir, "private-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer temp.Close()
+	if err := validateProtectedACL(temp); err == nil {
+		t.Fatal("fixture did not inherit an allow ACL")
+	}
+	if err := clearInheritedACL(temp); err != nil {
+		t.Fatal(err)
+	}
+	if err := validateProtectedACL(temp); err != nil {
+		t.Fatal("new protected file retained the inherited ACL", err)
+	}
+	output, err := exec.Command("/bin/ls", "-lde", dir).CombinedOutput()
+	if err != nil || !bytes.Contains(output, []byte("allow")) {
+		t.Fatal("existing directory ACL was changed", string(output), err)
+	}
+}
+
 func TestDarwinNativeKeyACL(t *testing.T) {
 	path := filepath.Join(canonicalTempDir(t), "key")
 	os.WriteFile(path, bytes.Repeat([]byte{1}, 32), 0600)

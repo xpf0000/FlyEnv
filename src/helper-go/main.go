@@ -41,7 +41,8 @@ const (
 	// v46: Linux Tomcat and NUMA gain fixed low-port startup with user credentials.
 	// v47: Linux gains a fixed read-only port ownership query for capability-bearing services.
 	// v48: Unix hosts cleanup removes the managed block's line ending to prevent blank-line growth.
-	Helper_Version   = 48
+	// v49: Unix directories accept user-managed ownership, modes and ACLs.
+	Helper_Version   = 49
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
 	Key_Path_Unix    = "/usr/local/share/FlyEnv/flyenv-helper.key"
@@ -616,6 +617,8 @@ func (a *AppHelper) Run() error {
 		// Use Unix domain socket on Unix-like systems
 		if runtime.GOOS == "darwin" {
 			listener, err = listenDarwinSocket()
+		} else if runtime.GOOS == "linux" {
+			listener, err = listenLinuxSocket()
 		} else {
 			listener, err = net.Listen("unix", SOCKET_PATH)
 		}

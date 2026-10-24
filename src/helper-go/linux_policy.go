@@ -8,6 +8,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 
@@ -21,6 +22,10 @@ const linuxSocketPath = "/run/flyenv-helper/helper.sock"
 type linuxPolicy = unixPolicy
 
 var installedLinuxPolicy linuxPolicy
+
+func listenLinuxSocket() (net.Listener, error) {
+	return listenUnixHelperSocket(SOCKET_PATH, installedLinuxPolicy.UID, installedLinuxPolicy.GID)
+}
 
 // POSIX ACL: root read/write, exactly the installed UID read, no group/other access.
 func linuxKeyACL(uid int) []byte {
@@ -40,7 +45,7 @@ func prepareLinuxSocket() error {
 	if err := os.MkdirAll(filepath.Dir(linuxSocketPath), 0755); err != nil {
 		return err
 	}
-	return protectedDirectory(filepath.Dir(linuxSocketPath))
+	return unixDirectory(filepath.Dir(linuxSocketPath))
 }
 
 func validateLinuxUID(uid int) error {
@@ -97,10 +102,7 @@ func linuxSocketReady() error {
 	if _, err := protectedFile(linuxPolicyPath, 65536); err != nil {
 		return err
 	}
-	if err := os.Chown(linuxSocketPath, installedLinuxPolicy.UID, installedLinuxPolicy.GID); err != nil {
-		return err
-	}
-	return os.Chmod(linuxSocketPath, 0600)
+	return unixSocketReady(linuxSocketPath, installedLinuxPolicy.UID)
 }
 
 func installLinuxPolicy(args []string) error {
@@ -111,7 +113,7 @@ func installLinuxPolicy(args []string) error {
 	if err = os.MkdirAll("/etc/flyenv-helper", 0755); err != nil {
 		return err
 	}
-	if err = protectedDirectory("/etc/flyenv-helper"); err != nil {
+	if err = unixDirectory("/etc/flyenv-helper"); err != nil {
 		return err
 	}
 

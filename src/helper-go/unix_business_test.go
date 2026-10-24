@@ -152,10 +152,7 @@ func TestRegularFileDoesNotRequireManagedPermissions(t *testing.T) {
 	}
 }
 
-func TestManagedDirectoryChecksOnlyItsOwnPermissions(t *testing.T) {
-	if os.Geteuid() != 0 {
-		t.Skip("root ownership fixture requires root")
-	}
+func TestUnixDirectoryAllowsUserManagedPermissions(t *testing.T) {
 	parent := canonicalTempDir(t)
 	if err := os.Chmod(parent, 0777); err != nil {
 		t.Fatal(err)
@@ -164,14 +161,13 @@ func TestManagedDirectoryChecksOnlyItsOwnPermissions(t *testing.T) {
 	if err := os.Mkdir(dir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	if err := protectedDirectory(dir); err != nil {
-		t.Fatal("user-configured system ancestor permissions blocked a managed directory", err)
-	}
-	if err := os.Chmod(dir, 0777); err != nil {
-		t.Fatal(err)
-	}
-	if err := protectedDirectory(dir); err == nil {
-		t.Fatal("FlyEnv-managed directory permissions were not validated")
+	for _, mode := range []os.FileMode{0755, 0775, 0777} {
+		if err := os.Chmod(dir, mode); err != nil {
+			t.Fatal(err)
+		}
+		if err := unixDirectory(dir); err != nil {
+			t.Fatalf("user-managed directory permissions %o blocked the operation: %v", mode, err)
+		}
 	}
 }
 func TestManagedHostsHandlesDuplicateCompleteBlocks(t *testing.T) {

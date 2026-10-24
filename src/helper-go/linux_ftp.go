@@ -98,7 +98,7 @@ func refreshLinuxFTPUsers(p linuxPolicy, source string) (bool, error) {
 		return false, err
 	}
 	dir := filepath.Join(filepath.Dir(linuxSocketPath), fmt.Sprintf("ftp-%d", p.UID))
-	if err = protectedDirectory(dir); err != nil {
+	if err = unixDirectory(dir); err != nil {
 		return false, err
 	}
 	return true, refreshLinuxFTPDatabase(p, dir, pw, source)
@@ -151,7 +151,7 @@ func startLinuxFTP(req unixFTPStart, p linuxPolicy) (int, error) {
 	if err = os.MkdirAll(dir, 0700); err != nil {
 		return 0, err
 	}
-	if err = protectedDirectory(dir); err != nil {
+	if err = unixDirectory(dir); err != nil {
 		return 0, err
 	}
 	if err = writeProtectedFile(filepath.Join(dir, "pure-ftpd.conf"), []byte(config), 0600, 0); err != nil {

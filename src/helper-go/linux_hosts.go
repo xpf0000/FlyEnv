@@ -68,3 +68,6 @@ func preserveHostsAttributes(source, target *os.File) error {
 }
 
 func validateProtectedACL(*os.File) error { return nil }
+
+// Chmod applies the access ACL mask on Linux; no additional ACL reset is needed.
+func clearInheritedACL(*os.File) error { return nil }
