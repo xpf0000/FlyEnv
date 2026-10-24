@@ -406,11 +406,11 @@ export const downloadHubModelFile = async (
       JSON.stringify([file.repoId, file.revision, file.path.split('/').slice(0, -1).join('/')])
     )
     .digest('hex')
-  const targetDir = join(modelsRoot, 'hub-files', group)
-  const finalPath = join(targetDir, fileName)
-  const partialPath = join(targetDir, `.${fileName}.${safeOperationId}.part`)
-  await deps.mkdir(targetDir)
-  const relativeDir = relative(await deps.realPath(modelsRoot), await deps.realPath(targetDir))
+  const requestedDir = join(modelsRoot, 'hub-files', group)
+  await deps.mkdir(requestedDir)
+  const canonicalRoot = await deps.realPath(modelsRoot)
+  const targetDir = await deps.realPath(requestedDir)
+  const relativeDir = relative(canonicalRoot, targetDir)
   if (
     !relativeDir ||
     relativeDir === '..' ||
@@ -419,6 +419,8 @@ export const downloadHubModelFile = async (
   ) {
     throw new Error('Download target must stay inside the managed models directory')
   }
+  const finalPath = join(targetDir, fileName)
+  const partialPath = join(targetDir, `.${fileName}.${safeOperationId}.part`)
   if (await deps.exists(finalPath)) throw new Error(`Model already exists: ${fileName}`)
   let finalized = false
   try {
@@ -448,7 +450,7 @@ export const downloadHubModelFile = async (
       ...file,
       size: actualSize,
       localPath: finalPath,
-      managedRoot: modelsRoot,
+      managedRoot: canonicalRoot,
       downloadedAt: Date.now(),
       description,
       standalone:
