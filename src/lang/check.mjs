@@ -439,7 +439,7 @@ function reportDuplicateCandidates() {
 
 // 检查翻译中的占位符是否会导致 vue-i18n 渲染异常
 // 1. 机器翻译残留的占位符标记, 如 "__ PH0 __"
-// 2. 英文中不存在的占位符, 如把 {service} 翻译成了其他语言
+// 2. 非英文翻译中出现英文不存在的占位符, 如把 {service} 翻译成了其他语言
 // 3. 未转义的 @ (vue-i18n 链接语法), 需写成 {'@'}
 function checkPlaceholders() {
   const PH_LEFTOVER_PATTERN = /_*\s*PH\s*\d+\s*_+/
@@ -451,7 +451,7 @@ function checkPlaceholders() {
 
   const languagePacks = fs
     .readdirSync(LANG_DIR)
-    .filter((file) => fs.statSync(path.join(LANG_DIR, file)).isDirectory() && file !== 'en')
+    .filter((file) => fs.statSync(path.join(LANG_DIR, file)).isDirectory())
   const enFiles = fs.readdirSync(path.join(LANG_DIR, 'en')).filter((file) => file.endsWith('.json'))
   const problems = []
 
@@ -473,7 +473,7 @@ function checkPlaceholders() {
         if (PH_LEFTOVER_PATTERN.test(value)) {
           problems.push(`${where}: 机器翻译残留的占位符标记`)
         }
-        if (typeof enValue === 'string') {
+        if (pack !== 'en' && typeof enValue === 'string') {
           const enPlaceholders = getPlaceholders(enValue)
           getPlaceholders(value).forEach((name) => {
             if (!enPlaceholders.has(name)) {
