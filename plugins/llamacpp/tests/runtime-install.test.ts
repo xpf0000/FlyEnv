@@ -16,6 +16,14 @@ import { dirname, join, basename } from 'node:path'
 import { loadBundle, pluginRoot } from './harness'
 import type { RuntimeInstallDeps } from '../fork/runtime'
 import type { RuntimeVariant } from '../shared/types'
+import { runtimeBackend } from '../shared/runtime'
+
+test('runtime backend falls back to the installed flag when its note is invalid', () => {
+  assert.equal(runtimeBackend({ flag: 'cuda', note: '{invalid' } as any), 'cuda')
+  assert.equal(runtimeBackend({ flag: 'vulkan', note: '{}' } as any), 'vulkan')
+  assert.equal(runtimeBackend({ note: '{"backend":"metal"}' } as any), 'metal')
+  assert.equal(runtimeBackend({ note: '{"backend":"not-a-backend"}' } as any), 'cpu')
+})
 
 const loadInstaller = (sources: Record<string, string> = {}) =>
   loadBundle(join(pluginRoot, 'fork/runtime.ts'), {

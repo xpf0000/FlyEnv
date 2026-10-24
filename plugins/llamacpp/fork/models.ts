@@ -1,13 +1,23 @@
 import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
-import { mkdir, rename, rm, access, realpath, writeFile, stat } from 'node:fs/promises'
+import {
+  mkdir,
+  rename,
+  rm,
+  access,
+  realpath,
+  writeFile,
+  stat,
+  readdir,
+  readFile
+} from 'node:fs/promises'
 import { basename, join, relative, resolve, sep, isAbsolute } from 'node:path'
 import { Transform } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import { setTimeout as delay } from 'node:timers/promises'
 import axios from 'axios'
 import { getAxiosProxy } from '@fork/util/Axios'
-import type { HubModel, HubModelFile, LocalModel } from '../shared/types'
+import type { HubModel, HubModelFile, LocalModel, ModelDirectoryScan } from '../shared/types'
 import { inspectGGUF, isStandaloneGGUFFile } from './gguf'
 import { isGGUFShardPath } from '../shared/modelFile'
 
@@ -235,6 +245,138 @@ export const getHubModelFiles = async (
     }))
 }
 
+export const scanModelsDirectory = async (modelsRoot: string): Promise<ModelDirectoryScan> => {
+  const models: LocalModel[] = []
+  const skipped: string[] = []
+  let root: string
+  try {
+    root = await realpath(resolve(modelsRoot))
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code
+    if (code === 'ENOENT' || code === 'ENOTDIR') return { models, skipped }
+    throw error
+  }
+
+  const pending = [{ path: root, depth: 0 }]
+  const seen = new Set<string>([root])
+  const maxDepth = 12
+  const maxFiles = 5000
+  let candidates = 0
+
+  while (pending.length) {
+    const current = pending.pop()!
+    let entries: Awaited<ReturnType<typeof readdir>>
+    try {
+      entries = await readdir(current.path, { withFileTypes: true })
+    } catch (error) {
+      skipped.push(`${current.path}: ${error instanceof Error ? error.message : String(error)}`)
+      continue
+    }
+
+    for (const entry of entries) {
+      const path = join(current.path, entry.name)
+      if (entry.isSymbolicLink()) {
+        skipped.push(`${path}: symbolic links are not scanned`)
+        continue
+      }
+      if (entry.isDirectory()) {
+        if (current.depth >= maxDepth) {
+          skipped.push(`${path}: maximum folder depth reached`)
+          continue
+        }
+        try {
+          const realPath = await realpath(path)
+          if (!seen.has(realPath)) {
+            seen.add(realPath)
+            pending.push({ path: realPath, depth: current.depth + 1 })
+          }
+        } catch (error) {
+          skipped.push(`${path}: ${error instanceof Error ? error.message : String(error)}`)
+        }
+        continue
+      }
+      if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.gguf')) continue
+      candidates += 1
+      if (candidates > maxFiles) {
+        skipped.push(`Model scan stopped after ${maxFiles} GGUF files`)
+        pending.length = 0
+        break
+      }
+
+      try {
+        const realPath = await realpath(path)
+        const relativePath = relative(root, realPath)
+        if (
+          !relativePath ||
+          relativePath === '..' ||
+          relativePath.startsWith(`..${sep}`) ||
+          isAbsolute(relativePath)
+        ) {
+          skipped.push(`${path}: file is outside the selected models folder`)
+          continue
+        }
+        const info = await stat(realPath)
+        const description = await inspectGGUF(realPath)
+        if (!description.valid) {
+          skipped.push(`${path}: ${description.reason ?? 'invalid GGUF file'}`)
+          continue
+        }
+
+        let metadata: Partial<LocalModel> | undefined
+        try {
+          metadata = JSON.parse(await readFile(`${realPath}.flyenv.json`, 'utf8'))
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+            skipped.push(
+              `${path}: metadata ignored (${error instanceof Error ? error.message : String(error)})`
+            )
+          }
+        }
+        const metadataIdentityValid =
+          typeof metadata?.localPath === 'string' &&
+          isAbsolute(metadata.localPath) &&
+          typeof metadata.repoId === 'string' &&
+          validRepoId(metadata.repoId) &&
+          typeof metadata.revision === 'string' &&
+          typeof metadata.path === 'string'
+        let metadataMatchesPath = false
+        if (metadataIdentityValid) {
+          try {
+            metadataMatchesPath = (await realpath(metadata!.localPath!)) === realPath
+          } catch {}
+        }
+        const repoId = metadataMatchesPath
+          ? metadata!.repoId!
+          : `local/${createHash('sha256').update(realPath).digest('hex').slice(0, 20)}`
+        const relativeName = relativePath.split(sep).join('/')
+        models.push({
+          repoId,
+          revision: metadataMatchesPath ? metadata!.revision! : 'local',
+          path: metadataMatchesPath ? metadata!.path! : relativeName,
+          resolvedRevision: metadataMatchesPath ? metadata!.resolvedRevision : undefined,
+          size: info.size,
+          sha256: metadataMatchesPath ? sha256(metadata!.sha256) : undefined,
+          license: metadataMatchesPath ? metadata!.license : undefined,
+          downloadUrl: metadataMatchesPath ? metadata!.downloadUrl ?? '' : '',
+          localPath: realPath,
+          managedRoot: root,
+          downloadedAt:
+            metadataMatchesPath && Number.isFinite(metadata!.downloadedAt)
+              ? metadata!.downloadedAt!
+              : info.mtimeMs,
+          description,
+          standalone: description.role === 'main' && !isGGUFShardPath(relativeName)
+        })
+      } catch (error) {
+        skipped.push(`${path}: ${error instanceof Error ? error.message : String(error)}`)
+      }
+    }
+  }
+
+  models.sort((a, b) => a.localPath.localeCompare(b.localPath))
+  return { models, skipped }
+}
+
 export const downloadHubModelFile = async (
   operationId: string,
   file: HubModelFile,
@@ -306,6 +448,7 @@ export const downloadHubModelFile = async (
       ...file,
       size: actualSize,
       localPath: finalPath,
+      managedRoot: modelsRoot,
       downloadedAt: Date.now(),
       description,
       standalone:

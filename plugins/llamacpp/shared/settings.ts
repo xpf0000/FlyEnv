@@ -13,6 +13,7 @@ export interface ServiceSettings {
   host: string
   port: number
   apiKeyFile?: string
+  modelsDirectory?: string
   revision: number
 }
 export interface BaseSettings {

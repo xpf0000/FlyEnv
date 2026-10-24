@@ -6,10 +6,14 @@ import { SETTINGS_KEY } from '../render/profiles'
 
 // Keep the real host StorageGetAsync contract. Only replace localForage I/O.
 const loadController = async (data: Map<string, unknown>, failRead: boolean | string = false) => {
-  const boundary = { data, failRead }
+  const boundary: { data: Map<string, unknown>; failRead: boolean | string; scanResult?: any } = {
+    data,
+    failRead
+  }
   ;(globalThis as any).__llamaStorage = boundary
   const sources = {
-    '@/util/Index': `export const reactiveBind=x=>x`,
+    '@/util/Index': `export const reactiveBind=x=>{for(const key of Object.getOwnPropertyNames(Object.getPrototypeOf(x))){if(key!=='constructor')void x[key]}return x}`,
+    '@/util/path-browserify': `export const join=(...parts)=>parts.join('/')`,
     '@/util/Storage': `export {StorageGetAsync,StorageSetAsync} from ${JSON.stringify(join(pluginRoot, '../../src/render/util/Storage.ts'))}`,
     localforage: `export default {getItem:async key=>{const h=globalThis.__llamaStorage;if(h.failRead===true||h.failRead===key)throw Error('storage unavailable');return h.data.get(key)??null},setItem:async(key,value)=>globalThis.__llamaStorage.data.set(key,value)}`,
     '@/util/Element': `export const MessageError=()=>{};export const MessageSuccess=()=>{}`,
@@ -22,6 +26,9 @@ const loadController = async (data: Map<string, unknown>, failRead: boolean | st
   return {
     controller: new LlamaCppController({
       request: async (method: string, args: any[]) => {
+        if (method === 'scanModelsDirectory') {
+          return boundary.scanResult ?? { models: [], skipped: [] }
+        }
         assert.equal(method, 'inspectLocalModelFiles')
         return args[0].map((path: string) => ({ path, status: 'available' }))
       }
@@ -54,6 +61,48 @@ test('missing V2 key migrates legacy settings through the real host storage read
   assert.equal(controller.selectedModel.localPath, file.localPath)
   assert.equal((data.get(SETTINGS_KEY) as any).data.schemaVersion, 2)
   assert.deepEqual((data.get('flyenv-llama-cpp-settings') as any).data, legacy)
+})
+
+test('models root getter is safe when reactiveBind reads it before initialization', async () => {
+  const { controller } = await loadController(new Map())
+  assert.doesNotThrow(() => controller.modelsRoot)
+  assert.equal(controller.modelsRoot, '')
+})
+
+test('initial scan loads models from the configured folder into the persistent catalogue', async () => {
+  const model = {
+    repoId: 'test/model',
+    revision: 'main',
+    path: 'nested/main.gguf',
+    localPath: 'D:/custom-models/nested/main.gguf',
+    managedRoot: 'D:/custom-models',
+    size: 128,
+    downloadUrl: '',
+    downloadedAt: 10,
+    standalone: true
+  }
+  const settings = {
+    schemaVersion: 2,
+    revision: 0,
+    service: {
+      host: '127.0.0.1',
+      port: 8080,
+      modelsDirectory: 'D:/custom-models',
+      revision: 0
+    },
+    initialBase: { contextSize: 8192, threads: 4 },
+    modelProfiles: {}
+  }
+  const data = new Map<string, unknown>([
+    ['flyenv-llama-cpp-models', { data: [] }],
+    [SETTINGS_KEY, { data: settings }]
+  ])
+  const { controller, boundary } = await loadController(data)
+  boundary.scanResult = { models: [model], skipped: [] }
+  await controller.init()
+  assert.equal(controller.localModels[0]?.localPath, model.localPath)
+  assert.equal(controller.localModels[0]?.managedRoot, model.managedRoot)
+  assert.equal((data.get('flyenv-llama-cpp-models') as any).data[0].localPath, model.localPath)
 })
 
 test('fresh installation with no catalogue or settings initializes and reuses persisted V2', async () => {

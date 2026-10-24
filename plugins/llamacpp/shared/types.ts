@@ -51,8 +51,14 @@ export interface LocalModelFileStatus {
   reason?: string
 }
 
+export interface ModelDirectoryScan {
+  models: LocalModel[]
+  skipped: string[]
+}
+
 export interface LocalModel extends HubModelFile {
   localPath: string
+  managedRoot?: string
   downloadedAt: number
   description?: GGUFDescription
   standalone?: boolean

@@ -61,6 +61,22 @@ test('failed persistence never publishes and concurrent model commits preserve s
   await assert.rejects(repo.commitProfile(a, a.revision), /stale/i)
   assert.ok(data.has(SETTINGS_KEY))
 })
+test('service models directory persists and is restored on reload', async () => {
+  const data = new Map<string, unknown>()
+  const storage = {
+    get: async (key: string) => data.get(key),
+    set: async (key: string, value: unknown) => data.set(key, value)
+  }
+  const repo = new ProfilesRepository(storage)
+  await repo.load(files)
+  await repo.commitService(
+    { ...repo.current.service, modelsDirectory: 'D:/AI/llama-models' },
+    repo.current.service.revision
+  )
+  const reopened = new ProfilesRepository(storage)
+  await reopened.load(files)
+  assert.equal(reopened.current.service.modelsDirectory, 'D:/AI/llama-models')
+})
 test('shared projector references remain visible after switching selected models', async () => {
   const { collectModelReferences } = await import('../render/profiles')
   const s = migrateSettings(undefined, files)

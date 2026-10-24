@@ -9,6 +9,7 @@ import { clone, type LaunchInput } from '../shared/settings'
 import type { SoftInstalled } from '@shared/app'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { dialog } from '@/util/NodeFn'
+import { join } from '@/util/path-browserify'
 import { reactiveBind } from '@/util/Index'
 import { StorageGetAsync, StorageSetAsync } from '@/util/Storage'
 import type {
@@ -17,6 +18,7 @@ import type {
   LaunchProfile,
   LocalModel,
   LocalModelFileStatus,
+  ModelDirectoryScan,
   RuntimeVariant,
   RuntimeIdentity
 } from '../shared/types'
@@ -165,6 +167,13 @@ export class LlamaCppController {
   get settings() {
     return this.repository.current
   }
+  get defaultModelsRoot() {
+    const baseDir = typeof window !== 'undefined' ? window.Server?.BaseDir : undefined
+    return baseDir ? join(baseDir, 'llama-cpp', 'models') : ''
+  }
+  get modelsRoot() {
+    return this.repository.current?.service?.modelsDirectory || this.defaultModelsRoot
+  }
   async withLaunchInput<T>(
     input: LaunchInput,
     runtime: SoftInstalled,
@@ -207,8 +216,15 @@ export class LlamaCppController {
     })
     if (chosen.canceled || !chosen.filePaths?.[0]) return
     const ref = { kind: 'external' as const, path: chosen.filePaths[0], allowUnverified: true }
-    const dep = await this.request<any>('inspectModelReference', ref, role)
+    const dep = await this.request<any>('inspectModelReference', ref, role, this.modelsRoot)
     return { ...ref, path: dep.path, fingerprint: dep.fingerprint, description: dep.description }
+  }
+  async chooseModelsDirectory() {
+    const chosen = await dialog.showOpenDialog({
+      defaultPath: this.modelsRoot || undefined,
+      properties: ['openDirectory', 'createDirectory']
+    })
+    return chosen.canceled ? undefined : chosen.filePaths?.[0]
   }
   runtimeOperations: Record<string, OperationState> = {}
   private runtimeRefresh?: Promise<void>
@@ -270,7 +286,12 @@ export class LlamaCppController {
     if (this.initRequest) return this.initRequest
     this.initRequest = (async () => {
       const models = await readOptionalStorage(() => StorageGetAsync<LocalModel[]>(modelsKey))
-      this.catalogueFiles = Array.isArray(models) ? models : []
+      this.catalogueFiles = Array.isArray(models)
+        ? models.map((model) => ({
+            ...model,
+            managedRoot: model.managedRoot || this.defaultModelsRoot || undefined
+          }))
+        : []
       await this.repository.load(this.catalogueFiles)
       await this.scanLocalModels().catch(() => {})
       this.syncProfile()
@@ -285,12 +306,30 @@ export class LlamaCppController {
   }
   private scanLocalModels() {
     if (this.catalogueFlight) return this.catalogueFlight
-    const snapshot = [...this.catalogueFiles]
     this.localModelScan = { status: 'checking' }
-    const isCurrent = (m: LocalModel) =>
-      this.catalogueFiles.find((f) => f.localPath === m.localPath) === m
+    const initial = [...this.catalogueFiles]
     const promise = Promise.resolve()
       .then(async () => {
+        const discovered = await this.request<ModelDirectoryScan>(
+          'scanModelsDirectory',
+          this.modelsRoot
+        )
+        if (!discovered || !Array.isArray(discovered.models) || !Array.isArray(discovered.skipped))
+          throw Error('Models directory scan returned an invalid result')
+        const catalogue = new Map(initial.map((model) => [model.localPath, model]))
+        for (const model of discovered.models) catalogue.set(model.localPath, model)
+        this.catalogueFiles = [...catalogue.values()]
+        const snapshot = [...this.catalogueFiles]
+        const isCurrent = (model: LocalModel) =>
+          this.catalogueFiles.find((item) => item.localPath === model.localPath) === model
+        const warnings = [...discovered.skipped]
+        if (discovered.models.length) {
+          try {
+            await StorageSetAsync(modelsKey, storageSnapshot(this.catalogueFiles))
+          } catch (error) {
+            warnings.push(`Models found; catalogue registration failed: ${String(error)}`)
+          }
+        }
         const results = snapshot.length
           ? await this.request<LocalModelFileStatus[]>(
               'inspectLocalModelFiles',
@@ -299,7 +338,6 @@ export class LlamaCppController {
           : []
         if (!Array.isArray(results)) throw Error('Local model file check returned no results')
         const states = new Map(results.map((r) => [r.path, r]))
-        const warnings: string[] = []
         for (const model of snapshot) {
           if (!isCurrent(model)) continue
           const result = states.get(model.localPath) ?? {
@@ -707,7 +745,7 @@ export class LlamaCppController {
     try {
       const model = await this.transport.request<LocalModel>(
         'downloadHubModelFile',
-        [operationId, file],
+        [operationId, file, this.modelsRoot],
         (progress) => {
           if (active.status === 'cancelling') return
           active.status = 'running'
@@ -797,7 +835,11 @@ export class LlamaCppController {
             'Unlink this file from models before deleting: ' +
               usages.map((u) => JSON.parse(u.modelKey)[2]).join(', ')
           )
-        await this.request('deleteLocalModel', model.localPath)
+        await this.request(
+          'deleteLocalModel',
+          model.localPath,
+          model.managedRoot || this.modelsRoot
+        )
         this.deletedPaths.add(model.localPath)
       }
       try {
