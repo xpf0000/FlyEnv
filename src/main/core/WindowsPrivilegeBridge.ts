@@ -62,7 +62,7 @@ export class WindowsPrivilegeBridge {
               .then(async (method) => {
                 if (!pending.has(message.requestId))
                   throw new Error('Authorization request expired')
-                // helper/ready 才允许主进程检查/安装；普通方式解析不会触碰常驻程序。
+                // helper/ready 只检查/恢复已有实例；安装仍须经过 UI 确认后的专用 IPC。
                 if (method === 'helper' && message.data.operation === 'helper/ready')
                   await this.ensureHelper?.(message.data.interactive === true)
                 return method

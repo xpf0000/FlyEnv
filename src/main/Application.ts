@@ -695,7 +695,7 @@ export default class Application extends EventEmitter {
     })
   }
 
-  /** 后台只检查健康，交互请求才可恢复/安装；安装与业务 UAC 共用全局租约。 */
+  /** 后台只检查健康，交互请求可恢复已有实例；需要安装时先通知 UI 等待用户确认。 */
   private async ensureWindowsHelper(interactive = true) {
     if (!interactive || this.windowsPrivilege.isClosing()) {
       // 退出只使用已安装且健康的 Helper；不能在关闭窗口时启动安装/修复流程。
@@ -704,13 +704,13 @@ export default class Application extends EventEmitter {
     }
     const lease = await this.windowsPrivilege.acquire(this)
     try {
-      // 排队期间设置可能已经改变；安装前重新读取主进程配置，禁止旧请求复活 Helper。
+      // 排队期间设置可能已经改变；准备前重新读取主进程配置，禁止旧请求复活 Helper。
       if (
         (await this.windowsPrivilege.resolve({ operation: 'helper/install', interactive })) !==
         'helper'
       )
         throw new Error('Authorization method changed before Helper installation')
-      await AppHelper.initHelper()
+      await AppHelper.ensureReady()
     } finally {
       this.windowsPrivilege.release(lease, this)
     }

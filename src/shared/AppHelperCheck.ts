@@ -364,7 +364,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
         if (!identity) throw new Error('Windows helper identity is unavailable')
         expectedSid = identity.sid
         expectedInstanceId = identity.instanceId
-        const task = await runtime.readWindowsTask(identity, getWindowsHelperValidationBinaryPath())
+        const task = await runtime.readWindowsTask(identity, HelperVersion)
         const reason = windowsHelperTaskInvalidReason(task, identity, identity.executable)
         if (reason) throw new AppHelperError('helper_task_invalid', reason)
       } catch (error) {
@@ -447,9 +447,8 @@ export const recoverWindowsHelper = async (): Promise<boolean> => {
   const identity = await getWindowsHelperIdentity()
   const key = await getHelperKey(identity)
   if (key?.length !== 32) return false
-  const source = getWindowsHelperValidationBinaryPath()
-  const task = await readWindowsHelperTask(identity, source)
+  const task = await readWindowsHelperTask(identity, HelperVersion)
   if (windowsHelperTaskInvalidReason(task, identity, identity.executable)) return false
-  const started = await readWindowsHelperTask(identity, source, true)
+  const started = await readWindowsHelperTask(identity, HelperVersion, true)
   return !windowsHelperTaskInvalidReason(started, identity, identity.executable)
 }

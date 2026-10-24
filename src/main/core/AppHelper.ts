@@ -11,7 +11,8 @@ import {
 import {
   AppHelperError,
   type AppHelperErrorCode,
-  isAppHelperError
+  isAppHelperError,
+  isAppHelperUnavailableError
 } from '@shared/WindowsHelperState'
 import {
   getWindowsHelperIdentity,
@@ -243,13 +244,14 @@ const defaultAppHelperDeps: AppHelperDeps = {
   installWindows: runWindowsHelperInstaller,
   recoverWindowsHelper,
   windowsDiagnostics: async () =>
-    readWindowsHelperDiagnostics(await getWindowsHelperIdentity(), getWindowsHelperBinaryPath())
+    readWindowsHelperDiagnostics(await getWindowsHelperIdentity(), HelperVersion)
 }
 
 export class AppHelper {
   state: 'normal' | 'installing' | 'installed' = 'normal'
 
   private installation?: Promise<boolean>
+  private preparation?: Promise<boolean>
   private terminalInstallation = false
 
   private _onMessage?: AppHelperCallback
@@ -369,9 +371,9 @@ export class AppHelper {
     throw new Error('Unsupported helper installer platform')
   }
 
-  needInstall() {
+  needInstall(reason?: string) {
     if (this.state === 'normal') {
-      this.emitStatus('needInstall')
+      this.emitStatus('needInstall', reason)
     }
   }
 
@@ -381,6 +383,24 @@ export class AppHelper {
 
   initHelper() {
     return this.startInstallation(() => this.install())
+  }
+
+  /** 业务请求只能检查/恢复已有实例；安装必须由 renderer 确认后的安装 IPC 发起。 */
+  ensureReady(): Promise<boolean> {
+    if (this.installation) return this.installation
+    if (this.preparation) return this.preparation
+    this.preparation = this.checkOrRecover()
+      .then(() => true)
+      .catch((error) => {
+        const reason = toAppHelperInstallError(error)
+        if (isAppHelperUnavailableError(reason)) this.needInstall(reason.code)
+        // 当前业务未完成，保留失败；通知不能隐式批准安装或重放业务动作。
+        throw reason
+      })
+      .finally(() => {
+        this.preparation = undefined
+      })
+    return this.preparation
   }
 
   /** The main process retains ownership through actual terminal exit and health. */
@@ -432,6 +452,26 @@ export class AppHelper {
     }
   }
 
+  private async checkOrRecover(): Promise<void> {
+    try {
+      await this.deps.appHelperCheck()
+    } catch (error) {
+      const reason = toAppHelperInstallError(error)
+      appDebugLog('[AppHelper][repair]', `${reason.code}: ${reason.message}`).catch(() => {})
+      if (reason.code === 'helper_pipe_unreachable' || reason.code === 'helper_unreachable') {
+        try {
+          if (await this.deps.recoverWindowsHelper()) {
+            await waitForHelperHealth(() => this.deps.appHelperCheck(), { deadlineMs: 10_000 })
+            return
+          }
+        } catch (recoveryError) {
+          appDebugLog('[AppHelper][recover]', String(recoveryError)).catch(() => {})
+        }
+      }
+      throw reason
+    }
+  }
+
   private async install(): Promise<boolean> {
     let windowsInstallation = false
     // 每次 initHelper 都会健康检查。仅在本次真正执行安装后记录，恢复已有任务或
@@ -440,21 +480,10 @@ export class AppHelper {
     try {
       let healthy = false
       try {
-        await this.deps.appHelperCheck()
+        await this.checkOrRecover()
         healthy = true
-      } catch (error) {
-        const reason = toAppHelperInstallError(error)
-        appDebugLog('[AppHelper][repair]', `${reason.code}: ${reason.message}`).catch(() => {})
-        if (reason.code === 'helper_pipe_unreachable' || reason.code === 'helper_unreachable') {
-          try {
-            if (await this.deps.recoverWindowsHelper()) {
-              await waitForHelperHealth(() => this.deps.appHelperCheck(), { deadlineMs: 10_000 })
-              healthy = true
-            }
-          } catch (recoveryError) {
-            appDebugLog('[AppHelper][recover]', String(recoveryError)).catch(() => {})
-          }
-        }
+      } catch {
+        // 只有明确的安装入口才可在检查/恢复失败后继续执行提权安装。
       }
       if (!healthy) {
         this.emitStatus('needInstall')
