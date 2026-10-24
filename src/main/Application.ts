@@ -197,8 +197,19 @@ export default class Application extends EventEmitter {
     await this.languageRepository.ready()
     await this.languageCoordinator.initialize(requestedLocale)
     await this.serverDirectoryInitialization
+    // Plugin scans may migrate legacy install records using the saved license.
+    // Publish it before scanning, rather than after invalidating those records.
+    this.serverManager.updateGlobalConfig()
+    this.serverManager.setProxy()
     if (isWindows()) this.publishWindowsPrivilege(await this.windowsPrivilege.snapshot())
-    await this.pluginManager.refresh()
+    await this.pluginManager.refresh().catch((error) => {
+      // Keep the application usable; market requests report the registry error
+      // instead of advertising an empty, writable installation.
+      logger.warn('[PluginManager] unable to load installed plugins', error)
+    })
+    for (const diagnostic of this.pluginManager.getDiagnostics()) {
+      logger.warn('[PluginManager] plugin skipped at startup', diagnostic)
+    }
     if (process.env.FLYENV_PLUGIN_SMOKE === '1') {
       await this.preparePluginRuntimeSmoke()
     }
@@ -210,8 +221,6 @@ export default class Application extends EventEmitter {
     this.menuManager = new MenuManager()
     this.menuManager.setup()
 
-    this.serverManager.setProxy()
-    this.serverManager.updateGlobalConfig()
     this.windowManager = new WindowManager({
       configManager: this.configManager
     })

@@ -76,6 +76,7 @@ export interface IPCHandlerDependencies {
 export default class IPCHandler extends EventEmitter {
   private deps: IPCHandlerDependencies
   private capturerConfig?: any
+  private pluginRecovery?: Promise<void>
 
   constructor(dependencies: IPCHandlerDependencies) {
     super()
@@ -1226,17 +1227,33 @@ export default class IPCHandler extends EventEmitter {
       .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
   }
 
+  private async queryPlugins<T>(manager: PluginManager, query: () => T | Promise<T>): Promise<T> {
+    if (!this.pluginRecovery && manager.hasLoadError) {
+      this.pluginRecovery = Promise.resolve()
+        .then(async () => {
+          if (this.deps.onPluginsChanged) await this.deps.onPluginsChanged()
+          else await manager.refresh()
+        })
+        .finally(() => {
+          this.pluginRecovery = undefined
+        })
+    }
+    if (this.pluginRecovery) await this.pluginRecovery
+    return query()
+  }
+
   private handlePluginInstalled(command: string, key: string) {
     const manager = this.pluginManagerOrError(command, key)
     if (!manager) return
-    this.sendToMainWindow(command, key, { code: 0, data: manager.listInstalled() })
+    this.queryPlugins(manager, () => manager.listInstalled())
+      .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
+      .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
   }
 
   private handlePluginMarketList(command: string, key: string) {
     const manager = this.pluginManagerOrError(command, key)
     if (!manager) return
-    manager
-      .listCatalog()
+    this.queryPlugins(manager, () => manager.listCatalog())
       .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
       .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
   }
@@ -1244,8 +1261,7 @@ export default class IPCHandler extends EventEmitter {
   private handlePluginSources(command: string, key: string) {
     const manager = this.pluginManagerOrError(command, key)
     if (!manager) return
-    manager
-      .listSources()
+    this.queryPlugins(manager, () => manager.listSources())
       .then((data) => this.sendToMainWindow(command, key, { code: 0, data }))
       .catch((error) => this.sendToMainWindow(command, key, { code: 1, msg: String(error) }))
   }

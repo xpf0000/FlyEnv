@@ -4,6 +4,7 @@ import * as VueRouter from 'vue-router'
 import * as ElementPlus from 'element-plus'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import IPC from '@/util/IPC'
+import { syncPluginStyles } from './PluginStyles'
 import type { AppModuleItem } from '@/core/type'
 import { defineAsyncComponent } from 'vue'
 import { AsideSetup, AppServiceModule } from '@/core/ASide'
@@ -112,26 +113,6 @@ type LoadedRendererPlugin = {
 
 const loadedPlugins = new Map<string, LoadedRendererPlugin>()
 
-function syncStyles(payloads: RendererPluginPayload[]) {
-  const active = new Set(payloads.map((payload) => payload.id))
-  for (const style of document.querySelectorAll<HTMLStyleElement>('style[data-flyenv-plugin]')) {
-    if (!active.has(style.dataset.flyenvPlugin ?? '')) style.remove()
-  }
-  for (const payload of payloads) {
-    const existing = document.querySelector<HTMLStyleElement>(
-      `style[data-flyenv-plugin="${payload.id}"]`
-    )
-    if (!payload.css) {
-      existing?.remove()
-      continue
-    }
-    const style = existing ?? document.createElement('style')
-    style.dataset.flyenvPlugin = payload.id
-    if (style.textContent !== payload.css) style.textContent = payload.css
-    if (!existing) document.head.appendChild(style)
-  }
-}
-
 async function importPlugin(payload: RendererPluginPayload) {
   const blob = new Blob([payload.code], { type: 'text/javascript' })
   const url = URL.createObjectURL(blob)
@@ -192,7 +173,7 @@ export function loadRendererPluginModules(timeout = 5_000): Promise<AppModuleIte
           })
         }
         if (settled) return
-        syncStyles(payloads)
+        syncPluginStyles(payloads)
         loadedPlugins.clear()
         for (const [id, cached] of next) loadedPlugins.set(id, cached)
         finish(undefined, modules)

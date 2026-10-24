@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { createRequire } from 'node:module'
 import { dirname, join, relative, resolve } from 'node:path'
-import { promises as fs } from 'node:fs'
+import { promises as fs, type Dirent } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { Readable } from 'node:stream'
 import axios from 'axios'
@@ -160,6 +160,9 @@ export class PluginManager {
   private readonly operations = new Map<string, Promise<unknown>>()
   private operationTail: Promise<void> = Promise.resolve()
   private stateLoaded = false
+  private stateRead?: Promise<void>
+  private stateError?: Error
+  private savedState?: PluginStateFile
   private diagnostics: PluginDiagnostic[] = []
   private hasRefreshed = false
   private legacyState = false
@@ -182,37 +185,105 @@ export class PluginManager {
     return this.stateOverride ?? join(dirname(this.pluginsRoot), 'plugins.json')
   }
 
-  private async readState() {
+  private readState(): Promise<void> {
+    if (this.stateRead) return this.stateRead
+    const reading = this.readStateFile()
+      .then(() => {
+        this.stateError = undefined
+      })
+      .catch((error) => {
+        this.stateError = new Error(
+          `Cannot read plugin installation records (${this.statePath}): ${error instanceof Error ? error.message : String(error)}`,
+          { cause: error }
+        )
+        throw this.stateError
+      })
+      .finally(() => {
+        if (this.stateRead === reading) this.stateRead = undefined
+      })
+    this.stateRead = reading
+    return reading
+  }
+
+  private async readStateFile() {
+    let raw: string | undefined
     try {
-      const value = JSON.parse(
-        await fs.readFile(this.statePath, 'utf8')
-      ) as Partial<PluginStateFile>
-      // Version 1 records can receive install tokens only after a license check.
-      // Keep the legacy version until every active record has been migrated.
-      this.legacyState = value.version === 1
-      this.state = {
-        version: this.legacyState ? 1 : PLUGIN_STATE_VERSION,
-        plugins: value.plugins && typeof value.plugins === 'object' ? value.plugins : {},
-        sources: Array.isArray(value.sources)
-          ? value.sources.filter((item) => typeof item === 'string')
-          : []
+      raw = await fs.readFile(this.statePath, 'utf8')
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+      const entries: Dirent[] = await fs
+        .readdir(this.pluginsRoot, { withFileTypes: true })
+        .catch((error) => {
+          if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []
+          throw error
+        })
+      if (entries.some((entry) => entry.isDirectory() && !entry.name.startsWith('.'))) {
+        throw new Error('Plugin installation records are missing while plugin files still exist')
       }
-    } catch {
-      this.legacyState = false
-      this.state = { version: PLUGIN_STATE_VERSION, plugins: {}, sources: [] }
     }
+    const value =
+      raw === undefined
+        ? { version: PLUGIN_STATE_VERSION, plugins: {}, sources: [] }
+        : JSON.parse(raw)
+    if (
+      !value ||
+      typeof value !== 'object' ||
+      Array.isArray(value) ||
+      ![1, PLUGIN_STATE_VERSION].includes(value.version) ||
+      !value.plugins ||
+      typeof value.plugins !== 'object' ||
+      Array.isArray(value.plugins) ||
+      (value.sources !== undefined &&
+        (!Array.isArray(value.sources) ||
+          value.sources.some((item: unknown) => typeof item !== 'string')))
+    ) {
+      throw new Error('Invalid plugin installation records')
+    }
+    // Commit only a successful read; an unreadable registry is never an empty installation.
+    const state: PluginStateFile = {
+      version: value.version,
+      plugins: value.plugins,
+      sources: value.sources ?? []
+    }
+    this.legacyState = state.version === 1
+    this.state = state
+    this.savedState = structuredClone(state)
+    this.installSecret = undefined
     this.stateLoaded = true
   }
 
+  private assertStateReadable() {
+    if (this.stateError) throw this.stateError
+  }
+
   private async ensureStateLoaded() {
+    this.assertStateReadable()
     if (!this.stateLoaded) await this.readState()
   }
 
   private async writeState() {
-    await fs.mkdir(dirname(this.statePath), { recursive: true })
+    this.assertStateReadable()
+    if (!this.stateLoaded) throw new Error('Plugin installation records have not been loaded')
     const temporary = `${this.statePath}.${randomUUID()}.tmp`
-    await fs.writeFile(temporary, JSON.stringify(this.state, null, 2))
-    await fs.rename(temporary, this.statePath)
+    try {
+      await fs.mkdir(dirname(this.statePath), { recursive: true })
+      const file = await fs.open(temporary, 'wx')
+      try {
+        await file.writeFile(JSON.stringify(this.state, null, 2))
+        await file.sync()
+      } finally {
+        await file.close()
+      }
+      await fs.rename(temporary, this.statePath)
+      this.savedState = structuredClone(this.state)
+    } catch (error) {
+      // A rejected write must not leak an uncommitted edit into the next operation.
+      this.state = structuredClone(this.savedState!)
+      this.legacyState = this.state.version === 1
+      throw error
+    } finally {
+      await fs.rm(temporary, { force: true }).catch(() => {})
+    }
   }
 
   private async cleanupPendingDeletes() {
@@ -241,6 +312,10 @@ export class PluginManager {
     return [...this.diagnostics]
   }
 
+  get hasLoadError() {
+    return !!this.stateError
+  }
+
   private runSerialized<T>(id: string, operation: () => Promise<T>) {
     const existing = this.operations.get(id)
     if (existing) return existing as Promise<T>
@@ -258,18 +333,31 @@ export class PluginManager {
   async refresh() {
     return this.runSerialized('__refresh__', async () => {
       await this.readState()
-      return this.refreshLoaded()
+      try {
+        return await this.refreshLoaded()
+      } catch (error) {
+        this.stateError = error instanceof Error ? error : new Error(String(error))
+        throw this.stateError
+      }
     })
   }
 
   private async refreshLoaded() {
     this.diagnostics = []
-    if (!this.hasRefreshed) await this.cleanupPendingDeletes()
     if ((globalThis as any).Server?.DataDirectoryReady === false) {
-      this.plugins.clear()
-      this.moduleToPlugin.clear()
-      this.hasRefreshed = true
-      return []
+      throw new Error(
+        'FlyEnv data directory is unavailable; plugin installation records were preserved'
+      )
+    }
+    // Token verification must never replace a missing/decryption-failed authority.
+    // This is a shared prerequisite, rather than an independently invalid plugin.
+    if (Object.values(this.state.plugins).some((plugin) => plugin.installToken)) {
+      await this.getInstallSecret()
+    }
+    if (!this.hasRefreshed) {
+      await this.cleanupPendingDeletes().catch((error) =>
+        this.recordDiagnostic(this.statePath, error)
+      )
     }
     const records: FlyEnvPluginRecord[] = []
     const developmentPath = process.env.FLYENV_PLUGIN_PATH
@@ -298,7 +386,13 @@ export class PluginManager {
           }
           const versions = await fs.readdir(rootPath, { withFileTypes: true })
           for (const version of versions) {
-            if (!version.isDirectory() || version.name.startsWith('.')) continue
+            if (
+              !version.isDirectory() ||
+              version.name.startsWith('.') ||
+              version.name.includes('.backup-') ||
+              version.name.includes('.pending-delete-')
+            )
+              continue
             try {
               records.push(await this.loadPlugin(join(rootPath, version.name), false))
             } catch (error) {
@@ -459,6 +553,7 @@ export class PluginManager {
       }
       try {
         const decrypted = protector.decrypt(existing.slice(4))
+        if (!decrypted.trim()) throw new Error('Decrypted plugin install secret is empty')
         this.installSecret = decrypted
         return decrypted
       } catch (error) {
@@ -470,6 +565,11 @@ export class PluginManager {
     if (existing) {
       this.installSecret = existing
       return existing
+    }
+    if (Object.values(this.state.plugins).some((plugin) => plugin.installToken)) {
+      throw new Error(
+        'Plugin install secret is missing; existing installation records were preserved'
+      )
     }
     const created = randomUUID()
     await fs.mkdir(dirname(secretPath), { recursive: true })
@@ -492,6 +592,7 @@ export class PluginManager {
   }
 
   listInstalled(): InstalledPlugin[] {
+    this.assertStateReadable()
     return [...this.plugins.values()].map((item) => ({
       id: item.manifest.id,
       name: item.manifest.name,
@@ -552,6 +653,7 @@ export class PluginManager {
 
   setEnabled(id: string, enabled: boolean) {
     return this.runSerialized(id, async () => {
+      await this.ensureStateLoaded()
       if (!this.plugins.has(id)) throw new Error(`Plugin not installed: ${id}`)
       if (!enabled) {
         await this.stopPluginServices?.(this.plugins.get(id)!.manifest.module.typeFlag)
@@ -756,9 +858,15 @@ export class PluginManager {
         .stat(targetRoot)
         .then(() => true)
         .catch(() => false)
+      let backedUp = false
+      let packageMoved = false
       try {
-        if (targetExists) await fs.rename(targetRoot, backupRoot)
+        if (targetExists) {
+          await fs.rename(targetRoot, backupRoot)
+          backedUp = true
+        }
         await fs.rename(packageRoot, targetRoot)
+        packageMoved = true
         this.state.plugins[manifest.id] = {
           enabled: previousState?.enabled !== false,
           activeVersion: manifest.version,
@@ -767,25 +875,47 @@ export class PluginManager {
           installToken: await this.computeInstallToken(manifest.id, manifest.version, manifestRaw)
         }
         await this.writeState()
-        await this.refreshLoaded()
-        await this.scheduleVersionCleanup(
-          manifest.id,
-          manifest.version,
-          previousState?.activeVersion
-        )
-        if (targetExists) await fs.rm(backupRoot, { recursive: true, force: true })
-        return this.listInstalled().find((item) => item.id === manifest.id)!
       } catch (error) {
-        await fs.rm(targetRoot, { recursive: true, force: true }).catch(() => {})
-        if (targetExists) await fs.rename(backupRoot, targetRoot).catch(() => {})
+        // Before commit, restore files only if this operation moved them. Never
+        // delete a backup that could not be restored, or rewrite the registry
+        // after its required write already failed.
         if (previousState) this.state.plugins[manifest.id] = previousState
         else delete this.state.plugins[manifest.id]
-        await this.writeState().catch(() => {})
-        await this.refreshLoaded().catch(() => {})
+        try {
+          if (packageMoved) await fs.rm(targetRoot, { recursive: true, force: true })
+          if (backedUp) await fs.rename(backupRoot, targetRoot)
+        } catch (rollbackError) {
+          throw new AggregateError(
+            [error, rollbackError],
+            `Plugin installation failed; original files were preserved at ${backupRoot}`
+          )
+        }
         throw error
-      } finally {
-        await fs.rm(backupRoot, { recursive: true, force: true }).catch(() => {})
       }
+
+      // Files and registry are committed. Activation and housekeeping must not
+      // roll them back: a cleanup failure must not invalidate install tokens.
+      await this.refreshLoaded().catch((error) => {
+        this.stateError = new Error(
+          `Plugin was installed but could not be activated: ${manifest.id}: ${error instanceof Error ? error.message : String(error)}`,
+          { cause: error }
+        )
+        throw this.stateError
+      })
+      await this.scheduleVersionCleanup(
+        manifest.id,
+        manifest.version,
+        previousState?.activeVersion
+      ).catch((error) => this.recordDiagnostic(targetRoot, error, manifest.id))
+      if (backedUp) {
+        await fs
+          .rm(backupRoot, { recursive: true, force: true })
+          .catch((error) => this.recordDiagnostic(backupRoot, error, manifest.id))
+      }
+      const result = this.listInstalled().find((item) => item.id === manifest.id)
+      if (!result)
+        throw new Error(`Plugin was installed but could not be activated: ${manifest.id}`)
+      return result
     } finally {
       await fs.rm(temporary, { force: true }).catch(() => {})
       await fs.rm(extraction, { recursive: true, force: true }).catch(() => {})
@@ -808,6 +938,7 @@ export class PluginManager {
 
   uninstall(id: string) {
     return this.runSerialized(id, async () => {
+      await this.ensureStateLoaded()
       if (!this.plugins.has(id)) throw new Error(`Plugin not installed: ${id}`)
       await this.stopPluginServices?.(this.plugins.get(id)!.manifest.module.typeFlag)
       const pluginRoot = join(this.pluginsRoot, id)
