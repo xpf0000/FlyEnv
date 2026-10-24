@@ -55,7 +55,7 @@ export const PHPSetup = reactive<{
         this.localUsed[version.bin] = reactive(res?.data?.used ?? [])
         this.localExtend[version.bin] = reactive(res?.data?.local ?? [])
         delete this.localExecing[item.name]
-        LoadedSetup.reFetch()
+        LoadedSetup.reFetch(version)
         MessageSuccess(I18nT('base.success'))
       } else if (res?.code === 1) {
         IPC.off(key)
@@ -146,7 +146,7 @@ export const PHPSetup = reactive<{
         this.localUsed[version.bin] = reactive(res?.data?.used ?? [])
         this.localExtend[version.bin] = reactive(res?.data?.local ?? [])
         delete this.libExecing[item.name]
-        LoadedSetup.reFetch()
+        LoadedSetup.reFetch(version)
         MessageSuccess(I18nT('base.success'))
       } else if (res?.code === 1) {
         IPC.off(key)

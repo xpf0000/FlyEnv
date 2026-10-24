@@ -6,6 +6,7 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   execPromise,
+  spawnPromiseWithEnv,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -31,6 +32,8 @@ import { IniParse } from '../../../render/util/IniParse'
 import { ProcessListByExactPid } from '@shared/Process'
 import type { PItem } from '@shared/Process'
 import { FastCgiWorkerStore } from './FastCgiWorkers'
+import windowsExtensions from './WindowsExtensions'
+import { loadedExtensionsCommand, parseLoadedExtensions } from '../Php/LoadedExtensions'
 import { timeOperation, timeOperationSync } from '@shared/OperationTiming'
 import {
   logServiceStop,
@@ -40,6 +43,28 @@ import {
 
 class Php extends Base {
   private workerStore?: FastCgiWorkerStore
+
+  fetchLoadedExtensions(version: SoftInstalled) {
+    return new ForkPromise(async (resolve) => {
+      const ini = await this.getIniPath(version)
+      const command = loadedExtensionsCommand(version, ini, true)
+      const { stdout } = await spawnPromiseWithEnv(command.bin, command.args, {
+        cwd: command.cwd,
+        shell: false,
+        windowsHide: true,
+        timeout: 30000
+      })
+      resolve(parseLoadedExtensions(stdout))
+    })
+  }
+
+  windowsExtensionCatalog(version: SoftInstalled, query: string) {
+    return windowsExtensions.catalog(version, query)
+  }
+
+  windowsExtensionInstall(version: SoftInstalled, name: string) {
+    return windowsExtensions.install(version, name)
+  }
 
   constructor() {
     super()

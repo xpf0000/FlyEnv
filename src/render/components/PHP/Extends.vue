@@ -60,7 +60,7 @@
                     ></el-radio-button>
                     <el-radio-button
                       class="flex-1"
-                      :label="I18nT('common.label.library')"
+                      :label="I18nT('php.windowsInstall')"
                       value="lib"
                     ></el-radio-button>
                   </el-radio-group>
@@ -132,7 +132,7 @@
   import { fs } from '@/util/NodeFn'
   import { Folder, Memo } from '@element-plus/icons-vue'
   import LocalVM from './Extension/Local/index.vue'
-  import LibVM from './Extension/Lib/index.vue'
+  import LibVM from './Extension/Windows/index.vue'
 
   const props = defineProps<{
     version: SoftInstalled
