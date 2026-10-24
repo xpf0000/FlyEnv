@@ -83,8 +83,13 @@ export const managedReference = (file: {
   path: string
   size: number
   sha256?: string
+  mtimeMs?: number
 }) => ({
   kind: 'managed' as const,
   fileKey: modelFileKey(file),
-  fingerprint: { size: file.size, sha256: file.sha256 }
+  fingerprint: {
+    size: file.size,
+    sha256: file.sha256,
+    ...(file.mtimeMs === undefined ? {} : { mtimeMs: file.mtimeMs })
+  }
 })

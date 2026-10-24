@@ -23,7 +23,11 @@ interface Storage {
   get(key: string): Promise<unknown>
   set(key: string, value: unknown): Promise<unknown>
 }
-export const fingerprint = (m: LocalModel): FileFingerprint => ({ size: m.size, sha256: m.sha256 })
+export const fingerprint = (m: LocalModel): FileFingerprint => ({
+  size: m.size,
+  sha256: m.sha256,
+  ...(m.mtimeMs === undefined ? {} : { mtimeMs: m.mtimeMs })
+})
 export const createModelProfile = (m: LocalModel, base: BaseSettings): ModelProfile => ({
   modelKey: modelFileKey(m),
   fingerprint: fingerprint(m),

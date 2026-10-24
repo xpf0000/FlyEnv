@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto'
 import { createWriteStream } from 'node:fs'
+import type { Dirent } from 'node:fs'
 import {
   mkdir,
   rename,
@@ -20,6 +21,7 @@ import { getAxiosProxy } from '@fork/util/Axios'
 import type { HubModel, HubModelFile, LocalModel, ModelDirectoryScan } from '../shared/types'
 import { inspectGGUF, isStandaloneGGUFFile } from './gguf'
 import { isGGUFShardPath } from '../shared/modelFile'
+import { localModelIdentity } from './localModelIdentity'
 
 interface HubModelApiItem {
   id: string
@@ -265,7 +267,7 @@ export const scanModelsDirectory = async (modelsRoot: string): Promise<ModelDire
 
   while (pending.length) {
     const current = pending.pop()!
-    let entries: Awaited<ReturnType<typeof readdir>>
+    let entries: Dirent<string>[]
     try {
       entries = await readdir(current.path, { withFileTypes: true })
     } catch (error) {
@@ -345,19 +347,17 @@ export const scanModelsDirectory = async (modelsRoot: string): Promise<ModelDire
             metadataMatchesPath = (await realpath(metadata!.localPath!)) === realPath
           } catch {}
         }
-        const repoId = metadataMatchesPath
-          ? metadata!.repoId!
-          : `local/${createHash('sha256').update(realPath).digest('hex').slice(0, 20)}`
         const relativeName = relativePath.split(sep).join('/')
         models.push({
-          repoId,
-          revision: metadataMatchesPath ? metadata!.revision! : 'local',
-          path: metadataMatchesPath ? metadata!.path! : relativeName,
+          ...(metadataMatchesPath
+            ? { repoId: metadata!.repoId!, revision: metadata!.revision!, path: metadata!.path! }
+            : localModelIdentity(realPath, relativeName)),
           resolvedRevision: metadataMatchesPath ? metadata!.resolvedRevision : undefined,
           size: info.size,
+          mtimeMs: metadataMatchesPath ? undefined : info.mtimeMs,
           sha256: metadataMatchesPath ? sha256(metadata!.sha256) : undefined,
           license: metadataMatchesPath ? metadata!.license : undefined,
-          downloadUrl: metadataMatchesPath ? metadata!.downloadUrl ?? '' : '',
+          downloadUrl: metadataMatchesPath ? (metadata!.downloadUrl ?? '') : '',
           localPath: realPath,
           managedRoot: root,
           downloadedAt:

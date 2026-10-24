@@ -180,7 +180,7 @@
   import { clone, type LaunchInput, type ModelProfile } from '../../shared/settings'
   import { runtimeBackend } from '../../shared/runtime'
   import { createModelProfile, fingerprint } from '../profiles'
-  import type { LocalModel, RuntimeBackend } from '../../shared/types'
+  import type { LocalModel } from '../../shared/types'
   import CommandPreview from './CommandPreview.vue'
   import SpeculationSettings from './sections/SpeculationSettings.vue'
   import ChatSettings from './sections/ChatSettings.vue'
@@ -226,7 +226,9 @@
       !!model.value &&
       !!draft.value?.value.fingerprint &&
       (model.value.size !== draft.value.value.fingerprint.size ||
-        model.value.sha256 !== draft.value.value.fingerprint.sha256)
+        model.value.sha256 !== draft.value.value.fingerprint.sha256 ||
+        (draft.value.value.fingerprint.mtimeMs !== undefined &&
+          model.value.mtimeMs !== draft.value.value.fingerprint.mtimeMs))
   )
   const confirmReplacement = async () => {
     if (!model.value || !draft.value) return

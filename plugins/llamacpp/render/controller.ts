@@ -244,6 +244,13 @@ export class LlamaCppController {
   private catalogueFiles: LocalModel[] = []
   private modelFileStates: Record<string, LocalModelFileStatus> = {}
   private catalogueFlight?: Promise<void>
+  private catalogueWrites: Promise<unknown> = Promise.resolve()
+  private scanDeletedPaths?: Set<string>
+  private writeCatalogue<T>(work: () => Promise<T>): Promise<T> {
+    const request = this.catalogueWrites.catch(() => {}).then(work)
+    this.catalogueWrites = request
+    return request
+  }
   localModelScan?: { status: 'checking' | 'success' | 'partial' | 'failed'; error?: string }
   get localModels() {
     return this.catalogueFiles.filter(
@@ -308,28 +315,51 @@ export class LlamaCppController {
     if (this.catalogueFlight) return this.catalogueFlight
     this.localModelScan = { status: 'checking' }
     const initial = [...this.catalogueFiles]
+    const initialByPath = new Map(initial.map((model) => [model.localPath, model]))
+    const deletedDuringScan = new Set<string>()
+    this.scanDeletedPaths = deletedDuringScan
+    let snapshot = initial
+    const isCurrent = (model: LocalModel) =>
+      this.catalogueFiles.find((item) => item.localPath === model.localPath) === model
     const promise = Promise.resolve()
       .then(async () => {
-        const discovered = await this.request<ModelDirectoryScan>(
-          'scanModelsDirectory',
-          this.modelsRoot
-        )
-        if (!discovered || !Array.isArray(discovered.models) || !Array.isArray(discovered.skipped))
-          throw Error('Models directory scan returned an invalid result')
-        const catalogue = new Map(initial.map((model) => [model.localPath, model]))
-        for (const model of discovered.models) catalogue.set(model.localPath, model)
-        this.catalogueFiles = [...catalogue.values()]
-        const snapshot = [...this.catalogueFiles]
-        const isCurrent = (model: LocalModel) =>
-          this.catalogueFiles.find((item) => item.localPath === model.localPath) === model
-        const warnings = [...discovered.skipped]
-        if (discovered.models.length) {
-          try {
-            await StorageSetAsync(modelsKey, storageSnapshot(this.catalogueFiles))
-          } catch (error) {
-            warnings.push(`Models found; catalogue registration failed: ${String(error)}`)
-          }
+        const warnings: string[] = []
+        let discovered: ModelDirectoryScan = { models: [], skipped: [] }
+        try {
+          discovered = await this.request<ModelDirectoryScan>(
+            'scanModelsDirectory',
+            this.modelsRoot
+          )
+          if (
+            !discovered ||
+            !Array.isArray(discovered.models) ||
+            !Array.isArray(discovered.skipped)
+          )
+            throw Error('Models directory scan returned an invalid result')
+          warnings.push(...discovered.skipped)
+        } catch (error) {
+          discovered = { models: [], skipped: [] }
+          warnings.push(`Models directory discovery failed: ${String(error)}`)
         }
+        await this.writeCatalogue(async () => {
+          const catalogue = new Map(this.catalogueFiles.map((model) => [model.localPath, model]))
+          for (const model of discovered.models) {
+            // A completed download/replacement or deletion wins over older discovery results.
+            if (deletedDuringScan.has(model.localPath)) continue
+            const current = catalogue.get(model.localPath)
+            if (current && current !== initialByPath.get(model.localPath)) continue
+            catalogue.set(model.localPath, model)
+          }
+          this.catalogueFiles = [...catalogue.values()]
+          snapshot = [...this.catalogueFiles]
+          if (discovered.models.length) {
+            try {
+              await StorageSetAsync(modelsKey, storageSnapshot(this.catalogueFiles))
+            } catch (error) {
+              warnings.push(`Models found; catalogue registration failed: ${String(error)}`)
+            }
+          }
+        })
         const results = snapshot.length
           ? await this.request<LocalModelFileStatus[]>(
               'inspectLocalModelFiles',
@@ -368,7 +398,10 @@ export class LlamaCppController {
         throw error
       })
       .finally(() => {
-        if (this.catalogueFlight === promise) this.catalogueFlight = undefined
+        if (this.catalogueFlight === promise) {
+          this.catalogueFlight = undefined
+          this.scanDeletedPaths = undefined
+        }
       })
     this.catalogueFlight = promise
     return promise
@@ -753,21 +786,23 @@ export class LlamaCppController {
         }
       )
       active.result = model
-      const i = this.catalogueFiles.findIndex((item) => item.localPath === model.localPath)
-      if (i < 0) this.catalogueFiles.push(model)
-      else this.catalogueFiles.splice(i, 1, model)
-      this.modelFileStates[model.localPath] = { path: model.localPath, status: 'available' }
-      try {
-        await StorageSetAsync(modelsKey, storageSnapshot(this.catalogueFiles))
-      } catch (error) {
-        active.status = 'partial'
-        active.error = 'File downloaded; catalogue registration failed: ' + String(error)
-        this.error = active.error
+      return await this.writeCatalogue(async () => {
+        const i = this.catalogueFiles.findIndex((item) => item.localPath === model.localPath)
+        if (i < 0) this.catalogueFiles.push(model)
+        else this.catalogueFiles.splice(i, 1, model)
+        this.modelFileStates[model.localPath] = { path: model.localPath, status: 'available' }
+        try {
+          await StorageSetAsync(modelsKey, storageSnapshot(this.catalogueFiles))
+        } catch (error) {
+          active.status = 'partial'
+          active.error = 'File downloaded; catalogue registration failed: ' + String(error)
+          this.error = active.error
+          return model
+        }
+        this.syncProfile()
+        active.status = 'success'
         return model
-      }
-      this.syncProfile()
-      active.status = 'success'
-      return model
+      })
     } catch (error) {
       active.status = active.status === 'cancelling' ? 'cancelled' : 'failed'
       active.error = error instanceof Error ? error.message : `${error}`
@@ -785,7 +820,9 @@ export class LlamaCppController {
     const op = this.modelOperation
     if (!op || op.status !== 'partial') return
     try {
-      await StorageSetAsync(modelsKey, storageSnapshot(this.catalogueFiles))
+      await this.writeCatalogue(() =>
+        StorageSetAsync(modelsKey, storageSnapshot(this.catalogueFiles))
+      )
       op.status = 'success'
       op.error = undefined
       this.error = ''
@@ -841,15 +878,18 @@ export class LlamaCppController {
           model.managedRoot || this.modelsRoot
         )
         this.deletedPaths.add(model.localPath)
+        this.scanDeletedPaths?.add(model.localPath)
       }
       try {
-        const files = this.catalogueFiles.filter((m) => m.localPath !== model.localPath)
-        await StorageSetAsync(modelsKey, storageSnapshot(files))
-        await this.repository.removeProfile(key)
-        this.catalogueFiles = files
-        delete this.modelFileStates[model.localPath]
-        this.syncProfile()
-        this.deletedPaths.delete(model.localPath)
+        await this.writeCatalogue(async () => {
+          const files = this.catalogueFiles.filter((m) => m.localPath !== model.localPath)
+          await StorageSetAsync(modelsKey, storageSnapshot(files))
+          await this.repository.removeProfile(key)
+          this.catalogueFiles = files
+          delete this.modelFileStates[model.localPath]
+          this.syncProfile()
+          this.deletedPaths.delete(model.localPath)
+        })
       } catch (e) {
         throw Error('File deleted; retry metadata cleanup: ' + e)
       }

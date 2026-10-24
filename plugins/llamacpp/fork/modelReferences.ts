@@ -5,6 +5,7 @@ import type { LocalModel } from '../shared/types'
 import type { ModelFileRef, ResolvedDependency } from '../shared/settings'
 import { modelFileKey, isGGUFShardPath } from '../shared/modelFile'
 import { inspectGGUF } from './gguf'
+import { localModelIdentity } from './localModelIdentity'
 export const resolveModelReference = async (
   ref: ModelFileRef,
   role: ResolvedDependency['role'],
@@ -24,10 +25,13 @@ export const resolveModelReference = async (
     const rel = relative(root, path)
     if (!rel || rel === '..' || rel.startsWith('..' + sep) || isAbsolute(rel))
       throw Error('Managed reference is outside models directory')
-    const sidecar = JSON.parse(await readFile(path + '.flyenv.json', 'utf8'))
-    if (modelFileKey(sidecar) !== ref.fileKey || sidecar.size !== info.size)
-      throw Error('Managed file identity changed')
-    digest = sidecar.sha256
+    const localIdentity = localModelIdentity(path, rel.split(sep).join('/'))
+    if (ref.fileKey !== modelFileKey(localIdentity)) {
+      const sidecar = JSON.parse(await readFile(path + '.flyenv.json', 'utf8'))
+      if (modelFileKey(sidecar) !== ref.fileKey || sidecar.size !== info.size)
+        throw Error('Managed file identity changed')
+      digest = sidecar.sha256
+    }
   }
   const current = { size: info.size, mtimeMs: info.mtimeMs, sha256: digest }
   if (

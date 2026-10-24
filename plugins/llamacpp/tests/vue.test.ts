@@ -18,6 +18,7 @@ test('real mounted model editor keeps draft and service model separate and persi
     path,
     localPath: '/models/' + path,
     size: 8,
+    mtimeMs: 1,
     downloadUrl: '',
     downloadedAt: 1,
     standalone: !path.startsWith('mmproj')
@@ -41,20 +42,21 @@ test('real mounted model editor keeps draft and service model separate and persi
   }
   ;(globalThis as any).__llamaUI = state
   const sources = {
-    '@/util/Index': `import {reactive} from 'vue';export const reactiveBind=value=>reactive(value)`,
+    '@/util/Index': `import {reactive} from 'vue';export const reactiveBind=value=>globalThis.__llamaUI.manager=reactive(value)`,
     '@/util/Storage': `export const StorageGetAsync=async k=>globalThis.__llamaUI.data.get(k);export const StorageSetAsync=async(k,v)=>{globalThis.__llamaUI.data.set(k,JSON.parse(JSON.stringify(v)))};export const StorageRemoveAsync=async()=>{}`,
     '@/util/Element': `export const MessageError=e=>globalThis.__llamaUI.errors.push(e);export const MessageSuccess=()=>{}`,
     '@/util/NodeFn': `export const dialog={showOpenDialog:async()=>({canceled:true,filePaths:[]})}`,
     '@/store/brew': `export const BrewStore=()=>({currentVersion:()=>globalThis.__llamaUI.runtime,module:()=>({installed:[globalThis.__llamaUI.runtime]})})`,
     '@lang/index': `export const AppI18n=()=>({global:{locale:'en'}});export const I18nT=k=>k`,
     'element-plus': `export const ElMessageBox={confirm:async()=>true}`,
-    '@/util/IPC': `const ipc={send(command,method,...args){const h=globalThis.__llamaUI;h.sent.push(method);return {then(cb){queueMicrotask(()=>cb('key',{code:0,data:method==='inspectLocalModelFiles'?args[0].map(path=>({path,status:path.endsWith('/missing.gguf')?'missing':'available'})):method==='getRuntimeCapabilities'?{status:'known',byAlias:{},help:''}:method==='getLaunchState'?{kind:'stopped'}:{requestKey:'test',issues:[],prepared:{requestKey:'test'}}}))}}},off:k=>globalThis.__llamaUI.off.push(k)};ipc.sendSensitive=ipc.send;export default ipc`
+    '@/util/IPC': `const ipc={send(command,method,...args){const h=globalThis.__llamaUI;h.sent.push(method);return {then(cb){queueMicrotask(()=>cb('key',{code:0,data:method==='scanModelsDirectory'?(h.scanResult??{models:[],skipped:[]}):method==='inspectLocalModelFiles'?args[0].map(path=>({path,status:path.endsWith('/missing.gguf')?'missing':'available'})):method==='getRuntimeCapabilities'?{status:'known',byAlias:{},help:''}:method==='getLaunchState'?{kind:'stopped'}:{requestKey:'test',issues:[],prepared:{requestKey:'test'}}}))}}},off:k=>globalThis.__llamaUI.off.push(k)};ipc.sendSensitive=ipc.send;export default ipc`
   }
   const component = await loadBundle(
     join(pluginRoot, 'render/settings/ModelSettings.vue'),
     sources,
     true
   )
+  const editorManager = state.manager
   const controller = await loadBundle(join(pluginRoot, 'render/controller.ts'), sources)
   // Both bundles use the same durable boundary. The component's actual singleton
   // writes Storage; the independently loaded controller verifies what it persisted.
@@ -195,6 +197,21 @@ test('real mounted model editor keeps draft and service model separate and persi
     assert.equal(
       state.data.get('flyenv-llama-cpp-settings-v2').modelProfiles[keyB].base.contextSize,
       8192
+    )
+    state.scanResult = { models: [{ ...files[1], mtimeMs: 2 }], skipped: [] }
+    await editorManager.refreshLocalModels()
+    await flush()
+    const confirm = flatten(root).find(
+      (n) => n.type === 'el-button' && text(n) === 'Keep configuration'
+    )
+    assert.ok(confirm, 'same-size local replacement must expose its confirmation action')
+    await confirm.props.onClick()
+    await flush()
+    await save.props.onClick()
+    await flush()
+    assert.equal(
+      state.data.get('flyenv-llama-cpp-settings-v2').modelProfiles[keyB].fingerprint.mtimeMs,
+      2
     )
     assert.deepEqual(state.errors, [])
     assert.deepEqual(warnings, [])

@@ -59,6 +59,7 @@ export interface ModelDirectoryScan {
 export interface LocalModel extends HubModelFile {
   localPath: string
   managedRoot?: string
+  mtimeMs?: number
   downloadedAt: number
   description?: GGUFDescription
   standalone?: boolean

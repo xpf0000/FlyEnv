@@ -72,7 +72,6 @@
                 :model-value="read(f) ?? empty"
                 class="w-full"
                 filterable
-                :allow-create="f.type === 'layers'"
                 :disabled="disabled(f)"
                 @change="change(f, $event)"
                 ><el-option :value="empty" :label="t('defaultValue')" /><el-option

@@ -34,7 +34,7 @@ test('fork snapshots stay tied to the running process and protect active depende
     '@fork/util/ServiceStart': `export const serviceStartSpawn=async p=>{globalThis.__llamaFork.spawnArgs=p.execArgs;return {'APP-Service-Start-PID':globalThis.__llamaFork.pid}}`,
     '@shared/StopProcessList': `export const StopProcessListFetch=async()=>{globalThis.__llamaFork.processReads++;return globalThis.__llamaFork.live?[{PID:globalThis.__llamaFork.pid,COMMAND:globalThis.__llamaFork.command??'/runtime/llama-server --model /models/main.gguf'}]:[]};export const fetchStopProcessListLocal=StopProcessListFetch`,
     [join(pluginRoot, 'fork/prepareLaunch')]:
-      `export const modelRoot=()=>'/models';export const prepareLaunch=async()=>({requestKey:'config',issues:[],prepared:globalThis.__llamaFork.prepared})`,
+      `export const modelRoot=configured=>configured??globalThis.Server.BaseDir+'/llama-cpp/models';export const prepareLaunch=async()=>({requestKey:'config',issues:[],prepared:globalThis.__llamaFork.prepared})`,
     [join(pluginRoot, 'fork/observation')]:
       `export const observeRuntime=async()=>({modalities:['text','image']})`,
     [join(pluginRoot, 'fork/config')]:
