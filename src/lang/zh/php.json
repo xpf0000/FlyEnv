@@ -11,6 +11,8 @@
   "windowsInstallSuccess": "扩展已为所选 PHP 版本安装并加载。",
   "windowsRestart": "请重启此 PHP 服务，使运行中的站点加载扩展。",
   "windowsBackup": "php.ini 备份",
+  "windowsNotLoaded": "已配置但未加载",
+  "windowsDisableSuccess": "扩展已在 php.ini 中禁用，请重启此 PHP 服务以生效。",
   "copyConfTemplate": "复制配置模板",
   "extensionCopySuccess": "扩展链接已复制到剪贴板",
   "xdebugConfCopySuccess": "xdebug配置模板已复制到剪贴板",

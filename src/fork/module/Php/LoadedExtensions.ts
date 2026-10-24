@@ -4,6 +4,15 @@ import type { SoftInstalled } from '@shared/app'
 export type LoadedPhpExtension = { name: string }
 const marker = 'FLYENV_LOADED_EXTENSIONS='
 
+export function phpIniPathScript(): string {
+  return "echo 'FLYENV_PHP_INI='.base64_encode(php_ini_loaded_file() ?: '');"
+}
+
+export function parsePhpIniPath(stdout: string): string {
+  const value = stdout.match(/FLYENV_PHP_INI=([A-Za-z0-9+/=]*)/)?.[1]
+  return value ? Buffer.from(value, 'base64').toString('utf8') : ''
+}
+
 export function loadedExtensionsCommand(version: SoftInstalled, ini: string, windows: boolean) {
   const path = windows ? win32 : posix
   const bin = version.phpBin || path.join(version.path, windows ? 'php.exe' : 'bin/php')

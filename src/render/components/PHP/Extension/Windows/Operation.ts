@@ -22,12 +22,14 @@ type Dependencies = {
   notice: (kind: 'success' | 'warning' | 'error', text: string) => void
   refresh: (version: SoftInstalled) => void
   successMessage: () => string
+  disabledMessage?: () => string
 }
 
 export class WindowsExtensionController {
   entries: Record<string, ExtensionEntry> = {}
   installingBin = ''
   private searches = new Map<string, Promise<void>>()
+  private queries = new Map<string, string>()
 
   constructor(private readonly dependencies: Dependencies) {}
 
@@ -56,38 +58,79 @@ export class WindowsExtensionController {
 
   load(version: SoftInstalled) {
     const entry = this.entry(version)
-    if (!entry.profile && !entry.fetching && !entry.installing)
-      this.search(version, entry.lastQuery)
+    if (!entry.fetching && !entry.installing) this.search(version, entry.lastQuery)
   }
 
   search(version: SoftInstalled, query: string): Promise<void> {
     const entry = this.entry(version)
     const pending = this.searches.get(version.bin)
-    if (pending) return pending
     if (entry.installing) return Promise.resolve()
+    this.queries.set(version.bin, query)
+    entry.lastQuery = query
+    if (pending) return pending
     const snapshot = JSON.parse(JSON.stringify(version)) as SoftInstalled
     entry.fetching = true
     entry.error = ''
-    entry.lastQuery = query
     const operation = Promise.resolve()
-      .then(() =>
-        this.dependencies.request<ExtensionCatalog>('windowsExtensionCatalog', [snapshot, query])
-      )
-      .then((catalog) => {
-        entry.profile = catalog.profile
-        entry.packages = catalog.packages
-        entry.partial = catalog.partial
-      })
-      .catch((error: unknown) => {
-        entry.error = error instanceof Error ? error.message : String(error)
-        this.notice('error', entry.error)
+      .then(async () => {
+        do {
+          query = this.queries.get(snapshot.bin) ?? ''
+          try {
+            const catalog = await this.dependencies.request<ExtensionCatalog>(
+              'windowsExtensionCatalog',
+              [snapshot, query]
+            )
+            if (query === this.queries.get(snapshot.bin)) {
+              entry.profile = catalog.profile
+              entry.packages = catalog.packages
+              entry.partial = catalog.partial
+              entry.error = ''
+            }
+          } catch (error: unknown) {
+            if (query === this.queries.get(snapshot.bin)) {
+              entry.error = error instanceof Error ? error.message : String(error)
+              this.notice('error', entry.error)
+            }
+          }
+        } while (query !== this.queries.get(snapshot.bin))
       })
       .finally(() => {
         entry.fetching = false
         this.searches.delete(snapshot.bin)
+        this.queries.delete(snapshot.bin)
       })
     this.searches.set(snapshot.bin, operation)
     return operation
+  }
+
+  async disable(version: SoftInstalled, name: string): Promise<boolean> {
+    const entry = this.entry(version)
+    if (this.installingBin || entry.fetching) return false
+    const snapshot = JSON.parse(JSON.stringify(version)) as SoftInstalled
+    this.installingBin = snapshot.bin
+    entry.installing = true
+    entry.error = ''
+    entry.result = undefined
+    try {
+      entry.profile = await this.dependencies.request<PhpExtensionProfile>(
+        'windowsExtensionDisable',
+        [snapshot, name]
+      )
+      this.notice('success', this.dependencies.disabledMessage?.() ?? '')
+      try {
+        this.dependencies.refresh(snapshot)
+      } catch {
+        /* a refresh cannot undo the completed configuration change */
+      }
+      return true
+    } catch (error) {
+      entry.error = error instanceof Error ? error.message : String(error)
+      this.notice('error', entry.error)
+      return false
+    } finally {
+      entry.installing = false
+      this.installingBin = ''
+    }
   }
 
   async install(version: SoftInstalled, name: string): Promise<boolean> {

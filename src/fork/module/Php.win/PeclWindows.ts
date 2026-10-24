@@ -5,6 +5,9 @@ import { existsSync } from 'node:fs'
 import { copyFile, mkdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import { basename, dirname, join } from 'node:path'
 import type { PhpExtensionProfile } from './WindowsExtensions'
+import { extensionHttpGet } from './ExtensionHttp'
+import { extensionIsLoaded, updateExtensionIni } from './ExtensionConfig'
+import { replaceIniIfUnchanged } from './IniMutation'
 
 const repository = 'https://downloads.php.net/~windows/pecl/releases/'
 const links = (html: string) => [...html.matchAll(/href="([^"?#]+)"/gi)].map((match) => match[1])
@@ -31,7 +34,7 @@ export async function findPeclArchive(
   if (!/^[a-z][a-z0-9_]*$/.test(extension)) return undefined
   let html: string
   try {
-    html = (await axios.get(repository + extension + '/', { timeout: 30000 })).data
+    html = (await extensionHttpGet(repository + extension + '/', { timeout: 30000 })).data
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) return undefined
     throw error
@@ -45,7 +48,9 @@ export async function findPeclArchive(
       return 0
     })
   for (const version of versions) {
-    const listing = await axios.get(repository + extension + '/' + version, { timeout: 30000 })
+    const listing = await extensionHttpGet(repository + extension + '/' + version, {
+      timeout: 30000
+    })
     const archive = links(listing.data).find(
       (file) => file.startsWith(`php_${extension}-`) && compatiblePeclArchive(file, profile)
     )
@@ -109,7 +114,7 @@ export async function installPeclArchive(options: {
     throw new Error('The Windows extension archive does not match the selected PHP build')
   }
   progress(`Downloading ${url}\n`)
-  const response = await axios.get(url, {
+  const response = await extensionHttpGet(url, {
     responseType: 'arraybuffer',
     timeout: 120000,
     maxContentLength: 64000000
@@ -135,6 +140,7 @@ export async function installPeclArchive(options: {
   await copyFile(profile.ini, backup)
   const applied: typeof writes = []
   let iniChanged = false
+  let installedIni = ini
   try {
     for (const item of writes) {
       await mkdir(dirname(item.path), { recursive: true })
@@ -144,29 +150,40 @@ export async function installPeclArchive(options: {
       applied.push(item)
       await writeFile(item.path, item.data)
     }
-    const pattern = new RegExp(
-      `^\\s*;?\\s*(?:zend_)?extension\\s*=\\s*["']?(?:php_)?${extension}(?:\\.dll)?["']?\\s*(?:;.*)?$`,
-      'gmi'
+    if (extension === 'xdebug')
+      await mkdir(join(global.Server.PhpDir!, 'xdebug'), { recursive: true })
+    installedIni = Buffer.from(
+      updateExtensionIni(
+        ini.toString('utf8'),
+        extension,
+        true,
+        options.zend,
+        join(profile.extensionDir, moduleName),
+        join(global.Server.PhpDir!, 'xdebug')
+      )
     )
-    const content = ini.toString('utf8').replace(pattern, '')
+    await replaceIniIfUnchanged(profile.ini, ini, installedIni)
     iniChanged = true
-    await writeFile(
-      profile.ini,
-      content.trimEnd() + `\n${options.zend ? 'zend_extension' : 'extension'}=${moduleName}\n`
-    )
     const updated = await options.verify()
-    if (!updated.loaded.some((name) => name.toLowerCase() === extension))
-      throw new Error('The extension did not load in the selected PHP')
+    if (!extensionIsLoaded(updated.loaded, extension, updated.loadWarnings))
+      throw new Error(
+        'The extension did not load correctly in the selected PHP; check for duplicate directives'
+      )
     progress(`Installed ${moduleName} for PHP ${profile.version}.\n`)
     return { profile: updated, backup }
   } catch (error) {
     const failures: string[] = []
     if (iniChanged)
       try {
-        await writeFile(profile.ini, ini)
+        await replaceIniIfUnchanged(profile.ini, installedIni, ini)
       } catch {
         failures.push(profile.ini)
       }
+    // If another writer changed the installed configuration, keep its DLLs too.
+    if (failures.length)
+      throw new Error(
+        `${String(error)}\nNewer php.ini and installed files were preserved. Backups: ${directory}`
+      )
     for (const item of applied.reverse()) {
       try {
         if (item.original) await writeFile(item.path, item.original)

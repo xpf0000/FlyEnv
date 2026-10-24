@@ -1,4 +1,4 @@
-import { join, dirname, basename, isAbsolute, win32 } from 'path'
+import { join, dirname, basename, win32 } from 'path'
 import { createWriteStream, existsSync } from 'fs'
 import { Base } from '../Base'
 import { I18nT } from '@lang/runtime'
@@ -33,6 +33,14 @@ import { ProcessListByExactPid } from '@shared/Process'
 import type { PItem } from '@shared/Process'
 import { FastCgiWorkerStore } from './FastCgiWorkers'
 import windowsExtensions from './WindowsExtensions'
+import {
+  configuredExtensions,
+  extensionDirectory,
+  extensionName,
+  iniValue,
+  updateExtensionIni
+} from './ExtensionConfig'
+import { replaceIniIfUnchanged, withPhpIniMutation } from './IniMutation'
 import { loadedExtensionsCommand, parseLoadedExtensions } from '../Php/LoadedExtensions'
 import { timeOperation, timeOperationSync } from '@shared/OperationTiming'
 import {
@@ -64,6 +72,10 @@ class Php extends Base {
 
   windowsExtensionInstall(version: SoftInstalled, name: string) {
     return windowsExtensions.install(version, name)
+  }
+
+  windowsExtensionDisable(version: SoftInstalled, name: string) {
+    return windowsExtensions.disable(version, name)
   }
 
   constructor() {
@@ -635,137 +647,59 @@ class Php extends Base {
   fetchExtensionDir(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve) => {
       const ini = await this.getIniPath(version)
-      let content: string = await readFile(ini, 'utf-8')
-
-      let dir: string = ''
-      const regex: RegExp = /^(?!\s*;)\s*extension_dir\s*=\s*"?([^"\s]+)"?/gm
-      let m: any
-      while ((m = regex.exec(content)) !== null) {
-        if (m && m.length > 0) {
-          dir = m[1].trim()
-        }
-      }
-
-      if (!dir) {
-        content = content.trim() + `\nextension_dir = "ext"`
-        await writeFile(ini, content)
-        dir = join(dirname(version.bin), 'ext')
-      } else if (!isAbsolute(dir)) {
-        dir = join(dirname(version.bin), dir)
-      }
-      if (existsSync(dir)) {
-        resolve(dir)
-      }
-      resolve('')
+      const content = await readFile(ini, 'utf-8')
+      const dir = extensionDirectory(content, version.phpBin || join(version.path, 'php.exe'))
+      resolve(existsSync(dir) ? dir : '')
     })
   }
 
   localExec(item: any, version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve) => {
       const ini = await this.getIniPath(version)
-      let content: string = await readFile(ini, 'utf-8')
-      content = content.trim()
-
-      if (item.installed) {
-        const type = item.iniStr.includes('zend_') ? 'zend_extension' : 'extension'
-        const regex: RegExp = new RegExp(
-          `^(?!\\s*;)\\s*${type}\\s*=\\s*"?(${item.name})(\\.dll)?"?`,
-          'gm'
-        )
-        content = content.replace(regex, ``).trim()
-        if (item.name === 'php_xdebug') {
-          content = content
-            .replace(/;\[FlyEnv-xdebug-ini-begin\]([\s\S]*?);\[FlyEnv-xdebug-ini-end\]/g, ``)
-            .trim()
-        }
-      } else {
-        let dll = item.iniStr
-        if (!dll.includes(`.dll`)) {
-          dll = dll.replace(/"/g, '').trim()
-          dll += '.dll'
-        }
-        content += `\n${dll}`
-        if (item.name === 'php_xdebug') {
-          const output_dir = join(global.Server.PhpDir!, 'xdebug')
-          await mkdirp(output_dir)
-          content += `\n;[FlyEnv-xdebug-ini-begin]
-xdebug.idekey = "PHPSTORM"
-xdebug.client_host = localhost
-xdebug.client_port = 9003
-xdebug.mode = debug
-xdebug.profiler_append = 0
-xdebug.profiler_output_name = cachegrind.out.%p
-xdebug.start_with_request = yes
-xdebug.trigger_value=StartProfileForMe
-xdebug.output_dir = "${output_dir}"
-;[FlyEnv-xdebug-ini-end]`
-        }
-      }
-
-      content = content.trim()
-      await writeFile(ini, content)
-      this.fetchLocalExtend(version).then(resolve).catch(reject)
+      resolve(
+        await withPhpIniMutation(ini, async () => {
+          const original = Buffer.from(await readFile(ini, 'utf-8'))
+          const name = extensionName(item.name)
+          const directory = extensionDirectory(
+            original.toString('utf8'),
+            version.phpBin || join(version.path, 'php.exe')
+          )
+          const xdebugDirectory = join(global.Server.PhpDir!, 'xdebug')
+          if (name === 'xdebug' && !item.installed) await mkdirp(xdebugDirectory)
+          const value = iniValue(item.iniStr.slice(item.iniStr.indexOf('=') + 1))
+          const dll = value.toLowerCase().endsWith('.dll') ? value : `${value}.dll`
+          if (extensionName(dll) !== name)
+            throw new Error('The selected extension DLL does not match its name')
+          const content = updateExtensionIni(
+            original.toString('utf8'),
+            name,
+            !item.installed,
+            name === 'xdebug' || name === 'opcache' || item.iniStr.includes('zend_'),
+            win32.resolve(directory, dll),
+            xdebugDirectory
+          )
+          await replaceIniIfUnchanged(ini, original, Buffer.from(content))
+          return await this.fetchLocalExtend(version)
+        })
+      )
     })
   }
 
   fetchLocalExtend(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
       const ini = await this.getIniPath(version)
-      let content: string = await readFile(ini, 'utf-8')
-
-      let dir: string = ''
-      let regex: RegExp = /^(?!\s*;)\s*extension_dir\s*=\s*"?([^"\s]+)"?/gm
-      let m: any
-      while ((m = regex.exec(content)) !== null) {
-        if (m && m.length > 0) {
-          dir = m[1].trim()
-        }
-      }
-
-      if (!dir) {
-        content = content.trim() + `\nextension_dir = "ext"`
-        await writeFile(ini, content)
-        dir = join(dirname(version.bin), 'ext')
-      } else if (!isAbsolute(dir)) {
-        dir = join(dirname(version.bin), dir)
-      }
-
-      console.log('fetchLocalExtend dir: ', dir)
-
+      const content = await readFile(ini, 'utf-8')
+      const dir = extensionDirectory(content, version.phpBin || join(version.path, 'php.exe'))
       const local: any = []
-      const used: any = []
-
-      regex = /^(?!\s*;)\s*extension\s*=\s*"?([^"\s]+)"?/gm
-      while ((m = regex.exec(content)) !== null) {
-        if (m && m.length > 0) {
-          const name = m[1].split('.').shift().trim()
-          const iniStr = m[0].trim()
-          used.push({
-            name,
-            iniStr
-          })
-        }
-      }
-
-      regex.lastIndex = 0
-      regex = /^(?!\s*;)\s*zend_extension\s*=\s*"?([^"\s]+)"?/gm
-      while ((m = regex.exec(content)) !== null) {
-        if (m && m.length > 0) {
-          const name = m[1].split('.').shift().trim()
-          const iniStr = m[0].trim()
-          used.push({
-            name,
-            iniStr
-          })
-        }
-      }
+      const configured = new Set(configuredExtensions(content, []).map((item) => item.name))
 
       const zend = ['php_opcache', 'php_xdebug']
 
       if (existsSync(dir)) {
         let all: any = await readdir(dir)
         all = all
-          .map((a: string) => a.split('.').shift()!)
+          .filter((a: string) => a.toLowerCase().endsWith('.dll'))
+          .map((a: string) => a.slice(0, -4).toLowerCase())
           .map((a: string) => {
             return {
               name: a,
@@ -777,7 +711,7 @@ xdebug.output_dir = "${output_dir}"
 
       resolve({
         local,
-        used,
+        used: local.filter((item: { name: string }) => configured.has(extensionName(item.name))),
         dir
       })
     })
@@ -799,6 +733,13 @@ xdebug.output_dir = "${output_dir}"
   }
 
   libExec(item: any, version: SoftInstalled) {
+    return new ForkPromise(async (resolve, _reject, on) => {
+      const ini = await this.getIniPath(version)
+      resolve(await withPhpIniMutation(ini, () => this.libExecUnlocked(item, version).on(on)))
+    })
+  }
+
+  private libExecUnlocked(item: any, version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       const ini = await this.getIniPath(version)
       let content: string = await readFile(ini, 'utf-8')

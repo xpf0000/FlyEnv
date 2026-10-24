@@ -52,6 +52,7 @@ const phpWindowsController = readFileSync(
 )
 assert.doesNotMatch(phpWindowsPage, /from\s+['"]@\/util\/IPC['"]|IPC\.send/)
 assert.match(phpWindowsPage, /windowsExtensions\.install\(version,/)
+assert.match(phpWindowsPage, /windowsExtensions\.disable\(version,/)
 assert.match(phpWindowsController, /reactiveBind\(\s*new WindowsExtensionController/)
 
 const loadedPhpSetup = readFileSync(join(componentsDir, 'PHP/Extension/Loaded/setup.ts'), 'utf-8')

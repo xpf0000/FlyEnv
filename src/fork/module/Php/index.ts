@@ -41,7 +41,12 @@ import { IniParse } from '../../../render/util/IniParse'
 import { isWindows, uuid } from '@shared/utils'
 import { createHash } from 'node:crypto'
 import { qualifyHomebrewCoreFormula } from '../../util/BrewFormula'
-import { loadedExtensionsCommand, parseLoadedExtensions } from './LoadedExtensions'
+import {
+  loadedExtensionsCommand,
+  parseLoadedExtensions,
+  parsePhpIniPath,
+  phpIniPathScript
+} from './LoadedExtensions'
 
 class Php extends Base {
   fetchLoadedExtensions(version: SoftInstalled) {
@@ -81,30 +86,28 @@ class Php extends Base {
 
   getIniPath(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject) => {
-      let command = ''
       let res: any
       let ini = ''
-      if (version?.phpBin) {
-        command = `${version.phpBin} -i | grep php.ini`
-      } else {
-        command = `${join(version.path, 'bin/php')} -i | grep php.ini`
-      }
+      const bin = version.phpBin || join(version.path, 'bin/php')
       try {
-        console.log('getIniPath: ', command)
-        res = await execPromise(command)
-        ini = res?.stdout?.trim()?.split('=>')?.pop()?.trim() ?? ''
-        ini = ini?.split('=>')?.pop()?.trim() ?? ''
+        res = await spawnPromiseWithEnv(bin, ['-r', phpIniPathScript()], {
+          cwd: dirname(bin),
+          shell: false,
+          timeout: 30000
+        })
+        ini = parsePhpIniPath(res.stdout)
       } catch {}
 
       if (!ini) {
-        if (version?.phpConfig) {
-          command = `${version?.phpConfig} --ini-path`
-        } else {
-          command = `${join(version.path, 'bin/php-config')} --ini-path`
-        }
+        const config = version.phpConfig || join(version.path, 'bin/php-config')
         try {
-          res = await execPromise(command)
-          ini = res?.stdout?.trim()
+          res = await spawnPromiseWithEnv(config, ['--ini-path'], {
+            cwd: dirname(config),
+            shell: false,
+            timeout: 30000
+          })
+          ini = res.stdout.trim()
+          if (ini && existsSync(ini) && statSync(ini).isDirectory()) ini = join(ini, 'php.ini')
         } catch {}
       }
 

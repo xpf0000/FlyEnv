@@ -21,6 +21,7 @@ export default reactiveBind(
       delete PHPSetup.localExtend[version.bin]
       delete PHPSetup.localUsed[version.bin]
     },
-    successMessage: () => I18nT('php.windowsInstallSuccess')
+    successMessage: () => I18nT('php.windowsInstallSuccess'),
+    disabledMessage: () => I18nT('php.windowsDisableSuccess')
   })
 )

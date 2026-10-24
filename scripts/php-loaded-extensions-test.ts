@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import {
   loadedExtensionsCommand,
-  parseLoadedExtensions
+  parseLoadedExtensions,
+  parsePhpIniPath
 } from '../src/fork/module/Php/LoadedExtensions'
 import { LoadedExtensionsController } from '../src/render/components/PHP/Extension/Loaded/Operation'
 import type { LoadedPhpExtension } from '../src/fork/module/Php/LoadedExtensions'
@@ -48,6 +49,14 @@ for (const newline of ['\n', '\r\n']) {
 assert.throws(() => parseLoadedExtensions('[PHP Modules]\ncurl\n'), /did not return/)
 assert.throws(() => parseLoadedExtensions('FLYENV_LOADED_EXTENSIONS=["curl",false]'), /invalid/)
 assert.throws(() => parseLoadedExtensions('FLYENV_LOADED_EXTENSIONS=not-json'), SyntaxError)
+const specialIni = '/opt/custom PHP [8.3] & $/配置/php.ini'
+assert.equal(
+  parsePhpIniPath(
+    `Warning: unrelated startup output\nFLYENV_PHP_INI=${Buffer.from(specialIni).toString('base64')}`
+  ),
+  specialIni
+)
+assert.equal(parsePhpIniPath('FLYENV_PHP_INI='), '')
 
 const deferred = () => {
   let resolve!: (rows: LoadedPhpExtension[]) => void
@@ -99,6 +108,20 @@ requests[3].task.resolve([{ name: 'curl' }, { name: 'xdebug' }])
 await retry
 assert.equal(controller.errors[php83.bin], undefined)
 assert.equal(controller.list[php83.bin]?.length, 2)
+assert.equal(controller.fetching[php83.bin], undefined)
+
+const stale = controller.reFetch(php83)
+await Promise.resolve()
+assert.equal(controller.reFetch(php83), stale)
+assert.equal(controller.reFetch(php83), stale, 'refreshes during a read coalesce')
+requests[4].task.resolve([{ name: 'old-before-install' }])
+await new Promise((resolve) => setImmediate(resolve))
+assert.equal(requests.length, 6, 'a refresh requested during a read runs afterwards')
+assert.notEqual(controller.list[php83.bin]?.[0]?.name, 'old-before-install')
+assert.equal(controller.fetching[php83.bin], true)
+requests[5].task.resolve([{ name: 'redis' }])
+await stale
+assert.deepEqual(controller.list[php83.bin], [{ name: 'redis' }])
 assert.equal(controller.fetching[php83.bin], undefined)
 console.log(
   'Loaded PHP extensions: Windows/macOS/Linux paths, JSON, per-version refresh, re-entry and failure/retry passed'

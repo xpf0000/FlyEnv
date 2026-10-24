@@ -40,6 +40,31 @@
       v-if="entry.log"
       class="text-xs whitespace-pre-wrap break-all max-h-48 overflow-auto p-3 bg-black/5 dark:bg-white/5"
       >{{ entry.log }}</pre>
+    <el-table
+      v-if="entry.profile?.configured?.length"
+      :data="entry.profile.configured"
+      max-height="180"
+      class="flex-shrink-0"
+    >
+      <el-table-column prop="name" :label="I18nT('php.extension')" />
+      <el-table-column :label="I18nT('common.label.status')" align="center">
+        <template #default="scope">
+          <el-tag :type="scope.row.loaded ? 'success' : 'warning'">{{
+            scope.row.loaded ? I18nT('common.state.enabled') : I18nT('php.windowsNotLoaded')
+          }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column width="130" align="center">
+        <template #default="scope">
+          <el-button
+            size="small"
+            :disabled="!!windowsExtensions.installingBin || entry.fetching"
+            @click="windowsExtensions.disable(version, scope.row.name)"
+            >{{ I18nT('common.action.disable') }}</el-button
+          >
+        </template>
+      </el-table-column>
+    </el-table>
     <el-table v-loading="entry.fetching" :data="entry.packages" height="100%" class="flex-1">
       <el-table-column prop="name" :label="I18nT('php.extension')" min-width="180" />
       <el-table-column
@@ -75,7 +100,10 @@
   const search = () => windowsExtensions.search(props.version, query.value)
   watch(
     () => props.version.bin,
-    () => windowsExtensions.load(props.version),
+    () => {
+      query.value = entry.value.lastQuery
+      windowsExtensions.load(props.version)
+    },
     { immediate: true }
   )
 </script>

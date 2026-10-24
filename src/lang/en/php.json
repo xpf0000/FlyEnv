@@ -11,6 +11,8 @@
   "windowsInstallSuccess": "Extension installed and loaded for the selected PHP version.",
   "windowsRestart": "Restart this PHP service to apply the extension to running sites.",
   "windowsBackup": "php.ini backup",
+  "windowsNotLoaded": "Configured but not loaded",
+  "windowsDisableSuccess": "Extension disabled in php.ini. Restart this PHP service to apply the change.",
   "copyConfTemplate": "Copy config template",
   "extensionCopySuccess": "Extension link copied to clipboard",
   "xdebugConfCopySuccess": "xdebug configuration template copied to clipboard",
