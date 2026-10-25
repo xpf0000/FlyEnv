@@ -167,23 +167,6 @@ See the [Development Guide](./DEV.md).
 
 ---
 
-## Windows Git Bash project environments
-
-On Windows, FlyEnv installs a Git Bash hook together with its PowerShell
-integration. After restarting Git Bash, enter a registered project directory
-to load the project's `.flyenv` PATH entries:
-
-```bash
-cd /path/to/project
-```
-
-The same `.flyenv` file remains PowerShell syntax; FlyEnv's Git Bash loader
-translates the generated PATH entries instead of sourcing PowerShell commands
-directly. Git Bash must provide the `cygpath` command, as it does in a standard
-Git for Windows installation.
-
----
-
 ## Community & Support
 
 - Website: https://flyenv.com
