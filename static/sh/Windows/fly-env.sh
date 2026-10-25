@@ -148,7 +148,8 @@ flyenv_autoload() {
     export PATH
   fi
   if [[ ${#_flyenv_project_paths[@]} -gt 0 && "$-" == *i* ]]; then
-    printf '\033[32m[FlyEnv] Project environment loaded\033[0m\n'
+    printf '\033[36m[FlyEnv] Loading environment variables...\033[0m\n'
+    printf '\033[32m[FlyEnv] Load successful\033[0m\n'
   fi
   return "$previous_status"
 }

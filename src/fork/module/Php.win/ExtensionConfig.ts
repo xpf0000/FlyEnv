@@ -54,6 +54,46 @@ export function extensionDirectory(content: string, bin: string): string {
   return win32.resolve(win32.dirname(bin), directory)
 }
 
+function extensionLayout(lines: string[]) {
+  let global = true
+  let phpSection = -1
+  let globalEnd = 0
+  const globalLines: boolean[] = []
+  const entries: {
+    index: number
+    name: string
+    active: boolean
+    global: boolean
+    zend: boolean
+    indent: string
+    comment: string
+  }[] = []
+  lines.forEach((line, index) => {
+    const section = line.match(/^\s*\[(.+)\]\s*(?:;.*)?$/)
+    if (section) {
+      global = !/^(?:PATH|HOST)\s*=/i.test(section[1].trim())
+      if (/^PHP$/i.test(section[1].trim()) && phpSection < 0) phpSection = index
+    }
+    globalLines.push(global)
+    if (global) globalEnd = index + 1
+    const match = line.match(/^(\s*)(;?)\s*(zend_)?extension\s*=\s*(.*)$/i)
+    if (!match) return
+    const value = match[4].trim()
+    const quoteEnd = /^["']/.test(value) ? value.indexOf(value[0], 1) : -1
+    const comment = value.indexOf(';', quoteEnd + 1)
+    entries.push({
+      index,
+      name: extensionName(iniValue(value)),
+      active: !match[2],
+      global,
+      zend: !!match[3],
+      indent: match[1],
+      comment: comment < 0 ? '' : ` ${value.slice(comment)}`
+    })
+  })
+  return { entries, globalLines, phpSection, globalEnd }
+}
+
 export function updateExtensionIni(
   content: string,
   name: string,
@@ -66,24 +106,50 @@ export function updateExtensionIni(
   const bom = content.startsWith('\uFEFF') ? '\uFEFF' : ''
   if (bom) content = content.slice(1)
   const newline = content.includes('\r\n') ? '\r\n' : '\n'
-  let updated = content
-    .split(/\r?\n/)
-    .filter((line) => {
-      const match = line.match(/^\s*;?\s*(?:zend_)?extension\s*=\s*(.*)$/i)
-      return !match || extensionName(iniValue(match[1])) !== name
-    })
-    .join(newline)
-    .trimEnd()
-  if (!enabled) {
-    if (name === 'xdebug')
-      updated = updated.replace(
-        /;\[FlyEnv-xdebug-ini-begin\][\s\S]*?;\[FlyEnv-xdebug-ini-end\]/g,
-        ''
-      )
-    return bom + updated.trimEnd() + newline
-  }
+  const lines = content.trimEnd() ? content.trimEnd().split(/\r?\n/) : []
+  const matches = extensionLayout(lines).entries.filter((entry) => entry.name === name)
+  const anchor =
+    matches.find((entry) => entry.global && entry.active) ?? matches.find((entry) => entry.global)
   const directive = `${zend ? 'zend_extension' : 'extension'}="${dll.replaceAll('\\', '/')}"`
-  // Place startup directives before any per-directory [PATH=...] or [HOST=...] section.
+  const matchingLines = new Set(matches.map((entry) => entry.index))
+  const updated = lines.flatMap((line, index) => {
+    if (!matchingLines.has(index)) return [line]
+    return enabled && index === anchor?.index
+      ? [`${anchor.indent}${directive}${anchor.comment}`]
+      : []
+  })
+  if (!enabled) {
+    let text = updated.join(newline)
+    if (name === 'xdebug')
+      text = text.replace(/;\[FlyEnv-xdebug-ini-begin\][\s\S]*?;\[FlyEnv-xdebug-ini-end\]/g, '')
+    return bom + text.trimEnd() + newline
+  }
+  if (!anchor) {
+    const layout = extensionLayout(updated)
+    const lastExtension = layout.entries.filter((entry) => entry.global).at(-1)
+    const position = lastExtension
+      ? lastExtension.index + 1
+      : layout.phpSection >= 0
+        ? layout.phpSection + 1
+        : layout.globalEnd
+    updated.splice(position, 0, directive)
+  }
+  // Adjust only the extension being enabled; preserve every other extension's order.
+  if (zend && (name === 'xdebug' || name === 'opcache')) {
+    const entries = extensionLayout(updated).entries.filter(
+      (entry) => entry.global && entry.active && entry.zend
+    )
+    const target = entries.find((entry) => entry.name === name)!
+    const peer =
+      name === 'xdebug'
+        ? entries.filter((entry) => entry.name === 'opcache').at(-1)
+        : entries.find((entry) => entry.name === 'xdebug')
+    if (peer && (name === 'xdebug' ? target.index < peer.index : target.index > peer.index)) {
+      const [line] = updated.splice(target.index, 1)
+      // Removing an earlier Xdebug shifts OPcache left, so this index is now after it.
+      updated.splice(peer.index, 0, line)
+    }
+  }
   if (name === 'xdebug') {
     const defaults: Record<string, string> = {
       idekey: '"PHPSTORM"',
@@ -96,16 +162,22 @@ export function updateExtensionIni(
       trigger_value: 'StartProfileForMe',
       output_dir: `"${xdebugDirectory.replaceAll('\\', '/')}"`
     }
+    const layout = extensionLayout(updated)
+    const globalContent = updated.filter((_line, index) => layout.globalLines[index]).join(newline)
     const missing = Object.entries(defaults)
-      .filter(([key]) => !new RegExp(`^\\s*xdebug\\.${key}\\s*=`, 'mi').test(updated))
+      .filter(([key]) => !new RegExp(`^\\s*xdebug\\.${key}\\s*=`, 'mi').test(globalContent))
       .map(([key, value]) => `xdebug.${key} = ${value}`)
-    if (missing.length)
-      updated = [
+    if (missing.length) {
+      const position =
+        layout.entries.find((entry) => entry.global && entry.name === name)!.index + 1
+      updated.splice(
+        position,
+        0,
         ';[FlyEnv-xdebug-ini-begin]',
         ...missing,
-        ';[FlyEnv-xdebug-ini-end]',
-        updated
-      ].join(newline)
+        ';[FlyEnv-xdebug-ini-end]'
+      )
+    }
   }
-  return bom + directive + newline + updated + newline
+  return bom + updated.join(newline).trimEnd() + newline
 }

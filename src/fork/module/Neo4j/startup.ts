@@ -33,14 +33,32 @@ function pathMarkerMatches(command: string, path: string): boolean {
 }
 
 function exactOptionPathMatches(command: string, option: string, path: string): boolean {
-  const expected = normalizedCommand(path).replace(/\/+$/, '')
+  const normalizePath = (value: string) => {
+    const normalized = value.trim().replace(/\\/g, '/').replace(/\/+$/, '')
+    return isWindows() ? normalized.toLowerCase() : normalized
+  }
+  const expected = normalizePath(path)
   if (!expected) return false
-  // Neo4j 支持 `--option=value` 与 `--option value`；引号值可包含空格。
-  const expression = /--([a-z-]+)(?:=|\s+)(?:"([^"]*)"|'([^']*)'|([^\s]+))/g
-  for (const match of command.replace(/\\/g, '/').matchAll(expression)) {
-    if (match[1].toLowerCase() !== option) continue
-    const value = normalizedCommand(match[2] ?? match[3] ?? match[4] ?? '').replace(/\/+$/, '')
-    if (value === expected) return true
+  // Windows Java 会引用整个 --option=path 参数；先拆完整参数再取值，兼容
+  // --option="path" 和 --option "path"，不把其他参数值里的片段当成实例证据。
+  const windows = isWindows()
+  const tokens = command.match(windows ? /(?:[^\s"]+|"[^"]*")+/g : /(?:[^\s"']+|"[^"]*"|'[^']*')+/g)
+  const args = (tokens ?? []).map((token) =>
+    token.replace(
+      windows ? /"([^"]*)"/g : /"([^"]*)"|'([^']*)'/g,
+      (_match, double, single) => double ?? single
+    )
+  )
+  const flag = `--${option}`
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index].toLowerCase()
+    const value =
+      argument === flag
+        ? args[++index]
+        : argument.startsWith(`${flag}=`)
+          ? args[index].slice(flag.length + 1)
+          : undefined
+    if (value && normalizePath(value) === expected) return true
   }
   return false
 }

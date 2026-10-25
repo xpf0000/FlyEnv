@@ -48,15 +48,30 @@ const execFileAsync = promisify(execFile)
 /** 普通服务和组服务共用 MariaDB 二进制，根身份按配置路径精确区分。 */
 const hasExactMariaDBDefaultsFile = (command: string | undefined, expected: string) => {
   if (!command) return false
+  const windows = isWindows()
   const normalizeConfigPath = (value: string) => {
     const normalized = resolvePath(value).replace(/\\/g, '/')
-    return isWindows() ? normalized.toLowerCase() : normalized
+    return windows ? normalized.toLowerCase() : normalized
   }
   const expectedPath = normalizeConfigPath(expected)
-  for (const match of command.matchAll(
-    /(?:^|\s)--defaults-file(?:=|\s+)(?:"([^"]+)"|'([^']+)'|([^\s]+))/gi
-  )) {
-    const configuredPath = match[1] ?? match[2] ?? match[3]
+  // Windows spawn 会给整个含空格参数加双引号，而非只引用等号后的路径。
+  // 先按完整参数拆分，兼容两种引用，避免把其他参数值中的配置片段认作归属。
+  // Windows 的单引号是路径字符；Unix 仍兼容单/双引号引用。
+  const tokens = command.match(windows ? /(?:[^\s"]+|"[^"]*")+/g : /(?:[^\s"']+|"[^"]*"|'[^']*')+/g)
+  const args = (tokens ?? []).map((token) =>
+    token.replace(
+      windows ? /"([^"]*)"/g : /"([^"]*)"|'([^']*)'/g,
+      (_match, double, single) => double ?? single
+    )
+  )
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index].toLowerCase()
+    const configuredPath =
+      argument === '--defaults-file'
+        ? args[++index]
+        : argument.startsWith('--defaults-file=')
+          ? args[index].slice('--defaults-file='.length)
+          : undefined
     if (configuredPath && normalizeConfigPath(configuredPath) === expectedPath) {
       return true
     }

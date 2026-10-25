@@ -1,4 +1,24 @@
 export default {
+  tlsTitle: '本地 TLS 证书',
+  tlsDescription:
+    '复用 FlyEnv 根 CA、SSL 证书工具生成的 CA，或 mkcert 的 rootCA.pem 和 rootCA-key.pem。为 localhost、本机名称、127.0.0.1 和 ::1 生成独立的节点及管理证书，并启用 HTTPS；CA 私钥保留在原位置。',
+  tlsCACert: 'CA 证书',
+  tlsCAKey: 'CA 私钥',
+  tlsConfigure: '生成并配置 TLS',
+  tlsStopFirst: '请先选择已停止的 OpenSearch 版本及配对的 CA 证书和私钥。',
+  tlsConfigured: '本地 TLS 已配置，启动 OpenSearch 后生效。',
+  tlsInitialization:
+    '已有用户和角色保持不变。新建安全索引需另外使用安装包中的 securityadmin 工具，配合本目录的 admin.pem、admin-key.pem 和 root-ca.pem 初始化；配置 TLS 不会创建登录密码。',
+  tlsBackup: '配置备份',
+  tlsOpenDirectory: '打开证书目录',
+  tlsFlatConfigRequired: '请先将 plugins.security.* 配置改为平铺的完整键名，再配置本地 TLS。',
+  tlsIdentityInvalid: '证书身份必须配置为 DN 列表。',
+  tlsCustomConfig: '检测到自定义 TLS 配置，请手动配置对应证书。',
+  tlsCAInvalid: 'CA 证书与私钥不匹配、证书已过期或没有 CA 签发权限。',
+  tlsConfigChanged: '生成证书期间配置被修改，已保留原配置，请重试。',
+  tlsBusy: '正在配置本地 TLS，请稍候。',
+  tlsTimeout: '暂时无法确定证书配置结果，请检查 opensearch.yml 后再重试。',
+  tlsFailed: '本地 TLS 证书配置失败。',
   devMode: '本地开发模式',
   devModeDesc:
     '为本地开发关闭 OpenSearch 安全插件：9200 端口走纯 HTTP、无认证。压缩包自带的 demo TLS 配置会被注释保留以便回滚。请勿将开发模式的节点暴露到不可信网络。',
@@ -6,7 +26,7 @@ export default {
   devModeRestartTip: '重启 OpenSearch 服务后生效。',
   devModeRestartNow: '立即重启',
   devModeDisableAdminTip:
-    '安全插件已重新启用。OpenSearch 2.12+ 首次启动需要设置 OPENSEARCH_INITIAL_ADMIN_PASSWORD 环境变量。',
+    '安全插件已重新启用。请配置 TLS；新建集群还需初始化安全索引和管理员凭据。',
   dashboards: '打开 Dashboards',
   dashboardsOpening: '正在打开 OpenSearch Dashboards…',
   dashboardsNoRunningVersion: '请先启动一个有效的 OpenSearch 版本，再打开 Dashboards。',

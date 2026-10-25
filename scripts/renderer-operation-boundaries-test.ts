@@ -54,12 +54,22 @@ assert.doesNotMatch(phpWindowsPage, /from\s+['"]@\/util\/IPC['"]|IPC\.send/)
 assert.match(phpWindowsPage, /windowsExtensions\.install\(version,/)
 assert.match(phpWindowsPage, /windowsExtensions\.disable\(version,/)
 assert.match(phpWindowsController, /reactiveBind\(\s*new WindowsExtensionController/)
+assert.doesNotMatch(
+  phpWindowsPage,
+  /entry\.value\.(?:operation|log|result|error|installing)\s*=/,
+  'closing operation details must not clear controller-owned work or results'
+)
 
 const loadedPhpSetup = readFileSync(join(componentsDir, 'PHP/Extension/Loaded/setup.ts'), 'utf-8')
 const loadedPhpPage = readFileSync(join(componentsDir, 'PHP/Extension/Loaded/index.vue'), 'utf-8')
 assert.match(loadedPhpSetup, /reactiveBind\(\s*new LoadedExtensionsController/)
 assert.doesNotMatch(loadedPhpSetup, /exec\.exec|IPC\.send|LoadedSetup\.reFetch\s*=/)
 assert.match(loadedPhpPage, /v-if="error"/)
+
+const n8nAside = readFileSync(join(componentsDir, 'N8N/aside.vue'), 'utf8')
+const n8nFork = readFileSync(join(root, 'src/fork/module/N8N/index.ts'), 'utf8')
+assert.doesNotMatch(n8nAside, /IPC|checkRunning|onMounted|\bwatch\s*\(|\.run\s*=|\.pid\s*=/)
+assert.doesNotMatch(n8nFork, /\bcheckRunning\s*\(/)
 
 assert.match(agentsSource, /## Module Boundaries and Operation Ownership/)
 assert.match(agentsSource, /UI state belongs to the mounted Vue component only/)
@@ -524,6 +534,14 @@ assert.match(openSearchDashboardsController, /ipc\.off\(request\.key\)/)
 assert.match(openSearchDashboardsController, /private operation\?: Promise<void>/)
 assert.match(openSearchDashboardsController, /maxTimeoutMs/)
 assert.match(openSearchDashboardsController, /shell\.openExternal/)
+const openSearchConfigPage = readFileSync(join(openSearchDir, 'Config.vue'), 'utf8')
+const openSearchTLSController = readFileSync(join(openSearchDir, 'LocalTLS.ts'), 'utf8')
+assert.doesNotMatch(openSearchConfigPage, /IPC\.send\(/)
+assert.match(openSearchConfigPage, /OpenSearchTLS\.configure\(/)
+assert.match(openSearchTLSController, /private operation\?: Promise<boolean>/)
+assert.match(openSearchTLSController, /response\?\.code === 200/)
+assert.match(openSearchTLSController, /ipc\.off\(request\.key\)/)
+assert.match(openSearchTLSController, /JSON\.parse\(JSON\.stringify\(\{ version, input \}\)\)/)
 
 const llamaRuntimePage = readFileSync(
   join(root, 'plugins/llamacpp/render/runtime/Index.vue'),

@@ -1,4 +1,4 @@
-import { basename, dirname, join } from 'path'
+import { basename, dirname, join, resolve as resolvePath } from 'path'
 import { existsSync } from 'fs'
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -87,7 +87,7 @@ class RustFS extends Base {
       const bin = version.bin
       const baseDir = join(global.Server.BaseDir!, 'rustfs')
       await mkdirp(baseDir)
-      const dataDir = DATA_DIR ?? join(baseDir, 'data')
+      const dataDir = resolvePath(DATA_DIR ?? join(baseDir, 'data'))
       await mkdirp(dataDir)
 
       const getConfEnv = async () => {
@@ -113,8 +113,18 @@ class RustFS extends Base {
 
       const env = await getConfEnv()
 
-      // Build command line args from config
-      const volumes = dataDir
+      // RustFS splits each volume argument on spaces even when spawn preserves it.
+      // Resolve the selected volume through cwd instead of passing its absolute path.
+      // Keep configured relative file paths based on the former install-directory cwd.
+      for (const key of [
+        'RUSTFS_ACCESS_KEY_FILE',
+        'RUSTFS_SECRET_KEY_FILE',
+        'RUSTFS_TLS_PATH',
+        'RUSTFS_KMS_KEY_DIR'
+      ]) {
+        if (env[key]) env[key] = resolvePath(dirname(bin), env[key])
+      }
+      const volumes = '.'
       const execArgs: string[] = ['server']
 
       if (env['RUSTFS_ADDRESS']) {
@@ -208,6 +218,8 @@ class RustFS extends Base {
           bin,
           execArgs,
           execEnv: env,
+          cwd: dataDir,
+          sensitive: true,
           on
         })
         resolve(res)

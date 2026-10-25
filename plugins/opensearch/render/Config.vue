@@ -33,6 +33,34 @@
                 <span class="text-xs" style="opacity: 0.6">{{ OpenSearchT('devModeDesc') }}</span>
               </div>
             </div>
+            <div class="flex flex-col gap-3 p-2">
+              <span>{{ OpenSearchT('tlsTitle') }}</span>
+              <span class="text-xs opacity-60">{{ OpenSearchT('tlsDescription') }}</span>
+              <el-input v-model="tlsInput.caCert" :placeholder="OpenSearchT('tlsCACert')">
+                <template #prepend>{{ OpenSearchT('tlsCACert') }}</template>
+                <template #append><el-button @click="chooseCA('caCert')">…</el-button></template>
+              </el-input>
+              <el-input v-model="tlsInput.caKey" :placeholder="OpenSearchT('tlsCAKey')">
+                <template #prepend>{{ OpenSearchT('tlsCAKey') }}</template>
+                <template #append><el-button @click="chooseCA('caKey')">…</el-button></template>
+              </el-input>
+              <el-button
+                class="self-start"
+                :loading="OpenSearchTLS.applying"
+                :disabled="tlsDisabled"
+                @click="configureTLS"
+              >
+                {{ OpenSearchT('tlsConfigure') }}
+              </el-button>
+              <span class="text-xs opacity-60">{{ OpenSearchT('tlsStopFirst') }}</span>
+              <div v-if="tlsResult" class="text-xs break-all flex flex-col gap-2">
+                <span>{{ OpenSearchT('tlsInitialization') }}</span>
+                <span>{{ OpenSearchT('tlsBackup') }}: {{ tlsResult.backup }}</span>
+                <el-button class="self-start" @click="shell.openPath(tlsResult.directory)">{{
+                  OpenSearchT('tlsOpenDirectory')
+                }}</el-button>
+              </div>
+            </div>
           </template>
         </Conf>
       </template>
@@ -47,10 +75,11 @@
   import Conf from '@/components/Conf/index.vue'
   import { BrewStore } from '@/store/brew'
   import { join } from '@/util/path-browserify'
-  import { fs } from '@/util/NodeFn'
+  import { dialog, fs, shell } from '@/util/NodeFn'
   import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
   import { OpenSearchManager } from './store'
   import { OpenSearchT } from './lang'
+  import { OpenSearchTLS } from './LocalTLS'
 
   const brewStore = BrewStore()
   const currentVersion = computed(() => brewStore.currentVersion('opensearch'))
@@ -58,6 +87,32 @@
   const current = ref('opensearch.yml')
   const conf = ref()
   const confDir = ref('')
+  const tlsInput = ref({
+    caCert: join(window.Server.BaseDir!, 'CA', 'FlyEnv-Root-CA.crt'),
+    caKey: join(window.Server.BaseDir!, 'CA', 'FlyEnv-Root-CA.key')
+  })
+  const tlsDisabled = computed(
+    () =>
+      !currentVersion.value?.path ||
+      !!currentVersion.value?.run ||
+      !!currentVersion.value?.running ||
+      OpenSearchManager.applying(currentVersion.value?.path) ||
+      !tlsInput.value.caCert ||
+      !tlsInput.value.caKey
+  )
+  const tlsResult = computed(() =>
+    OpenSearchTLS.resultPath === currentVersion.value?.path ? OpenSearchTLS.result : undefined
+  )
+  const chooseCA = async (field: 'caCert' | 'caKey') => {
+    const selected = await dialog.showOpenDialog({ properties: ['openFile'] })
+    if (!selected.canceled && selected.filePaths[0]) tlsInput.value[field] = selected.filePaths[0]
+  }
+  const configureTLS = async () => {
+    if (await OpenSearchTLS.configure(currentVersion.value, tlsInput.value)) {
+      conf.value?.update?.()
+      refreshDevModeState()
+    }
+  }
 
   const fileExtMap: Record<string, string> = {
     'opensearch.yml': 'yml',
@@ -90,7 +145,10 @@
 
   const devMode = computed(() => OpenSearchManager.devMode(currentVersion.value?.path))
   const devModeSwitchDisabled = computed(
-    () => !currentVersion.value?.path || OpenSearchManager.applying(currentVersion.value?.path)
+    () =>
+      !currentVersion.value?.path ||
+      OpenSearchTLS.applying ||
+      OpenSearchManager.applying(currentVersion.value?.path)
   )
 
   const refreshDevModeState = () => {

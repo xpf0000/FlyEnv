@@ -17,7 +17,7 @@ import {
   extensionDirectory,
   updateExtensionIni
 } from '../src/fork/module/Php.win/ExtensionConfig'
-import { isPeclPublisher } from '../src/fork/module/Php.win/ExtensionHttp'
+import { isPeclPublisher, packageExtensionName } from '../src/fork/module/Php.win/ExtensionHttp'
 import { replaceIniIfUnchanged, withPhpIniMutation } from '../src/fork/module/Php.win/IniMutation'
 import { parsePhpIniPath, phpIniPathScript } from '../src/fork/module/Php/LoadedExtensions'
 import type { SoftInstalled } from '../src/shared/app'
@@ -29,6 +29,7 @@ import {
   verifyPieDownload
 } from '../src/fork/module/Php.win/WindowsExtensions'
 import { WindowsExtensionController } from '../src/render/components/PHP/Extension/Windows/Operation'
+import { extensionRows } from '../src/render/components/PHP/Extension/Windows/Catalog'
 import { extensionRequest } from '../src/render/components/PHP/Extension/Request'
 import type { ExtensionInstallResult } from '../src/fork/module/Php.win/WindowsExtensions'
 
@@ -40,6 +41,57 @@ const profile = parsePhpExtensionProfile(info, target)
 assert.equal(profile.version, '8.3.36')
 assert.equal(profile.build, 'API20230831,NTS,VS16')
 assert.equal(profile.extensionDir, 'C:\\PHP 8.3\\ext')
+const catalogProfile = {
+  ...profile,
+  loaded: ['Core', 'redis', 'curl', 'Zend OPcache'],
+  configured: [
+    { name: 'redis', loaded: true, zend: false },
+    { name: 'curl', loaded: true, zend: false },
+    { name: 'imagick', loaded: false, zend: false }
+  ]
+}
+const catalogPackages = [
+  {
+    name: 'phpredis/phpredis',
+    extension: packageExtensionName('phpredis/phpredis'),
+    description: 'Redis client'
+  },
+  { name: 'other/redis', extension: 'redis', description: 'Another publisher' },
+  { name: 'imagick/imagick', description: 'Image processing' },
+  { name: 'vendor/opcache', description: '' },
+  { name: 'php-ds/ext-ds', extension: packageExtensionName('php-ds/ext-ds'), description: '' }
+]
+const catalogRows = extensionRows(catalogProfile, catalogPackages)
+assert.equal(
+  catalogRows.length,
+  6,
+  'matching configuration is merged without dropping other publishers'
+)
+assert.equal(catalogRows.find((row) => row.packageName === 'phpredis/phpredis')?.status, 'loaded')
+assert.equal(catalogRows.find((row) => row.packageName === 'other/redis')?.status, 'loaded')
+assert.equal(catalogRows.find((row) => row.name === 'curl')?.configuredName, 'curl')
+assert.equal(catalogRows.find((row) => row.name === 'curl')?.description, '')
+assert.equal(catalogRows[0].name, 'imagick', 'configuration needing attention is shown first')
+assert.equal(catalogRows[0].status, 'unloaded')
+assert.equal(catalogRows.find((row) => row.name === 'opcache')?.status, 'loaded')
+assert.equal(catalogRows.find((row) => row.name === 'opcache')?.configuredName, undefined)
+assert.equal(catalogRows.find((row) => row.name === 'ds')?.status, 'available')
+assert.equal(extensionRows(catalogProfile, [], 'REDIS')[0].name, 'redis')
+assert.equal(extensionRows(catalogProfile, [], 'not-found').length, 0)
+assert.equal(extensionRows(undefined, []).length, 0)
+const disabledRows = extensionRows(
+  { ...profile, configured: [], loaded: ['Core'] },
+  catalogPackages
+)
+assert.equal(disabledRows.find((row) => row.name === 'redis')?.status, 'available')
+for (const [pkg, extension] of [
+  ['phpredis/phpredis', 'redis'],
+  ['mongodb/mongodb-extension', 'mongodb'],
+  ['grpc/grpc-php-ext', 'grpc'],
+  ['nikic/php-ast', 'ast'],
+  ['custom/ext-example', 'example']
+])
+  assert.equal(packageExtensionName(pkg), extension)
 assert.equal(compatiblePeclArchive('php_redis-6.3.0-8.3-nts-vs16-x64.zip', profile), true)
 for (const archive of [
   'php_redis-6.3.0-8.5-nts-vs16-x64.zip',
@@ -146,6 +198,7 @@ assert.equal(controller.entry({ ...version }), entry, 'a remounted page binds th
 assert.equal(await controller.install({ ...version, bin: 'different' }, 'imagick/imagick'), false)
 request.progress?.('download progress\n')
 assert.equal(entry.installing, true)
+assert.deepEqual(entry.operation, { type: 'install', name: 'phpredis/phpredis', status: 'running' })
 assert.match(entry.log, /download progress/)
 const result: ExtensionInstallResult = {
   profile,
@@ -159,18 +212,22 @@ assert.equal(await installing, true)
 assert.equal(entry.installing, false)
 assert.equal(controller.installingBin, '')
 assert.equal(entry.result, result)
+assert.equal(entry.operation?.status, 'success')
 assert.equal(notices.at(-1), 'success', 'refresh failure preserves successful installation')
 
 const failed = controller.install(version, 'phpredis/phpredis')
 requests.at(-1)!.pending.reject(new Error('no compatible Windows binary'))
 assert.equal(await failed, false)
 assert.match(entry.error, /no compatible/)
+assert.equal(entry.operation?.status, 'error')
+assert.match(entry.operation?.error ?? '', /no compatible/)
 assert.equal(entry.installing, false)
 const retry = controller.install(version, 'phpredis/phpredis')
 requests.at(-1)!.pending.resolve({ ...result, verified: false, warning: 'not enabled' })
 assert.equal(await retry, true)
 assert.equal(notices.at(-1), 'warning')
 assert.equal(entry.result?.verified, false)
+assert.equal(entry.operation?.status, 'warning')
 
 let receive!: (key: string, response: { code: number; data?: unknown; msg?: string }) => void
 const removed: string[] = []
@@ -217,15 +274,21 @@ assert.equal(entry.packages[0].name, 'xdebug/xdebug')
 assert.equal(entry.fetching, false)
 
 const disabling = controller.disable(version, 'xdebug')
+assert.deepEqual(entry.operation, { type: 'disable', name: 'xdebug', status: 'running' })
+assert.equal(entry.log, '', 'disabling does not show an earlier installation log')
+assert.equal(entry.result, undefined)
 assert.equal(requests.at(-1)!.method, 'windowsExtensionDisable')
 assert.equal(await controller.install(version, 'phpredis/phpredis'), false)
 requests.at(-1)!.pending.resolve({ ...profile, loaded: ['Core'] })
 assert.equal(await disabling, true)
+assert.equal(entry.operation?.status, 'success')
 assert.equal(entry.installing, false)
 assert.equal(controller.installingBin, '')
 const disableFailure = controller.disable(version, 'redis')
 requests.at(-1)!.pending.reject(new Error('configuration write failed'))
 assert.equal(await disableFailure, false)
+assert.equal(entry.operation?.status, 'error')
+assert.equal(entry.operation?.error, 'configuration write failed')
 assert.equal(entry.installing, false)
 
 assert.equal(isPeclPublisher('phpredis/phpredis', 'redis'), true)
@@ -274,7 +337,7 @@ const newIni = updateExtensionIni(
   false,
   'C:\\New PHP\\ext\\php_redis.dll'
 )
-assert.match(newIni, /^extension="C:\/New PHP\/ext\/php_redis.dll"\r\n/)
+assert.match(newIni, /^\[PHP\]\r\nextension="C:\/New PHP\/ext\/php_redis.dll"\r\n/)
 assert.equal(newIni.includes('old PHP/php_redis.dll'), false)
 assert.equal(newIni.includes('PHP_REDIS.DLL'), false)
 assert.equal(newIni.includes('php_rediscluster.dll'), true)
@@ -332,8 +395,94 @@ assert.equal(
 )
 assert.equal(extensionIsLoaded(['redis'], 'redis', 'Module "curl" is already loaded'), true)
 const bomIni = updateExtensionIni('\uFEFF[PHP]\n', 'redis', true)
-assert.ok(bomIni.startsWith('\uFEFFextension='))
+assert.ok(bomIni.startsWith('\uFEFF[PHP]\nextension='))
 assert.equal((bomIni.match(/\uFEFF/g) ?? []).length, 1)
+
+const positionedIni = [
+  '; custom header',
+  '[PHP]',
+  'memory_limit=256M',
+  'extension=igbinary',
+  '  extension="old/php_redis.dll" ; keep this note',
+  'extension=msgpack',
+  '[PATH=C:/site]',
+  'extension=php_redis.dll',
+  'memory_limit=512M'
+].join('\n')
+const positioned = updateExtensionIni(positionedIni, 'redis', true)
+assert.ok(positioned.startsWith('; custom header\n[PHP]\nmemory_limit=256M\n'))
+assert.ok(
+  positioned.indexOf('extension=igbinary') < positioned.indexOf('extension="php_redis.dll"')
+)
+assert.ok(positioned.indexOf('extension="php_redis.dll"') < positioned.indexOf('extension=msgpack'))
+assert.match(positioned, /^ {2}extension="php_redis.dll" ; keep this note$/m)
+assert.equal((positioned.match(/php_redis\.dll/g) ?? []).length, 1)
+assert.match(positioned, /\[PATH=C:\/site\]\nmemory_limit=512M/)
+assert.equal(updateExtensionIni(positioned, 'redis', true), positioned)
+
+const commented = updateExtensionIni(
+  '[PHP]\na=1\n;extension=redis ; enable here\nb=2\n',
+  'redis',
+  true
+)
+assert.match(commented, /a=1\nextension="php_redis.dll" ; enable here\nb=2/)
+const grouped = updateExtensionIni(
+  '[PHP]\n;extension=curl\n[Session]\nsession.name=TEST\n',
+  'redis',
+  true
+)
+assert.match(grouped, /;extension=curl\nextension="php_redis.dll"\n\[Session\]/)
+const noGroup = updateExtensionIni('; header\n[PHP]\nmemory_limit=256M\n', 'redis', true)
+assert.match(noGroup, /^; header\n\[PHP\]\nextension="php_redis.dll"\nmemory_limit=256M/)
+const scopedOnly = updateExtensionIni('[HOST=example.com]\nextension=redis\na=1\n', 'redis', true)
+assert.match(scopedOnly, /^extension="php_redis.dll"\n\[HOST=example.com\]\na=1/)
+const scopedTemplate = updateExtensionIni(
+  '[PHP]\na=1\n[PATH=C:/site]\n;extension=redis\n',
+  'redis',
+  true
+)
+assert.match(scopedTemplate, /^\[PHP\]\nextension="php_redis.dll"\na=1\n\[PATH=/)
+const resumedGlobal = updateExtensionIni(
+  '[PATH=C:/site]\na=1\n[PHP]\n;extension=redis\n',
+  'redis',
+  true
+)
+assert.match(resumedGlobal, /\[PHP\]\nextension="php_redis.dll"/)
+assert.equal(updateExtensionIni('', 'redis', true), 'extension="php_redis.dll"\n')
+const semicolonPath = updateExtensionIni(
+  '[PHP]\nextension="C:/PHP;custom/php_redis.dll" ; note\n',
+  'redis',
+  true
+)
+assert.match(semicolonPath, /^\[PHP\]\nextension="php_redis.dll" ; note\n$/)
+
+const opcacheLine = 'zend_extension="C:/PHP/ext/php_opcache.dll"'
+const xdebugLine = 'zend_extension="C:/PHP/ext/php_xdebug.dll"'
+for (const name of ['xdebug', 'opcache']) {
+  for (const existing of [
+    `${opcacheLine}\n${xdebugLine}`,
+    `${xdebugLine}\n${opcacheLine}`,
+    name === 'xdebug' ? opcacheLine : xdebugLine
+  ]) {
+    const input = `[PHP]\n${existing}\n[HOST=example.com]\na=1\n`
+    const dll = `C:/PHP/ext/php_${name}.dll`
+    const ordered = updateExtensionIni(input, name, true, true, dll, 'C:/xdebug')
+    assert.ok(ordered.indexOf(opcacheLine) < ordered.indexOf(xdebugLine), name)
+    assert.ok(ordered.indexOf(xdebugLine) < ordered.indexOf('[HOST='), name)
+    assert.equal(updateExtensionIni(ordered, name, true, true, dll, 'C:/xdebug'), ordered)
+  }
+}
+const scopedXdebug = updateExtensionIni(
+  '[PHP]\n[PATH=C:/site]\nxdebug.client_port=9011\n',
+  'xdebug',
+  true,
+  true,
+  'php_xdebug.dll',
+  'C:/xdebug'
+)
+assert.ok(scopedXdebug.indexOf('xdebug.client_port = 9003') < scopedXdebug.indexOf('[PATH='))
+assert.match(scopedXdebug, /\[PATH=C:\/site\]\nxdebug.client_port=9011/)
+assert.ok(scopedXdebug.startsWith('[PHP]\nzend_extension='))
 
 const root = await mkdtemp(join(tmpdir(), 'FlyEnv PHP [路径] & $ '))
 const previousServer = global.Server
@@ -449,6 +598,26 @@ try {
       encoding: 'utf8'
     })
     assert.equal(parsePhpIniPath(detectedIni), ini)
+    if ((await readdir(join(win32.dirname(bin), 'ext'))).includes('php_fileinfo.dll')) {
+      const dll = join(win32.dirname(bin), 'ext', 'php_fileinfo.dll')
+      for (const template of [
+        '[PHP]\n;extension=fileinfo\nmemory_limit=128M\n[PATH=C:/site]\nmemory_limit=64M\n',
+        '[HOST=example.com]\nextension=fileinfo\nmemory_limit=64M\n',
+        '[PATH=C:/site]\nmemory_limit=64M\n[PHP]\n;extension=fileinfo\n'
+      ]) {
+        await writeFile(ini, updateExtensionIni(template, 'fileinfo', true, false, dll))
+        const loaded = execFileSync(
+          bin,
+          ['-c', ini, '-r', 'echo extension_loaded("fileinfo") ? "loaded" : "missing";'],
+          {
+            windowsHide: true,
+            encoding: 'utf8',
+            env: { ...process.env, PHP_INI_SCAN_DIR: '' }
+          }
+        )
+        assert.equal(loaded, 'loaded', 'real PHP loads extensions only from a global position')
+      }
+    }
     console.log(
       `Real PHP ${runtimeProfile.version}: spaced Unicode ini path and large environment passed`
     )

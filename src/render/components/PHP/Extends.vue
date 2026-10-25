@@ -26,7 +26,7 @@
         </el-button-group>
       </div>
       <div class="main-wapper p-3">
-        <el-card>
+        <el-card :body-style="lib === 'lib' ? { padding: '12px' } : undefined">
           <template #header>
             <div class="card-header">
               <div class="left">

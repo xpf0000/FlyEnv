@@ -1,4 +1,26 @@
 export default {
+  tlsTitle: 'Local TLS certificates',
+  tlsDescription:
+    'Reuse the FlyEnv root CA, a CA from the SSL certificate tool, or mkcert rootCA.pem and rootCA-key.pem. Generates separate node/admin certificates for localhost, this computer name, 127.0.0.1 and ::1; enables HTTPS. The CA private key stays in its original location.',
+  tlsCACert: 'CA certificate',
+  tlsCAKey: 'CA private key',
+  tlsConfigure: 'Generate and configure TLS',
+  tlsStopFirst: 'Select a stopped OpenSearch version and its CA certificate/private key first.',
+  tlsConfigured: 'Local TLS configured. Start OpenSearch to apply it.',
+  tlsInitialization:
+    'Existing users and roles are preserved. For a new security index, initialize it separately using the bundled securityadmin tool with admin.pem, admin-key.pem and root-ca.pem from this directory. TLS configuration does not create a login password.',
+  tlsBackup: 'Configuration backup',
+  tlsOpenDirectory: 'Open certificate directory',
+  tlsFlatConfigRequired: 'Use flat plugins.security.* settings before configuring local TLS.',
+  tlsIdentityInvalid: 'Expected a list of certificate distinguished names.',
+  tlsCustomConfig: 'Custom TLS settings are present. Configure those certificates manually.',
+  tlsCAInvalid:
+    'The CA certificate/private key do not match, are expired, or are not a signing CA.',
+  tlsConfigChanged:
+    'The configuration changed during certificate generation. Original settings were preserved; try again.',
+  tlsBusy: 'Local TLS configuration is still in progress.',
+  tlsTimeout: 'Certificate configuration result is unknown. Check opensearch.yml before retrying.',
+  tlsFailed: 'Could not configure local TLS certificates.',
   devMode: 'Local Development Mode',
   devModeDesc:
     'Disables the OpenSearch security plugin for local development: plain HTTP on port 9200, no authentication. The bundled demo TLS settings are commented out (kept for rollback). Never expose a dev-mode node to an untrusted network.',
@@ -6,7 +28,7 @@ export default {
   devModeRestartTip: 'Restart the OpenSearch service for the change to take effect.',
   devModeRestartNow: 'Restart now',
   devModeDisableAdminTip:
-    'Security plugin re-enabled. On OpenSearch 2.12+ the first start requires the OPENSEARCH_INITIAL_ADMIN_PASSWORD environment variable.',
+    'Security plugin re-enabled. Configure TLS; a new cluster also needs its security index and administrator credentials initialized.',
   dashboards: 'Open Dashboards',
   dashboardsOpening: 'Opening OpenSearch Dashboards…',
   dashboardsNoRunningVersion: 'Start a valid OpenSearch version before opening Dashboards.',

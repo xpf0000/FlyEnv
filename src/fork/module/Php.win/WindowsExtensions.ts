@@ -7,7 +7,7 @@ import { StringDecoder } from 'node:string_decoder'
 import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
 import { findPeclArchive, installPeclArchive } from './PeclWindows'
-import { extensionHttpGet, isPeclPublisher } from './ExtensionHttp'
+import { extensionHttpGet, isPeclPublisher, packageExtensionName } from './ExtensionHttp'
 import {
   configuredExtensions,
   extensionIsLoaded,
@@ -16,7 +16,7 @@ import {
 } from './ExtensionConfig'
 import { replaceIniIfUnchanged, withPhpIniMutation } from './IniMutation'
 
-export type ExtensionPackage = { name: string; description: string }
+export type ExtensionPackage = { name: string; description: string; extension?: string }
 export type PhpExtensionProfile = {
   bin: string
   ini: string
@@ -221,7 +221,11 @@ export class WindowsExtensionInstaller {
         if (result.status !== 'fulfilled') continue
         for (const item of result.value) {
           if (!/^[a-z0-9][a-z0-9_.-]*\/[a-z0-9][a-z0-9_.-]*$/.test(item.name)) continue
-          packages.set(item.name, { name: item.name, description: item.description })
+          packages.set(item.name, {
+            name: item.name,
+            description: item.description,
+            extension: packageExtensionName(item.name)
+          })
         }
       }
       done({
@@ -292,7 +296,7 @@ export class WindowsExtensionInstaller {
           )
           if (!release) throw new Error('This package is not a PHP extension')
           const extension = extensionName(
-            release['php-ext']?.['extension-name'] ?? name.split('/')[1].replace(/^ext-/, '')
+            release['php-ext']?.['extension-name'] ?? packageExtensionName(name)
           )
           if (!/^[a-z][a-z0-9_]*$/.test(extension)) throw new Error('Invalid PHP extension name')
           const operationDir = join(global.Server.Cache!, 'php-extensions', `install-${Date.now()}`)

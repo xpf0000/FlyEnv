@@ -30,3 +30,7 @@ const peclPackages: Record<string, string> = {
 export function isPeclPublisher(name: string, extension: string): boolean {
   return peclPackages[name] === extension
 }
+
+export function packageExtensionName(name: string): string {
+  return peclPackages[name] ?? name.split('/').at(-1)!.replace(/^ext-/, '')
+}

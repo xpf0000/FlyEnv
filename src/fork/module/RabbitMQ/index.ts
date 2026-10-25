@@ -1,4 +1,4 @@
-import { basename, dirname, join } from 'path'
+import { basename, dirname, join, resolve as resolvePath } from 'path'
 import { existsSync, readdirSync, realpathSync } from 'fs'
 import { Base } from '../Base'
 import { I18nT } from '@lang/runtime'
@@ -33,12 +33,23 @@ import { spawnPromiseWithEnv } from '@shared/child-process'
 import { ProcessListSearch } from '@shared/Process.win'
 import type { PItem } from '@shared/Process'
 import EnvSync from '@shared/EnvSync'
+import {
+  captureServiceProcessIdentity,
+  type ServiceProcessIdentity
+} from '@shared/ServiceProcessIdentity'
+import { StopProcessListFetch } from '@shared/StopProcessList'
+import { stopWindowsServiceProcesses } from '@shared/ServiceStop'
+import { logServiceStop } from '@shared/ServiceStopDiagnostics'
+import { rabbitMQServiceTargets } from './Process'
 
 const RABBITMQ_EPMD_START_TIMEOUT_MS = 60_000
 const RABBITMQ_VERSION_COMMAND_TIMEOUT_MS = 60_000
 
+type RabbitMQStopParams = { processIdentity?: ServiceProcessIdentity }
+
 class RabbitMQ extends Base {
   baseDir: string = ''
+  private readonly windowsInstances = new Map<string, ServiceProcessIdentity>()
 
   constructor() {
     super()
@@ -48,6 +59,68 @@ class RabbitMQ extends Base {
   init() {
     this.baseDir = join(global.Server.BaseDir!, 'rabbitmq')
     this.pidPath = join(this.baseDir, 'rabbitmq.pid')
+  }
+
+  private instanceKey(version: SoftInstalled) {
+    return resolvePath(version.bin).replace(/\\/g, '/').toLowerCase()
+  }
+
+  _stopServer(version: SoftInstalled, params?: RabbitMQStopParams): ForkPromise<any> {
+    if (!isWindows()) return super._stopServer(version)
+    return new ForkPromise(async (resolve, _reject, on) => {
+      on({ 'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type })) })
+      const key = this.instanceKey(version)
+      const recorded = params?.processIdentity ?? this.windowsInstances.get(key)
+      // A late stop for an older PID must never substitute the newly started instance.
+      const identity =
+        recorded && (!version.pid || `${version.pid}` === recorded.pid) ? recorded : undefined
+      const files = [this.appPidFile(), this.pidPath]
+      const major = version.version?.split('.')[0] ?? ''
+      const mnesia = join(this.baseDir, `mnesia-${major}`)
+      if (existsSync(mnesia)) {
+        for (const file of await readdir(mnesia)) {
+          if (file.endsWith('.pid')) files.push(join(mnesia, file))
+        }
+      }
+      const candidates = new Set([`${version.pid ?? ''}`, identity?.pid ?? ''].filter(Boolean))
+      for (const file of files) {
+        const pid = await this.readPidFromFile(file)
+        if (pid) candidates.add(pid)
+      }
+      const list = await StopProcessListFetch()
+      const targets = identity
+        ? rabbitMQServiceTargets(identity, list)
+        : { pids: [], reason: 'missing-startup-identity', unknown: false }
+      // Old/unverifiable registrations are not a license to kill every erl.exe.
+      // Report unknown liveness rather than silently claiming the registered service stopped.
+      const unverified =
+        !identity &&
+        list.some(
+          (process) =>
+            candidates.has(process.PID) &&
+            (!process.COMMAND?.trim() || /(?:^|\s)-s\s+rabbit\s+boot(?:\s|$)/.test(process.COMMAND))
+        )
+      await logServiceStop('rabbitmq.targets-detected', {
+        rootPid: identity?.pid ?? version.pid,
+        targetPids: targets.pids,
+        reason: targets.reason
+      })
+      if (targets.unknown || unverified) {
+        throw new Error(
+          'Cannot verify RabbitMQ startup process identity; PID records were retained'
+        )
+      }
+      // Erlang children follow the proven broker root; quit also waits for their actual exit.
+      const finalList = await stopWindowsServiceProcesses(targets.pids, list, { confirmExit: true })
+      await this.cleanupStoppedServicePidFiles([...candidates, ...targets.pids], finalList, files)
+      const current = this.windowsInstances.get(key)
+      if (identity && current?.pid === identity.pid && current.created === identity.created) {
+        this.windowsInstances.delete(key)
+      }
+      on({ 'APP-Service-Stop-Success': true })
+      on({ 'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type })) })
+      resolve({ 'APP-Service-Stop-PID': targets.pids })
+    })
   }
 
   private startupLogFiles(version: SoftInstalled) {
@@ -236,6 +309,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
 
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
+      let launchedAt = Date.now()
       on({
         'APP-On-Log': AppLog(
           'info',
@@ -291,11 +365,18 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
             : ''
         } catch {}
         if (pid) {
+          let stopParams: RabbitMQStopParams | undefined
+          if (isWindows()) {
+            const identity = await captureServiceProcessIdentity(pid, launchedAt)
+            this.windowsInstances.set(this.instanceKey(version), identity)
+            stopParams = { processIdentity: identity }
+          }
           on({
             'APP-On-Log': AppLog('info', I18nT('appLog.startServiceSuccess', { pid }))
           })
           resolve({
-            'APP-Service-Start-PID': pid
+            'APP-Service-Start-PID': pid,
+            ...(stopParams ? { 'APP-Service-Stop-Args': [{ ...version, pid }, stopParams] } : {})
           })
         } else if (launcherPid && time >= 2 && !isLauncherAlive()) {
           await failStart()
@@ -322,6 +403,7 @@ PLUGINS_DIR="${pathFixedToUnix(pluginsDir)}"`
 
       const bin = version.bin
       const baseDir = this.baseDir
+      launchedAt = Date.now()
       if (isWindows()) {
         const execArgs = `-detached`
         const erlangHome = await this._resolveErlangHome()

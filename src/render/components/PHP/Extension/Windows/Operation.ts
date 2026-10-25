@@ -6,6 +6,13 @@ import type {
   PhpExtensionProfile
 } from '@fork/module/Php.win/WindowsExtensions'
 
+export type ExtensionOperation = {
+  type: 'install' | 'disable'
+  name: string
+  status: 'running' | 'success' | 'warning' | 'error'
+  error?: string
+}
+
 export type ExtensionEntry = {
   fetching: boolean
   installing: boolean
@@ -16,6 +23,7 @@ export type ExtensionEntry = {
   log: string
   error: string
   result?: ExtensionInstallResult
+  operation?: ExtensionOperation
 }
 type Dependencies = {
   request: <T>(method: string, args: unknown[], onProgress?: (text: string) => void) => Promise<T>
@@ -110,12 +118,16 @@ export class WindowsExtensionController {
     this.installingBin = snapshot.bin
     entry.installing = true
     entry.error = ''
+    entry.log = ''
     entry.result = undefined
+    entry.operation = { type: 'disable', name, status: 'running' }
+    const operation = entry.operation
     try {
       entry.profile = await this.dependencies.request<PhpExtensionProfile>(
         'windowsExtensionDisable',
         [snapshot, name]
       )
+      operation.status = 'success'
       this.notice('success', this.dependencies.disabledMessage?.() ?? '')
       try {
         this.dependencies.refresh(snapshot)
@@ -125,6 +137,8 @@ export class WindowsExtensionController {
       return true
     } catch (error) {
       entry.error = error instanceof Error ? error.message : String(error)
+      operation.status = 'error'
+      operation.error = entry.error
       this.notice('error', entry.error)
       return false
     } finally {
@@ -142,6 +156,8 @@ export class WindowsExtensionController {
     entry.error = ''
     entry.log = ''
     entry.result = undefined
+    entry.operation = { type: 'install', name, status: 'running' }
+    const operation = entry.operation
     try {
       const result = await this.dependencies.request<ExtensionInstallResult>(
         'windowsExtensionInstall',
@@ -152,6 +168,7 @@ export class WindowsExtensionController {
       )
       entry.result = result
       entry.profile = result.profile
+      operation.status = result.warning ? 'warning' : 'success'
       this.notice(
         result.warning ? 'warning' : 'success',
         result.warning || this.dependencies.successMessage()
@@ -165,6 +182,8 @@ export class WindowsExtensionController {
       return true
     } catch (error) {
       entry.error = error instanceof Error ? error.message : String(error)
+      operation.status = 'error'
+      operation.error = entry.error
       this.notice('error', entry.error)
       return false
     } finally {
