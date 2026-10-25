@@ -179,8 +179,10 @@ export function initFlyEnvSH(): ForkPromise<FlyEnvShellInitResult> {
       const gitBashScriptPath = join(dirname(global.Server.AppDir!), 'bin/fly-env.sh')
       let gitBashState: GitBashIntegrationState = 'failed'
       try {
-        const gitBashScriptContent = await measureShellInitStep(timings,'read-git-bash-script', () =>
-          readFile(join(global.Server.Static!, 'sh/fly-env.sh'))
+        const gitBashScriptContent = await measureShellInitStep(
+          timings,
+          'read-git-bash-script',
+          () => readFile(join(global.Server.Static!, 'sh/fly-env.sh'))
         )
         await measureShellInitStep(timings, 'write-git-bash-script', () =>
           writeFile(gitBashScriptPath, gitBashScriptContent)
