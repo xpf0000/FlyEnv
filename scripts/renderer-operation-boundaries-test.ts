@@ -431,6 +431,12 @@ assert.match(
 )
 assert.match(shellInitControllerSource, /response\?\.code === 200/)
 assert.match(shellInitControllerSource, /IPC\.off\(key\)/)
+assert.match(shellInitControllerSource, /response\.data\?\.warnings/)
+assert.doesNotMatch(
+  readFileSync(join(root, 'src/fork/module/Tool.win/GitBashIntegration.ts'), 'utf-8'),
+  /readFileByRoot|Helper\.send|spawnPromise/,
+  'normal Git Bash profiles must not trigger privileged operations'
+)
 
 const phpCreateControllerPath = join(
   componentsDir,

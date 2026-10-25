@@ -29,6 +29,7 @@ export class ShellInitController {
   error = ''
   private inFlight?: Promise<FlyEnvShellInitResult | undefined>
   private lastWarningKey = ''
+  private lastDirectoryWarningKey = ''
 
   ensure(): Promise<FlyEnvShellInitResult | undefined> {
     if (this.inFlight) return this.inFlight
@@ -72,6 +73,16 @@ export class ShellInitController {
           if (response?.code === 200) return
           IPC.off(key)
           if (response?.code === 0) {
+            const warnings: string[] = response.data?.warnings ?? []
+            const warningKey = warnings.join('\n')
+            if (warningKey && warningKey !== this.lastDirectoryWarningKey) {
+              try {
+                MessageWarning(warningKey)
+              } catch {
+                // A notice cannot reject an already completed PowerShell sync.
+              }
+            }
+            this.lastDirectoryWarningKey = warningKey
             resolve()
             return
           }

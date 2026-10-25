@@ -4,7 +4,7 @@ import {
   writePerformanceLog,
   measurePerformanceStep
 } from '@shared/PerformanceDiagnostics'
-import { mkdirp, readFile, readFileByRoot, spawnPromiseWithEnv, writeFile } from '../../Fn'
+import { readFile, spawnPromiseWithEnv } from '../../Fn'
 import Helper from '../../Helper'
 import { ForkPromise } from '@shared/ForkPromise'
 import { encodePowerShellCommand } from '@shared/PowerShellCommand'
@@ -12,6 +12,7 @@ import EnvSync from '@shared/EnvSync'
 import { dirname, join } from 'path'
 import { appDebugLog } from '@shared/utils'
 import { resolveWindowsPowerShellPath, windowsPowerShellEnv } from '@shared/WindowsSystemPaths'
+import { installGitBashIntegration, syncShellDirectories } from './GitBashIntegration'
 
 type ProfileEdition = 'windows-powershell' | 'pwsh'
 
@@ -106,8 +107,6 @@ const profileCandidates = () => buildPowerShellProfileTargets(global.Server.User
 
 export function initAllowDir(json: string) {
   return new ForkPromise(async (resolve) => {
-    const jsonFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir')
-    const bashFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv-bash.dir')
     const allowedDirectories = JSON.parse(json)
     if (
       !Array.isArray(allowedDirectories) ||
@@ -115,36 +114,10 @@ export function initAllowDir(json: string) {
     ) {
       throw new Error('FlyEnv shell directory list must be an array of paths')
     }
-    await mkdirp(dirname(jsonFile))
-    await writeFile(jsonFile, json)
-    await writeFile(bashFile, `${allowedDirectories.join('\n')}\n`)
-    resolve(true)
+    resolve(
+      await syncShellDirectories(join(dirname(global.Server.AppDir!), 'bin'), allowedDirectories)
+    )
   })
-}
-
-const installGitBashIntegration = async (scriptPath: string) => {
-  const bashProfilePath = join(global.Server.UserHome!, '.bashrc')
-  const markerBegin = '# >>> FlyEnv Git Bash integration >>>'
-  const markerEnd = '# <<< FlyEnv Git Bash integration <<<'
-  const quotedScriptPath = scriptPath.replace(/'/g, "'\\''")
-  const block = `${markerBegin}\nif command -v cygpath >/dev/null 2>&1; then\n  source "$(cygpath -u '${quotedScriptPath}')"\nfi\n${markerEnd}`
-  const original = await readFileByRoot(bashProfilePath).catch((error) => {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return ''
-    throw error
-  })
-  const markerStart = original.indexOf(markerBegin)
-  const markerFinish = original.indexOf(markerEnd)
-  if (markerStart < 0 !== markerFinish < 0) {
-    throw new Error('Git Bash profile contains an incomplete FlyEnv integration block')
-  }
-  const updated =
-    markerStart >= 0
-      ? `${original.slice(0, markerStart)}${block}${original.slice(
-          markerFinish + markerEnd.length
-        )}`
-      : `${original.trimEnd()}${original.trim() ? '\n\n' : ''}${block}\n`
-  if (updated !== original) await writeFile(bashProfilePath, updated)
-  return updated === original ? ('unchanged' as const) : ('updated' as const)
 }
 
 export function initFlyEnvSH(): ForkPromise<FlyEnvShellInitResult> {
@@ -184,11 +157,12 @@ export function initFlyEnvSH(): ForkPromise<FlyEnvShellInitResult> {
           'read-git-bash-script',
           () => readFile(join(global.Server.Static!, 'sh/fly-env.sh'))
         )
-        await measureShellInitStep(timings, 'write-git-bash-script', () =>
-          writeFile(gitBashScriptPath, gitBashScriptContent)
-        )
         gitBashState = await measureShellInitStep(timings, 'install-git-bash-hook', () =>
-          installGitBashIntegration(gitBashScriptPath)
+          installGitBashIntegration(
+            global.Server.UserHome!,
+            gitBashScriptPath,
+            gitBashScriptContent
+          )
         )
       } catch (error) {
         const reason = `Git Bash integration failed: ${asErrorMessage(error)}`
