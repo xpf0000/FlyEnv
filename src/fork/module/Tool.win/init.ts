@@ -4,7 +4,7 @@ import {
   writePerformanceLog,
   measurePerformanceStep
 } from '@shared/PerformanceDiagnostics'
-import { mkdirp, readFile, spawnPromiseWithEnv, writeFile } from '../../Fn'
+import { mkdirp, readFile, readFileByRoot, spawnPromiseWithEnv, writeFile } from '../../Fn'
 import Helper from '../../Helper'
 import { ForkPromise } from '@shared/ForkPromise'
 import { encodePowerShellCommand } from '@shared/PowerShellCommand'
@@ -22,10 +22,13 @@ type PowerShellProfile = {
   reason?: string
 }
 
+type GitBashIntegrationState = 'updated' | 'unchanged' | 'failed'
+
 export type FlyEnvShellInitResult = {
   status: 'ready' | 'degraded'
   scriptPath: string
   scriptState: 'updated' | 'unchanged'
+  gitBashState: GitBashIntegrationState
   profiles: PowerShellProfile[]
   warnings: string[]
 }
@@ -104,10 +107,44 @@ const profileCandidates = () => buildPowerShellProfileTargets(global.Server.User
 export function initAllowDir(json: string) {
   return new ForkPromise(async (resolve) => {
     const jsonFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir')
+    const bashFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv-bash.dir')
+    const allowedDirectories = JSON.parse(json)
+    if (
+      !Array.isArray(allowedDirectories) ||
+      allowedDirectories.some((item) => typeof item !== 'string')
+    ) {
+      throw new Error('FlyEnv shell directory list must be an array of paths')
+    }
     await mkdirp(dirname(jsonFile))
     await writeFile(jsonFile, json)
+    await writeFile(bashFile, `${allowedDirectories.join('\n')}\n`)
     resolve(true)
   })
+}
+
+const installGitBashIntegration = async (scriptPath: string) => {
+  const bashProfilePath = join(global.Server.UserHome!, '.bashrc')
+  const markerBegin = '# >>> FlyEnv Git Bash integration >>>'
+  const markerEnd = '# <<< FlyEnv Git Bash integration <<<'
+  const quotedScriptPath = scriptPath.replace(/'/g, "'\\''")
+  const block = `${markerBegin}\nif command -v cygpath >/dev/null 2>&1; then\n  source "$(cygpath -u '${quotedScriptPath}')"\nfi\n${markerEnd}`
+  const original = await readFileByRoot(bashProfilePath).catch((error) => {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return ''
+    throw error
+  })
+  const markerStart = original.indexOf(markerBegin)
+  const markerFinish = original.indexOf(markerEnd)
+  if (markerStart < 0 !== markerFinish < 0) {
+    throw new Error('Git Bash profile contains an incomplete FlyEnv integration block')
+  }
+  const updated =
+    markerStart >= 0
+      ? `${original.slice(0, markerStart)}${block}${original.slice(
+          markerFinish + markerEnd.length
+        )}`
+      : `${original.trimEnd()}${original.trim() ? '\n\n' : ''}${block}\n`
+  if (updated !== original) await writeFile(bashProfilePath, updated)
+  return updated === original ? ('unchanged' as const) : ('updated' as const)
 }
 
 export function initFlyEnvSH(): ForkPromise<FlyEnvShellInitResult> {
@@ -139,6 +176,23 @@ export function initFlyEnvSH(): ForkPromise<FlyEnvShellInitResult> {
       const scriptContent = await measureShellInitStep(timings, currentStep, () =>
         readFile(join(global.Server.Static!, 'sh/fly-env.ps1'))
       )
+      const gitBashScriptPath = join(dirname(global.Server.AppDir!), 'bin/fly-env.sh')
+      let gitBashState: GitBashIntegrationState = 'failed'
+      try {
+        const gitBashScriptContent = await measureShellInitStep(timings,'read-git-bash-script', () =>
+          readFile(join(global.Server.Static!, 'sh/fly-env.sh'))
+        )
+        await measureShellInitStep(timings, 'write-git-bash-script', () =>
+          writeFile(gitBashScriptPath, gitBashScriptContent)
+        )
+        gitBashState = await measureShellInitStep(timings, 'install-git-bash-hook', () =>
+          installGitBashIntegration(gitBashScriptPath)
+        )
+      } catch (error) {
+        const reason = `Git Bash integration failed: ${asErrorMessage(error)}`
+        warnings.push(reason)
+        logShellInitTiming({ event: 'warning', step: 'install-git-bash-hook', reason })
+      }
       const profiles: PowerShellProfile[] = []
 
       on('Preparing PowerShell profile targets')
@@ -196,6 +250,7 @@ export function initFlyEnvSH(): ForkPromise<FlyEnvShellInitResult> {
         status: warnings.length > 0 ? 'degraded' : 'ready',
         scriptPath: flyenvScriptPath,
         scriptState: integration.scriptState,
+        gitBashState,
         profiles,
         warnings
       }

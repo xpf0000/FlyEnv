@@ -7,6 +7,7 @@ export type FlyEnvShellInitResult = {
   status: 'ready' | 'degraded'
   scriptPath: string
   scriptState: 'updated' | 'unchanged'
+  gitBashState: 'updated' | 'unchanged' | 'failed'
   profiles: Array<{
     edition: 'windows-powershell' | 'pwsh'
     path?: string
@@ -96,6 +97,7 @@ export class ShellInitController {
             status: 'ready',
             scriptPath: '',
             scriptState: 'unchanged',
+            gitBashState: 'unchanged',
             profiles: [],
             warnings: []
           })
