@@ -1,11 +1,11 @@
-version: 4.20.1
+version: 4.20.2
 files:
-  - url: FlyEnv-4.20.1-arm64-mac.zip
-    sha512: ChM1n/77kI1oGAp4oCF0WDFp5GwJUHWvt5YtwmTq8QlsISP5jTrw1n03MQJYTEZfSVujnV6a2k5lV/o+eCYnrw==
-    size: 165703939
-  - url: FlyEnv-4.20.1-arm64.dmg
-    sha512: +hBiZxF3WoQhvtfJ7j2G8rzqmUYb8LmUmHdS0+yDn2wReMjS6EoQwpnRDtA2utmnx3xef+uDBq66NHxs/+ZyUA==
-    size: 173917427
-path: FlyEnv-4.20.1-arm64-mac.zip
-sha512: ChM1n/77kI1oGAp4oCF0WDFp5GwJUHWvt5YtwmTq8QlsISP5jTrw1n03MQJYTEZfSVujnV6a2k5lV/o+eCYnrw==
-releaseDate: '2026-10-13T13:37:27.999Z'
+  - url: FlyEnv-4.20.2-arm64-mac.zip
+    sha512: 71r7NdRuKcXVtDf2wwDXbALcfel7S+OTOzQ3nolMxQN4gMzOi+RY7+JFDx40dHV26WkmkIj9tFTTNa53P2xKfg==
+    size: 165572419
+  - url: FlyEnv-4.20.2-arm64.dmg
+    sha512: 8dWyTnkoLQ/k/bykNbKmOG2ZwMX0u20ORrhsatZpM5AapWIOzqqQFkAq0/gBek2LVy9zFbKyCkpeJOOFwtC32g==
+    size: 173805440
+path: FlyEnv-4.20.2-arm64-mac.zip
+sha512: 71r7NdRuKcXVtDf2wwDXbALcfel7S+OTOzQ3nolMxQN4gMzOi+RY7+JFDx40dHV26WkmkIj9tFTTNa53P2xKfg==
+releaseDate: '2026-10-26T14:32:55.705Z'

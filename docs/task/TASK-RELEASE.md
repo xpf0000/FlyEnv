@@ -1,14 +1,9 @@
-# FlyEnv新版本4.20.1更新日志
+# FlyEnv新版本4.20.2更新日志
 
 本次更新内容：
-1. 修复https://github.com/xpf0000/FlyEnv/issues/894
-2. 修复https://github.com/xpf0000/FlyEnv/issues/899
-3. 修复https://github.com/xpf0000/FlyEnv/issues/901
-4. 修复https://github.com/xpf0000/FlyEnv/issues/902
-
-相关PR: https://github.com/xpf0000/FlyEnv/pull/893
-https://github.com/xpf0000/FlyEnv/pull/898
-https://github.com/xpf0000/FlyEnv/pull/900
+1. https://github.com/xpf0000/FlyEnv/pull/930
+2. https://github.com/xpf0000/FlyEnv/pull/922
+3. 修复BUG
 
 参照：
 ```
