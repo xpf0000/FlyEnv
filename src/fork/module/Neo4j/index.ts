@@ -322,7 +322,11 @@ class Neo4j extends Base {
       if (allPids.length > 0) {
         // 只對實例目錄已確認的根發 TERM；信號失敗保留 PID 文件並交回錯誤供重試。
         if (isWindows()) finalList = await this.stopWindowsServiceProcesses(allPids, list)
-        else finalList = await this.stopUnixServicePids('-TERM', allPids, allPids, 10_000, list)
+        else {
+          // Neo4j 的事务收尾与数据库关闭可能超过 10 秒；采用官方停止等待的
+          // 默认 120 秒上限，仍持续确认原进程树，提前退出即完成。
+          finalList = await this.stopUnixServicePids('-TERM', allPids, allPids, 120_000, list)
+        }
       }
 
       let stopped = allPids.length === 0

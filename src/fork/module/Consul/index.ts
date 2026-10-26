@@ -33,6 +33,11 @@ class Consul extends Base {
     this.pidPath = join(global.Server.BaseDir!, 'consul/consul.pid')
   }
 
+  protected _stopTimeoutMs(): number {
+    // Consul 的优雅离开阶段本身可等待 15 秒，还需给 agent 关闭留出时间。
+    return 60_000
+  }
+
   initConfig(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject, on) => {
       const baseDir = join(global.Server.BaseDir!, 'consul')

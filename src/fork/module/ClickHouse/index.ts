@@ -29,7 +29,9 @@ import { isMacOS, isWindows } from '@shared/utils'
 import {
   ProcessListByExactPid,
   ProcessListFetch,
-  ProcessOwnedPidsByPidOrDescendant
+  ProcessOwnedPidsByPidOrDescendant,
+  ProcessOwnedPidsByPid,
+  ProcessSearch
 } from '@shared/Process'
 import {
   CH_UI_CONNECTION_NAME,
@@ -304,6 +306,7 @@ class Manager extends Base {
     if (command === 'openCHUI') {
       return [{ ...this.chUIVersion(this.chUIBin()), pid }, { uiOnly: true }]
     }
+    return undefined
   }
 
   _stopServer(version: SoftInstalled, ...args: any) {
@@ -383,13 +386,9 @@ class Manager extends Base {
 
     const candidatePids = new Set<string>()
     if (existsSync(pidPath)) {
-      try {
-        const pid = (await readFile(pidPath, 'utf-8')).trim()
-        if (pid) candidatePids.add(pid)
-      } catch (error) {
-        // PID 记录不可读时不能当作 companion 已退出，也不能继续清理该记录。
-        throw error
-      }
+      // PID 记录不可读时直接传播错误，不能当作 companion 已退出或继续清理记录。
+      const pid = (await readFile(pidPath, 'utf-8')).trim()
+      if (pid) candidatePids.add(pid)
     }
     // 只从保存的 PID 和专属进程名恢复 UI 候选，不能按相同 EXE 全量扫描纳入用户实例。
     ProcessSearch('ch-ui', false, processes)

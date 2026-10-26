@@ -336,7 +336,9 @@ export class CloudflareTunnel {
             signalError = error
           }
           try {
-            await waitForServiceProcessExit(pids, 10_000, { initialList: list })
+            // cloudflared 默认有 30 秒优雅退出期，另留 10 秒给进程收尾；
+            // 持续轮询，提前退出即完成，不影响其他服务的公共超时策略。
+            await waitForServiceProcessExit(pids, 40_000, { initialList: list })
           } catch (error) {
             throw signalError ?? error
           }

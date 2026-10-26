@@ -557,6 +557,11 @@ export class Base {
     }
   }
 
+  /** 模块可调整 Unix 优雅退出等待上限，复用公共信号、退出确认及 PID 清理流程。 */
+  protected _stopTimeoutMs(): number {
+    return 10_000
+  }
+
   _stopServer(version: SoftInstalled, ...args: any): ForkPromise<any> {
     console.log('_stopServer: ', version, ...args)
     return new ForkPromise(async (resolve, reject, on) => {
@@ -627,7 +632,13 @@ export class Base {
       if (arr.length > 0) {
         const sig = this._stopSignal()
         // 即使单个目标在批量 signal 前自然退出，仍由公共严格等待核对整份原目标。
-        finalProcessList = await this.stopUnixServicePids(sig, arr, arr, 10_000, plist)
+        finalProcessList = await this.stopUnixServicePids(
+          sig,
+          arr,
+          arr,
+          this._stopTimeoutMs(),
+          plist
+        )
       }
       // PID 记录只在严格停止和新鲜快照确认后清除，且只清除本次目标对应的登记。
       // 不在快照中的 PID 是已退出的舊登記，可清除；仍活著但不屬本模組的 PID 保留。

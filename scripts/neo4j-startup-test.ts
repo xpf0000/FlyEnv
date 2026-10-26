@@ -88,7 +88,7 @@ assert.equal(
     .status,
   'command-changed'
 )
-const unreadable = { ...external, EXECUTABLE: '' }
+const unreadable = { ...external, COMMAND: '', EXECUTABLE: '' }
 assert.deepEqual(
   neo4jStopProcessPids([unreadable, launcher, server], root.PID, home, config),
   [launcher.PID, server.PID],
