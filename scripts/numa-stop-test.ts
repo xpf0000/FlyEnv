@@ -103,7 +103,9 @@ try {
 
   if (process.env.FLYENV_NUMA_TEST_BIN) {
     EnvSync.AppEnv = Object.fromEntries(
-      Object.entries(process.env).filter(([, value]) => value !== undefined)
+      Object.entries(process.env).filter(
+        (entry): entry is [string, string] => entry[1] !== undefined
+      )
     )
     const installed = version(resolve(process.env.FLYENV_NUMA_TEST_BIN))
     const listeners = [createServer(), createServer()]
@@ -137,12 +139,36 @@ try {
     const peers = before.filter(
       (item) => item.EXECUTABLE?.toLowerCase() === installed.bin.toLowerCase()
     )
+    const validConfig = await readFile(config, 'utf8')
+    await writeFile(config, 'invalid configuration = [')
+    await assert.rejects(
+      Promise.resolve(numa.startService(installed)),
+      /Numa exited during startup/
+    )
+    assert.equal(existsSync(numa.pidPath), false)
+    assert.equal(existsSync(appPidFile), false)
+    await writeFile(config, validConfig)
+    const errorLog = join(root, `numa/numa-${installed.version}-start-error.log`)
     for (const reason of ['stop', 'quit'] as const) {
+      const previousLogSize = (await readFile(errorLog)).length
       const started: any = await numa.startService(installed)
       startedPid = `${started['APP-Service-Start-PID']}`
       const processList = await fetchStopProcessListLocal()
       const broker = processList.find((item) => item.PID === startedPid)
       assert.ok(broker && windowsNumaRootMatcher(installed, config)(broker))
+      assert.equal(
+        processList.some((item) => item.PID === broker.PPID),
+        false,
+        'temporary launcher has exited'
+      )
+      assert.ok(
+        (await readFile(errorLog)).length > previousLogSize,
+        'native Numa logs are still captured'
+      )
+      const health = await fetch(`http://127.0.0.1:${ports[1]}/health`, {
+        signal: AbortSignal.timeout(3000)
+      })
+      assert.equal(health.status, 200)
       assert.ok(
         broker.COMMAND.trim().startsWith(`"${installed.bin}"`),
         'starts the complete executable path'

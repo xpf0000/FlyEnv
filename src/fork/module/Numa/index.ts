@@ -27,6 +27,7 @@ import { numaListenPorts } from './Ports'
 import { windowsNumaRootMatcher } from './Process'
 import { stopWindowsServiceProcesses } from '@shared/ServiceStop'
 import { isReadableServiceStopRoot } from '@shared/ProcessSnapshot'
+import { startNumaWindows } from './WindowsStart'
 
 class Numa extends Base {
   constructor() {
@@ -114,17 +115,26 @@ class Numa extends Base {
       let startError: any = null
       let res: any = null
       try {
-        res = await serviceStartSpawn({
-          lowPortService: isLinux(),
-          listenPorts: isLinux() ? await numaListenPorts(configFile) : undefined,
-          version,
-          pidPath: this.pidPath,
-          baseDir,
-          bin,
-          execArgs: [configFile],
-          waitTime: 500,
-          on
-        })
+        res = isWindows()
+          ? await startNumaWindows({
+              version,
+              pidPath: this.pidPath,
+              baseDir,
+              bin,
+              configFile,
+              on
+            })
+          : await serviceStartSpawn({
+              lowPortService: isLinux(),
+              listenPorts: isLinux() ? await numaListenPorts(configFile) : undefined,
+              version,
+              pidPath: this.pidPath,
+              baseDir,
+              bin,
+              execArgs: [configFile],
+              waitTime: 500,
+              on
+            })
       } catch (e: any) {
         console.log('numa start err: ', e)
         startError = e
