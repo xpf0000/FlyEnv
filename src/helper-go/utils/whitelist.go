@@ -14,6 +14,7 @@ const allowedRootsFileUnix = "/usr/local/share/FlyEnv/flyenv.allowed-roots"
 
 var (
 	envKeyPattern       = regexp.MustCompile(`^[A-Z][A-Z0-9_]{0,63}$`)
+	envPathPattern      = regexp.MustCompile(`^%[A-Za-z0-9_]+%`)
 	chownUserPattern    = regexp.MustCompile(`^([0-9]+:[0-9]+|[A-Za-z0-9_.-]+(:[A-Za-z0-9_.-]+)?)$`)
 	commonNamePattern   = regexp.MustCompile(`^[A-Za-z0-9_.:@ -]{1,128}$`)
 	certNamePattern     = regexp.MustCompile(`^[A-Za-z0-9_.-]{1,128}\.crt$`)
@@ -901,11 +902,23 @@ func ValidateSystemEnvValue(key, value string) error {
 	if value == "" {
 		return nil
 	}
-	if strings.Contains(value, "%") {
-		return ValidateSystemPathEntry(value)
-	}
 	if filepath.IsAbs(value) {
-		return ValidatePathForWrite(value)
+		// This value is registry data, not a filesystem write target. Match the
+		// Windows fallback: allow junctions and custom installation directories,
+		// while retaining absolute-path syntax checks. Filesystem operations keep
+		// their allowed-root and symlink protections in ValidatePathForWrite.
+		_, err := cleanAbsPath(value)
+		return err
+	}
+	if strings.Contains(value, "%") {
+		// Environment values are single paths, not semicolon-separated PATH
+		// entries. Validate the suffix without expanding or accessing it; legal
+		// apostrophes and semicolons must not depend on the elevation method.
+		prefix := envPathPattern.FindString(value)
+		if prefix == "" || (len(value) > len(prefix) && value[len(prefix)] != '\\') {
+			return fmt.Errorf("invalid environment path for %s", key)
+		}
+		return ValidateWindowsAbsolutePath(`C:\FlyEnvEnvValue`+value[len(prefix):], false)
 	}
 	if strings.ContainsAny(value, `/\`) {
 		return fmt.Errorf("environment variable value must be an allowed path: %s", key)

@@ -119,6 +119,7 @@ class GlobalIPCOn {
           HelperStore.showNeedInstallDialog(res?.reason)
         }
       } else if (res.code === 2) {
+        if (res.status === 'installing' && HelperStore.isInstalling()) return
         MessageWarning(res?.msg)
       }
     })

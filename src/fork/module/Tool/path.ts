@@ -9,6 +9,31 @@ import type { SoftInstalled } from '@shared/app'
 import { createPythonBinShims } from '../../util/PythonShim'
 import { updateShellProfiles } from './shellProfiles'
 
+const logPathEntrySkipped = (path: string, reason: string) => {
+  void appDebugLog('[fetchPATH][entry-skipped]', JSON.stringify({ path, reason })).catch(() => {})
+}
+
+const resolvePathDirectories = (paths: string[]): string[] => {
+  const directories = new Set<string>()
+  for (const path of paths) {
+    try {
+      if (!existsSync(path)) {
+        logPathEntrySkipped(path, 'missing or inaccessible')
+        continue
+      }
+      const resolved = realpathSync(path)
+      if (statSync(resolved).isDirectory()) {
+        directories.add(resolved)
+      } else {
+        logPathEntrySkipped(path, 'not a directory')
+      }
+    } catch (error) {
+      logPathEntrySkipped(path, error instanceof Error ? error.message : String(error))
+    }
+  }
+  return [...directories]
+}
+
 export function fetchEnvPath(): ForkPromise<string[]> {
   return new ForkPromise(async (resolve) => {
     const { PATH } = await shellEnv()
@@ -24,11 +49,7 @@ export function fetchPATH(): ForkPromise<{ allPath: string[]; appPath: string[] 
       appPath: []
     }
     const pathArr = await fetchEnvPath()
-    const allPath = pathArr
-      .filter((f) => existsSync(f))
-      .map((f) => realpathSync(f))
-      .filter((f) => existsSync(f) && statSync(f).isDirectory())
-    res.allPath = Array.from(new Set(allPath))
+    res.allPath = resolvePathDirectories(pathArr)
 
     const dir = join(dirname(global.Server.AppDir!), 'env')
     if (existsSync(dir)) {
@@ -171,9 +192,17 @@ async function rebuildEnvPath(envDir: string, resolve: any, reject: any, actionL
     reject(e)
     return
   }
-  await EnvSync.clean()
-  const allPath = await fetchPATH()
-  resolve(allPath)
+  // 两个 profile 均写入成功后，缓存失效和列表刷新是附加动作。
+  // 保留真实写入失败/部分完成的异常，仅隔离已保存之后的刷新错误。
+  try {
+    await EnvSync.clean()
+    resolve(await fetchPATH())
+  } catch (error) {
+    const refreshError =
+      (error instanceof Error ? error.message : String(error)) || 'Failed to refresh PATH list'
+    void appDebugLog(`[${actionLabel}][refresh-failed]`, refreshError).catch(() => {})
+    resolve({ refreshError })
+  }
 }
 
 export function updatePATH(item: SoftInstalled, flag: string) {

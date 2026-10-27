@@ -10,7 +10,7 @@ import {
 } from '@shared/AppHelperCheck'
 import type { AppHelper } from '../main/core/AppHelper'
 import JSON5 from 'json5'
-import { hasWindowsPrivilegeProvider } from '@shared/WindowsPrivilege'
+import { hasWindowsPrivilegeProvider, resolveWindowsPrivilege } from '@shared/WindowsPrivilege'
 import { appDebugLog, isWindows, uuid } from '@shared/utils'
 import { timeOperation } from '@shared/OperationTiming'
 import { bindWindowsPathLogger } from '@shared/WindowsPathDiagnostics'
@@ -138,6 +138,8 @@ export class Helper {
   private helperKey: Buffer | null = null
   // 用户切换方式后旧 enable/key 缓存失效；下次确需 Helper 时重新做健康校验。
   private windowsPrivilegeRevision = -1
+  private helperGeneration = 0
+  private windowsPreparation?: Promise<void>
 
   constructor(private readonly deps: HelperDeps = defaultHelperDeps) {}
 
@@ -155,6 +157,39 @@ export class Helper {
   private invalidateHelperState() {
     this.enable = false
     this.helperKey = null
+    this.helperGeneration += 1
+    this.windowsPreparation = undefined
+  }
+
+  private syncWindowsPrivilegeRevision() {
+    const revision = global.Server?.WindowsPrivilegeRevision ?? 0
+    if (this.windowsPrivilegeRevision !== revision) {
+      this.invalidateHelperState()
+      this.windowsPrivilegeRevision = revision
+    }
+  }
+
+  private prepareWindowsHelper(): Promise<void> {
+    if (this.enable) return Promise.resolve()
+    if (this.windowsPreparation) return this.windowsPreparation
+    const generation = this.helperGeneration
+    // helper/ready 的成功响应来自 main 的完整校验/恢复；同一 worker 的并发请求复用它。
+    const preparation = resolveWindowsPrivilege('helper/ready')
+      .then((method) => {
+        if (method !== 'helper' || generation !== this.helperGeneration) {
+          throw new AppHelperError(
+            'windows_authorization_required',
+            'Helper readiness changed before execution; retry the operation'
+          )
+        }
+        this.windowsPrivilegeRevision = global.Server?.WindowsPrivilegeRevision ?? 0
+        this.enable = true
+      })
+      .finally(() => {
+        if (this.windowsPreparation === preparation) this.windowsPreparation = undefined
+      })
+    this.windowsPreparation = preparation
+    return preparation
   }
 
   private validatePathArg(arg: any): boolean {
@@ -290,10 +325,7 @@ export class Helper {
 
   send<T>(module: Module, fn: FN, ...args: any): Promise<T> {
     if (this.deps.isWindows() && module !== 'helper' && hasWindowsPrivilegeProvider()) {
-      if (this.windowsPrivilegeRevision !== global.Server?.WindowsPrivilegeRevision) {
-        this.invalidateHelperState()
-        this.windowsPrivilegeRevision = global.Server?.WindowsPrivilegeRevision ?? 0
-      }
+      this.syncWindowsPrivilegeRevision()
       // 在检查二进制、密钥或计划任务前进入共享权限路由；没有安装 Helper 的机器
       // 也必须能够通过用户已选 UAC 或当前管理员权限完成操作。
       // 先单独记录权限路由模块的冷导入，避免它落在 PATH 提交与首个权限阶段之间。
@@ -302,17 +334,8 @@ export class Helper {
         () => import('@shared/WindowsPrivilegeOperation')
       ).then(({ executeWindowsPrivilegeOperation }) =>
         executeWindowsPrivilegeOperation<T>(module, fn, args, async (processes) => {
-          if (!this.enable) {
-            // 安装/修复归 main 所有；Helper 分支不得因准备失败而静默切换到 UAC。
-            const method = await import('@shared/WindowsPrivilege').then(
-              ({ resolveWindowsPrivilege }) => resolveWindowsPrivilege('helper/ready')
-            )
-            if (method !== 'helper')
-              throw new AppHelperError(
-                'windows_authorization_required',
-                'Authorization method changed before Helper execution; retry the operation'
-              )
-          }
+          // 准备失败仍拒绝本次业务，不静默切换授权方式；成功后无需在 worker 重跑校验。
+          await this.prepareWindowsHelper()
           const { withWindowsElevationLease } = await import('@shared/WindowsPrivilege')
           // 授权前采集的同一身份快照必须覆盖 Helper 实际执行的所有结束目标。
           // 新的四参数形状让普通 PID 与树模式都明确携带 mode 和身份数组。
@@ -402,6 +425,9 @@ export class Helper {
             client?.destroy()
           } catch {}
         }
+
+        // 排队等待租约期间也可能切换方式；旧就绪结果不能越过新权限版本。
+        if (helperSelected) this.syncWindowsPrivilegeRevision()
 
         if (!this.validateSendArgs(module, fn, args)) {
           rejectOnce(new Error('Path traversal detected'))

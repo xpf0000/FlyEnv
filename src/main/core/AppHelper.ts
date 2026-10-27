@@ -239,8 +239,8 @@ type AppHelperDeps = {
   appHelperCheck: typeof AppHelperCheck
   sudo: SudoExec
   installWindows: typeof runWindowsHelperInstaller
-  recoverWindowsHelper: () => Promise<boolean>
-  windowsDiagnostics: () => Promise<string>
+  recoverWindowsHelper: typeof recoverWindowsHelper
+  windowsDiagnostics: (getIdentity?: typeof getWindowsHelperIdentity) => Promise<string>
 }
 
 const defaultAppHelperDeps: AppHelperDeps = {
@@ -248,8 +248,8 @@ const defaultAppHelperDeps: AppHelperDeps = {
   sudo: lazySudo,
   installWindows: runWindowsHelperInstaller,
   recoverWindowsHelper,
-  windowsDiagnostics: async () =>
-    readWindowsHelperDiagnostics(await getWindowsHelperIdentity(), HelperVersion)
+  windowsDiagnostics: async (getIdentity = getWindowsHelperIdentity) =>
+    readWindowsHelperDiagnostics(await getIdentity(), HelperVersion)
 }
 
 export class AppHelper {
@@ -294,7 +294,7 @@ export class AppHelper {
     }
   }
 
-  async command(): Promise<{
+  async command(getIdentity = getWindowsHelperIdentity): Promise<{
     command: string
     icns: string
     windowsScript?: string
@@ -309,7 +309,7 @@ export class AppHelper {
         join(global.Server.Static!, 'sh/flyenv-auto-start-now.ps1'),
         'utf-8'
       )
-      const windowsIdentity = await getWindowsHelperIdentity()
+      const windowsIdentity = await getIdentity()
       const windowsScript = buildWindowsHelperInstallScript(tmpl, {
         identity: windowsIdentity,
         executable: windowsHelperInstalledPath(windowsIdentity),
@@ -457,16 +457,18 @@ export class AppHelper {
     }
   }
 
-  private async checkOrRecover(): Promise<void> {
+  private async checkOrRecover(getIdentity?: typeof getWindowsHelperIdentity): Promise<void> {
     try {
-      await this.deps.appHelperCheck()
+      await this.deps.appHelperCheck(getIdentity)
     } catch (error) {
       const reason = toAppHelperInstallError(error)
       appDebugLog('[AppHelper][repair]', `${reason.code}: ${reason.message}`).catch(() => {})
       if (reason.code === 'helper_pipe_unreachable' || reason.code === 'helper_unreachable') {
         try {
-          if (await this.deps.recoverWindowsHelper()) {
-            await waitForHelperHealth(() => this.deps.appHelperCheck(), { deadlineMs: 10_000 })
+          if (await this.deps.recoverWindowsHelper(getIdentity)) {
+            await waitForHelperHealth(() => this.deps.appHelperCheck(getIdentity), {
+              deadlineMs: 10_000
+            })
             return
           }
         } catch (recoveryError) {
@@ -479,13 +481,20 @@ export class AppHelper {
 
   private async install(): Promise<boolean> {
     let windowsInstallation = false
+    // 仅本次安装共享身份查询；原用户令牌在 UAC 前捕获，不建立跨请求/SID 缓存。
+    let identity: ReturnType<typeof getWindowsHelperIdentity> | undefined
+    const getIdentity = () =>
+      (identity ??= getWindowsHelperIdentity().catch((error) => {
+        identity = undefined
+        throw error
+      }))
     // 每次 initHelper 都会健康检查。仅在本次真正执行安装后记录，恢复已有任务或
     // 已健康直接返回都为 false；后续健康验证失败仍走 catch，不发成功终态。
     let installationPerformed = false
     try {
       let healthy = false
       try {
-        await this.checkOrRecover()
+        await this.checkOrRecover(getIdentity)
         healthy = true
       } catch {
         // 只有明确的安装入口才可在检查/恢复失败后继续执行提权安装。
@@ -493,7 +502,7 @@ export class AppHelper {
       if (!healthy) {
         this.emitStatus('needInstall')
         this.emitStatus('installing')
-        const { command, icns, windowsScript } = await this.command()
+        const { command, icns, windowsScript } = await this.command(getIdentity)
         windowsInstallation = !!windowsScript
         const { stdout, stderr } = windowsScript
           ? await this.deps.installWindows(windowsScript)
@@ -501,7 +510,7 @@ export class AppHelper {
         appDebugLog('[AppHelper][install]', `${stdout}\n${stderr}`).catch(() => {})
         installationPerformed = true
         this.state = 'installed'
-        await waitForHelperHealth(() => this.deps.appHelperCheck())
+        await waitForHelperHealth(() => this.deps.appHelperCheck(getIdentity))
       }
       await this.afterHelperReady()
       this.emitStatus('checkSuccess', undefined, installationPerformed)
@@ -510,7 +519,7 @@ export class AppHelper {
       const appError = toAppHelperInstallError(error)
       if (windowsInstallation && appError.code !== 'elevation_uac_cancelled') {
         try {
-          const diagnostics = await this.deps.windowsDiagnostics()
+          const diagnostics = await this.deps.windowsDiagnostics(getIdentity)
           appError.stderr = [appError.message, diagnostics, appError.stderr]
             .filter(Boolean)
             .join('\n')

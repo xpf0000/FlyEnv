@@ -72,6 +72,32 @@ export const isWindowsJunctionOrSymlink = (
   return platform === 'win32' && stats.isSymbolicLink()
 }
 
+// 列表中的目录是独立候选；一个失效联接或访问异常不能否定其他目录，
+// 尤其不能让环境已写入后的列表刷新因单个坏项而报告整次操作失败。
+const resolvePathDirectories = (paths: string[]): string[] => {
+  const directories = new Set<string>()
+  for (const path of paths) {
+    try {
+      if (!existsSync(path)) {
+        logWindowsPath('path.list-entry-skipped', { path, reason: 'missing or inaccessible' })
+        continue
+      }
+      const resolved = realpathSync(path)
+      if (statSync(resolved).isDirectory()) {
+        directories.add(resolved)
+      } else {
+        logWindowsPath('path.list-entry-skipped', { path, reason: 'not a directory' })
+      }
+    } catch (error) {
+      logWindowsPath('path.list-entry-skipped', {
+        path,
+        reason: error instanceof Error ? error.message : String(error)
+      })
+    }
+  }
+  return [...directories]
+}
+
 export function fetchPATH(): ForkPromise<any> {
   return new ForkPromise(async (resolve) => {
     const res: any = {
@@ -80,24 +106,16 @@ export function fetchPATH(): ForkPromise<any> {
     }
     const pathArr = await timeOperation('path.list-read-system-path', () => fetchRawPATH())
     // 同步文件系统扫描也可能等待慢盘；单独测量，不能全部归到注册表查询。
-    const allPath = timeOperationSync('path.list-resolve-system-entries', () =>
-      pathArr
-        .filter((f) => existsSync(f))
-        .map((f) => realpathSync(f))
-        .filter((f) => existsSync(f) && statSync(f).isDirectory())
+    res.allPath = timeOperationSync('path.list-resolve-system-entries', () =>
+      resolvePathDirectories(pathArr)
     )
-    res.allPath = Array.from(new Set(allPath))
 
     const dir = join(dirname(global.Server.AppDir!), 'env')
     if (existsSync(dir)) {
-      let allFile = await timeOperation('path.list-read-env-directory', () => readdir(dir))
-      allFile = timeOperationSync('path.list-resolve-app-entries', () =>
-        allFile
-          .filter((f) => existsSync(join(dir, f)))
-          .map((f) => realpathSync(join(dir, f)))
-          .filter((f) => existsSync(f) && statSync(f).isDirectory())
+      const allFile = await timeOperation('path.list-read-env-directory', () => readdir(dir))
+      res.appPath = timeOperationSync('path.list-resolve-app-entries', () =>
+        resolvePathDirectories(allFile.map((file) => join(dir, file)))
       )
-      res.appPath = Array.from(new Set(allFile))
     }
     logWindowsPath('path.list-completed', {
       systemCount: res.allPath.length,
@@ -379,6 +397,25 @@ const buildOtherVars = async (
   return otherVars
 }
 
+type PathWriteResult = {
+  allPath?: string[]
+  appPath?: string[]
+  refreshError?: string
+}
+
+// 仅在注册表明确提交成功后调用。刷新是附加动作，失败只返回自己的状态，
+// 不伪造空列表、不进入保存失败回调，也不重放已完成的写入。
+const refreshPathAfterWrite = async (): Promise<PathWriteResult> => {
+  try {
+    return await timeOperation('path.refresh-list', () => fetchPATH())
+  } catch (error) {
+    const refreshError =
+      (error instanceof Error ? error.message : String(error)) || 'Failed to refresh PATH list'
+    logWindowsPath('path.refresh-list-failed', { error: refreshError, environmentWritten: true })
+    return { refreshError }
+  }
+}
+
 export function removePATH(item: SoftInstalled, typeFlag: string) {
   return new ForkPromise(async (resolve, reject) => {
     // 只记录本次明确提交；列表刷新失败时仍应通知实际发生的变更。
@@ -401,7 +438,7 @@ export function removePATH(item: SoftInstalled, typeFlag: string) {
       )
       environmentWritten = true
 
-      resolve(await timeOperation('path.refresh-list', () => fetchPATH()))
+      resolve(await refreshPathAfterWrite())
     } catch (error) {
       reject(error)
     } finally {
@@ -520,16 +557,20 @@ export function updatePATH(item: SoftInstalled, typeFlag: string) {
       environmentWritten = true
 
       if (typeFlag === 'php') {
-        // 模块冷导入和 ini 配套处理分开计时；原 path.php-ini 未覆盖导入成本。
-        const phpModule = (
-          await timeOperation('path.import-php-module', () => import('../Php.win'))
-        ).default
         try {
+          // 模块加载和 ini 配套读取均为已保存后的附加动作。
+          const phpModule = (
+            await timeOperation('path.import-php-module', () => import('../Php.win'))
+          ).default
           await timeOperation('path.php-ini', () => phpModule.getIniPath(item))
-        } catch {}
+        } catch (error) {
+          logWindowsPath('path.php-ini-failed', {
+            error: error instanceof Error ? error.message : String(error)
+          })
+        }
       }
 
-      resolve(await timeOperation('path.refresh-list', () => fetchPATH()))
+      resolve(await refreshPathAfterWrite())
     } catch (error) {
       reject(error)
     } finally {

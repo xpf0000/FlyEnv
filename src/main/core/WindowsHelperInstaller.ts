@@ -1,13 +1,7 @@
 /** main 持有 Helper 管理操作的生命周期；共享层仅提供身份契约与认证运输。 */
-import { execFile } from 'node:child_process'
-import { promisify } from 'node:util'
 import { randomUUID } from 'node:crypto'
 import { gzipSync } from 'node:zlib'
-import {
-  windowsPowerShellEnv,
-  windowsPowerShellPath,
-  resolveWindowsPowerShellPath
-} from '@shared/WindowsSystemPaths'
+import { windowsPowerShellPath, resolveWindowsPowerShellPath } from '@shared/WindowsSystemPaths'
 import { AppHelperError, type AppHelperErrorCode } from '@shared/WindowsHelperState'
 import {
   buildWindowsRunAsLauncher,
@@ -15,8 +9,8 @@ import {
   type WindowsLaunchDiagnostic
 } from '@shared/WindowsRunAs'
 import { buildWindowsPipeClient, createWindowsActionPipe } from '@shared/WindowsActionPipe'
+import { waitForWindowsBrokerLaunch } from '@shared/WindowsElevation'
 
-const execFileAsync = promisify(execFile)
 const quote = (text: string) => `'${text.replace(/'/g, "''")}'`
 const MAX_RESULT_BYTES = 128 * 1024
 const LATE_RESULT_GRACE_MS = 10 * 60_000
@@ -25,7 +19,12 @@ const LATE_RESULT_GRACE_MS = 10 * 60_000
 export const WINDOWS_HELPER_PIPE_CONNECT_EXIT_CODE = 73
 
 type InstallResult = { nonce: string; exitCode: number; stdout: string; stderr: string }
-type InstallPlan = { powershell: string; childCommand: string; launcher: string }
+type InstallPlan = {
+  powershell: string
+  childCommand: string
+  argumentsText: string
+  launcher: string
+}
 type InstallOptions = {
   launch?: (plan: InstallPlan) => Promise<{ stdout: string; stderr: string }>
 }
@@ -88,7 +87,7 @@ exit $global:LASTEXITCODE
       'Helper installer exceeds the Windows command-line limit'
     )
   }
-  return { powershell, childCommand, launcher }
+  return { powershell, childCommand, argumentsText, launcher }
 }
 
 export const runWindowsHelperInstaller = async (
@@ -108,6 +107,8 @@ export const runWindowsHelperInstaller = async (
     nonce,
     elevated: true,
     maxBytes: MAX_RESULT_BYTES,
+    // 复用已就绪的 broker 发起 RunAs，省去第二个普通 PowerShell launcher。
+    launch: options.launch ? undefined : { argumentsText: plan.argumentsText },
     onResult: (value) => {
       const message = value as InstallResult
       if (
@@ -127,18 +128,10 @@ export const runWindowsHelperInstaller = async (
   const resultReady = pipe.resultReady
   const closeResults = pipe.close
   try {
-    const launch =
-      options.launch ??
-      ((p: InstallPlan) =>
-        execFileAsync(p.powershell, ['-NoProfile', '-NonInteractive', '-Command', p.launcher], {
-          windowsHide: true,
-          timeout: 180_000,
-          maxBuffer: MAX_RESULT_BYTES,
-          env: windowsPowerShellEnv()
-        }))
     let launchError: any
     try {
-      await launch(plan)
+      if (options.launch) await options.launch(plan)
+      else await waitForWindowsBrokerLaunch(pipe.launchReady)
     } catch (error) {
       launchError = error
     }

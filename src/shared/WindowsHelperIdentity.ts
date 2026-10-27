@@ -3,6 +3,7 @@ import { promisify } from 'node:util'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
+import { buildWindowsHelperProcessStopScript } from './WindowsHelperProcess'
 import {
   resolveWindowsPowerShellPath,
   windowsPowerShellEnv,
@@ -115,11 +116,22 @@ export type WindowsHelperInstallConfig = {
 export const buildWindowsHelperInstallScript = (
   template: string,
   config: WindowsHelperInstallConfig
-): string =>
-  template.replace(
-    '#INSTALL_CONFIG#',
-    Buffer.from(JSON.stringify(config), 'utf8').toString('base64')
-  )
+): string => {
+  if (!template.includes('#STOP_HELPER_PROCESSES#')) {
+    throw new Error('Windows Helper installer template is missing the process shutdown stage')
+  }
+  return template
+    .replace('#INSTALL_CONFIG#', Buffer.from(JSON.stringify(config), 'utf8').toString('base64'))
+    .replace(
+      '#STOP_HELPER_PROCESSES#',
+      () =>
+        buildWindowsHelperProcessStopScript({
+          instanceId: config.identity.instanceId,
+          sid: config.identity.sid,
+          executablePaths: [config.executable, config.sourceExecutable, config.backupExecutable]
+        })
+    )
+}
 
 export const windowsHelperInstallerCommand = (
   scriptPath: string,

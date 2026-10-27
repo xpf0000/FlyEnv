@@ -1,4 +1,5 @@
 {
+  "pathSavedRefreshFailed": "Environment variables were saved, but the list could not be refreshed: {error}",
   "linuxSudoRequiresTerminal": "Start this privileged task interactively in the terminal; background sudo is unavailable.",
   "linuxFtpUnmanagedRoot": "This root FTP process was not started by FlyEnv's managed service. Stop it with administrator privileges before starting again.",
   "linuxFtpUsersRefreshFailed": "FTP account changes were saved, but the running service could not apply them: {error}",

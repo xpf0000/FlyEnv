@@ -29,7 +29,9 @@ func windowsGetMachineEnvRaw(name string) (string, error) {
 }
 
 func windowsSetMachineEnv(name, value string) error {
-	if strings.Contains(value, "%") {
+	// Only validated %ENVVAR%-based paths need expansion. A percent sign in an
+	// absolute installation directory is literal registry data.
+	if strings.HasPrefix(value, "%") {
 		return windowsSetMachineEnvExpandString(name, value)
 	}
 	key, err := windowsOpenMachineEnv(registry.SET_VALUE)

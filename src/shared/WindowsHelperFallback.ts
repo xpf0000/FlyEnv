@@ -170,7 +170,7 @@ const CONTROL_CHAR_PATTERN = /[\x00\r\n]/u
 const ENV_KEY_PATTERN = /^[A-Z][A-Z0-9_]{0,63}$/
 const CERT_NAME_PATTERN = /^[A-Za-z0-9_.-]{1,128}\.crt$/
 const AUTO_TASK_NAME_PATTERN = /^[A-Za-z0-9_. -]{1,64}$/
-const ENV_PATH_PATTERN = /^%[A-Za-z0-9_]+%(?:\\[^<>"|?*\x00\r\n;]*)?$/
+const ENV_PATH_PREFIX_PATTERN = /^%[A-Za-z0-9_]+%/u
 const WINDOWS_SID_PATTERN = /^S-\d+(?:-\d+)+$/iu
 
 type ValidatedWriteFileArgs = {
@@ -599,29 +599,14 @@ function validatePathForRemove(
   return validatePathAccess(clean, label, true, scope)
 }
 
-function validatePathLikeEnvEntry(value: string, label: string): string {
-  const trimmed = value.trim()
-  if (!trimmed) {
-    helperExecutionFailed(`${label} must not be empty`)
+function validateEnvironmentPathExpression(value: string, label: string): string {
+  const prefix = ENV_PATH_PREFIX_PATTERN.exec(value)?.[0]
+  if (!prefix || (value.length > prefix.length && value[prefix.length] !== '\\')) {
+    helperExecutionFailed(`${label} must be a %ENVVAR%-style path`)
   }
-  // 单引号是合法路径字符；脚本统一通过 powerShellString 转义，不经过命令 shell。
-  if (CONTROL_CHAR_PATTERN.test(trimmed) || /[;"]/u.test(trimmed)) {
-    helperExecutionFailed(`invalid PATH entry: ${trimmed}`)
-  }
-  if (/\$env:/iu.test(trimmed)) {
-    helperExecutionFailed(`PowerShell-style PATH entries are not allowed: ${trimmed}`)
-  }
-  if (trimmed.includes('%')) {
-    if (!ENV_PATH_PATTERN.test(trimmed) || hasPathTraversal(trimmed)) {
-      helperExecutionFailed(`${label} must be an absolute path or %ENVVAR%-style path`)
-    }
-    return trimmed
-  }
-  const clean = cleanAbsPath(trimmed, label)
-  if (hasPathTraversal(clean)) {
-    helperExecutionFailed(`PATH entry contains traversal: ${trimmed}`)
-  }
-  return clean
+  // 单个环境变量值允许单引号和分号；只验证路径语法，不展开变量或访问文件系统。
+  cleanAbsPath(`C:\\FlyEnvEnvValue${value.slice(prefix.length)}`, label)
+  return value
 }
 
 function validateSystemPathPayload(paths: unknown[]): string[] {
@@ -654,15 +639,15 @@ function validateSystemEnvValue(key: string, value: string): string {
   if (value === '') {
     return value
   }
-  if (value.includes('%')) {
-    return validatePathLikeEnvEntry(value, `environment variable value for ${key}`)
-  }
   if (path.win32.isAbsolute(value.trim())) {
     // 这里只把路径作为白名单环境键的字符串值写入注册表，并不写入该路径。
     // JAVA_HOME 等必须能够引用 FlyEnv junction 和自定义安装目录；复用文件写入
     // 校验会误拒绝 junction/allowed-root 外的版本。保留完整路径语法检查，实际
     // 文件写入、删除及 profile 的 allowed-root/reparse 防护不作放宽。
     return cleanAbsPath(value, `environment variable value for ${key}`)
+  }
+  if (value.includes('%')) {
+    return validateEnvironmentPathExpression(value, `environment variable value for ${key}`)
   }
   if (/[\\/]/u.test(value)) {
     helperExecutionFailed(`environment variable value must be an allowed path: ${key}`)
@@ -1384,7 +1369,7 @@ finally {
 foreach ($entry in $otherVars.GetEnumerator()) {
   $name = [string]$entry.Key
   $value = [string]$entry.Value
-  if ($value.Contains('%')) {
+  if ($value.StartsWith('%')) {
     New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $name -Value $value -PropertyType ExpandString -Force | Out-Null
   }
   else {
@@ -1404,8 +1389,8 @@ $value = [string]$payload.value`
     : `$key = ${powerShellString(args.key)}
 $value = ${powerShellString(args.value)}`
   const writeValue =
-    tempFilePath || args.value.includes('%')
-      ? `if ($value.Contains('%')) {
+    tempFilePath || args.value.startsWith('%')
+      ? `if ($value.StartsWith('%')) {
   New-ItemProperty -LiteralPath ${powerShellString(MACHINE_ENV_REGISTRY_PATH)} -Name $key -Value $value -PropertyType ExpandString -Force | Out-Null
 }
 else {

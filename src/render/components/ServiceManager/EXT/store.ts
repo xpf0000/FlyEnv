@@ -2,7 +2,7 @@ import { performanceDiagnosticNow, bindPerformanceLogger } from '@shared/Perform
 import { reactive } from 'vue'
 import IPC from '@/util/IPC'
 import { I18nT } from '@lang/index'
-import { MessageError, MessageSuccess } from '@/util/Element'
+import { MessageError, MessageSuccess, MessageWarning } from '@/util/Element'
 import type { AppServiceAliasItem, SoftInstalled } from '@shared/app'
 import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { AppStore } from '@/store/app'
@@ -237,9 +237,15 @@ export const ServiceActionStore: {
         IPC.off(key)
         delete ServiceActionStore.pathSeting?.[item.bin]
         if (res?.code === 0) {
-          const all = res?.data?.allPath ?? []
-          const app = res?.data?.appPath ?? []
-          ServiceActionStore.allPath = reactive([...all])
+          const refreshError = res?.data?.refreshError
+          const all = res?.data?.allPath
+          const appRefreshed = Array.isArray(res?.data?.appPath)
+          // 刷新失败时保留已有列表，仅应用本次明确保存的动作，避免再次点击重放保存。
+          const app: string[] = appRefreshed
+            ? res.data.appPath
+            : ServiceActionStore.appPath.filter((p) => p !== item.path && p !== item.bin)
+          if (!appRefreshed && action === 'updatePATH') app.push(item.path)
+          if (Array.isArray(all)) ServiceActionStore.allPath = reactive([...all])
           ServiceActionStore.appPath = reactive([...app])
 
           if (window.Server.isWindows) {
@@ -249,13 +255,15 @@ export const ServiceActionStore: {
               .then((res: Record<string, string>) => {
                 trace('renderer.local-directory-read-completed')
                 const list = res || {}
+                const previousPath = list[typeFlag]
                 if (action === 'removePATH') {
                   delete list?.[typeFlag]
                 } else {
                   list[typeFlag] = item.path
                 }
 
-                const set = new Set([...Object.values(list), ...app])
+                const retainedApp = appRefreshed ? app : app.filter((p) => p !== previousPath)
+                const set = new Set([...Object.values(list), ...retainedApp])
                 const appList = Array.from(set)
                 localForage
                   .setItem(`flyenv-app-env-dir`, list)
@@ -265,12 +273,18 @@ export const ServiceActionStore: {
               })
               .catch(() => trace('renderer.local-directory-read-failed'))
             // 此刷新有自己的 IPC key/诊断范围，发出后仍立即提示写入结果，不等待列表。
-            trace('renderer.env-list-refresh-requested')
-            Setup.fetchList()
+            if (!refreshError) {
+              trace('renderer.env-list-refresh-requested')
+              Setup.fetchList()
+            }
           }
 
-          MessageSuccess(I18nT('base.success'))
-          trace('renderer.success-notice')
+          if (refreshError) {
+            MessageWarning(I18nT('service.pathSavedRefreshFailed', { error: refreshError }))
+          } else {
+            MessageSuccess(I18nT('base.success'))
+          }
+          trace(refreshError ? 'renderer.refresh-warning' : 'renderer.success-notice')
           resolve(true)
         } else {
           const msg = res?.msg ?? I18nT('base.fail')

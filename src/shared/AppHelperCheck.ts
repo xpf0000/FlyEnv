@@ -33,7 +33,7 @@ const Helper_Check_Timeout = 3000
 // v36 环境广播改为 Helper 后台队列；旧程序仍阻塞写入 RPC，须通过版本检查更新。
 // v37 删除 Helper 提前广播，统一在环境业务结算后通知；旧 v36 会提前/重复广播。
 // v43 Unix 操作不限制用户配置的系统目录权限；仅保护 Helper 自身资产。
-export const HelperVersion = 49
+export const HelperVersion = 50
 
 export type HelperHealth = {
   version: number
@@ -218,7 +218,8 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
     helperBinaryExists: windowsHelperBinaryExists,
     createConnection,
     getHelperKey,
-    getWindowsIdentity: getWindowsHelperIdentity,
+    // 身份跟随当前进程令牌；复用已有的 SID 查询缓存，不缓存安装或健康结果。
+    getWindowsIdentity: currentWindowsHelperIdentity,
     readWindowsTask: readWindowsHelperTask,
     ...deps
   }
@@ -321,7 +322,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
       )
     })
 
-  return async (): Promise<HelperHealth | true> => {
+  return async (getIdentity?: typeof getWindowsHelperIdentity): Promise<HelperHealth | true> => {
     if (runtime.isWindows() && !runtime.helperBinaryExists()) {
       throw new AppHelperError('helper_binary_missing', 'Windows helper binary missing')
     }
@@ -329,7 +330,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
     let identity: WindowsHelperIdentity | undefined
     if (runtime.isWindows()) {
       try {
-        identity = await runtime.getWindowsIdentity()
+        identity = await (getIdentity ?? runtime.getWindowsIdentity)()
       } catch (error) {
         throw new AppHelperError(
           'helper_task_invalid',
@@ -442,9 +443,11 @@ export const AppHelperCheck = createAppHelperChecker()
 
 // Starting an intact current-SID task does not require replacing its binary/key.
 // Older installations without execute permission fall through to the UAC repair.
-export const recoverWindowsHelper = async (): Promise<boolean> => {
+export const recoverWindowsHelper = async (
+  getIdentity = getWindowsHelperIdentity
+): Promise<boolean> => {
   if (!isWindows()) return false
-  const identity = await getWindowsHelperIdentity()
+  const identity = await getIdentity()
   const key = await getHelperKey(identity)
   if (key?.length !== 32) return false
   const task = await readWindowsHelperTask(identity, HelperVersion)

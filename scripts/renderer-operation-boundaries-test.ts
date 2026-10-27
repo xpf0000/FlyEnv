@@ -28,7 +28,6 @@ const walk = (dir: string): string[] => {
 
 const legacyDirectIpcIndexPages = [
   'Aside/Index.vue',
-  'Host/Index.vue',
   'Temporal/Index.vue',
   'Tools/BomClean/Index.vue',
   'Tools/PhpObfuscator/Index.vue',

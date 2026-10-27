@@ -394,12 +394,6 @@ export class Host extends Base {
 
   _initHost(list: Array<AppHost>, writeToSystem = true, ipv6: boolean): ForkPromise<boolean> {
     return new ForkPromise(async (resolve, reject) => {
-      const hostfile = join(global.Server.BaseDir!, 'host.json')
-      if (!existsSync(hostfile)) {
-        resolve(false)
-        return
-      }
-
       const allHost: Set<string> = new Set<string>()
       const host: Array<string> = []
       for (const item of list) {
@@ -423,9 +417,13 @@ export class Host extends Base {
           }
         }
       })
-      await timeOperation('hosts.write-preview', () =>
-        writeFile(join(global.Server.BaseDir!, 'app.hosts.txt'), host.join('\n'))
-      )
+      try {
+        await timeOperation('hosts.write-preview', () =>
+          writeFile(join(global.Server.BaseDir!, 'app.hosts.txt'), host.join('\n'))
+        )
+      } catch (error) {
+        void appDebugLog('[Hosts][preview][error]', String(error)).catch(() => {})
+      }
       if (!writeToSystem) {
         resolve(false)
         return
@@ -554,10 +552,7 @@ export class Host extends Base {
   writeHosts(write = true, ipv6 = true) {
     return new ForkPromise(async (resolve, reject) => {
       const hostfile = join(global.Server.BaseDir!, 'host.json')
-      if (!existsSync(hostfile)) {
-        resolve(true)
-        return
-      }
+      const hasHostFile = existsSync(hostfile)
 
       let hasChanged = false
       let appHost: AppHost[] = []
@@ -568,9 +563,11 @@ export class Host extends Base {
         return
       }
       // One-time #700 migration: move vhost files from name-based to id-based.
-      try {
-        await timeOperation('hosts.migrate-vhosts', () => this.migrateVhostToId(appHost))
-      } catch {}
+      if (hasHostFile) {
+        try {
+          await timeOperation('hosts.migrate-vhosts', () => this.migrateVhostToId(appHost))
+        } catch {}
+      }
       console.log('writeHosts: ', write)
       if (write) {
         const changed = await this._initHost(appHost, true, ipv6)
@@ -591,7 +588,7 @@ export class Host extends Base {
         const changed = await this._initHost(appHost, false, ipv6)
         hasChanged = hasChanged || changed
       }
-      if (hasChanged && existsSync(hostfile)) {
+      if (hasChanged) {
         try {
           if (isWindows()) {
             // 与退出清理共用尽力启动：spawn 成功即可返回，不等待 DNS 刷新结果。

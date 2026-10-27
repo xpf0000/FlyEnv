@@ -1,4 +1,5 @@
 {
+  "pathSavedRefreshFailed": "環境變數已儲存，但列表重新整理失敗：{error}",
   "setaliase": "設定別名",
   "env": "環境變數",
   "alias": "別名",

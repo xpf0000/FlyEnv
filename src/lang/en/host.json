@@ -1,4 +1,5 @@
 {
+  "hostsAppliedPreferencesFailed": "System hosts were updated, but saving the settings failed: {error}",
   "phpVersion": "PHP Version",
   "newProject": "New Project",
   "frameworkVersion": "Framework Version",

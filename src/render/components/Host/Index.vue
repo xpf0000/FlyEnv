@@ -77,7 +77,12 @@
         <template #reference>
           <div class="inline-flex items-center gap-3 ml-2">
             <span>{{ I18nT('common.action.enable') }}: </span>
-            <el-switch v-model="hostsSet.write"></el-switch>
+            <el-switch
+              :model-value="hostsSet.write"
+              :loading="hostsSettings.saving"
+              :disabled="hostsSettings.saving"
+              @update:model-value="(value) => hostsSettings.setWrite(value === true)"
+            ></el-switch>
           </div>
         </template>
         <template #default>
@@ -87,7 +92,12 @@
       <template v-if="hostsSet.write">
         <div class="inline-flex items-center gap-3">
           <span>IPv6:</span>
-          <el-switch v-model="ipv6"></el-switch>
+          <el-switch
+            :model-value="ipv6"
+            :loading="hostsSettings.saving"
+            :disabled="hostsSettings.saving"
+            @update:model-value="(value) => hostsSettings.setIPv6(value === true)"
+          ></el-switch>
         </div>
       </template>
     </ul>
@@ -97,9 +107,9 @@
 </template>
 
 <script lang="ts" setup>
-  import { reactive, computed, watch, onMounted } from 'vue'
+  import { reactive, computed, onMounted } from 'vue'
   import List from './ListTable.vue'
-  import IPC from '@/util/IPC'
+  import hostsSettings from './HostsSettingsController'
   import { AppStore } from '@/store/app'
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
@@ -156,38 +166,7 @@
   const canExport = computed(() => {
     return hosts?.value?.length > 0
   })
-  const hostWrite = computed(() => {
-    return hostsSet.value.write
-  })
-
-  const ipv6 = computed({
-    get() {
-      return hostsSet?.value?.ipv6 !== false
-    },
-    set(v) {
-      appStore.config.setup.hosts.ipv6 = v
-    }
-  })
-
-  watch(
-    hostsSet,
-    () => {
-      hostsWrite()
-      appStore.saveConfig()
-    },
-    {
-      deep: true
-    }
-  )
-
-  const hostsWrite = (showTips = true) => {
-    IPC.send('app-fork:host', 'writeHosts', hostWrite.value, ipv6.value).then((key: string) => {
-      IPC.off(key)
-      if (showTips) {
-        MessageSuccess(I18nT('base.success'))
-      }
-    })
-  }
+  const ipv6 = computed(() => hostsSet.value.ipv6 !== false)
   const hostAlias = (item: AppHost) => {
     const alias = splitHostAliases(item.alias)
     if (item?.name) {
@@ -332,7 +311,7 @@
               })
             }
           })
-          hostsWrite()
+          await hostsSettings.sync()
         })
       })
   }

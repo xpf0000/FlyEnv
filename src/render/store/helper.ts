@@ -1,9 +1,12 @@
-import { ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { I18nT } from '@lang/index'
 import IPC from '@/util/IPC'
 import { dialog } from '@/util/NodeFn'
 import { reactiveBind } from '@/util/Index'
-import { shouldOpenHelperInstaller } from '@shared/WindowsHelperState'
+import {
+  shouldOpenHelperInstaller,
+  formatHelperConnectionErrorMessage
+} from '@shared/WindowsHelperState'
 import { handleWriteHosts } from '@/util/Host'
 import { MessageError } from '@/util/Element'
 
@@ -12,6 +15,7 @@ class Helper {
   private installResultPending = false
   private manualInstallerOpening = false
   private installPromise?: Promise<any>
+  private installNotice?: ReturnType<typeof ElMessage>
 
   shouldShowNeedInstallDialog(reason?: string) {
     return shouldOpenHelperInstaller(reason)
@@ -31,6 +35,19 @@ class Helper {
     }
 
     this.installResultPending = true
+    // 确认后立即反馈，覆盖权限排队与健康预检；不等待 main 判定是否需要重装。
+    try {
+      this.installNotice = ElMessage({
+        message: I18nT('menu.helperInstalling'),
+        type: 'info',
+        duration: 0,
+        showClose: true,
+        customClass: 'app-el-message',
+        zIndex: 99999
+      })
+    } catch {
+      // 提示属于附加动作，窗口状态不能阻止实际安装请求。
+    }
     const request = new Promise<any>((resolve, reject) => {
       const sent = IPC.send('APP-FlyEnv-Helper-Install')
       const timer = setTimeout(() => {
@@ -68,6 +85,13 @@ class Helper {
       .finally(() => {
         this.installResultPending = false
         this.installPromise = undefined
+        const notice = this.installNotice
+        this.installNotice = undefined
+        try {
+          notice?.close()
+        } catch {
+          // 关闭提示不能覆盖安装终态。
+        }
       })
 
     return this.installPromise.then((res) => res?.code === 0)
@@ -145,7 +169,12 @@ class Helper {
             ? 'setup.flyenvHelperInstallFailTips'
             : 'menu.helperInstallFailTips'
       )
-      const diagnostic = stderr?.trim().slice(0, 1024)
+      const diagnostic = stderr
+        ? formatHelperConnectionErrorMessage(stderr.trim(), I18nT('menu.needInstallHelper')).slice(
+            0,
+            1024
+          )
+        : undefined
       dialog
         .showMessageBox({
           type: 'info',

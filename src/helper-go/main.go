@@ -42,7 +42,8 @@ const (
 	// v47: Linux gains a fixed read-only port ownership query for capability-bearing services.
 	// v48: Unix hosts cleanup removes the managed block's line ending to prevent blank-line growth.
 	// v49: Unix directories accept user-managed ownership, modes and ACLs.
-	Helper_Version   = 49
+	// v50: Windows environment values accept junctions and preserve literal percent paths.
+	Helper_Version   = 50
 	Role_Path        = "/tmp/flyenv.role"
 	Role_Path_Back   = "/usr/local/share/FlyEnv/flyenv.role"
 	Key_Path_Unix    = "/usr/local/share/FlyEnv/flyenv-helper.key"

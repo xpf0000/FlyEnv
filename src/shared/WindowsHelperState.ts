@@ -142,6 +142,18 @@ export const isAppHelperUnavailableError = (error: unknown): error is AppHelperE
   return isAppHelperError(error) && APP_HELPER_UNAVAILABLE_ERROR_CODES.has(error.code)
 }
 
+const HELPER_CONNECTION_ERROR_MESSAGE = new RegExp(
+  String.raw`(?:(?:AppHelper)?Error:\s*)*connect\s+(?:ENOENT|ECONNREFUSED)\s+` +
+    String.raw`(?:\\\\\.\\pipe\\FlyEnv\.Helper\.[a-f0-9]{32}|/run/flyenv-helper/helper\.sock|/private/var/run/flyenv-helper/helper\.sock)(?=$|[\s'"),;])`,
+  'giu'
+)
+
+// 仅用于界面文案；原错误、错误码与日志保持不变，也保留外层的部分完成说明。
+export const formatHelperConnectionErrorMessage = (message: string, needsInstall: string): string =>
+  typeof message === 'string'
+    ? message.replace(HELPER_CONNECTION_ERROR_MESSAGE, () => needsInstall)
+    : message
+
 export const isWindowsHelperFallbackAllowed = (module: string, fn: string): boolean => {
   return FALLBACK_ALLOWLIST.has(`${module}/${fn}`)
 }

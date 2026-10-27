@@ -5,6 +5,7 @@ import {
   type WindowsHelperIdentity
 } from '@shared/WindowsHelperIdentity'
 import { isWindowsProcessElevated, withWindowsElevationLease } from '@shared/WindowsPrivilege'
+import { buildWindowsHelperProcessStopScript } from '@shared/WindowsHelperProcess'
 import { runWindowsAction } from '@shared/WindowsElevation'
 import { access } from 'node:fs/promises'
 
@@ -40,20 +41,17 @@ if ($null -ne $task) {
   $task.Enabled = $false
   # 先禁止自动重启，再停止。任务修改成功但进程退出失败仍必须报失败，不能伪报停用。
   $task.Stop(0)
-  $deadline = [DateTime]::UtcNow.AddSeconds(10)
-  while ($task.State -eq 4 -and [DateTime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 100 }
-  if ($task.State -eq 4 -or $task.Enabled) { throw 'FlyEnv Helper did not stop' }
 }
-$remaining = @(Get-CimInstance Win32_Process -Filter "Name='flyenv-helper.exe'" | Where-Object {
-  $_.ExecutablePath -ieq ${quote(identity.executable)} -and $_.CommandLine.Contains(${quote(identity.sid)}) -and $_.CommandLine.Contains(${quote(identity.instanceId)})
-})
-foreach ($process in $remaining) { Stop-Process -Id $process.ProcessId -Force -ErrorAction Stop }
-$deadline = [DateTime]::UtcNow.AddSeconds(10)
-do {
-  $remaining = @(Get-CimInstance Win32_Process -Filter "Name='flyenv-helper.exe'" | Where-Object { $_.ExecutablePath -ieq ${quote(identity.executable)} })
-  if ($remaining.Count -gt 0) { Start-Sleep -Milliseconds 100 }
-} while ($remaining.Count -gt 0 -and [DateTime]::UtcNow -lt $deadline)
-if ($remaining.Count -gt 0) { throw 'FlyEnv Helper is still running' }
+${buildWindowsHelperProcessStopScript({
+  instanceId: identity.instanceId,
+  sid: identity.sid,
+  executablePaths: [identity.executable]
+})}
+if ($null -ne $task) {
+  $deadline = [DateTime]::UtcNow.AddSeconds(10)
+  while ($task.State -in @(2, 4) -and [DateTime]::UtcNow -lt $deadline) { Start-Sleep -Milliseconds 100 }
+  if ($task.State -in @(2, 4) -or $task.Enabled) { throw 'FlyEnv Helper did not stop' }
+}
 $global:FlyEnvActionResult = $true
 `
 
