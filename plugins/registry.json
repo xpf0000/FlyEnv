@@ -37,7 +37,7 @@
     {
       "id": "kafka",
       "name": "Kafka",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "description": {
         "en": "Apache Kafka service module. Runs a single-node KRaft Kafka broker and requires a Java 17+ runtime.",
         "zh": "Apache Kafka 服务模块。以单节点 KRaft 模式运行 Kafka 服务，需要 Java 17+ 运行时。"
@@ -63,14 +63,14 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "26b4e69da18cc41ad3dfb0fd934a381df7d23dcbf83acf6e7a59ba3d35c0c2cc"
+        "sha256": "d2d69deb84cdad8ab5ea689c680af534fd32531136104aaf17fbf03421beb173"
       },
       "official": true
     },
     {
       "id": "llama-cpp",
       "name": "llama.cpp",
-      "version": "0.2.10",
+      "version": "0.2.11",
       "description": {
         "en": "Manage llama.cpp local inference runtimes and GGUF models.",
         "zh": "管理 llama.cpp 本地推理运行时和 GGUF 模型。"
@@ -96,14 +96,14 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "b098c20364e359068ed7b334fc8e1cd5cfd270fe8ea8e7bd7d8900fe74606843"
+        "sha256": "40475f7f49d8af326623bce5dcda0a489f2ba5d8a0c71c582cf0004d5429e5a0"
       },
       "official": true
     },
     {
       "id": "opensearch",
       "name": "OpenSearch",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "description": {
         "en": "OpenSearch search & analytics engine (Apache 2.0 fork of Elasticsearch).",
         "zh": "OpenSearch 搜索与分析引擎（Elasticsearch 的 Apache 2.0 分支）。"
@@ -129,7 +129,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "d68112964c031c44ba344bd7f0f1a838079f9fd32c2294a21379c5494b5f065d"
+        "sha256": "e091e658b469904d87c6f34507ee456eaf62c40e9dc35c8d99cf81ad58302583"
       },
       "official": true
     },
@@ -160,7 +160,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "642be25023b780dd856b49241d34c14d6761f76964f44c5c9d7c0bc071d84313"
+        "sha256": "1d130c12925fa390fea883db90c37f2b00335044ad1291e5cb7488056eec0c7d"
       },
       "official": true
     },
@@ -191,7 +191,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "41d75f6814ea6df0c08aa42bf75d0cda9739507d382dd8c4b92d84a36c0f0fe0"
+        "sha256": "f2e706167572c6b35385af235ecf7bcf98381f3a9ed7911220c99bd124477256"
       },
       "official": true
     },
@@ -224,7 +224,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "42e2dd359b1521a213c2ff4ec1057f8a6b7160f3f669f6ce9b70d3313b585918"
+        "sha256": "19b440902b63d3698c012a9140e38bdeea3c8c68f70131bb8f56b2494c35f489"
       },
       "official": true
     },
@@ -257,7 +257,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "966d624b170559eebaf465142d2c38be43a0c70d0a2b7ee5ced9523cb35c9889"
+        "sha256": "6577b698549750b7c73d372a0b1d7459e3d6d16d7f92a1aa93caad7e80e3b5ea"
       },
       "official": true
     },
@@ -290,7 +290,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "8d681bf2599769cde93ca0abf768f1413ea8ef499c59c2d3c15faf21d7969767"
+        "sha256": "2ee92782e3ef984aa979dd5868a2b415d1029fd37ba05a65e64c8a0e66a3512f"
       },
       "official": true
     }
