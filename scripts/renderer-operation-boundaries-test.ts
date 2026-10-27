@@ -675,4 +675,7 @@ assert.match(damengLogs, /<LogVM ref="log"/)
 assert.match(damengLogs, /<ToolVM :log="log"/)
 assert.doesNotMatch(damengLogs, /IPC\.send|<pre/)
 
+// Include the LanguageProjects entry-page guards and its existing PID lifecycle contract.
+await import('./language-project-ports-test')
+
 console.log('renderer operation boundary tests passed')
