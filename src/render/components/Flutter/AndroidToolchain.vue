@@ -15,6 +15,32 @@
     <template #default>
       <div class="h-full w-full overflow-hidden">
         <el-scrollbar class="p-5">
+          <el-alert
+            v-if="!loading && checks.some((check) => check.key === 'sdk' && check.ok === false)"
+            :title="I18nT('flutter.androidSdkNotDetected')"
+            type="warning"
+            :closable="false"
+            show-icon
+            class="mb-4"
+          >
+            <p>{{ I18nT('flutter.androidSdkInstallHint') }}</p>
+            <div class="my-2 flex flex-wrap gap-2">
+              <el-button
+                link
+                type="primary"
+                @click="shell.openExternal('https://developer.android.com/studio/install')"
+                >{{ I18nT('flutter.installAndroidStudio') }}</el-button
+              >
+              <el-button
+                link
+                type="primary"
+                @click="shell.openExternal('https://developer.android.com/studio#command-tools')"
+                >{{ I18nT('flutter.androidCommandLineTools') }}</el-button
+              >
+            </div>
+            <p>{{ I18nT('flutter.androidSdkAfterInstall') }}</p>
+          </el-alert>
+
           <el-descriptions :column="1" border class="mb-4" size="small">
             <el-descriptions-item label="ANDROID_HOME">{{
               env.ANDROID_HOME || '-'

@@ -1,6 +1,11 @@
 {
   "sdkDetails": "SDK Details",
   "sdkNotFound": "Flutter SDK not found. Add a version in the Version tab.",
+  "androidSdkNotDetected": "Android SDK not detected",
+  "androidSdkInstallHint": "FlyEnv does not install the Android SDK automatically. Install the SDK using Android Studio or the official Android command-line tools.",
+  "installAndroidStudio": "Install Android Studio",
+  "androidCommandLineTools": "Android command-line tools",
+  "androidSdkAfterInstall": "After installing the SDK, return to FlyEnv, click Refresh, then use Auto-fix to configure the environment.",
   "searchDirs": "Search Dirs",
   "scanned": "{0} scanned",
   "show": "Show",
