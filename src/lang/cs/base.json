@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv nemohl obnovit datovou složku. Zkontrolujte pomocný program a zkuste to znovu.",
   "serviceRequiresRuntime": "{service} vyžaduje {runtime}. Nejprve nainstalujte a vyberte kompatibilní verzi v modulu {module}.",
   "serviceRuntimeFetchFailed": "{service} vyžaduje {runtime}, ale seznam nainstalovaných verzí se nepodařilo načíst. Zkontrolujte modul {runtime} a zkuste to znovu.",
-  "serviceRequiresRunningService": "{service} vyžaduje spuštěnou službu {dependency}. Nejprve spusťte {dependency}."
+  "serviceRequiresRunningService": "{service} vyžaduje spuštěnou službu {dependency}. Nejprve spusťte {dependency}.",
+  "versionDeleteManual": "Kliknutím na OK otevřete složku a odstraňte ji ručně. Vynucené odstranění je dostupné pouze pro adresáře spravované FlyEnv.",
+  "forceDeleteWarning": "Tato akce trvale odstraní níže uvedený adresář a všechny jeho soubory, podsložky a data. Neodstraní pouze odkaz nebo položku seznamu. Akci nelze vrátit zpět.",
+  "forceDeleteInput": "Pro potvrzení odstranění zadejte přesně Force Delete:",
+  "versionDeletedRefreshFailed": "Adresář byl odstraněn, ale obnovení seznamu verzí nebo vymazání metadat se nezdařilo."
 }

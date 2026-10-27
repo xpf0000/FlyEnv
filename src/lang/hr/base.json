@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv nije mogao vratiti podatkovnu mapu. Provjerite pomoćni program i pokušajte ponovno.",
   "serviceRequiresRuntime": "{service} zahtijeva {runtime}. Najprije instalirajte i odaberite kompatibilnu verziju u modulu {module}.",
   "serviceRuntimeFetchFailed": "{service} zahtijeva {runtime}, ali popis instaliranih verzija nije moguće učitati. Provjerite modul {runtime} i pokušajte ponovno.",
-  "serviceRequiresRunningService": "{service} zahtijeva pokrenutu uslugu {dependency}. Najprije pokrenite {dependency}."
+  "serviceRequiresRunningService": "{service} zahtijeva pokrenutu uslugu {dependency}. Najprije pokrenite {dependency}.",
+  "versionDeleteManual": "Kliknite U redu da biste otvorili mapu i ručno je izbrisali. Prisilno brisanje dostupno je samo za direktorije kojima upravlja FlyEnv.",
+  "forceDeleteWarning": "Ovo trajno briše direktorij u nastavku i sve njegove datoteke, podmape i podatke. Ne uklanja samo poveznicu ili stavku popisa. Ova se radnja ne može poništiti.",
+  "forceDeleteInput": "Za potvrdu brisanja upišite točno Force Delete:",
+  "versionDeletedRefreshFailed": "Direktorij je izbrisan, ali osvježavanje popisa verzija ili čišćenje metapodataka nije uspjelo."
 }

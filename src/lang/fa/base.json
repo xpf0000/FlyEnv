@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv نتوانست پوشه داده را بازیابی کند. لطفاً دستیار را بررسی و دوباره تلاش کنید.",
   "serviceRequiresRuntime": "{service} به {runtime} نیاز دارد. ابتدا یک نسخه سازگار را در ماژول {module} نصب و انتخاب کنید.",
   "serviceRuntimeFetchFailed": "{service} به {runtime} نیاز دارد، اما فهرست نسخه‌های نصب‌شده بارگیری نشد. ماژول {runtime} را بررسی کنید و دوباره تلاش کنید.",
-  "serviceRequiresRunningService": "{service} به سرویس در حال اجرای {dependency} نیاز دارد. ابتدا {dependency} را راه‌اندازی کنید."
+  "serviceRequiresRunningService": "{service} به سرویس در حال اجرای {dependency} نیاز دارد. ابتدا {dependency} را راه‌اندازی کنید.",
+  "versionDeleteManual": "برای باز کردن پوشه و حذف دستی آن روی تأیید کلیک کنید. حذف اجباری فقط برای پوشه‌های تحت مدیریت FlyEnv در دسترس است.",
+  "forceDeleteWarning": "این کار پوشه زیر و تمام فایل‌ها، زیرپوشه‌ها و داده‌های آن را برای همیشه حذف می‌کند. این کار صرفاً حذف پیوند یا موردی از فهرست نیست و قابل بازگردانی نیست.",
+  "forceDeleteInput": "برای تأیید حذف، دقیقاً Force Delete را وارد کنید:",
+  "versionDeletedRefreshFailed": "پوشه حذف شد، اما تازه‌سازی فهرست نسخه‌ها یا پاک‌سازی فراداده انجام نشد."
 }

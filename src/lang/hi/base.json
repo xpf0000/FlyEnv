@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv अपनी डेटा निर्देशिका पुनर्स्थापित नहीं कर सका। कृपया Helper की जांच करें और पुनः प्रयास करें।",
   "serviceRequiresRuntime": "{service} के लिए {runtime} आवश्यक है। पहले {module} मॉड्यूल में एक संगत संस्करण इंस्टॉल करें और चुनें।",
   "serviceRuntimeFetchFailed": "{service} के लिए {runtime} आवश्यक है, लेकिन इंस्टॉल किए गए संस्करणों की सूची लोड नहीं हो सकी। {runtime} मॉड्यूल की जाँच करें और फिर कोशिश करें।",
-  "serviceRequiresRunningService": "{service} के लिए {dependency} सेवा चालू होना आवश्यक है। पहले {dependency} शुरू करें।"
+  "serviceRequiresRunningService": "{service} के लिए {dependency} सेवा चालू होना आवश्यक है। पहले {dependency} शुरू करें।",
+  "versionDeleteManual": "फ़ोल्डर खोलकर उसे मैन्युअल रूप से हटाने के लिए OK पर क्लिक करें। केवल FlyEnv द्वारा प्रबंधित निर्देशिकाओं को ज़बरदस्ती हटाया जा सकता है।",
+  "forceDeleteWarning": "इससे नीचे दी गई निर्देशिका और उसके सभी फ़ाइलें, सबफ़ोल्डर तथा डेटा स्थायी रूप से हट जाएंगे। यह केवल लिंक या सूची प्रविष्टि हटाना नहीं है। इसे वापस नहीं किया जा सकता।",
+  "forceDeleteInput": "हटाने की पुष्टि के लिए ठीक Force Delete लिखें:",
+  "versionDeletedRefreshFailed": "निर्देशिका हटा दी गई, लेकिन संस्करण सूची ताज़ा करने या मेटाडेटा साफ़ करने में विफलता हुई।"
 }

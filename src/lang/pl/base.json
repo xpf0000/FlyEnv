@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv nie mógł przywrócić katalogu danych. Sprawdź pomocnika i spróbuj ponownie.",
   "serviceRequiresRuntime": "{service} wymaga {runtime}. Najpierw zainstaluj i wybierz zgodną wersję w module {module}.",
   "serviceRuntimeFetchFailed": "{service} wymaga {runtime}, ale nie udało się wczytać listy zainstalowanych wersji. Sprawdź moduł {runtime} i spróbuj ponownie.",
-  "serviceRequiresRunningService": "{service} wymaga uruchomionej usługi {dependency}. Najpierw uruchom {dependency}."
+  "serviceRequiresRunningService": "{service} wymaga uruchomionej usługi {dependency}. Najpierw uruchom {dependency}.",
+  "versionDeleteManual": "Kliknij OK, aby otworzyć folder i usunąć go ręcznie. Wymuszone usuwanie jest dostępne tylko dla katalogów zarządzanych przez FlyEnv.",
+  "forceDeleteWarning": "Spowoduje to trwałe usunięcie poniższego katalogu oraz wszystkich jego plików, podfolderów i danych. Nie jest to jedynie usunięcie łącza lub wpisu z listy. Tej operacji nie można cofnąć.",
+  "forceDeleteInput": "Wpisz dokładnie Force Delete, aby potwierdzić usunięcie:",
+  "versionDeletedRefreshFailed": "Katalog został usunięty, ale odświeżenie listy wersji lub usunięcie metadanych nie powiodło się."
 }

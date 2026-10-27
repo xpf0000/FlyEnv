@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv ei voinut palauttaa tietokansiota. Tarkista apuohjelma ja yritä uudelleen.",
   "serviceRequiresRuntime": "{service} tarvitsee {runtime}-ajoympäristön. Asenna ja valitse ensin yhteensopiva versio {module}-moduulissa.",
   "serviceRuntimeFetchFailed": "{service} tarvitsee {runtime}-ajoympäristön, mutta asennettujen versioiden luetteloa ei voitu ladata. Tarkista {runtime}-moduuli ja yritä uudelleen.",
-  "serviceRequiresRunningService": "{service} tarvitsee käynnissä olevan {dependency}-palvelun. Käynnistä ensin {dependency}."
+  "serviceRequiresRunningService": "{service} tarvitsee käynnissä olevan {dependency}-palvelun. Käynnistä ensin {dependency}.",
+  "versionDeleteManual": "Avaa kansio napsauttamalla OK ja poista se käsin. Pakotettu poisto on käytettävissä vain FlyEnvin hallitsemille hakemistoille.",
+  "forceDeleteWarning": "Tämä poistaa alla olevan hakemiston sekä kaikki sen tiedostot, alikansiot ja tiedot pysyvästi. Se ei poista vain linkkiä tai luettelon merkintää. Toimintoa ei voi kumota.",
+  "forceDeleteInput": "Vahvista poisto kirjoittamalla täsmälleen Force Delete:",
+  "versionDeletedRefreshFailed": "Hakemisto poistettiin, mutta versioluettelon päivitys tai metatietojen tyhjentäminen epäonnistui."
 }

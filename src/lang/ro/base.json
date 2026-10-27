@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv nu a putut restaura directorul de date. Verificați utilitarul și încercați din nou.",
   "serviceRequiresRuntime": "{service} necesită {runtime}. Mai întâi instalați și selectați o versiune compatibilă în modulul {module}.",
   "serviceRuntimeFetchFailed": "{service} necesită {runtime}, dar lista versiunilor instalate nu a putut fi încărcată. Verificați modulul {runtime} și încercați din nou.",
-  "serviceRequiresRunningService": "{service} necesită ca serviciul {dependency} să fie pornit. Porniți mai întâi {dependency}."
+  "serviceRequiresRunningService": "{service} necesită ca serviciul {dependency} să fie pornit. Porniți mai întâi {dependency}.",
+  "versionDeleteManual": "Apăsați OK pentru a deschide dosarul și a-l șterge manual. Ștergerea forțată este disponibilă doar pentru directoarele gestionate de FlyEnv.",
+  "forceDeleteWarning": "Această acțiune șterge definitiv directorul de mai jos și toate fișierele, subdosarele și datele sale. Nu elimină doar o legătură sau o intrare din listă. Acțiunea nu poate fi anulată.",
+  "forceDeleteInput": "Introduceți exact Force Delete pentru a confirma ștergerea:",
+  "versionDeletedRefreshFailed": "Directorul a fost șters, dar actualizarea listei de versiuni sau curățarea metadatelor a eșuat."
 }

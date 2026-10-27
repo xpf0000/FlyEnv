@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv가 데이터 디렉터리를 복원하지 못했습니다. 도우미를 확인한 후 다시 시도하세요.",
   "serviceRequiresRuntime": "{service}에는 {runtime}이 필요합니다. 먼저 {module} 모듈에서 호환되는 버전을 설치하고 선택하세요.",
   "serviceRuntimeFetchFailed": "{service}에는 {runtime}이 필요하지만 설치된 버전 목록을 불러오지 못했습니다. {runtime} 모듈을 확인하고 다시 시도하세요.",
-  "serviceRequiresRunningService": "{service}에는 실행 중인 {dependency} 서비스가 필요합니다. 먼저 {dependency}을(를) 시작하세요."
+  "serviceRequiresRunningService": "{service}에는 실행 중인 {dependency} 서비스가 필요합니다. 먼저 {dependency}을(를) 시작하세요.",
+  "versionDeleteManual": "확인을 누르면 폴더를 열어 직접 삭제할 수 있습니다. 강제 삭제는 FlyEnv가 관리하는 디렉터리에서만 사용할 수 있습니다.",
+  "forceDeleteWarning": "아래 디렉터리와 그 안의 모든 파일, 하위 폴더 및 데이터를 영구적으로 삭제합니다. 링크나 목록 항목만 제거하는 것이 아닙니다. 이 작업은 취소할 수 없습니다.",
+  "forceDeleteInput": "삭제를 확인하려면 Force Delete를 정확히 입력하세요:",
+  "versionDeletedRefreshFailed": "디렉터리는 삭제되었지만 버전 목록 새로 고침 또는 관련 메타데이터 정리에 실패했습니다."
 }

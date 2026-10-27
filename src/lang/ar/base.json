@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "تعذر على FlyEnv استعادة دليل البيانات. يرجى التحقق من المساعد والمحاولة مرة أخرى.",
   "serviceRequiresRuntime": "يتطلب {service} وجود {runtime}. يرجى أولاً تثبيت إصدار متوافق واختياره في وحدة {module}.",
   "serviceRuntimeFetchFailed": "يتطلب {service} وجود {runtime}، ولكن تعذر تحميل قائمة الإصدارات المثبتة. يرجى التحقق من وحدة {runtime} والمحاولة مرة أخرى.",
-  "serviceRequiresRunningService": "يتطلب {service} تشغيل خدمة {dependency}. يرجى بدء تشغيل {dependency} أولاً."
+  "serviceRequiresRunningService": "يتطلب {service} تشغيل خدمة {dependency}. يرجى بدء تشغيل {dependency} أولاً.",
+  "versionDeleteManual": "انقر على موافق لفتح المجلد وحذفه يدويًا. الحذف الإجباري متاح فقط للمجلدات التي يديرها FlyEnv.",
+  "forceDeleteWarning": "سيؤدي هذا إلى حذف المجلد أدناه وجميع ملفاته ومجلداته الفرعية وبياناته نهائيًا. لا يقتصر الأمر على إزالة رابط أو عنصر من القائمة. لا يمكن التراجع عن هذا الإجراء.",
+  "forceDeleteInput": "اكتب Force Delete بالضبط لتأكيد الحذف:",
+  "versionDeletedRefreshFailed": "تم حذف المجلد، لكن تعذر تحديث قائمة الإصدارات أو تنظيف البيانات الوصفية."
 }

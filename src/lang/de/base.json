@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv konnte den Datenordner nicht wiederherstellen. Prüfen Sie den Helfer und versuchen Sie es erneut.",
   "serviceRequiresRuntime": "{service} benötigt {runtime}. Installieren und wählen Sie zuerst eine kompatible Version im Modul {module}.",
   "serviceRuntimeFetchFailed": "{service} benötigt {runtime}, aber die Liste der installierten Versionen konnte nicht geladen werden. Prüfen Sie das Modul {runtime} und versuchen Sie es erneut.",
-  "serviceRequiresRunningService": "{service} benötigt einen laufenden {dependency}-Dienst. Starten Sie zuerst {dependency}."
+  "serviceRequiresRunningService": "{service} benötigt einen laufenden {dependency}-Dienst. Starten Sie zuerst {dependency}.",
+  "versionDeleteManual": "Klicken Sie auf OK, um den Ordner zur manuellen Löschung zu öffnen. Erzwungenes Löschen ist nur für von FlyEnv verwaltete Verzeichnisse verfügbar.",
+  "forceDeleteWarning": "Dies löscht das folgende Verzeichnis und alle enthaltenen Dateien und Unterordner einschließlich aller Daten dauerhaft. Es wird nicht nur eine Verknüpfung oder ein Listeneintrag entfernt. Dies kann nicht rückgängig gemacht werden.",
+  "forceDeleteInput": "Geben Sie zur Bestätigung exakt Force Delete ein:",
+  "versionDeletedRefreshFailed": "Das Verzeichnis wurde gelöscht, aber die Versionsliste oder die zugehörigen Metadaten konnten nicht aktualisiert werden."
 }

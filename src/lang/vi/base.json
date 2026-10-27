@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv không thể khôi phục thư mục dữ liệu. Hãy kiểm tra trình trợ giúp và thử lại.",
   "serviceRequiresRuntime": "{service} cần {runtime}. Trước tiên, hãy cài đặt và chọn phiên bản tương thích trong mô-đun {module}.",
   "serviceRuntimeFetchFailed": "{service} cần {runtime}, nhưng không thể tải danh sách các phiên bản đã cài đặt. Hãy kiểm tra mô-đun {runtime} rồi thử lại.",
-  "serviceRequiresRunningService": "{service} cần dịch vụ {dependency} đang chạy. Hãy khởi động {dependency} trước."
+  "serviceRequiresRunningService": "{service} cần dịch vụ {dependency} đang chạy. Hãy khởi động {dependency} trước.",
+  "versionDeleteManual": "Nhấn OK để mở thư mục và xóa thủ công. Chỉ có thể buộc xóa các thư mục do FlyEnv quản lý.",
+  "forceDeleteWarning": "Thao tác này xóa vĩnh viễn thư mục bên dưới cùng mọi tệp, thư mục con và dữ liệu bên trong. Đây không chỉ là xóa liên kết hoặc mục trong danh sách. Không thể hoàn tác.",
+  "forceDeleteInput": "Nhập chính xác Force Delete để xác nhận xóa:",
+  "versionDeletedRefreshFailed": "Đã xóa thư mục nhưng không thể làm mới danh sách phiên bản hoặc xóa siêu dữ liệu liên quan."
 }

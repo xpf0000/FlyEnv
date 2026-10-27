@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv kunne ikke gendanne datamappen. Kontrollér hjælpeprogrammet, og prøv igen.",
   "serviceRequiresRuntime": "{service} kræver {runtime}. Installer og vælg først en kompatibel version i modulet {module}.",
   "serviceRuntimeFetchFailed": "{service} kræver {runtime}, men listen over installerede versioner kunne ikke indlæses. Kontrollér modulet {runtime}, og prøv igen.",
-  "serviceRequiresRunningService": "{service} kræver en kørende {dependency}-tjeneste. Start først {dependency}."
+  "serviceRequiresRunningService": "{service} kræver en kørende {dependency}-tjeneste. Start først {dependency}.",
+  "versionDeleteManual": "Klik på OK for at åbne mappen og slette den manuelt. Tvungen sletning er kun tilgængelig for mapper, som FlyEnv administrerer.",
+  "forceDeleteWarning": "Dette sletter nedenstående mappe og alle dens filer, undermapper og data permanent. Det fjerner ikke blot et link eller en post på listen. Handlingen kan ikke fortrydes.",
+  "forceDeleteInput": "Skriv præcis Force Delete for at bekræfte sletningen:",
+  "versionDeletedRefreshFailed": "Mappen blev slettet, men versionslisten eller metadataene kunne ikke opdateres."
 }

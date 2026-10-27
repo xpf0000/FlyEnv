@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv tidak dapat memulihkan direktori data. Periksa helper lalu coba lagi.",
   "serviceRequiresRuntime": "{service} memerlukan {runtime}. Instal dan pilih versi yang kompatibel di modul {module} terlebih dahulu.",
   "serviceRuntimeFetchFailed": "{service} memerlukan {runtime}, tetapi daftar versi yang terinstal tidak dapat dimuat. Periksa modul {runtime} dan coba lagi.",
-  "serviceRequiresRunningService": "{service} memerlukan layanan {dependency} yang sedang berjalan. Jalankan {dependency} terlebih dahulu."
+  "serviceRequiresRunningService": "{service} memerlukan layanan {dependency} yang sedang berjalan. Jalankan {dependency} terlebih dahulu.",
+  "versionDeleteManual": "Klik OK untuk membuka folder dan menghapusnya secara manual. Penghapusan paksa hanya tersedia untuk direktori yang dikelola FlyEnv.",
+  "forceDeleteWarning": "Tindakan ini menghapus direktori di bawah beserta semua berkas, subfolder, dan datanya secara permanen. Ini bukan sekadar menghapus tautan atau entri daftar. Tindakan ini tidak dapat dibatalkan.",
+  "forceDeleteInput": "Ketik persis Force Delete untuk mengonfirmasi penghapusan:",
+  "versionDeletedRefreshFailed": "Direktori telah dihapus, tetapi penyegaran daftar versi atau pembersihan metadata gagal."
 }

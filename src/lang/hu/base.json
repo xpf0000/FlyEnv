@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "A FlyEnv nem tudta helyreállítani az adatkönyvtárat. Ellenőrizze a segédprogramot, majd próbálja újra.",
   "serviceRequiresRuntime": "A(z) {service} használatához {runtime} szükséges. Először telepítsen és válasszon ki egy kompatibilis verziót a(z) {module} modulban.",
   "serviceRuntimeFetchFailed": "A(z) {service} használatához {runtime} szükséges, de a telepített verziók listáját nem sikerült betölteni. Ellenőrizze a(z) {runtime} modult, majd próbálja újra.",
-  "serviceRequiresRunningService": "A(z) {service} használatához futó {dependency} szolgáltatás szükséges. Először indítsa el a(z) {dependency} szolgáltatást."
+  "serviceRequiresRunningService": "A(z) {service} használatához futó {dependency} szolgáltatás szükséges. Először indítsa el a(z) {dependency} szolgáltatást.",
+  "versionDeleteManual": "Kattintson az OK gombra a mappa megnyitásához és kézi törléséhez. A kényszerített törlés csak a FlyEnv által kezelt könyvtárakhoz érhető el.",
+  "forceDeleteWarning": "Ez véglegesen törli az alábbi könyvtárat és annak összes fájlját, almappáját és adatát. Nem csupán egy hivatkozást vagy listabejegyzést távolít el. A művelet nem vonható vissza.",
+  "forceDeleteInput": "A törlés megerősítéséhez írja be pontosan: Force Delete",
+  "versionDeletedRefreshFailed": "A könyvtár törölve lett, de a verziólista frissítése vagy a metaadatok törlése sikertelen volt."
 }

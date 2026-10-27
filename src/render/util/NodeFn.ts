@@ -4,6 +4,11 @@ import { appHelperErrorFromIPC } from '@shared/WindowsHelperState'
 import type { ExecOptions } from 'node:child_process'
 import type { Stats } from 'node:fs'
 import type {
+  ManagedVersionDirectory,
+  VersionDeleteResponse,
+  VersionDeleteTarget
+} from '@shared/VersionDelete'
+import type {
   CompleteModuleOnboardingRequest,
   ModuleOnboardingIPCResult
 } from '@shared/ModuleOnboarding'
@@ -248,6 +253,29 @@ const strictReadFileRequest = createIPCCall<[string, boolean], string | FileIPCF
   'fs',
   'readFile'
 )
+
+const inspectVersionDirectory = createIPCCall<
+  [VersionDeleteTarget],
+  VersionDeleteResponse<ManagedVersionDirectory | undefined>
+>('versionDelete', 'inspect')
+const removeVersionDirectory = createIPCCall<
+  [ManagedVersionDirectory, string],
+  VersionDeleteResponse<true>
+>('versionDelete', 'remove')
+
+export const versionDelete = {
+  async inspect(target: VersionDeleteTarget): Promise<ManagedVersionDirectory | undefined> {
+    const result = await inspectVersionDirectory(target)
+    if (result?.code !== 0) return undefined
+    return result.data
+  },
+  async remove(target: ManagedVersionDirectory, confirmation: string): Promise<void> {
+    const result = await removeVersionDirectory(target, confirmation)
+    if (result?.code !== 0 || result.data !== true) {
+      throw new Error(result?.code === 1 ? result.msg : 'Version deletion failed')
+    }
+  }
+}
 
 export const fs = {
   chmod: createIPCCall<[path: string, mode: string | number], void>('fs', 'chmod'),

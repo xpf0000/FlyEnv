@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "O FlyEnv não conseguiu restaurar a pasta de dados. Verifique o auxiliar e tente novamente.",
   "serviceRequiresRuntime": "{service} requer {runtime}. Primeiro, instale e selecione uma versão compatível no módulo {module}.",
   "serviceRuntimeFetchFailed": "{service} requer {runtime}, mas não foi possível carregar a lista de versões instaladas. Verifique o módulo {runtime} e tente novamente.",
-  "serviceRequiresRunningService": "{service} requer que o serviço {dependency} esteja em execução. Inicie primeiro {dependency}."
+  "serviceRequiresRunningService": "{service} requer que o serviço {dependency} esteja em execução. Inicie primeiro {dependency}.",
+  "versionDeleteManual": "Clique em OK para abrir a pasta e eliminá-la manualmente. A eliminação forçada só está disponível para diretórios geridos pelo FlyEnv.",
+  "forceDeleteWarning": "Esta operação elimina permanentemente o diretório abaixo e todos os ficheiros, subpastas e dados nele contidos. Não remove apenas uma ligação ou uma entrada da lista. Não pode ser anulada.",
+  "forceDeleteInput": "Escreva exatamente Force Delete para confirmar a eliminação:",
+  "versionDeletedRefreshFailed": "O diretório foi eliminado, mas a atualização da lista de versões ou a limpeza dos metadados falhou."
 }

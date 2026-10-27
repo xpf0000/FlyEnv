@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv veri dizinini geri yükleyemedi. Yardımcıyı kontrol edip tekrar deneyin.",
   "serviceRequiresRuntime": "{service} için {runtime} gereklidir. Önce {module} modülünde uyumlu bir sürüm yükleyip seçin.",
   "serviceRuntimeFetchFailed": "{service} için {runtime} gereklidir, ancak yüklü sürümlerin listesi yüklenemedi. {runtime} modülünü kontrol edip tekrar deneyin.",
-  "serviceRequiresRunningService": "{service} için {dependency} hizmetinin çalışıyor olması gerekir. Önce {dependency} hizmetini başlatın."
+  "serviceRequiresRunningService": "{service} için {dependency} hizmetinin çalışıyor olması gerekir. Önce {dependency} hizmetini başlatın.",
+  "versionDeleteManual": "Klasörü açıp elle silmek için Tamam düğmesine tıklayın. Zorla silme yalnızca FlyEnv tarafından yönetilen dizinlerde kullanılabilir.",
+  "forceDeleteWarning": "Aşağıdaki dizini ve içindeki tüm dosyaları, alt klasörleri ve verileri kalıcı olarak siler. Yalnızca bir bağlantıyı veya liste kaydını kaldırmaz. Bu işlem geri alınamaz.",
+  "forceDeleteInput": "Silmeyi onaylamak için tam olarak Force Delete yazın:",
+  "versionDeletedRefreshFailed": "Dizin silindi ancak sürüm listesini yenileme veya meta verileri temizleme başarısız oldu."
 }

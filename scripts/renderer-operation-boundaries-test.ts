@@ -321,6 +321,28 @@ assert.match(
 )
 assert.match(serviceActionStoreSource, /ServiceActionStore\.fetchPathing = false/)
 
+const versionDeleteDialog = readFileSync(
+  join(componentsDir, 'ServiceManager/delDialog.vue'),
+  'utf8'
+)
+const versionDeleteController = readFileSync(
+  join(componentsDir, 'ServiceManager/VersionDeleteController.ts'),
+  'utf8'
+)
+const versionDeleteOperation = readFileSync(
+  join(componentsDir, 'ServiceManager/VersionDeleteOperation.ts'),
+  'utf8'
+)
+assert.doesNotMatch(versionDeleteDialog, /fs\.remove|IPC\.send|MessageError|\.stop\(/)
+assert.match(versionDeleteDialog, /v-if="managedDirectory"/)
+assert.match(versionDeleteDialog, /confirmation\.value === FORCE_DELETE_CONFIRMATION/)
+assert.match(versionDeleteDialog, /VersionDeleteController\.remove\(/)
+assert.match(versionDeleteController, /reactiveBind\(/)
+assert.match(versionDeleteController, /new VersionDeleteOperation\(/)
+assert.match(versionDeleteController, /service\.stop\(\)/)
+assert.match(versionDeleteOperation, /private operations = new Map/)
+assert.match(versionDeleteOperation, /stopped !== true/)
+
 const redisPage = readFileSync(join(componentsDir, 'Redis/Index.vue'), 'utf-8')
 const redisPanel = readFileSync(join(componentsDir, 'Redis/RedisCommanderPanel.ts'), 'utf-8')
 const pgAdminPythonCandidates = [

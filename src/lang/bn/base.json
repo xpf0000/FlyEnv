@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv ডেটা ডিরেক্টরি পুনরুদ্ধার করতে পারেনি। হেল্পার পরীক্ষা করে আবার চেষ্টা করুন।",
   "serviceRequiresRuntime": "{service} চালাতে {runtime} প্রয়োজন। প্রথমে {module} মডিউলে একটি সামঞ্জস্যপূর্ণ সংস্করণ ইনস্টল করে নির্বাচন করুন।",
   "serviceRuntimeFetchFailed": "{service} চালাতে {runtime} প্রয়োজন, কিন্তু ইনস্টল করা সংস্করণগুলির তালিকা লোড করা যায়নি। {runtime} মডিউল পরীক্ষা করে আবার চেষ্টা করুন।",
-  "serviceRequiresRunningService": "{service} চালাতে {dependency} পরিষেবাটি চালু থাকা প্রয়োজন। প্রথমে {dependency} চালু করুন।"
+  "serviceRequiresRunningService": "{service} চালাতে {dependency} পরিষেবাটি চালু থাকা প্রয়োজন। প্রথমে {dependency} চালু করুন।",
+  "versionDeleteManual": "ফোল্ডার খুলে ম্যানুয়ালি মুছতে OK ক্লিক করুন। শুধুমাত্র FlyEnv পরিচালিত ডিরেক্টরি জোর করে মোছা যায়।",
+  "forceDeleteWarning": "এটি নিচের ডিরেক্টরি এবং এর সব ফাইল, সাবফোল্ডার ও ডেটা স্থায়ীভাবে মুছে দেবে। এটি শুধু লিংক বা তালিকার এন্ট্রি সরানো নয়। এই কাজ পূর্বাবস্থায় ফেরানো যাবে না।",
+  "forceDeleteInput": "মোছা নিশ্চিত করতে হুবহু Force Delete লিখুন:",
+  "versionDeletedRefreshFailed": "ডিরেক্টরি মোছা হয়েছে, কিন্তু সংস্করণ তালিকা রিফ্রেশ বা মেটাডেটা পরিষ্কার করা যায়নি।"
 }

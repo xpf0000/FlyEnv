@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv kon de gegevensmap niet herstellen. Controleer de helper en probeer het opnieuw.",
   "serviceRequiresRuntime": "{service} heeft {runtime} nodig. Installeer en selecteer eerst een compatibele versie in de module {module}.",
   "serviceRuntimeFetchFailed": "{service} heeft {runtime} nodig, maar de lijst met geïnstalleerde versies kon niet worden geladen. Controleer de module {runtime} en probeer het opnieuw.",
-  "serviceRequiresRunningService": "{service} heeft een actieve {dependency}-service nodig. Start eerst {dependency}."
+  "serviceRequiresRunningService": "{service} heeft een actieve {dependency}-service nodig. Start eerst {dependency}.",
+  "versionDeleteManual": "Klik op OK om de map te openen en handmatig te verwijderen. Geforceerd verwijderen is alleen beschikbaar voor mappen die FlyEnv beheert.",
+  "forceDeleteWarning": "Dit verwijdert de onderstaande map en alle bestanden, submappen en gegevens daarin definitief. Het verwijdert niet alleen een koppeling of lijstvermelding. Dit kan niet ongedaan worden gemaakt.",
+  "forceDeleteInput": "Typ exact Force Delete om de verwijdering te bevestigen:",
+  "versionDeletedRefreshFailed": "De map is verwijderd, maar het vernieuwen van de versielijst of het wissen van de metagegevens is mislukt."
 }

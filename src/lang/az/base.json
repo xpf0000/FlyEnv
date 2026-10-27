@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv məlumat qovluğunu bərpa edə bilmədi. Köməkçi proqramı yoxlayın və yenidən cəhd edin.",
   "serviceRequiresRuntime": "{service} üçün {runtime} tələb olunur. Əvvəlcə {module} modulunda uyğun versiyanı quraşdırın və seçin.",
   "serviceRuntimeFetchFailed": "{service} üçün {runtime} tələb olunur, lakin quraşdırılmış versiyaların siyahısı yüklənmədi. {runtime} modulunu yoxlayın və yenidən cəhd edin.",
-  "serviceRequiresRunningService": "{service} üçün işləyən {dependency} xidməti tələb olunur. Əvvəlcə {dependency} xidmətini başladın."
+  "serviceRequiresRunningService": "{service} üçün işləyən {dependency} xidməti tələb olunur. Əvvəlcə {dependency} xidmətini başladın.",
+  "versionDeleteManual": "Qovluğu açıb əl ilə silmək üçün OK düyməsini basın. Məcburi silmə yalnız FlyEnv tərəfindən idarə olunan qovluqlar üçün mümkündür.",
+  "forceDeleteWarning": "Bu əməliyyat aşağıdakı qovluğu və içindəki bütün faylları, alt qovluqları və məlumatları həmişəlik silir. Bu, sadəcə keçidin və ya siyahı qeydinin silinməsi deyil. Əməliyyatı geri qaytarmaq mümkün deyil.",
+  "forceDeleteInput": "Silməni təsdiqləmək üçün dəqiq Force Delete yazın:",
+  "versionDeletedRefreshFailed": "Qovluq silindi, lakin versiya siyahısının yenilənməsi və ya metadatanın təmizlənməsi alınmadı."
 }

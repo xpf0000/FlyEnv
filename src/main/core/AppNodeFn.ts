@@ -29,6 +29,11 @@ import { mergeProcessOptions } from '@shared/process-options'
 import { LazyRuntime } from './lazy/LazyRuntime'
 import { getWindowsHelperBinaryPath } from '@shared/AppHelperCheck'
 import { handleCompleteModuleOnboardingRequest } from './ModuleOnboardingConfig'
+import {
+  inspectManagedVersionDirectory,
+  removeManagedVersionDirectory
+} from './ManagedVersionDirectory'
+import type { ManagedVersionDirectory, VersionDeleteTarget } from '@shared/VersionDelete'
 
 const markdownRuntime = new LazyRuntime(async () => {
   const { createMarkdownRenderer } = await import('@/util/markdown/markdown')
@@ -501,6 +506,33 @@ X-GNOME-Autostart-enabled=true`
       .catch(() => {
         this?.mainWindow?.webContents.send('command', command, key, false)
       })
+  }
+
+  async versionDelete_inspect(command: string, key: string, target: VersionDeleteTarget) {
+    let directory: ManagedVersionDirectory | undefined
+    try {
+      directory = await inspectManagedVersionDirectory(global.Server.AppDir, target)
+    } catch {
+      // Unknown/inaccessible/external paths never enable destructive UI.
+    }
+    this.mainWindow?.webContents.send('command', command, key, { code: 0, data: directory })
+  }
+
+  async versionDelete_remove(
+    command: string,
+    key: string,
+    target: ManagedVersionDirectory,
+    confirmation: string
+  ) {
+    try {
+      await removeManagedVersionDirectory(global.Server.AppDir, target, confirmation)
+      this.mainWindow?.webContents.send('command', command, key, { code: 0, data: true })
+    } catch (error) {
+      this.mainWindow?.webContents.send('command', command, key, {
+        code: 1,
+        msg: error instanceof Error ? error.message : String(error)
+      })
+    }
   }
 
   fs_remove(command: string, key: string, path: string) {

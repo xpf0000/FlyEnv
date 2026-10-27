@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv 无法恢复数据目录，请检查帮助程序后重试。",
   "serviceRequiresRuntime": "{service} 需要 {runtime}，请先在 {module} 模块中安装并选择兼容的版本。",
   "serviceRuntimeFetchFailed": "{service} 需要 {runtime}，但已安装版本列表加载失败，请检查 {runtime} 模块后重试。",
-  "serviceRequiresRunningService": "{service} 需要正在运行的 {dependency} 服务，请先启动 {dependency}。"
+  "serviceRequiresRunningService": "{service} 需要正在运行的 {dependency} 服务，请先启动 {dependency}。",
+  "versionDeleteManual": "点击确定可打开文件夹并手动删除。仅 FlyEnv 管理的目录支持强制删除。",
+  "forceDeleteWarning": "此操作会永久删除下方目录及其中的所有文件和子目录，包括数据。它不是仅删除链接或列表记录。此操作无法撤销。",
+  "forceDeleteInput": "请输入 Force Delete（区分大小写）以确认删除：",
+  "versionDeletedRefreshFailed": "目录已删除，但刷新版本列表或清理相关记录失败。"
 }

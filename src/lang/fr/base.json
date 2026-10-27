@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv n'a pas pu restaurer le dossier de données. Vérifiez l'assistant et réessayez.",
   "serviceRequiresRuntime": "{service} nécessite {runtime}. Installez et sélectionnez d’abord une version compatible dans le module {module}.",
   "serviceRuntimeFetchFailed": "{service} nécessite {runtime}, mais la liste des versions installées n’a pas pu être chargée. Vérifiez le module {runtime} et réessayez.",
-  "serviceRequiresRunningService": "{service} nécessite un service {dependency} en cours d’exécution. Démarrez d’abord {dependency}."
+  "serviceRequiresRunningService": "{service} nécessite un service {dependency} en cours d’exécution. Démarrez d’abord {dependency}.",
+  "versionDeleteManual": "Cliquez sur OK pour ouvrir le dossier et le supprimer manuellement. La suppression forcée est réservée aux répertoires gérés par FlyEnv.",
+  "forceDeleteWarning": "Cette opération supprime définitivement le répertoire ci-dessous ainsi que tous ses fichiers, sous-dossiers et données. Elle ne supprime pas uniquement un lien ou une entrée de liste. Cette action est irréversible.",
+  "forceDeleteInput": "Saisissez exactement Force Delete pour confirmer la suppression :",
+  "versionDeletedRefreshFailed": "Le répertoire a été supprimé, mais la mise à jour de la liste des versions ou le nettoyage des métadonnées a échoué."
 }

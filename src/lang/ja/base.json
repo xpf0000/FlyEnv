@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv はデータディレクトリを復元できませんでした。ヘルパーを確認して、もう一度お試しください。",
   "serviceRequiresRuntime": "{service} には {runtime} が必要です。まず {module} モジュールで互換性のあるバージョンをインストールして選択してください。",
   "serviceRuntimeFetchFailed": "{service} には {runtime} が必要ですが、インストール済みバージョンの一覧を読み込めませんでした。{runtime} モジュールを確認して再試行してください。",
-  "serviceRequiresRunningService": "{service} には実行中の {dependency} サービスが必要です。まず {dependency} を起動してください。"
+  "serviceRequiresRunningService": "{service} には実行中の {dependency} サービスが必要です。まず {dependency} を起動してください。",
+  "versionDeleteManual": "「OK」でフォルダーを開き、手動で削除できます。強制削除は FlyEnv が管理するディレクトリでのみ利用できます。",
+  "forceDeleteWarning": "以下のディレクトリと、その中のすべてのファイル、サブディレクトリ、データを完全に削除します。リンクや一覧の項目だけを削除する操作ではありません。この操作は取り消せません。",
+  "forceDeleteInput": "削除を確認するには Force Delete と正確に入力してください：",
+  "versionDeletedRefreshFailed": "ディレクトリは削除されましたが、バージョン一覧の更新または関連情報の消去に失敗しました。"
 }

@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv kunde inte återställa datamappen. Kontrollera hjälpen och försök igen.",
   "serviceRequiresRuntime": "{service} kräver {runtime}. Installera och välj först en kompatibel version i modulen {module}.",
   "serviceRuntimeFetchFailed": "{service} kräver {runtime}, men listan över installerade versioner kunde inte läsas in. Kontrollera modulen {runtime} och försök igen.",
-  "serviceRequiresRunningService": "{service} kräver en {dependency}-tjänst som körs. Starta först {dependency}."
+  "serviceRequiresRunningService": "{service} kräver en {dependency}-tjänst som körs. Starta först {dependency}.",
+  "versionDeleteManual": "Klicka på OK för att öppna mappen och radera den manuellt. Tvingad radering är endast tillgänglig för mappar som hanteras av FlyEnv.",
+  "forceDeleteWarning": "Detta raderar mappen nedan och alla dess filer, undermappar och data permanent. Det tar inte bara bort en länk eller en post i listan. Åtgärden kan inte ångras.",
+  "forceDeleteInput": "Skriv exakt Force Delete för att bekräfta raderingen:",
+  "versionDeletedRefreshFailed": "Mappen raderades, men uppdateringen av versionslistan eller rensningen av metadata misslyckades."
 }

@@ -100,5 +100,9 @@
   "dataDirectoryRecoveryFailed": "FlyEnv не вдалося відновити каталог даних. Перевірте помічник і повторіть спробу.",
   "serviceRequiresRuntime": "Для {service} потрібен {runtime}. Спочатку встановіть і виберіть сумісну версію в модулі {module}.",
   "serviceRuntimeFetchFailed": "Для {service} потрібен {runtime}, але не вдалося завантажити список установлених версій. Перевірте модуль {runtime} і повторіть спробу.",
-  "serviceRequiresRunningService": "Для {service} потрібна запущена служба {dependency}. Спочатку запустіть {dependency}."
+  "serviceRequiresRunningService": "Для {service} потрібна запущена служба {dependency}. Спочатку запустіть {dependency}.",
+  "versionDeleteManual": "Натисніть OK, щоб відкрити папку й видалити її вручну. Примусове видалення доступне лише для каталогів, якими керує FlyEnv.",
+  "forceDeleteWarning": "Наведений нижче каталог і всі його файли, вкладені папки та дані буде видалено назавжди. Це не просто видалення посилання чи запису зі списку. Дію неможливо скасувати.",
+  "forceDeleteInput": "Для підтвердження введіть точно Force Delete:",
+  "versionDeletedRefreshFailed": "Каталог видалено, але оновити список версій або очистити метадані не вдалося."
 }
