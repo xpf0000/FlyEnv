@@ -1,4 +1,4 @@
-import { type ChildProcess, exec, spawn } from 'child_process'
+import { type ChildProcess, type ExecOptions, exec, spawn } from 'child_process'
 import { promisify } from 'util'
 import { mergeProcessOptions } from './process-options'
 import EnvSync from './EnvSync'
@@ -8,7 +8,11 @@ import { join } from 'path'
 import { remove, writeFile, existsSync } from './fs-extra'
 import { timeOperation } from './OperationTiming'
 
-export const execPromise = promisify(exec)
+const execAsync = promisify(exec)
+
+// Preserve Node's overloads and the promise's .child handle for callers.
+export const execPromise = ((command: string, options?: ExecOptions | null) =>
+  execAsync(command, { windowsHide: true, ...options })) as typeof execAsync
 
 type ForkPromiseResType = ForkPromise<{
   stdout: string
@@ -71,6 +75,7 @@ export function execPromiseSudo(
         args,
         mergeProcessOptions(
           {
+            windowsHide: true,
             shell: '/bin/zsh',
             env
           },
@@ -159,7 +164,7 @@ export const spawnPromise = (
   return new ForkPromise(async (resolve, reject) => {
     let cp: ChildProcess
     try {
-      cp = spawn(command, arg, options)
+      cp = spawn(command, arg, { windowsHide: true, ...options })
     } catch (e) {
       reject(e)
       return
@@ -210,6 +215,7 @@ export const spawnPromiseWithEnv = (
     const { trimOutput = true, timing, ...spawnOptions } = options
     reportSpawnPromiseWithEnvTiming(() => timing?.onEnvSync?.(Date.now() - envSyncStartedAt))
     const optdefault: any = {
+      windowsHide: true,
       env
     }
     if (isMacOS()) {
@@ -291,7 +297,7 @@ export const spawnPromiseWithStdin = (
   return new ForkPromise(async (resolve, reject, on) => {
     let cp: ChildProcess
     try {
-      cp = spawn(command, arg, options)
+      cp = spawn(command, arg, { windowsHide: true, ...options })
     } catch (e) {
       reject(e)
       return
