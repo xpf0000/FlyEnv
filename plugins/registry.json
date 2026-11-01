@@ -299,8 +299,8 @@
       "name": "SamWaf",
       "version": "0.1.0",
       "description": {
-        "en": "SamWaf open-source WAF service module. Runs the official SamWaf binary in the foreground and opens its local web admin panel.",
-        "zh": "SamWaf 开源网站防火墙服务模块。以前台方式运行官方 SamWaf 程序，并可打开其本地 Web 管理面板。"
+        "en": "Open-source lightweight WAF. Sits in front of your local sites as a reverse proxy to block attacks, with a built-in web admin panel.",
+        "zh": "开源轻量级网站防火墙。以反向代理方式前置保护本地站点、拦截攻击，内置 Web 管理面板。"
       },
       "author": "FlyEnv",
       "module": {
@@ -323,7 +323,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "316db77b86272f5f7864fb8f1c11db2beda568c6152e537bf9a0a606c65dd466"
+        "sha256": "001823eee525b3b7acfd2f5e6bac5b5477823779187e8fdfc092292c19d48f98"
       },
       "official": true
     }
