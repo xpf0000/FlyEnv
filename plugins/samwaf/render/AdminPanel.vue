@@ -1,7 +1,10 @@
 <template>
   <template v-if="version">
     <el-button style="color: #01cc74" class="button" link @click.stop="openPanel">
-      <yb-icon style="width: 20px; height: 20px; margin-left: 10px" :svg="icon" />
+      <yb-icon
+        style="width: 20px; height: 20px; margin-left: 10px"
+        :svg="import('@/svg/http.svg?raw')"
+      />
     </el-button>
     <el-dialog
       v-model="dialogVisible"
@@ -25,7 +28,6 @@
   import { shell } from '@/util/NodeFn'
   import type { SoftInstalled } from '@/store/brew'
   import { SamWafT } from './lang'
-  import icon from './samwaf.svg?raw'
 
   const props = defineProps<{ version?: SoftInstalled }>()
 
