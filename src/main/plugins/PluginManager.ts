@@ -351,7 +351,15 @@ export class PluginManager {
     }
     // Token verification must never replace a missing/decryption-failed authority.
     // This is a shared prerequisite, rather than an independently invalid plugin.
-    if (Object.values(this.state.plugins).some((plugin) => plugin.installToken)) {
+    // Development mode (FLYENV_PLUGIN_PATH) loads only the development plugin and
+    // bypasses install-token verification entirely, so the shared data
+    // directory's install secret — possibly encrypted by a differently-signed
+    // build — must not brick the dev instance.
+    const developmentMode = !!process.env.FLYENV_PLUGIN_PATH
+    if (
+      !developmentMode &&
+      Object.values(this.state.plugins).some((plugin) => plugin.installToken)
+    ) {
       await this.getInstallSecret()
     }
     if (!this.hasRefreshed) {
