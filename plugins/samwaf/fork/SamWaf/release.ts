@@ -57,7 +57,11 @@ export const parseAssetTarget = (name: string): SamWafAssetTarget | undefined =>
 }
 
 export const filterStableReleases = (releases: SamWafRelease[]): SamWafRelease[] => {
-  return releases.filter((release) => !release.prerelease)
+  // Gitee marks beta builds with prerelease=false, so the flag alone is not
+  // enough: any semver prerelease suffix (-beta, -rc, ...) is also unstable.
+  return releases.filter(
+    (release) => !release.prerelease && /^v?\d+\.\d+\.\d+$/.test(release.tag_name.trim())
+  )
 }
 
 export const sha256OfDigest = (digest?: string | null): string | undefined => {
@@ -91,15 +95,65 @@ export const releaseVersionNum = (tag: string): number => {
   return Number(match[1]) * 10000 + Number(match[2]) * 100 + Number(match[3])
 }
 
+/**
+ * Upstream ships a `SamWaf_<ver>_checksums.txt` asset per release. Lines look
+ * like `<sha256>  SamWaf_Linux_arm64 v1.3.24.tar.gz` — note the SPACE before
+ * the version where the asset name has a DOT. Keys are normalized to the real
+ * asset file names.
+ */
+export const parseChecksums = (content: string): Record<string, string> => {
+  const map: Record<string, string> = {}
+  for (const line of (content ?? '').split('\n')) {
+    const match = /^([a-fA-F\d]{64})\s+(\S.*)$/.exec(line.trim())
+    if (!match) continue
+    const name = match[2].trim().replace(/ (v?\d+\.\d+\.\d+\S*)$/, '.$1')
+    map[name] = match[1].toLowerCase()
+  }
+  return map
+}
+
 const RELEASE_APIS = [
   'https://api.github.com/repos/samwafgo/SamWaf/releases',
   'https://gitee.com/api/v5/repos/samwaf/SamWaf/releases'
 ]
 
 /**
+ * Fill sha256 for versions whose source release carries no asset digest
+ * (Gitee) from the release's `*_checksums.txt` asset. Supplementary action:
+ * any failure leaves sha256 undefined and the installer skips verification.
+ */
+const fillMissingSha256 = async (
+  stable: SamWafRelease[],
+  picked: SamWafOnlineVersion[]
+): Promise<void> => {
+  await Promise.all(
+    picked.map(async (item) => {
+      if (item.sha256) return
+      const release = stable.find((r) => r.tag_name === item.version)
+      const checksumAsset = release?.assets.find((a) => a.name.endsWith('_checksums.txt'))
+      if (!checksumAsset) return
+      try {
+        const response = await axios.get<string>(checksumAsset.browser_download_url, {
+          timeout: 15_000,
+          responseType: 'text',
+          proxy: getAxiosProxy()
+        })
+        const map = parseChecksums(`${response.data}`)
+        const sha256 = map[samWafAssetFileName(item.version, item)]
+        if (sha256) item.sha256 = sha256
+      } catch (e) {
+        console.log('samwaf checksums fetch failed:', checksumAsset.browser_download_url, e)
+      }
+    })
+  )
+}
+
+/**
  * Fetch online versions for the current host. GitHub first, Gitee as the CN
  * fallback. A source that errors or yields no host asset falls through to the
  * next; if every source fails the caller gets [] (never throws).
+ * `direction=desc` is required by Gitee (ascending default); GitHub ignores
+ * the unknown parameter and stays newest-first.
  */
 export const fetchOnlineVersions = async (
   platform: SamWafPlatform,
@@ -108,15 +162,17 @@ export const fetchOnlineVersions = async (
   for (const api of RELEASE_APIS) {
     try {
       const response = await axios.get<SamWafRelease[]>(api, {
-        params: { per_page: 20 },
+        params: { per_page: 20, direction: 'desc' },
         headers: { Accept: 'application/vnd.github+json' },
         timeout: 15_000,
         proxy: getAxiosProxy()
       })
-      const versions = filterStableReleases(response.data)
+      const stable = filterStableReleases(response.data)
+      const versions = stable
         .map((release) => pickAsset(release, platform, arch))
         .filter((item): item is SamWafOnlineVersion => !!item)
       if (versions.length > 0) {
+        await fillMissingSha256(stable, versions)
         return versions.sort((a, b) => releaseVersionNum(b.version) - releaseVersionNum(a.version))
       }
     } catch (e) {

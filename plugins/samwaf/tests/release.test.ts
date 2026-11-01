@@ -4,6 +4,7 @@ import {
   SAMWAF_EXECUTABLES,
   filterStableReleases,
   parseAssetTarget,
+  parseChecksums,
   pickAsset,
   releaseVersionNum,
   sha256OfDigest,
@@ -20,6 +21,19 @@ const releases: SamWafRelease[] = [
         browser_download_url:
           'https://github.com/samwafgo/SamWaf/releases/download/v1.3.25-beta.9/SamWaf_Linux_x86_64.v1.3.25-beta.9.tar.gz',
         digest: 'sha256:0b57556bdf81a3b6cc2e642ce8e2a6ea50799ce7f4922a3d23ff295b619afb5a'
+      }
+    ]
+  },
+  {
+    // Gitee marks beta builds with prerelease=false; the tag suffix must
+    // still exclude them (real Gitee payload, v1.3.24-beta.7).
+    tag_name: 'v1.3.24-beta.7',
+    prerelease: false,
+    assets: [
+      {
+        name: 'SamWaf_Windows_x86_64.v1.3.24-beta.7.zip',
+        browser_download_url:
+          'https://gitee.com/samwaf/SamWaf/releases/download/v1.3.24-beta.7/SamWaf_Windows_x86_64.v1.3.24-beta.7.zip'
       }
     ]
   },
@@ -102,4 +116,25 @@ test('executable table stays in sync with the parser', () => {
       `_${arch === 'x64' ? 'x86_64' : 'arm64'}.v0.0.0.${platform === 'windows' ? 'zip' : 'tar.gz'}`
     assert.equal(parseAssetTarget(asset)?.executable, executable, `${key} mismatch`)
   }
+})
+
+test('parses upstream checksums.txt with space-separated version names', () => {
+  // Real format from SamWaf_1.3.24_checksums.txt on Gitee.
+  const content = [
+    'f7b853229ae1468f27c29a5121b6f410116d628476dda01b27d8de333a4ae62d  SamWaf_Linux_arm64 v1.3.24.tar.gz',
+    '50071240229924b31ec260e76508d4d02d01b641be477113110a42ddd94e6b3e  SamWaf_Linux_x86_64 v1.3.24.tar.gz',
+    '7796852f2f03e4a8a24e6352ce85ca86af0a1591fdc898085726f070a27b1a4c  SamWaf_Windows_x86_64 v1.3.24.zip',
+    ''
+  ].join('\n')
+  const map = parseChecksums(content)
+  assert.equal(
+    map['SamWaf_Linux_arm64.v1.3.24.tar.gz'],
+    'f7b853229ae1468f27c29a5121b6f410116d628476dda01b27d8de333a4ae62d'
+  )
+  assert.equal(
+    map['SamWaf_Windows_x86_64.v1.3.24.zip'],
+    '7796852f2f03e4a8a24e6352ce85ca86af0a1591fdc898085726f070a27b1a4c'
+  )
+  assert.equal(parseChecksums('')['anything'], undefined)
+  assert.equal(Object.keys(parseChecksums('garbage line')).length, 0)
 })
