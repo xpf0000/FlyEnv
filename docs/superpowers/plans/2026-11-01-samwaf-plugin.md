@@ -141,14 +141,8 @@ export default {
   initialPasswordTip:
     'Fresh install detected. Sign in with account "admin" and the random initial password below, then change it immediately.',
   initialPasswordFileHint: 'Also stored in data/initial_password.txt inside the install directory.',
-  adminPanelUnavailable: 'Start the service first to open the admin panel.',
-  portParseFailed: 'Could not read local_port from conf/config.yml, using 26666.',
   sha256Mismatch: 'Downloaded archive failed SHA-256 verification and was removed.',
-  binNotFoundAfterUnpack: 'SamWaf executable not found after unpacking the archive.',
-  loopbackWhitelistNote:
-    'The default config only allows loopback (127.0.0.1/::1) to access the admin panel. Edit conf/config.yml to expose it.',
-  darwinExperimental:
-    'macOS builds are published by upstream but not advertised as supported; treat this platform as experimental.'
+  binNotFoundAfterUnpack: 'SamWaf executable not found after unpacking the archive.'
 }
 ```
 
@@ -160,12 +154,8 @@ export default {
   adminPanelTitle: 'SamWaf 管理面板',
   initialPasswordTip: '检测到全新安装。请使用账号 admin 和以下随机初始密码登录，并立即修改密码。',
   initialPasswordFileHint: '该密码同时保存在安装目录下的 data/initial_password.txt。',
-  adminPanelUnavailable: '请先启动服务，再打开管理面板。',
-  portParseFailed: '无法从 conf/config.yml 读取 local_port，已使用默认端口 26666。',
   sha256Mismatch: '下载的安装包 SHA-256 校验失败，已删除。',
-  binNotFoundAfterUnpack: '解压后未找到 SamWaf 可执行文件。',
-  loopbackWhitelistNote: '默认配置仅允许本机回环地址（127.0.0.1/::1）访问管理面板，如需开放请编辑 conf/config.yml。',
-  darwinExperimental: 'macOS 版本由官方发布但未宣称正式支持，请按实验性平台对待。'
+  binNotFoundAfterUnpack: '解压后未找到 SamWaf 可执行文件。'
 }
 ```
 
@@ -1325,26 +1315,28 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
 </script>
 ```
 
-- [ ] **Step 2: `AdminPanel.vue`** — per-row button in the Service table; opens the panel and, on fresh installs, shows the random initial password first:
+- [ ] **Step 2: `AdminPanel.vue`** — icon button in the Service tab's `#tool-left` slot (same idiom as Mailpit's web-UI button), visible only while a version is running; on fresh installs it shows the random initial password first:
 
 ```vue
 <template>
-  <el-button
-    link
-    type="primary"
-    :disabled="!row.run"
-    @click.stop="openPanel"
-  >
-    {{ SamWafT('openAdminPanel') }}
-  </el-button>
-  <el-dialog v-model="dialogVisible" :title="SamWafT('adminPanelTitle')" width="420px" append-to-body>
-    <p class="mb-2">{{ SamWafT('initialPasswordTip') }}</p>
-    <el-input :model-value="initialPassword" readonly />
-    <p class="mt-2 text-xs opacity-70">{{ SamWafT('initialPasswordFileHint') }}</p>
-    <template #footer>
-      <el-button type="primary" @click="gotoPanel">{{ SamWafT('openAdminPanel') }}</el-button>
-    </template>
-  </el-dialog>
+  <template v-if="version">
+    <el-button style="color: #01cc74" class="button" link @click.stop="openPanel">
+      <yb-icon style="width: 20px; height: 20px; margin-left: 10px" :svg="icon" />
+    </el-button>
+    <el-dialog
+      v-model="dialogVisible"
+      :title="SamWafT('adminPanelTitle')"
+      width="420px"
+      append-to-body
+    >
+      <p class="mb-2">{{ SamWafT('initialPasswordTip') }}</p>
+      <el-input :model-value="initialPassword" readonly />
+      <p class="mt-2 text-xs opacity-70">{{ SamWafT('initialPasswordFileHint') }}</p>
+      <template #footer>
+        <el-button type="primary" @click="gotoPanel">{{ SamWafT('openAdminPanel') }}</el-button>
+      </template>
+    </el-dialog>
+  </template>
 </template>
 
 <script lang="ts" setup>
@@ -1353,8 +1345,9 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
   import { shell } from '@/util/NodeFn'
   import type { SoftInstalled } from '@/store/brew'
   import { SamWafT } from './lang'
+  import icon from './samwaf.svg?raw'
 
-  const props = defineProps<{ row: SoftInstalled }>()
+  const props = defineProps<{ version?: SoftInstalled }>()
 
   const dialogVisible = ref(false)
   const initialPassword = ref('')
@@ -1364,7 +1357,7 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
   // plugins/opensearch/render/store.ts.
   const fetchAdminInfo = (): Promise<{ url: string; initialPassword: string } | undefined> => {
     return new Promise((resolve) => {
-      IPC.send('app-fork:samwaf', 'adminInfo', JSON.parse(JSON.stringify(props.row))).then(
+      IPC.send('app-fork:samwaf', 'adminInfo', JSON.parse(JSON.stringify(props.version))).then(
         (key: string, res: any) => {
           IPC.off(key)
           resolve(res?.code === 0 ? res.data : undefined)
@@ -1378,7 +1371,7 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
   }
 
   const openPanel = async () => {
-    if (!props.row.run) return
+    if (!props.version?.run) return
     const info = await fetchAdminInfo()
     if (!info?.url) return
     panelUrl = info.url
@@ -1398,7 +1391,7 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
 </script>
 ```
 
-- [ ] **Step 3: `Index.vue`** — four tabs, Service table carries the admin-panel column:
+- [ ] **Step 3: `Index.vue`** — four tabs; the Service tab carries the admin-panel icon button in its `#tool-left` slot:
 
 ```vue
 <template>
@@ -1408,17 +1401,10 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
         <el-radio-button :label="item" :value="index" />
       </template>
     </el-radio-group>
-    <el-alert type="info" class="mt-2" :closable="false" :title="SamWafT('loopbackWhitelistNote')" />
     <div class="main-block">
-      <Service
-        v-if="tab === 0"
-        type-flag="samwaf"
-        title="SamWaf"
-        :column-label="SamWafT('openAdminPanel')"
-        :column-width="120"
-      >
-        <template #column="{ row }">
-          <AdminPanel :row="row" />
+      <Service v-if="tab === 0" type-flag="samwaf" title="SamWaf">
+        <template #tool-left>
+          <AdminPanel :version="runningVersion" />
         </template>
       </Service>
       <Manager
@@ -1437,6 +1423,7 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
 </template>
 
 <script lang="ts" setup>
+  import { computed } from 'vue'
   import { I18nT } from '@lang/index'
   import { AppModuleSetup } from '@/core/Module'
   import { BrewStore } from '@/store/brew'
@@ -1445,15 +1432,23 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
   import Config from './Config.vue'
   import Logs from './Logs.vue'
   import AdminPanel from './AdminPanel.vue'
-  import { SamWafT } from './lang'
 
   const { tab, checkVersion } = AppModuleSetup('samwaf')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('base.configFile'), I18nT('base.log')]
+  const tabs = [
+    I18nT('base.service'),
+    I18nT('base.versionManager'),
+    I18nT('base.configFile'),
+    I18nT('base.log')
+  ]
 
   const samwafModule = BrewStore().module('samwaf')
   if (!samwafModule.installedFetched) {
     samwafModule.fetchInstalled(true).catch()
   }
+
+  const runningVersion = computed(() => {
+    return samwafModule.installed.find((item) => item.run)
+  })
 
   checkVersion()
 </script>

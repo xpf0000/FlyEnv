@@ -5,17 +5,10 @@
         <el-radio-button :label="item" :value="index" />
       </template>
     </el-radio-group>
-    <el-alert type="info" class="mt-2" :closable="false" :title="SamWafT('loopbackWhitelistNote')" />
     <div class="main-block">
-      <Service
-        v-if="tab === 0"
-        type-flag="samwaf"
-        title="SamWaf"
-        :column-label="SamWafT('openAdminPanel')"
-        :column-width="120"
-      >
-        <template #column="{ row }">
-          <AdminPanel :row="row" />
+      <Service v-if="tab === 0" type-flag="samwaf" title="SamWaf">
+        <template #tool-left>
+          <AdminPanel :version="runningVersion" />
         </template>
       </Service>
       <Manager
@@ -34,6 +27,7 @@
 </template>
 
 <script lang="ts" setup>
+  import { computed } from 'vue'
   import { I18nT } from '@lang/index'
   import { AppModuleSetup } from '@/core/Module'
   import { BrewStore } from '@/store/brew'
@@ -42,7 +36,6 @@
   import Config from './Config.vue'
   import Logs from './Logs.vue'
   import AdminPanel from './AdminPanel.vue'
-  import { SamWafT } from './lang'
 
   const { tab, checkVersion } = AppModuleSetup('samwaf')
   const tabs = [
@@ -56,6 +49,10 @@
   if (!samwafModule.installedFetched) {
     samwafModule.fetchInstalled(true).catch()
   }
+
+  const runningVersion = computed(() => {
+    return samwafModule.installed.find((item) => item.run)
+  })
 
   checkVersion()
 </script>
