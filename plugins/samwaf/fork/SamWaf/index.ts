@@ -446,21 +446,46 @@ class SamWaf extends Base {
   }
 
   /**
+   * Marker recording that the initial password has already been surfaced to
+   * the user. Lives in the install dir root, so reinstalling/updating the
+   * version (which wipes and recreates the dir) resets it automatically and
+   * the dialog correctly reappears for genuinely fresh installs.
+   */
+  private _initialPasswordMarker(version: SoftInstalled): string {
+    return join(dirname(this._executable(version)), '.flyenv-initial-password-shown')
+  }
+
+  /**
    * Data for the renderer's "open admin panel" action. Reading the initial
    * password is supplementary: failures only blank the password, never the URL.
+   * The password is only returned until it has been shown once — upstream
+   * never deletes initial_password.txt, so existence alone cannot mean
+   * "fresh install".
    */
   adminInfo(version: SoftInstalled): ForkPromise<SamWafAdminInfo> {
     return new ForkPromise(async (resolve) => {
       const port = await this._adminPort(version)
       let initialPassword = ''
       try {
-        const content = await readFile(
-          join(dirname(this._executable(version)), 'data', 'initial_password.txt'),
-          'utf-8'
-        )
-        initialPassword = parseInitialPassword(content)
+        if (!existsSync(this._initialPasswordMarker(version))) {
+          const content = await readFile(
+            join(dirname(this._executable(version)), 'data', 'initial_password.txt'),
+            'utf-8'
+          )
+          initialPassword = parseInitialPassword(content)
+        }
       } catch {}
       resolve({ url: `http://127.0.0.1:${port}`, port, initialPassword })
+    })
+  }
+
+  /** Best-effort marker write after the password dialog has been displayed. */
+  markInitialPasswordShown(version: SoftInstalled): ForkPromise<boolean> {
+    return new ForkPromise(async (resolve) => {
+      try {
+        await writeFile(this._initialPasswordMarker(version), `${Date.now()}\n`)
+      } catch {}
+      resolve(true)
     })
   }
 }

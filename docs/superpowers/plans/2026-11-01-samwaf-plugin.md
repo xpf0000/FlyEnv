@@ -1315,13 +1315,16 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
 </script>
 ```
 
-- [ ] **Step 2: `AdminPanel.vue`** — icon button in the Service tab's `#tool-left` slot (same idiom as Mailpit's web-UI button), visible only while a version is running; on fresh installs it shows the random initial password first:
+- [ ] **Step 2: `AdminPanel.vue`** — icon button in the Service tab's `#tool-left` slot (same idiom as Mailpit's web-UI button), visible only while a version is running; on fresh installs it shows the random initial password **once**, then the fork writes a `.flyenv-initial-password-shown` marker in the install dir (upstream never deletes `initial_password.txt`, so existence alone cannot mean "fresh install"; the marker lives in the install dir so reinstalling a version resets it):
 
 ```vue
 <template>
   <template v-if="version">
     <el-button style="color: #01cc74" class="button" link @click.stop="openPanel">
-      <yb-icon style="width: 20px; height: 20px; margin-left: 10px" :svg="icon" />
+      <yb-icon
+        style="width: 20px; height: 20px; margin-left: 10px"
+        :svg="import('@/svg/http.svg?raw')"
+      />
     </el-button>
     <el-dialog
       v-model="dialogVisible"
@@ -1345,7 +1348,6 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
   import { shell } from '@/util/NodeFn'
   import type { SoftInstalled } from '@/store/brew'
   import { SamWafT } from './lang'
-  import icon from './samwaf.svg?raw'
 
   const props = defineProps<{ version?: SoftInstalled }>()
 
@@ -1375,10 +1377,18 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
     const info = await fetchAdminInfo()
     if (!info?.url) return
     panelUrl = info.url
-    // Fresh installs carry a random password; surface it before opening.
+    // Fresh installs carry a random password; surface it once, then mark it
+    // as shown so subsequent clicks go straight to the panel.
     if (info.initialPassword) {
       initialPassword.value = info.initialPassword
       dialogVisible.value = true
+      IPC.send(
+        'app-fork:samwaf',
+        'markInitialPasswordShown',
+        JSON.parse(JSON.stringify(props.version))
+      ).then((key: string) => {
+        IPC.off(key)
+      })
       return
     }
     openExternal(panelUrl)

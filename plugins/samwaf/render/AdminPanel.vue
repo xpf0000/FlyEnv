@@ -57,10 +57,18 @@
     const info = await fetchAdminInfo()
     if (!info?.url) return
     panelUrl = info.url
-    // Fresh installs carry a random password; surface it before opening.
+    // Fresh installs carry a random password; surface it once, then mark it
+    // as shown so subsequent clicks go straight to the panel.
     if (info.initialPassword) {
       initialPassword.value = info.initialPassword
       dialogVisible.value = true
+      IPC.send(
+        'app-fork:samwaf',
+        'markInitialPasswordShown',
+        JSON.parse(JSON.stringify(props.version))
+      ).then((key: string) => {
+        IPC.off(key)
+      })
       return
     }
     openExternal(panelUrl)
