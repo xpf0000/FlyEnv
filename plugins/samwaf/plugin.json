@@ -1,0 +1,24 @@
+{
+  "apiVersion": 1,
+  "id": "samwaf",
+  "name": "SamWaf",
+  "version": "0.1.0",
+  "description": {
+    "en": "SamWaf open-source WAF service module. Runs the official SamWaf binary in the foreground and opens its local web admin panel.",
+    "zh": "SamWaf 开源网站防火墙服务模块。以前台方式运行官方 SamWaf 程序，并可打开其本地 Web 管理面板。"
+  },
+  "author": "FlyEnv",
+  "module": {
+    "typeFlag": "samwaf",
+    "moduleType": "webServer",
+    "label": "SamWaf",
+    "asideIndex": 71,
+    "isService": true,
+    "isTray": true,
+    "platform": ["Windows", "macOS", "Linux"]
+  },
+  "entry": {
+    "render": "render/Module.ts",
+    "fork": "fork/index.ts"
+  }
+}
