@@ -15,11 +15,18 @@ import {
   readFile,
   writeFile,
   mkdirp,
+  remove,
+  waitTime,
   zipUnpack,
   moveChildDirToParent,
   spawnPromiseWithEnv
 } from '../../Fn'
-import { prepareUnixLogDirectory, serviceStartSpawn } from '../../util/ServiceStart'
+import {
+  prepareUnixLogDirectory,
+  serviceStartSpawn,
+  type ServiceStartSpawnParams
+} from '../../util/ServiceStart'
+import { ProcessListFetch, ProcessOwnedPidsByPid } from '@shared/Process'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
 import { I18nT } from '@lang/runtime'
@@ -153,6 +160,68 @@ class Nginx extends Base {
     })
   }
 
+  /**
+   * serviceStartSpawn 只保证进程 2 秒内未退出；bind 失败时 nginx 会重试约 2.5 秒后才
+   * 退出，恰好在判定窗口之后。这里在 spawn 成功后按进程归属核验：500ms 轮询一次，
+   * 共 10 次；任一轮确认进程存活且归属本次启动的 bin 即判成功，发现进程消失或
+   * PID 易主则立即判启动失败。
+   */
+  async #spawnAndVerify(param: ServiceStartSpawnParams): Promise<{ 'APP-Service-Start-PID': string }> {
+    const version = param.version
+    const errFile =
+      param.errFile ??
+      join(
+        param.baseDir,
+        `${version.typeFlag}-${version.version!.trim()}-start-error.log`.split(' ').join('')
+      )
+    let errBefore = 0
+    try {
+      errBefore = existsSync(errFile) ? (await readFile(errFile, 'utf8')).length : 0
+    } catch {}
+    const res = await serviceStartSpawn(param)
+    const pid = res['APP-Service-Start-PID']
+    for (let i = 0; i < 10; i++) {
+      await waitTime(500)
+      let owned: string[] = []
+      try {
+        owned = ProcessOwnedPidsByPid(pid, await ProcessListFetch(), [param.bin])
+      } catch {
+        // 进程表读取失败无法据此判定进程状态；跳过本次轮询，不误判失败
+        continue
+      }
+      if (owned.length > 0) {
+        return res
+      }
+      // 进程已退出或 PID 易主；只清理本次启动登记的 PID 文件，不触碰任何现存进程
+      try {
+        if (param.pidPath) {
+          await remove(param.pidPath)
+        }
+      } catch {}
+      let msg = ''
+      try {
+        if (existsSync(errFile)) {
+          msg = (await readFile(errFile, 'utf8')).slice(errBefore).trim()
+        }
+      } catch {}
+      if (!msg) {
+        msg = I18nT('fork.startFail')
+      }
+      param.on({
+        'APP-On-Log': AppLog(
+          'error',
+          I18nT('appLog.startServiceFail', {
+            error: msg,
+            service: `${version.typeFlag}-${version.version}`
+          })
+        )
+      })
+      throw new Error(msg)
+    }
+    // 10 轮均未取到有效进程表，进程状态未知；维持 spawn 2 秒窗口的原有判定
+    return res
+  }
+
   _startServer(version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       on({
@@ -178,7 +247,7 @@ class Nginx extends Base {
         const execArgs = ['-p', p]
 
         try {
-          const res = await serviceStartSpawn({
+          const res = await this.#spawnAndVerify({
             version,
             pidPath: pid,
             baseDir,
@@ -228,7 +297,7 @@ class Nginx extends Base {
             }
           }
           try {
-            const res = await serviceStartSpawn({
+            const res = await this.#spawnAndVerify({
               lowPortService: isLinux(),
               listenPorts,
               version,
