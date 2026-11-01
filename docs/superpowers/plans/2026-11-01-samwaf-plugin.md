@@ -1464,7 +1464,7 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
 </script>
 ```
 
-- [ ] **Step 4: `Config.vue`** — seeds/edits `conf/config.yml` via the host `Conf` component:
+- [ ] **Step 4: `Config.vue`** — seeds/edits `conf/config.yml` via the host `Conf` component; the `url` prop renders the official-docs link button (Qdrant pattern):
 
 ```vue
 <template>
@@ -1476,6 +1476,7 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
     :file-ext="'yml'"
     :config-language="'yaml'"
     :show-commond="false"
+    url="https://doc.samwaf.com/faq/"
   >
   </Conf>
 </template>
@@ -1507,9 +1508,12 @@ git commit -m "feat(samwaf-plugin): fork module with lifecycle, install verifica
       IPC.send('app-fork:samwaf', 'initConfig', JSON.parse(JSON.stringify(version))).then(
         (key: string) => {
           IPC.off(key)
-          const dir = join(window.Server.AppDir!, 'samwaf', version.version!, 'conf', 'config.yml')
-          file.value = dir
-          defaultFile.value = dir
+          // The seeded file IS the live config; defaultFile is optional in the
+          // Conf component, and pointing it at the same path keeps "load
+          // default" a harmless same-content reload.
+          const path = join(window.Server.AppDir!, 'samwaf', version.version!, 'conf', 'config.yml')
+          file.value = path
+          defaultFile.value = path
           conf.value.update()
         }
       )

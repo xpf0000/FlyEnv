@@ -7,6 +7,7 @@
     :file-ext="'yml'"
     :config-language="'yaml'"
     :show-commond="false"
+    url="https://doc.samwaf.com/faq/"
   >
   </Conf>
 </template>
