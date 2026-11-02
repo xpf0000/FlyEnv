@@ -23,8 +23,10 @@ import { unpack } from '@fork/util/Zip'
 import { ForkPromise } from '@shared/ForkPromise'
 import { isWindows } from '@shared/utils'
 import { ProcessSearch } from '@shared/Process'
+import type { PItem } from '@shared/Process'
 import { StopProcessListFetch } from '@shared/StopProcessList'
 import { ProcessListSearch } from '@shared/Process.win'
+import { logServiceStop } from '@shared/ServiceStopDiagnostics'
 import { SamWafT } from '../lang'
 import {
   SAMWAF_EXECUTABLES,
@@ -34,6 +36,7 @@ import {
   samWafHostTarget
 } from './release'
 import { defaultConfigYml, parseAdminPort, parseInitialPassword } from './config'
+import { supervisedSamWafTreePids } from './stopTargets'
 
 const STARTUP_CHECK_TIMES = 60
 
@@ -306,6 +309,32 @@ class SamWaf extends Base {
    */
   protected _stopSearchName(): string | undefined {
     return 'SamWaf'
+  }
+
+  /**
+   * Windows start goes through `start "" /B ./SamWaf64.exe`, so the supervisor's
+   * command line stays relative and fails Base's absolute-marker ownership check.
+   * Base then selects only the worker; the surviving supervisor respawns it and
+   * stop reports success while the process tree lives on. Recover supervisor
+   * roots through their owned worker descendant (same watchdog shape as
+   * ClickHouse) and order them first so parents die before the workers they
+   * would restart.
+   */
+  protected async windowsServiceTargets(
+    version: SoftInstalled,
+    extraMarkers: string[] = [],
+    rootPredicate?: (process: PItem) => boolean
+  ) {
+    const targets = await super.windowsServiceTargets(version, extraMarkers, rootPredicate)
+    const extra = supervisedSamWafTreePids(
+      targets.list,
+      [...this.ownedProcessMarkers(version), ...extraMarkers],
+      new Set(targets.pids),
+      rootPredicate
+    )
+    if (!extra.length) return targets
+    await logServiceStop('module.targets-augmented', { supervisorTreePids: extra })
+    return { ...targets, pids: [...extra, ...targets.pids] }
   }
 
   protected _stopSignal(): string {
