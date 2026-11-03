@@ -718,6 +718,18 @@ export default class IPCHandler extends EventEmitter {
         break
 
       // MCP Server
+      case 'mcp:listTools':
+        this.sendToMainWindow(command, key, {
+          code: 0,
+          data: this.deps.mcpRuntime?.listTools() ?? []
+        })
+        break
+      case 'plugin:diagnostics':
+        this.sendToMainWindow(command, key, {
+          code: 0,
+          data: this.deps.mcpRuntime?.plugins?.diagnostics(String(args[0] ?? '')) ?? []
+        })
+        break
       case 'mcp:start':
         this.handleMcpStart(command, key)
         break

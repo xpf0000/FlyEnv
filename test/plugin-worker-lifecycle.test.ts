@@ -361,3 +361,23 @@ test('unsolicited ready acknowledgement cannot resolve a missing initialization'
   item.destroy()
   child.emit('exit', 0)
 })
+
+test('the worker registry executes caller authorization immediately before sending to its owner', async () => {
+  const f = await fixture()
+  try {
+    const capturing = f.registry.capture('sample')
+    const worker = await waitWorker(f)
+    worker.ready.resolve()
+    const descriptor = await capturing
+    const call = f.registry.dispatch('sample', 'write', [], descriptor, () => {
+      throw new Error('tool_disabled')
+    })
+    await assert.rejects(Promise.resolve(call), /tool_disabled/)
+    assert.equal(worker.calls.length, 0)
+    const close = f.registry.close('sample')
+    worker.exited.resolve()
+    await close
+  } finally {
+    await f.clean()
+  }
+})

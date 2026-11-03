@@ -18,6 +18,7 @@ import type { GetManagedFileMapInput } from '@shared/mcpContext'
 import type { ForkManager } from './ForkManager'
 import type MCPConfigManager from './MCPConfigManager'
 import MCPAudit from './MCPAudit'
+import type { PluginMCPRegistry } from './PluginMCPRegistry'
 import { MCPTools, textResult } from './MCPTools'
 import type { MCPToolResult } from './MCPTools'
 import { stopHttpServer } from '@shared/httpServerStop'
@@ -74,7 +75,8 @@ export default class MCPServer {
   constructor(
     forkManager: ForkManager,
     mcpConfig: MCPConfigManager,
-    appConfig?: { getConfig: (k?: any, d?: any) => any; setConfig: (k: string, ...a: any) => any }
+    appConfig?: { getConfig: (k?: any, d?: any) => any; setConfig: (k: string, ...a: any) => any },
+    private readonly plugins?: PluginMCPRegistry
   ) {
     this.mcpConfig = mcpConfig
     this.tools = new MCPTools(forkManager, mcpConfig, appConfig)
@@ -600,17 +602,46 @@ export default class MCPServer {
 
     server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
-        tools: this.enabledToolDefs().map((t) => ({
-          name: t.name,
-          description: t.description,
-          inputSchema: t.inputSchema
-        }))
+        tools: [
+          ...this.enabledToolDefs().map((t) => ({
+            name: t.name,
+            description: t.description,
+            inputSchema: t.inputSchema
+          })),
+          ...(this.plugins?.listTools() ?? [])
+            .filter((tool) =>
+              (this.mcpConfig.getConfig('enabledTools', []) as string[]).includes(tool.name)
+            )
+            .map((tool) => ({
+              name: tool.name,
+              description: tool.description,
+              inputSchema: tool.inputSchema,
+              annotations: {
+                readOnlyHint: tool.readOnly,
+                destructiveHint: tool.risky,
+                openWorldHint: false
+              }
+            }))
+        ]
       }
     })
 
     server.setRequestHandler(CallToolRequestSchema, async (request: any): Promise<any> => {
       const name = request?.params?.name
       const args = request?.params?.arguments ?? {}
+      if (this.plugins?.has(name)) {
+        const result = await this.plugins.invoke(
+          name,
+          args,
+          () => this.confirmTool(name, args, true),
+          server.getClientVersion()
+        )
+        return textResult(
+          result,
+          !!result?.outcome &&
+            !['success', 'partial', 'deleted', 'already_deleted'].includes(result.outcome)
+        )
+      }
       const def = this.enabledToolDefs().find((t) => t.name === name)
       if (!def) {
         const msg = `Tool not enabled or unknown: ${name}`
@@ -684,7 +715,11 @@ export default class MCPServer {
   }
 
   /** 高风险 tool 的原生确认框 */
-  private async confirmTool(name: string, args: Record<string, any>): Promise<boolean> {
+  private async confirmTool(
+    name: string,
+    args: Record<string, any>,
+    privateTool = false
+  ): Promise<boolean> {
     try {
       const detail = Object.entries(args)
         .map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
@@ -700,7 +735,7 @@ export default class MCPServer {
       })
       return response === 1
     } catch (e) {
-      console.log('MCP confirmTool error: ', e)
+      if (!privateTool) console.log('MCP confirmTool error: ', e)
       return false
     }
   }

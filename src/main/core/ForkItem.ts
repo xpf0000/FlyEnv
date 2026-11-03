@@ -498,7 +498,10 @@ export class ForkItem {
 
   private onError(child: UtilityProcess, type: string, location: string, report: string) {
     if (child !== this.child) return
-    logServiceStopBoundary('fork.main-worker-error', { workerPid: child.pid, type, location })
+    logServiceStopBoundary('fork.main-worker-error', {
+      workerPid: child.pid,
+      ...(this.dedicated ? { type: 'plugin_worker_error' } : { type, location })
+    })
     this.loading = false
     const error = this.dedicated
       ? 'plugin_worker_error'

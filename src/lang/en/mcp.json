@@ -1,4 +1,5 @@
 {
+  "pluginToolsRefresh": "After changing plugin tools, refresh or reconnect your MCP client to update its tool list.",
   "title": "MCP Server",
   "description": "Run FlyEnv as an MCP Server so AI coding tools (Claude Code, Cursor, Cline, ...) can read your local environment and control services.",
   "service": "Server",

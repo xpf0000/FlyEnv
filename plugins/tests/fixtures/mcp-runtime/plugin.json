@@ -1,0 +1,38 @@
+{
+  "apiVersion": 2,
+  "id": "mcp-runtime-fixture",
+  "name": "MCP Runtime Fixture",
+  "version": "1.0.0",
+  "module": { "typeFlag": "mcp-runtime-fixture", "moduleType": "other", "isService": false },
+  "entry": { "fork": "fork/index.ts", "render": "render/Module.ts" },
+  "runtime": { "mode": "dedicated", "dataAccess": "exclusive" },
+  "mcp": {
+    "audit": "metadata-volatile",
+    "tools": [
+      {
+        "name": "fixture_counter_read",
+        "method": "read",
+        "description": "Read the isolated fixture counter",
+        "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false },
+        "readOnly": true,
+        "risky": false
+      },
+      {
+        "name": "fixture_counter_write",
+        "method": "write",
+        "description": "Increment the isolated fixture counter",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "increment": { "type": "integer" },
+            "delay": { "type": "integer", "minimum": 0, "maximum": 1000 }
+          },
+          "required": ["increment"],
+          "additionalProperties": false
+        },
+        "readOnly": false,
+        "risky": true
+      }
+    ]
+  }
+}

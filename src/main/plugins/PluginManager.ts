@@ -5,6 +5,7 @@ import { promises as fs, type Dirent } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { Readable } from 'node:stream'
 import axios from 'axios'
+import { AjvJsonSchemaValidator } from '@modelcontextprotocol/sdk/validation/ajv-provider.js'
 import { getAxiosProxy } from '../../fork/util/Axios'
 import {
   FLYENV_PLUGIN_ARCHITECTURES,
@@ -58,6 +59,7 @@ export type FlyEnvPluginRecord = {
 
 export type { ForkPluginSnapshot } from '@shared/plugin/PluginRuntime'
 import type { ForkPluginSnapshot } from '@shared/plugin/PluginRuntime'
+import type { PluginMCPRegistration } from '@shared/mcpRuntimeCatalog'
 
 export type InstalledPlugin = {
   id: string
@@ -476,6 +478,7 @@ export class PluginManager {
         continue
       }
       try {
+        this.assertToolNamesAvailable(record.manifest)
         if (record.manifest.runtime && record.forkEntry) {
           const stat = await fs.stat(record.forkEntry)
           const fingerprint = JSON.stringify([
@@ -660,6 +663,21 @@ export class PluginManager {
       }
     }
     return result
+  }
+
+  getMCPRegistrations(): PluginMCPRegistration[] {
+    return [...this.plugins.values()].flatMap((record) =>
+      record.enabled && record.manifest.mcp && record.installGeneration
+        ? [
+            {
+              pluginId: record.manifest.id,
+              moduleId: record.manifest.module.typeFlag,
+              installGeneration: record.installGeneration,
+              declaration: structuredClone(record.manifest.mcp)
+            }
+          ]
+        : []
+    )
   }
 
   async getRendererPlugins() {
@@ -895,6 +913,7 @@ export class PluginManager {
       if (input.version && input.version !== manifest.version)
         throw new Error('Plugin version does not match the registry entry')
       await this.validatePackageRoot(packageRoot, manifest)
+      this.assertToolNamesAvailable(manifest)
       const installed = this.plugins.get(manifest.id)
       if (installed) await this.stopPluginServices?.(manifest.module.typeFlag)
       const targetRoot = join(this.pluginsRoot, manifest.id, manifest.version)
@@ -1113,7 +1132,19 @@ export class PluginManager {
     return 'x64'
   }
 
+  private assertToolNamesAvailable(manifest: FlyEnvPluginManifest) {
+    const names = new Set((manifest.mcp?.tools ?? []).map((tool) => tool.name))
+    for (const record of this.plugins.values()) {
+      if (record.manifest.id === manifest.id) continue
+      if (record.manifest.mcp?.tools.some((tool) => names.has(tool.name)))
+        throw new Error('Duplicate plugin MCP tool name')
+    }
+  }
+
   private assertManifestCompatibility(manifest: FlyEnvPluginManifest) {
+    // Resolve schema references before installation/activation, not at application startup.
+    for (const tool of manifest.mcp?.tools ?? [])
+      new AjvJsonSchemaValidator().getValidator(tool.inputSchema)
     const platform = this.currentPlatform()
     if (manifest.module.platform?.length && !manifest.module.platform.includes(platform)) {
       throw new Error(`Plugin ${manifest.id} is not compatible with ${platform}`)

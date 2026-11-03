@@ -99,3 +99,25 @@ test('isolated package build preserves API 2 capabilities, assets and executable
     await rm(root, { recursive: true, force: true })
   }
 })
+
+test('host rejects unresolved local schema references before activating a plugin', async () => {
+  const { default: PluginManager } = await import('../../src/main/plugins/PluginManager')
+  const root = await mkdtemp(join(tmpdir(), 'flyenv-schema-'))
+  try {
+    const manifest = v2()
+    manifest.mcp.tools[0].inputSchema = {
+      type: 'object',
+      properties: { value: { $ref: '#/$defs/missing' } }
+    } as any
+    await mkdir(join(root, 'fork'))
+    await writeFile(join(root, 'plugin.json'), JSON.stringify(manifest))
+    await writeFile(join(root, 'fork/index.mjs'), 'export default {}')
+    const manager = new PluginManager({
+      pluginsRoot: join(root, 'plugins'),
+      statePath: join(root, 'state.json')
+    })
+    await assert.rejects((manager as any).loadPlugin(root, true), /schema|ref/i)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})

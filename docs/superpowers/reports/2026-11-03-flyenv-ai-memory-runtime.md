@@ -48,3 +48,27 @@ AtomicFile 先写同目录临时文件、文件 sync/关闭、rename，再同步
   "packagedAsar": true
 }
 ```
+
+## 阶段 B：通用宿主闭环
+
+2026-11-03，在同一 macOS ARM64 / Electron 39.8.10 环境运行
+`yarn tsx scripts/plugin-mcp-runtime-smoke.ts`，使用临时 `FLYENV_DATA_ROOT`、
+Electron `userData`、本机样例包下载地址及临时 MCP token；未访问正式插件目录、
+记忆库或客户端配置。测试结束删除临时数据。
+
+通过的真实进程检查：
+
+- API 2 样例经生产 PluginManager 安装，HTTP 未启动时经 IPC 列出工具；初始工具均关闭。
+- 打包后的 Vue 样例页面实际挂载、按钮通过 IPCHandler 调用 ForkManager，
+  与 HTTP MCP 请求交替读写同一计数器；返回 PID 一致。
+- 有延迟写入时禁用会等待该写入终态和实际 worker exit；禁用后 HTTP 拒绝调用。
+- 原生审批边界中禁用插件，随后批准仍拒绝旧请求。
+- 升级到第二个包后使用新安装代次及新代码，计数器数据保留；卸载移除工具但保留数据目录。
+
+相关自动测试 49 项通过，另有既有 MCP 工具元数据及 HTTP stop 回归通过。
+诊断测试覆盖成功、失败、异常、取消、未知、停用、伪 ID、嵌套内容、原生错误 report，
+确认声明路径不写 `audit.log`/`fork.error.txt`，易失白名单记录第 201 条淘汰最旧一条。
+异步初始化后的真实派发边界再次检查工具开关，诊断失败不改变主操作结果。
+
+这是生产宿主组件在独立最小 Electron 容器中的集成验证；不等同于完整 FlyEnv 应用 UI、
+Windows/Linux 或正式记忆插件验收。原生锁/ASAR 探针在 Task 4 重跑通过。

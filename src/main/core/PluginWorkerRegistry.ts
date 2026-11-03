@@ -117,7 +117,13 @@ export class PluginWorkerRegistry {
     return { ...(await this.owner(module)).descriptor }
   }
 
-  dispatch(module: string, method: string, args: unknown[], expected?: PluginRuntimeDescriptor) {
+  dispatch(
+    module: string,
+    method: string,
+    args: unknown[],
+    expected?: PluginRuntimeDescriptor,
+    assertCurrent?: () => void
+  ) {
     return new ForkPromise<any>(async (resolve, reject, on) => {
       const owner = await this.owner(module)
       if (
@@ -132,6 +138,7 @@ export class PluginWorkerRegistry {
       // No await between the final gate and the actual dispatch.
       this.current(module)
       if (owner.state !== 'ready') throw new Error('plugin_owner_stopping')
+      assertCurrent?.()
       owner.worker
         .send(module, method, ...args)
         .on(on)

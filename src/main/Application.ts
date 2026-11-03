@@ -35,6 +35,7 @@ import ConfigManager from './core/ConfigManager'
 import MCPConfigManager from './core/MCPConfigManager'
 import MCPBridgeManager from './core/MCPBridgeManager'
 import { MCPRuntime } from './core/MCPRuntime'
+import { PluginMCPRegistry } from './core/PluginMCPRegistry'
 import ServerManager from './core/ServerManager'
 import IPCHandler from './core/IPCHandler'
 import { CheckBrewOrPort } from './utils/CheckBrew'
@@ -858,10 +859,23 @@ export default class Application extends EventEmitter {
     })
 
     // MCP Server 需要 forkManager 句柄；仅在自动启动或首次手动启动时加载实现。
-    this.mcpRuntime = new MCPRuntime(this.mcpConfigManager, async () => {
-      const { default: MCPServer } = await import('./core/MCPServer')
-      return new MCPServer(this.forkManager!, this.mcpConfigManager, this.configManager)
-    })
+    const pluginMCP = new PluginMCPRegistry(this.forkManager.pluginWorkers, (key, fallback) =>
+      this.mcpConfigManager.getConfig(key, fallback)
+    )
+    pluginMCP.replace(this.pluginManager.getMCPRegistrations())
+    this.mcpRuntime = new MCPRuntime(
+      this.mcpConfigManager,
+      async () => {
+        const { default: MCPServer } = await import('./core/MCPServer')
+        return new MCPServer(
+          this.forkManager!,
+          this.mcpConfigManager,
+          this.configManager,
+          pluginMCP
+        )
+      },
+      pluginMCP
+    )
     this.ipcHandler.updateDependencies({
       forkManager: this.forkManager,
       mcpRuntime: this.mcpRuntime
@@ -1033,6 +1047,7 @@ export default class Application extends EventEmitter {
   private async syncPlugins() {
     await this.pluginManager.refresh()
     ;(global.Server as any).Plugins = this.pluginManager.getForkSnapshot()
+    this.mcpRuntime?.plugins?.replace(this.pluginManager.getMCPRegistrations())
     if (this.forkManager) {
       this.forkManager.broadcastServer(this.serverManager.getGlobalServer())
     }
