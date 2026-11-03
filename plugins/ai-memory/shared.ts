@@ -152,3 +152,24 @@ export type ScopeBudgets = {
   readConcurrency: number
   responseBytes: number
 }
+
+export type MemoryProjectInfo = {
+  projectId: string
+  name: string
+  project_path: string
+  path_status: 'available' | 'missing' | 'unavailable'
+}
+export type ProjectMappingInspection = {
+  status: 'valid' | 'missing' | 'invalid'
+  revision?: number
+  projectIds?: string[]
+  error_code?: string
+}
+export type ProjectRecoveryReport = {
+  primary: ProjectMappingInspection
+  previous: ProjectMappingInspection
+  projectDirectoryIds: string[]
+  unmappedProjectIds: string[]
+  unmappedAfterPreviousRestore: string[]
+  warnings: MemoryWarning[]
+}
