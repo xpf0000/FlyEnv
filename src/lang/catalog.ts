@@ -28,6 +28,7 @@ export const BuiltInLocaleCatalog = {
   'pt-br': { label: 'Português (Brasil)', sourceDir: 'pt-br' },
   ro: { label: 'Romainiană', sourceDir: 'ro' },
   ru: { label: 'Русский', sourceDir: 'ru' },
+  sk: { label: 'Slovenčina', sourceDir: 'sk' },
   sv: { label: 'Svenska', sourceDir: 'sv' },
   tr: { label: 'Türkçe', sourceDir: 'tr' },
   uk: { label: 'Українська', sourceDir: 'uk' },

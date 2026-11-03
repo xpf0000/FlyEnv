@@ -1,0 +1,182 @@
+{
+  "label": {
+    "model": "Model",
+    "name": "Názov",
+    "status": "Stav",
+    "workingDirectory": "Pracovný adresár",
+    "action": "Akcia",
+    "comment": "Komentár",
+    "source": "Zdroj",
+    "site": "Web",
+    "errorLog": "Protokol chýb",
+    "library": "Knižnica",
+    "path": "Cesta",
+    "description": "Popis",
+    "port": "Port",
+    "startCommand": "Štartovací príkaz",
+    "licenseDescription": "Popis licencie",
+    "password": "Heslo",
+    "username": "Používateľské meno",
+    "size": "Veľkosť",
+    "containerEnvVars": "Premenné prostredia kontajnera",
+    "createdTime": "Čas vytvorenia",
+    "image": "Obraz",
+    "state": "Stav",
+    "grid": "Mriežka",
+    "gridSpacing": "Rozstup mriežky (pixely)",
+    "fontSize": "Veľkosť písma",
+    "code": "Kód"
+  },
+  "action": {
+    "enable": "Povoliť",
+    "disable": "Zakázať",
+    "resume": "Obnoviť",
+    "uninstall": "Odinštalovať",
+    "copy": "Kopírovať",
+    "preview": "Náhľad",
+    "search": "Hľadať",
+    "clear": "Vymazať",
+    "resetPassword": "Obnoviť heslo",
+    "delete": "Odstrániť",
+    "add": "Pridať",
+    "edit": "Upraviť",
+    "generate": "Vygenerovať",
+    "refresh": "Obnoviť",
+    "save": "Uložiť",
+    "start": "Spustiť",
+    "stop": "Zastaviť",
+    "close": "Zavrieť",
+    "selectAll": "Vybrať všetko",
+    "changeName": "Upraviť názov",
+    "changeOwnerPassword": "Zmeniť heslo vlastníka",
+    "changeRole": "Zmeniť rolu"
+  },
+  "state": {
+    "running": "Beží",
+    "installed": "Nainštalované",
+    "enabled": "Povolené",
+    "disabled": "Zakázané",
+    "available": "Dostupné"
+  },
+  "session": {
+    "list": "Relácie",
+    "title": "Názov",
+    "id": "ID relácie",
+    "lastPrompt": "Posledná výzva",
+    "search": "Hľadať relácie",
+    "newSession": "Nová relácia",
+    "lastSession": "Posledná relácia",
+    "deleted": "Relácia bola odstránená",
+    "resumed": "Relácia bola obnovená v termináli"
+  },
+  "mcp": {
+    "type": "Typ",
+    "commandOrUrl": "Príkaz / URL",
+    "scope": "Rozsah",
+    "addServer": "Pridať server"
+  },
+  "category": {
+    "basic": "Základné",
+    "mcp": "MCP",
+    "skills": "Zručnosti",
+    "basicInfo": "Základné informácie",
+    "configuration": "Konfigurácia",
+    "favorites": "Obľúbené",
+    "plugins": "Pluginy",
+    "backupUpdate": "Záloha a aktualizácia"
+  },
+  "skills": {
+    "openSkillsDir": "Otvoriť priečinok zručností",
+    "openSkillDir": "Otvoriť priečinok zručnosti",
+    "revealSkillFile": "Zobraziť súbor zručnosti",
+    "noSkills": "Nenašli sa žiadne zručnosti",
+    "skillFileMissing": "Súbor zručnosti sa nenašiel",
+    "skillLoadFailed": "Nepodarilo sa načítať súbor zručnosti",
+    "builtin": "Vstavané"
+  },
+  "cli": {
+    "help": "Zobraziť nápovedu",
+    "version": "Zobraziť číslo verzie",
+    "start": "Spustiť novú interaktívnu reláciu",
+    "mcpList": "Zobraziť nakonfigurované servery MCP",
+    "doctor": "Spustiť kontrolu stavu",
+    "doctorFix": "Spustiť kontrolu stavu s automatickou opravou",
+    "gatewayStart": "Spustiť službu gateway",
+    "gatewayStop": "Zastaviť službu gateway",
+    "gatewayRestart": "Reštartovať službu gateway",
+    "gatewayStatus": "Zobraziť stav gateway",
+    "gatewayRun": "Spustiť gateway na popredí",
+    "gatewayUninstall": "Odinštalovať službu gateway",
+    "skillsList": "Zobraziť dostupné zručnosti"
+  },
+  "gateway": {
+    "category": "Služba gateway",
+    "status": "Stav gateway",
+    "running": "Gateway beží",
+    "stopped": "Gateway je zastavený",
+    "startFailed": "Spustenie gateway zlyhalo"
+  },
+  "value": {
+    "yes": "Áno",
+    "no": "Nie",
+    "other": "Iné",
+    "default": "Predvolené",
+    "none": "Žiadne",
+    "local": "Lokálne"
+  },
+  "plugin": {
+    "search": "Hľadať pluginy",
+    "removed": "Plugin bol odstránený"
+  },
+  "schedule": {
+    "everyHour": "Každú hodinu",
+    "everyMinute": "Každú minútu"
+  },
+  "error": {
+    "phpiniNotFound": "Súbor php.ini sa nenašiel"
+  },
+  "startupGroup": {
+    "title": "Skupiny spustenia",
+    "description": "Spúšťajte a zastavujte presné verzie služieb a jazykové projekty v riadenom poradí.",
+    "add": "Pridať skupinu spustenia",
+    "edit": "Upraviť skupinu spustenia",
+    "default": "Predvolená skupina spustenia",
+    "controlDefaultTooltip": "Spustiť alebo zastaviť predvolenú skupinu spustenia: {name}",
+    "controlLegacyTooltip": "Spustiť alebo zastaviť všetky zobrazené služby",
+    "defaultTooltip": "Jedno kliknutie v ľavom hornom rohu a automatické spúšťanie služieb použijú túto skupinu spustenia.",
+    "licenseTips": "Bez licencie je možné vytvoriť iba jednu skupinu spustenia.",
+    "defaultEmptyDisabled": "Prázdna skupina spustenia nemôže byť predvolená.",
+    "basicInfo": "Základné informácie",
+    "selectServices": "Vyberte služby",
+    "startOrder": "Poradie spúšťania",
+    "previous": "Predchádzajúca",
+    "next": "Ďalšia",
+    "color": "Farba",
+    "nameRequired": "Zadajte názov skupiny spustenia.",
+    "noGroups": "Vytvorte skupinu spustenia, aby sa súvisiace služby spúšťali v poradí.",
+    "noCandidates": "Nenašli sa žiadne nainštalované služby ani projekty, ktoré by sa dali spustiť samostatne.",
+    "noRemark": "Bez poznámky",
+    "emptyMembers": "Nie sú vybrané žiadne položky",
+    "sameModuleWarning": "Viacero verzií tohto modulu môže byť v konflikte",
+    "samePortWarning": "Vybrané služby používajú rovnaký známy port",
+    "deleteConfirm": "Odstrániť skupinu spustenia {name}? Bežiace služby sa nezastavia.",
+    "hideConfirm": "Skrytie skupín spustenia zastaví všetky služby, ktoré sa nachádzajú v ktorejkoľvek skupine spustenia. Pokračovať?",
+    "hideFailed": "Skupiny spustenia zostanú viditeľné, pretože sa nepodarilo zastaviť tieto služby:",
+    "hideBusy": "Počkajte, kým sa dokončí aktuálna operácia skupiny spustenia.",
+    "state": {
+      "stopped": "Zastavená",
+      "running": "Beží",
+      "partial-running": "Čiastočne beží",
+      "executing": "Vykonáva sa",
+      "invalid": "Neplatná konfigurácia"
+    },
+    "outcome": {
+      "started": "Spustená",
+      "stopped": "Zastavená",
+      "skipped": "Preskočená",
+      "failed": "Zlyhala",
+      "not-run": "Nespustená",
+      "invalid": "Neplatná konfigurácia"
+    }
+  }
+}

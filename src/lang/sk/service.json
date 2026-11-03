@@ -1,0 +1,25 @@
+{
+  "pathSavedRefreshFailed": "Premenné prostredia boli uložené, ale zoznam sa nepodarilo obnoviť: {error}",
+  "linuxSudoRequiresTerminal": "Túto úlohu s oprávneniami spustite interaktívne v termináli; sudo na pozadí nie je dostupné.",
+  "linuxFtpUnmanagedRoot": "Tento proces FTP s právami root nespustila spravovaná služba FlyEnv. Pred ďalším spustením ho zastavte s právami správcu.",
+  "linuxFtpUsersRefreshFailed": "Zmeny FTP účtov boli uložené, ale spustená služba ich nemohla použiť: {error}",
+  "setaliase": "Nastaviť alias",
+  "env": "Prostredie",
+  "alias": "Alias",
+  "envTips": "Bola cesta pridaná do premennej prostredia",
+  "aliasTips": "Alias použitý v termináli",
+  "useSysPHP": "Použiť predvolenú verziu PHP",
+  "setByApp": "Premenné prostredia nastavené aplikáciou FlyEnv",
+  "setByNoApp": "Premenné prostredia nenastavené aplikáciou FlyEnv",
+  "bundleinVersionDelTips": "Táto verzia je vstavaná. Potvrdiť skrytie?",
+  "customDirVersionDelTips": "Táto verzia je z vlastnej cesty. Potvrdiť skrytie?",
+  "ErrorTips": {
+    "VCRuntime": {
+      "title": "Vášmu systému chýba Visual C++ Redistributable (DLL), ktorý je potrebný na spustenie tejto verzie. Kliknutím na odkaz nižšie stiahnite a nainštalujte VC Runtime z oficiálnej stránky spoločnosti Microsoft.",
+      "versionRelation": "Referencia kompatibility verzií:",
+      "software": "Softvér",
+      "versionRange": "Rozsah verzií",
+      "msvsVersion": "Verzia MSVC"
+    }
+  }
+}

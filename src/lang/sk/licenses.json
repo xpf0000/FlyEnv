@@ -1,0 +1,62 @@
+{
+  "description": "Licencia FlyEnv podporuje priebežný vývoj a údržbu projektu. Nemá blokovať základný lokálny vývoj – základné runtime a funkcie správy prostredia zostanú vždy dostupné. Licencia odstráni hodnotiace obmedzenia prémiových nástrojov a pomáha udržiavať FlyEnv na macOS, Windows a Linuxe.",
+  "restrictions": {
+    "title": "FlyEnv funguje aj bez licencie, ale platia tieto hodnotiace obmedzenia:",
+    "items": {
+      "0": "Správa webov je obmedzená na najviac 3 lokálne weby.",
+      "1": "AI asistent je obmedzený na 3-dňovú skúšobnú verziu.",
+      "2": "Nástroj na snímky obrazovky je obmedzený na 3-dňovú skúšobnú verziu.",
+      "3": "Optimalizátor obrázkov je obmedzený na 3-dňovú skúšobnú verziu.",
+      "4": "Na nové prémiové funkcie sa môžu vzťahovať podobné skúšobné obdobia alebo obmedzenia."
+    }
+  },
+  "howToObtain": {
+    "title": "Ako získať licenciu",
+    "description": "FlyEnv ponúka tieto tri spôsoby získania licencie. Licencie zatiaľ nie je možné vydávať automaticky, preto sa každá žiadosť kontroluje a vydáva ručne:",
+    "methods": {
+      "0": {
+        "title": "Kúpa osobnej licencie",
+        "description": "Osobná licencia FlyEnv stojí 10 USD. Platí pre jedno aktívne zariadenie (prenos na iné zariadenie je podporovaný cez správu licencií) a odstráni všetky hodnotiace obmedzenia. Platbu spracúva Paddle. Po nákupe odošlite svoje číslo objednávky Paddle v tomto formulári. Stránka na nákup:"
+      },
+      "1": {
+        "title": "Prispejte do kódu",
+        "description": "Odošlite Pull Request na GitHub a pomôžte zlepšiť FlyEnv. Počíta sa každý zmysluplný príspevok – od veľkých funkcií až po jednoduché opravy dokumentácie."
+      },
+      "2": {
+        "title": "Šírte povedomie",
+        "description": "Podeľte sa o svoje skúsenosti s FlyEnv na akejkoľvek platforme a v akomkoľvek jazyku – články, videá, blogy alebo príspevky. Obsah musí byť pôvodný a autentický; obsah zverejnený pred viac ako 3 mesiacmi už nemusí byť oprávnený."
+      }
+    }
+  },
+  "submitInfo": "Po dokončení ktoréhokoľvek z uvedených spôsobov vložte svoj dôkaz do poľa správy nižšie spolu s platnou e-mailovou adresou a potom kliknite na tlačidlo „Požiadať o licenciu“. Žiadosti sa spracúvajú ručne, zvyčajne do 24 hodín, a po vydaní licencie vás budeme informovať e-mailom.",
+  "messageLabel": "Správa",
+  "messagePlaceholder": "Kupujúci: číslo objednávky Paddle alebo e-mail s potvrdením.\nPrispievatelia: odkaz na váš Pull Request na GitHub.\nPropagátori: odkaz na váš príspevok, video alebo článok.\nUveďte prosím aj platnú e-mailovú adresu, aby sme vás mohli informovať o vydaní licencie.",
+  "requestButton": "Požiadať o licenciu",
+  "refreshButton": "Obnoviť stav",
+  "licenseActivated": "Licencia je aktivovaná",
+  "licenseNoActivated": "Licencia nie je aktivovaná",
+  "licenseInfo": "Aktuálna licencia je trvalá a riadi sa zásadou jedna licencia na jedno zariadenie. Každá licencia je viazaná na konkrétne hardvérové UUID. Ak prejdete na nový počítač, prihláste sa so svojím účtom GitHub a v sekcii „Moje licencie“ odviažte staré zariadenie a priraďte nové, alebo si vyžiadajte novú licenciu.",
+  "logoutTips": "Naozaj sa chcete odhlásiť?",
+  "delBindTips": "Naozaj chcete odviazať licenciu od tohto UUID?",
+  "addBindTips": "Naozaj chcete priradiť licenciu k tomuto UUID?",
+  "currentLicenseState": "Stav licencie na tomto zariadení",
+  "activeState": "Stav aktivácie",
+  "myLicense": "Moje licencie",
+  "loginTips": "Najprv sa prihláste",
+  "logingTips": "Prihlasovanie cez GitHub...",
+  "licenseNo": "Číslo licencie",
+  "licenseBindUUID": "Priradené UUID",
+  "delBind": "Odviazať",
+  "bindCurrentUUID": "Priradiť toto zariadenie",
+  "loginFail": "Prihlásenie zlyhalo",
+  "oauthCanceledTitle": "Autorizácia zrušená",
+  "oauthCanceledMessage": "Používateľ zrušil proces autorizácie",
+  "oauthFailedTitle": "Autorizácia zlyhala",
+  "oauthFailedMessage": "Autorizácia zlyhala. Dôvod: {error}",
+  "oauthFailedByNoAuthCode": "Autorizačný kód nebol prijatý",
+  "oauthTimeout": "Časový limit autorizácie vypršal",
+  "oauthSuccessTitle": "Autorizácia úspešná",
+  "oauthSuccessMessage": "Túto stránku môžete zavrieť. Vráťte sa do FlyEnv a zobrazte informácie o licencii.",
+  "trialExpiredTitle": "Licencia nie je aktivovaná",
+  "trialExpiredTips": "FlyEnv používate {days} dní. Ak vám FlyEnv pomáha, zvážte získanie licencie a podporte projekt."
+}

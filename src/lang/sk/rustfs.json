@@ -1,0 +1,22 @@
+{
+  "RUSTFS_ADDRESS": "Viazať na konkrétnu ADRESU:PORT, ADRESA môže byť IP alebo názov hostiteľa. Predvolené je ':9000'.",
+  "RUSTFS_ACCESS_KEY": "Prístupový kľúč používaný na autentifikáciu S3 API.",
+  "RUSTFS_ACCESS_KEY_FILE": "Cesta k súboru obsahujúcemu prístupový kľúč pre autentifikáciu S3 API.",
+  "RUSTFS_SECRET_KEY": "Tajný kľúč používaný na autentifikáciu S3 API.",
+  "RUSTFS_SECRET_KEY_FILE": "Cesta k súboru obsahujúcemu tajný kľúč pre autentifikáciu S3 API.",
+  "RUSTFS_CONSOLE_ENABLE": "Povoliť server webovej konzoly. Nastavte na 'true' pre povolenie.",
+  "RUSTFS_CONSOLE_ADDRESS": "Adresa, na ktorú sa viaže server konzoly. Predvolené je ':9001'.",
+  "RUSTFS_SERVER_DOMAINS": "Názov domény používaný pre požiadavky v štýle virtual-hosted.",
+  "RUSTFS_TLS_PATH": "Cesta k certifikátu TLS pre API a konzolu RustFS.",
+  "RUSTFS_REGION": "Názov regiónu servera.",
+  "RUSTFS_LICENSE": "Licenčný kľúč pre komerčné funkcie.",
+  "RUSTFS_KMS_ENABLE": "Povoliť šifrovanie KMS pre šifrovanie na strane servera. Nastavte na 'true' pre povolenie.",
+  "RUSTFS_KMS_BACKEND": "Typ backendu KMS: 'local' alebo 'vault'. Predvolené je 'local'.",
+  "RUSTFS_KMS_KEY_DIR": "Adresár kľúčov KMS pre lokálny backend.",
+  "RUSTFS_KMS_VAULT_ADDRESS": "Adresa servera Vault pre backend vault.",
+  "RUSTFS_KMS_VAULT_TOKEN": "Token Vault na autentifikáciu backendu vault.",
+  "RUSTFS_KMS_DEFAULT_KEY_ID": "Predvolené ID kľúča KMS na šifrovanie.",
+  "RUSTFS_OBS_ENDPOINT": "Koncový bod pozorovateľnosti pre trace, metriky a protokoly (iba režim gRPC).",
+  "RUSTFS_BUFFER_PROFILE_DISABLE": "Vypnúť adaptívne určovanie veľkosti buffera podľa profilov záťaže. Nastavte na 'true', ak chcete používať buffery pevnej veľkosti.",
+  "RUSTFS_BUFFER_PROFILE": "Profil záťaže pre adaptívnu veľkosť buffera. Možnosti: GeneralPurpose, AiTraining, DataAnalytics, WebWorkload, IndustrialIoT, SecureStorage."
+}

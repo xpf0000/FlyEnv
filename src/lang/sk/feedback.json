@@ -1,0 +1,16 @@
+{
+  "email": "E-mail",
+  "country": "Krajina",
+  "message": "Správa",
+  "messagelengthErr": "Dĺžka správy musí byť 5 – 1024 znakov",
+  "sendMessage": "Odoslať správu",
+  "anythingToSay": "Máte niečo na povedanie",
+  "noSelected": "Nie je nič vybraté",
+  "inputFilter": "Zadajte text na filtrovanie",
+  "about": {
+    "thanks": "Ďakujeme, že používate FlyEnv. Ak máte otázky alebo návrhy, môžete sa pripojiť ku komunite a diskutovať. Môžete tiež odoslať GitHub Issues",
+    "starSponsor": "Ak vám FlyEnv pomáha, ohodnoťte ho hviezdičkou a podporte projekt. Ďakujeme",
+    "github": "GitHub:",
+    "sponsor": "Sponzor:"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "timeout": "Časový limit nečinného pripojenia, 0 znamená neustále otvorené",
+  "databases": "Počet databáz",
+  "requirepass": "Heslo Redis",
+  "maxmemory": "Bajty, maximálne využitie pamäte, 0 znamená bez obmedzenia"
+}

@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Antigravity CLI nie je nainštalovaný. Kliknutím na tlačidlo nižšie ho nainštalujete oficiálnym inštalátorom.",
+  "officialWebsite": "Webová stránka Antigravity",
+  "officialDocs": "Dokumentácia Antigravity CLI",
+  "sandboxMode": "Terminálový sandbox",
+  "toolPermission": "Oprávnenie nástrojov",
+  "sessionId": "ID konverzácie",
+  "updatedAt": "Aktualizované",
+  "sessionResumed": "Konverzácia bola obnovená v termináli",
+  "sessionDeleted": "Konverzácia bola odstránená",
+  "cmd": {
+    "update": "Aktualizovať Antigravity CLI na najnovšiu verziu",
+    "models": "Zobraziť dostupné modely",
+    "continue": "Pokračovať v najnovšej konverzácii",
+    "resume": "Obnoviť predchádzajúcu konverzáciu podľa ID",
+    "prompt": "Spustiť jednu výzvu neinteraktívne",
+    "pluginList": "Zobraziť importované pluginy",
+    "pluginImport": "Importovať pluginy z gemini alebo claude",
+    "install": "Nastaviť cesty prostredia a nastavenia shellu"
+  }
+}
