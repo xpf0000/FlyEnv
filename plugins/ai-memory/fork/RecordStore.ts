@@ -58,7 +58,7 @@ export class RecordStore {
     if (error instanceof MemoryFault) return { outcome: error.outcome, error_code: error.code }
     return { outcome: 'failed', error_code: 'record_unavailable' }
   }
-  private checkScope(lease: ScopeLease, input: { scope: string }) {
+  assertScope(lease: ScopeLease, input: { scope: string }) {
     lease.assertActive()
     if ((input.scope === 'project') !== !!lease.scope.projectId)
       throw new MemoryFault('scope_mismatch')
@@ -69,9 +69,9 @@ export class RecordStore {
   }
   async ensureDirectory(lease: ScopeLease, path: string) {
     await mkdir(path, { recursive: true, mode: 0o700 })
-    await this.assertManaged(lease, path)
+    await this.assertManagedPath(lease, path)
   }
-  private async assertManaged(lease: ScopeLease, path: string) {
+  async assertManagedPath(lease: ScopeLease, path: string) {
     const [scopeRoot, target, named] = await Promise.all([
       realpath(lease.scope.directory),
       realpath(path),
@@ -89,7 +89,7 @@ export class RecordStore {
     oversized: string
   ): Promise<Buffer> {
     try {
-      await this.assertManaged(lease, dirname(path))
+      await this.assertManagedPath(lease, dirname(path))
       const file = await open(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0))
       try {
         const metadata = await file.stat()
@@ -191,7 +191,7 @@ export class RecordStore {
   async store(lease: ScopeLease, raw: MemoryInputs['store']): Promise<RecordMutation> {
     try {
       const input = validateInput('store', raw)
-      this.checkScope(lease, input)
+      this.assertScope(lease, input)
       this.assertWritable(lease)
       const id = memoryStoreId(lease.scope.key, input.request_id)
       const digest = requestDigest(lease, 'store', input)
@@ -232,7 +232,7 @@ export class RecordStore {
   async update(lease: ScopeLease, raw: MemoryInputs['update']): Promise<RecordMutation> {
     try {
       const input = validateInput('update', raw)
-      this.checkScope(lease, input)
+      this.assertScope(lease, input)
       this.assertWritable(lease)
       const record = await this.readDocument(lease, input.id)
       if (!record) throw new MemoryFault('record_not_found')
@@ -342,7 +342,7 @@ export class RecordStore {
   async get(lease: ScopeLease, raw: MemoryInputs['get']): Promise<MemoryResult<MemoryView>> {
     try {
       const input = validateInput('get', raw)
-      this.checkScope(lease, input)
+      this.assertScope(lease, input)
       const record = await this.readDocument(lease, input.id)
       if (!record) throw new MemoryFault('record_not_found')
       if (isDeleted(record)) return this.deleted(record)
