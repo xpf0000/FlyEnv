@@ -1,0 +1,322 @@
+[
+  {
+    "id": "q01-0",
+    "split": "tune",
+    "scope": "global",
+    "question": "用什么语言回答我？",
+    "gold": ["00000000-0000-4000-8000-000000000001"],
+    "expanded_queries": ["用什么语言回答我？", "中文", "Chinese"]
+  },
+  {
+    "id": "q01-1",
+    "split": "tune",
+    "scope": "global",
+    "question": "What language should explanations use?",
+    "gold": ["00000000-0000-4000-8000-000000000001"],
+    "expanded_queries": ["What language should explanations use?", "中文", "Chinese"]
+  },
+  {
+    "id": "q02-0",
+    "split": "tune",
+    "scope": "project",
+    "question": "记忆文件为什么放在仓库外？",
+    "gold": ["00000000-0000-4000-8000-000000000002"],
+    "expanded_queries": ["记忆文件为什么放在仓库外？", "存储", "storage"]
+  },
+  {
+    "id": "q02-1",
+    "split": "tune",
+    "scope": "project",
+    "question": "Where do we keep memory metadata?",
+    "gold": ["00000000-0000-4000-8000-000000000002"],
+    "expanded_queries": ["Where do we keep memory metadata?", "存储", "storage"]
+  },
+  {
+    "id": "q03-0",
+    "split": "tune",
+    "scope": "project",
+    "question": "Atlas 的数据库端口是什么？",
+    "gold": ["00000000-0000-4000-8000-000000000003"],
+    "expanded_queries": ["Atlas 的数据库端口是什么？", "postgresql", "数据库"]
+  },
+  {
+    "id": "q03-1",
+    "split": "tune",
+    "scope": "project",
+    "question": "Which port does PostgreSQL listen on?",
+    "gold": ["00000000-0000-4000-8000-000000000003"],
+    "expanded_queries": ["Which port does PostgreSQL listen on?", "postgresql", "数据库"]
+  },
+  {
+    "id": "q04-0",
+    "split": "tune",
+    "scope": "project",
+    "question": "issue-913 修了哪个路径问题？",
+    "gold": ["00000000-0000-4000-8000-000000000004"],
+    "expanded_queries": ["issue-913 修了哪个路径问题？", "issue-913", "helper"]
+  },
+  {
+    "id": "q04-1",
+    "split": "tune",
+    "scope": "project",
+    "question": "What happened in issue-913?",
+    "gold": ["00000000-0000-4000-8000-000000000004"],
+    "expanded_queries": ["What happened in issue-913?", "issue-913", "helper"]
+  },
+  {
+    "id": "q05-0",
+    "split": "tune",
+    "scope": "project",
+    "question": "Linux 通知区域图标不见了怎么办？",
+    "gold": ["00000000-0000-4000-8000-000000000005"],
+    "expanded_queries": ["Linux 通知区域图标不见了怎么办？", "linux", "ubuntu"]
+  },
+  {
+    "id": "q05-1",
+    "split": "tune",
+    "scope": "project",
+    "question": "How did we restore the Ubuntu tray?",
+    "gold": ["00000000-0000-4000-8000-000000000005"],
+    "expanded_queries": ["How did we restore the Ubuntu tray?", "linux", "ubuntu"]
+  },
+  {
+    "id": "q06-0",
+    "split": "tune",
+    "scope": "project",
+    "question": "构建使用哪个 Node 版本？",
+    "gold": ["00000000-0000-4000-8000-000000000006"],
+    "expanded_queries": ["构建使用哪个 Node 版本？", "node.js", "22.1"]
+  },
+  {
+    "id": "q06-1",
+    "split": "tune",
+    "scope": "project",
+    "question": "What Node.js runtime version was chosen?",
+    "gold": ["00000000-0000-4000-8000-000000000006"],
+    "expanded_queries": ["What Node.js runtime version was chosen?", "node.js", "22.1"]
+  },
+  {
+    "id": "q07-0",
+    "split": "heldout",
+    "scope": "project",
+    "question": "之前缓存失效的问题是什么？",
+    "gold": ["00000000-0000-4000-8000-000000000007"],
+    "expanded_queries": ["之前缓存失效的问题是什么？", "redis", "缓存"]
+  },
+  {
+    "id": "q07-1",
+    "split": "heldout",
+    "scope": "project",
+    "question": "What caused stale catalog responses?",
+    "gold": ["00000000-0000-4000-8000-000000000007"],
+    "expanded_queries": ["What caused stale catalog responses?", "redis", "缓存"]
+  },
+  {
+    "id": "q08-0",
+    "split": "heldout",
+    "scope": "project",
+    "question": "现在数据库迁移选了什么？",
+    "gold": ["00000000-0000-4000-8000-000000000008"],
+    "expanded_queries": ["现在数据库迁移选了什么？", "sqlite", "postgresql"]
+  },
+  {
+    "id": "q08-1",
+    "split": "heldout",
+    "scope": "project",
+    "question": "Which database replaced SQLite?",
+    "gold": ["00000000-0000-4000-8000-000000000008"],
+    "expanded_queries": ["Which database replaced SQLite?", "sqlite", "postgresql"]
+  },
+  {
+    "id": "q09-0",
+    "split": "heldout",
+    "scope": "global",
+    "question": "日程默认按哪个时区？",
+    "gold": ["00000000-0000-4000-8000-000000000009"],
+    "expanded_queries": ["日程默认按哪个时区？", "timezone", "时区"]
+  },
+  {
+    "id": "q09-1",
+    "split": "heldout",
+    "scope": "global",
+    "question": "Which timezone do schedules use?",
+    "gold": ["00000000-0000-4000-8000-000000000009"],
+    "expanded_queries": ["Which timezone do schedules use?", "timezone", "时区"]
+  },
+  {
+    "id": "q10-0",
+    "split": "heldout",
+    "scope": "project",
+    "question": "Atlas 用什么安装依赖？",
+    "gold": ["00000000-0000-4000-8000-000000000010"],
+    "expanded_queries": ["Atlas 用什么安装依赖？", "yarn", "install"]
+  },
+  {
+    "id": "q10-1",
+    "split": "heldout",
+    "scope": "project",
+    "question": "Which package manager installs dependencies?",
+    "gold": ["00000000-0000-4000-8000-000000000010"],
+    "expanded_queries": ["Which package manager installs dependencies?", "yarn", "install"]
+  },
+  {
+    "id": "q11-0",
+    "split": "heldout",
+    "scope": "project",
+    "question": "健康检查用哪个接口？",
+    "gold": ["00000000-0000-4000-8000-000000000011"],
+    "expanded_queries": ["健康检查用哪个接口？", "healthz", "readiness"]
+  },
+  {
+    "id": "q11-1",
+    "split": "heldout",
+    "scope": "project",
+    "question": "What is the readiness endpoint?",
+    "gold": ["00000000-0000-4000-8000-000000000011"],
+    "expanded_queries": ["What is the readiness endpoint?", "healthz", "readiness"]
+  },
+  {
+    "id": "q12-0",
+    "split": "heldout",
+    "scope": "project",
+    "question": "周末备份怎么做？",
+    "gold": ["00000000-0000-4000-8000-000000000012"],
+    "expanded_queries": ["周末备份怎么做？", "backup", "备份"]
+  },
+  {
+    "id": "q12-1",
+    "split": "heldout",
+    "scope": "project",
+    "question": "When is the offline backup scheduled?",
+    "gold": ["00000000-0000-4000-8000-000000000012"],
+    "expanded_queries": ["When is the offline backup scheduled?", "backup", "备份"]
+  },
+  {
+    "id": "q13-0",
+    "split": "heldout",
+    "scope": "project",
+    "question": "日志能记录密码吗？",
+    "gold": ["00000000-0000-4000-8000-000000000013"],
+    "expanded_queries": ["日志能记录密码吗？", "credentials", "密码"]
+  },
+  {
+    "id": "q13-1",
+    "split": "heldout",
+    "scope": "project",
+    "question": "May logs contain API keys?",
+    "gold": ["00000000-0000-4000-8000-000000000013"],
+    "expanded_queries": ["May logs contain API keys?", "credentials", "密码"]
+  },
+  {
+    "id": "q14-0",
+    "split": "heldout",
+    "scope": "project",
+    "question": "emoji 正文长度如何计算？",
+    "gold": ["00000000-0000-4000-8000-000000000014"],
+    "expanded_queries": ["emoji 正文长度如何计算？", "utf-8", "emoji"]
+  },
+  {
+    "id": "q14-1",
+    "split": "heldout",
+    "scope": "project",
+    "question": "How are emoji counted for the content limit?",
+    "gold": ["00000000-0000-4000-8000-000000000014"],
+    "expanded_queries": ["How are emoji counted for the content limit?", "utf-8", "emoji"]
+  },
+  {
+    "id": "q15-0",
+    "split": "heldout",
+    "scope": "project",
+    "question": "Redis 开发端口是多少？",
+    "gold": ["00000000-0000-4000-8000-000000000015"],
+    "expanded_queries": ["Redis 开发端口是多少？", "redis", "6380"]
+  },
+  {
+    "id": "q15-1",
+    "split": "heldout",
+    "scope": "project",
+    "question": "Which port is local Redis on?",
+    "gold": ["00000000-0000-4000-8000-000000000015"],
+    "expanded_queries": ["Which port is local Redis on?", "redis", "6380"]
+  },
+  {
+    "id": "q16-0",
+    "split": "heldout",
+    "scope": "project",
+    "question": "发布前运行什么测试？",
+    "gold": ["00000000-0000-4000-8000-000000000016"],
+    "expanded_queries": ["发布前运行什么测试？", "node:test", "测试"]
+  },
+  {
+    "id": "q16-1",
+    "split": "heldout",
+    "scope": "project",
+    "question": "What tests precede a preview release?",
+    "gold": ["00000000-0000-4000-8000-000000000016"],
+    "expanded_queries": ["What tests precede a preview release?", "node:test", "测试"]
+  },
+  {
+    "id": "negative-0",
+    "split": "heldout",
+    "scope": "project",
+    "question": "火星天气预报",
+    "gold": [],
+    "expanded_queries": ["火星天气预报"]
+  },
+  {
+    "id": "negative-1",
+    "split": "heldout",
+    "scope": "project",
+    "question": "量子纠缠实验",
+    "gold": [],
+    "expanded_queries": ["量子纠缠实验"]
+  },
+  {
+    "id": "negative-2",
+    "split": "heldout",
+    "scope": "project",
+    "question": "巴西足球比分",
+    "gold": [],
+    "expanded_queries": ["巴西足球比分"]
+  },
+  {
+    "id": "negative-3",
+    "split": "heldout",
+    "scope": "project",
+    "question": "恐龙化石年代",
+    "gold": [],
+    "expanded_queries": ["恐龙化石年代"]
+  },
+  {
+    "id": "negative-4",
+    "split": "heldout",
+    "scope": "project",
+    "question": "sourdough fermentation temperature",
+    "gold": [],
+    "expanded_queries": ["sourdough fermentation temperature"]
+  },
+  {
+    "id": "negative-5",
+    "split": "heldout",
+    "scope": "project",
+    "question": "violin concerto composer",
+    "gold": [],
+    "expanded_queries": ["violin concerto composer"]
+  },
+  {
+    "id": "negative-6",
+    "split": "heldout",
+    "scope": "project",
+    "question": "neutrino oscillation",
+    "gold": [],
+    "expanded_queries": ["neutrino oscillation"]
+  },
+  {
+    "id": "negative-7",
+    "split": "heldout",
+    "scope": "project",
+    "question": "ocean salinity",
+    "gold": [],
+    "expanded_queries": ["ocean salinity"]
+  }
+]

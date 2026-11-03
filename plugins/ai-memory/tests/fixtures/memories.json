@@ -1,0 +1,336 @@
+[
+  {
+    "id": "00000000-0000-4000-8000-000000000001",
+    "scope": "global",
+    "revision": 1,
+    "type": "preference",
+    "title": "偏好中文回复",
+    "topic": "communication/language",
+    "summary": "Explain in Chinese, keep technical identifiers in English.",
+    "tags": ["中文", "Chinese", "language"],
+    "status": "active",
+    "pinned": true,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "Explain in Chinese, keep technical identifiers in English."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000002",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "JSON 元数据与 Markdown 正文",
+    "topic": "memory/storage",
+    "summary": "记忆集中存储，不写入代码仓库；JSON metadata and immutable Markdown bodies.",
+    "tags": ["存储", "storage", "markdown"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "记忆集中存储，不写入代码仓库；JSON metadata and immutable Markdown bodies."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000003",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "PostgreSQL listens on 5440",
+    "topic": "database/port",
+    "summary": "Atlas development PostgreSQL port is 5440, not the production database.",
+    "tags": ["postgresql", "数据库", "port"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "Atlas development PostgreSQL port is 5440, not the production database."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000004",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "issue-913 helper path repair",
+    "topic": "helper/install",
+    "summary": "Fix quoted helper executable paths containing spaces.",
+    "tags": ["issue-913", "helper", "路径"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "Fix quoted helper executable paths containing spaces."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000005",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "Ubuntu tray recovery",
+    "topic": "desktop/tray",
+    "summary": "Linux 托盘缺失通过重启 appindicator 修复；verified in a synthetic Ubuntu desktop case.",
+    "tags": ["linux", "ubuntu", "tray", "托盘"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "Linux 托盘缺失通过重启 appindicator 修复；verified in a synthetic Ubuntu desktop case."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000006",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "Node.js 22.1 runtime",
+    "topic": "runtime/node",
+    "summary": "Atlas build requires Node.js 22.1.",
+    "tags": ["node.js", "22.1", "node", "运行时"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "Atlas build requires Node.js 22.1."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000007",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "缓存失效故障复盘",
+    "topic": "cache/incident",
+    "summary": "2026-05 incident: stale Redis cache caused outdated catalog responses.",
+    "tags": ["redis", "缓存", "incident"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "2026-05 incident: stale Redis cache caused outdated catalog responses."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000008",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "当前采用 PostgreSQL",
+    "topic": "database/decision",
+    "summary": "The current database decision replaces SQLite with PostgreSQL after a migration review.",
+    "tags": ["sqlite", "postgresql", "migration", "迁移"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "The current database decision replaces SQLite with PostgreSQL after a migration review."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000009",
+    "scope": "global",
+    "revision": 1,
+    "type": "preference",
+    "title": "Asia/Shanghai timezone",
+    "topic": "preferences/time",
+    "summary": "All example schedules use Asia/Shanghai UTC+08:00.",
+    "tags": ["timezone", "时区", "shanghai"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "All example schedules use Asia/Shanghai UTC+08:00."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000010",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "Yarn package manager",
+    "topic": "build/packages",
+    "summary": "Use yarn install for the Atlas fixture dependencies.",
+    "tags": ["yarn", "install", "依赖"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "Use yarn install for the Atlas fixture dependencies."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000011",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "GET /healthz readiness endpoint",
+    "topic": "api/health",
+    "summary": "Readiness checks use GET /healthz and require status 200.",
+    "tags": ["healthz", "readiness", "健康检查"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "Readiness checks use GET /healthz and require status 200."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000012",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "周六离线备份步骤",
+    "topic": "backup/procedure",
+    "summary": "Stop the application, copy the entire data directory on Saturday at 02:00.",
+    "tags": ["backup", "备份", "saturday"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "Stop the application, copy the entire data directory on Saturday at 02:00."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000013",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "Never log credentials",
+    "topic": "security/logging",
+    "summary": "Do not put passwords, API keys or tokens into operation logs.",
+    "tags": ["credentials", "密码", "日志", "security"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "Do not put passwords, API keys or tokens into operation logs."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000014",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "正文按 UTF-8 字节限制",
+    "topic": "memory/body",
+    "summary": "Content limits use UTF-8 bytes, not JavaScript string length; emoji consume four bytes.",
+    "tags": ["utf-8", "emoji", "正文", "字节"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "Content limits use UTF-8 bytes, not JavaScript string length; emoji consume four bytes."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000015",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "Redis development port 6380",
+    "topic": "redis/port",
+    "summary": "Atlas local Redis is on port 6380.",
+    "tags": ["redis", "6380", "端口"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "Atlas local Redis is on port 6380."
+  },
+  {
+    "id": "00000000-0000-4000-8000-000000000016",
+    "scope": "project",
+    "projectId": "atlas",
+    "revision": 1,
+    "type": "decision",
+    "title": "Run tests before release",
+    "topic": "testing/release",
+    "summary": "Use node:test for isolated file and concurrency checks before preview releases.",
+    "tags": ["node:test", "测试", "release"],
+    "status": "active",
+    "pinned": false,
+    "source": {
+      "kind": "document",
+      "agent": "fixture",
+      "description": "Constructed Atlas test data; not user history"
+    },
+    "created_at": "2026-01-01T00:00:00.000Z",
+    "updated_at": "2026-01-01T00:00:00.000Z",
+    "content": "Use node:test for isolated file and concurrency checks before preview releases."
+  }
+]

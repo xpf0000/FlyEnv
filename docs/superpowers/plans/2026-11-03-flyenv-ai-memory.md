@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 实现经效果与数据可靠性验证的 AI Memory 开发者预览，让 Codex、Claude Code 通过 FlyEnv 按项目共享、更新和删除记忆。
+**Goal:** 实现经效果与数据可靠性验证的 AI Memory 开发者预览，让 Codex、Kimi 通过 FlyEnv 按项目共享、更新和删除记忆。
 
 **Architecture:** 记忆业务集中在 `plugins/ai-memory/`，以每条 JSON 元数据和不可变 Markdown 正文持久化。宿主提供声明式 MCP 注册、专属 worker 路由、数据目录排他所有权和退出等待；UI/MCP 使用同一个 MemoryEngine。按“效果实验 → 宿主最小验证 → 可靠闭环 → 日常预览”的顺序交付。
 
@@ -264,7 +264,7 @@
 
 - [ ] 先定义完整集成断言并运行确认尚缺端到端覆盖：HTTP 写/UI 读及反向，跨两个项目/global 隔离，重启恢复，响应丢失后原请求确认，同 revision 竞争，pending 删除恢复，工具停用/审批/升级与真实 exit 竞争。
 - [ ] 实现验收 harness，用 Task 2 故障点在临时库重放关键提交阶段；检查完整旧版/新版/unknown、映射 previous 失败、坏记录隔离、容量边界、诊断无内容。运行 `yarn tsx scripts/ai-memory-acceptance.ts` 和 `yarn tsx --test plugins/ai-memory/tests/acceptance.test.ts`。
-- [ ] 执行真实 Codex 保存→Claude Code 新会话检索/get，以及反向；重启 FlyEnv 后再读；包含从子目录启动、独立子项目、Explicit 成功/失败/unknown、Automatic 长任务/上下文变化。记录实际工具调用、ID/revision、客户端版本与自报身份来源，不把连接成功当规则生效。
+- [ ] 执行真实 Codex 保存→Kimi 新会话检索/get，以及反向；重启 FlyEnv 后再读；包含从子目录启动、独立子项目、Explicit 成功/失败/unknown、Automatic 长任务/上下文变化。记录实际工具调用、ID/revision、客户端版本与自报身份来源，不把连接成功当规则生效。
 - [ ] 使用冻结验收问题重跑 Task 1 对照，原始查询/扩词/端到端分别统计；报告 Automatic 机会覆盖率与误存，不承诺每次执行。关键问题失败先修根因再验证，不靠调低标准过关。
 - [ ] 在每个拟声明平台运行原生 probe、完整集成与打包冒烟；记录同步/锁/退出的实际边界。当前机器不能执行的平台留未验收，manifest/README 只声明已验证支持，不能把杀进程恢复写成断电绝对可靠。
 - [ ] 执行最终相关检查：`yarn tsx --test plugins/ai-memory/tests/*.test.ts`、本计划新增宿主测试、`yarn plugin:test ai-memory`、`yarn test:renderer-operation-boundaries`；对改动文件运行 ESLint/Prettier，执行 `yarn vue-tsc --noEmit` 并与执行前基线比对，只能声称新引入诊断已消除或如实说明残留。已通过且无相关修改的原生慢测试不无故重复。
@@ -274,7 +274,7 @@
 
 完成表示阶段门槛和 V1 验收均有证据；若缺实际 Agent 或某平台环境，报告具体未执行项，不把计划勾完当产品完成。实现结束可交付可测试的本地插件与宿主变更，发布 registry、上传插件、合并或发布正式易用版不在本计划授权内。
 
-正式易用版另起任务：核实 Codex/Claude Code 当时的官方配置/规则支持，设计无覆盖合并、重复安装/卸载及真实调用验证。不能把本预览的复制按钮改名为“一键安装”来代替该工作。
+正式易用版另起任务：核实 Codex/Kimi 当时的官方配置/规则支持，设计无覆盖合并、重复安装/卸载及真实调用验证。不能把本预览的复制按钮改名为“一键安装”来代替该工作。
 
 ### 计划自检（2026-11-03）
 
