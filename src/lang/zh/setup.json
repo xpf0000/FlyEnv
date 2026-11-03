@@ -1,4 +1,5 @@
 {
+  "pluginsUpdateFlyEnv": "请升级 FlyEnv",
   "moduleOnboarding": {
     "title": "选择你常用的技术栈",
     "description": "FlyEnv 将只显示相关模块，之后可随时在“设置 → 模块”中调整。",

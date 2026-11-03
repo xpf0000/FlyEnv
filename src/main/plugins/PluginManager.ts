@@ -8,6 +8,7 @@ import axios from 'axios'
 import { getAxiosProxy } from '../../fork/util/Axios'
 import {
   FLYENV_PLUGIN_ARCHITECTURES,
+  isPluginApiSupported,
   validatePluginCatalog,
   validatePluginManifest,
   type FlyEnvPluginCatalog,
@@ -729,6 +730,7 @@ export class PluginManager {
         return [
           {
             ...item,
+            compatible: isPluginApiSupported(item.apiVersion),
             source,
             official,
             installed: current?.version ?? null,
@@ -739,17 +741,27 @@ export class PluginManager {
     )
   }
 
-  install(input: { id?: string; version?: string; url: string; sha256?: string; source?: string }) {
+  install(input: {
+    id?: string
+    version?: string
+    apiVersion?: number
+    url: string
+    sha256?: string
+    source?: string
+  }) {
     return this.runSerialized(input.id ?? input.url, () => this.installInternal(input))
   }
 
   private async installInternal(input: {
+    apiVersion?: number
     id?: string
     version?: string
     url: string
     sha256?: string
     source?: string
   }) {
+    if (!isPluginApiSupported(input.apiVersion))
+      throw new Error('Update FlyEnv to install this plugin')
     this.assertSourceUrl(input.url)
     if (!(await this.licenseCheck())) {
       throw new Error('An active license is required to install or update plugins')
@@ -937,6 +949,7 @@ export class PluginManager {
       return this.installInternal({
         id: item.id,
         version: item.version,
+        apiVersion: item.apiVersion,
         url: item.artifact.url,
         sha256: item.artifact.sha256,
         source: item.official ? 'official' : item.source

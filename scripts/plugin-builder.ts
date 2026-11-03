@@ -154,6 +154,7 @@ async function updateOfficialRegistry(manifest: FlyEnvPluginManifest, archivePat
 
   const existing = registry.plugins.find((item) => item.id === manifest.id)
   const entry: FlyEnvPluginCatalogItem = {
+    apiVersion: manifest.apiVersion,
     id: manifest.id,
     name: manifest.name,
     version: manifest.version,
@@ -359,6 +360,10 @@ export async function buildPlugin(name: string, options: BuildPluginOptions = {}
     builtManifest.entry.fork = 'fork/index.mjs'
   }
 
+  validatePluginManifest(builtManifest)
+  for (const entry of [builtManifest.entry.render, builtManifest.entry.fork]) {
+    if (entry) await fs.access(path.join(outputRoot, entry))
+  }
   await fs.writeJson(path.join(outputRoot, 'plugin.json'), builtManifest, { spaces: 2 })
   for (const asset of ['assets', 'locales', 'README.md', 'LICENSE']) {
     const source = path.join(pluginRoot, asset)

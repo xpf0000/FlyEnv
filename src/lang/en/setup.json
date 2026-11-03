@@ -1,4 +1,5 @@
 {
+  "pluginsUpdateFlyEnv": "Update FlyEnv",
   "moduleOnboarding": {
     "title": "Choose your technology stacks",
     "description": "FlyEnv will show only the related modules. You can change this later in Settings → Modules.",

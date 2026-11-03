@@ -130,6 +130,7 @@
                     <el-button
                       size="small"
                       :type="actionButtonType(item)"
+                      :disabled="item.compatible === false"
                       :icon="licensed ? undefined : Lock"
                       :loading="!!PluginMarket.busyById[item.id]"
                       @click="install(item)"
@@ -360,6 +361,7 @@
                     <el-button
                       size="small"
                       :type="actionButtonType(item)"
+                      :disabled="item.compatible === false"
                       :icon="licensed ? undefined : Lock"
                       :loading="!!PluginMarket.busyById[item.id]"
                       @click="install(item)"
@@ -420,6 +422,7 @@
   }
 
   const actionLabel = (item: PluginCatalogItem) => {
+    if (item.compatible === false) return I18nT('setup.pluginsUpdateFlyEnv')
     const action = PluginMarket.actionFor(item)
     if (action === 'update') return I18nT('setup.pluginsUpdate')
     if (action === 'reinstall') return I18nT('setup.pluginsReinstall')
