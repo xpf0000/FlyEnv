@@ -21,7 +21,13 @@ function object(v: unknown, keys: readonly string[]): Record<string, unknown> {
   return v as Record<string, unknown>
 }
 function text(v: unknown, max: number, trim = true): string {
-  if (typeof v !== 'string' || v.includes('\0') || [...v].length > max) return invalid()
+  if (
+    typeof v !== 'string' ||
+    v.includes('\0') ||
+    /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/u.test(v) ||
+    [...v].length > max
+  )
+    return invalid()
   const result = trim ? v.trim() : v
   if (!result) return invalid()
   return result
@@ -211,4 +217,112 @@ export function validateInput<M extends MemoryMethod>(method: M, input: unknown)
     if (v.cursor !== undefined) out.cursor = text(v.cursor, L.cursor)
   }
   return out as MemoryInputs[M]
+}
+
+/** Validate persisted JSON without reading any Markdown body. */
+export function validateRecordDocument(
+  value: unknown,
+  id: string
+): import('../shared').MemoryRecord | import('../shared').MemoryTombstone {
+  const corrupt = (): never => {
+    throw new MemoryFault('record_corrupt')
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return corrupt()
+  const raw = value as Record<string, any>
+  if (raw.schema_version !== 1) throw new MemoryFault('record_schema_unsupported')
+  if (!isUuid(id)) return corrupt()
+  const digest = (v: unknown) => typeof v === 'string' && /^[a-f0-9]{64}$/.test(v)
+  try {
+    if (raw.operation === 'forget') {
+      object(raw, [
+        'schema_version',
+        'id',
+        'deleted_revision',
+        'operation',
+        'request_id',
+        'request_digest',
+        'cleanup_state',
+        'outcome'
+      ])
+      if (
+        raw.id !== id ||
+        integer(raw.deleted_revision) < 2 ||
+        !isUuid(raw.request_id) ||
+        !digest(raw.request_digest) ||
+        !['pending', 'complete'].includes(raw.cleanup_state) ||
+        raw.outcome !== (raw.cleanup_state === 'complete' ? 'success' : 'partial')
+      )
+        return corrupt()
+      return raw as import('../shared').MemoryTombstone
+    }
+    object(raw, ['schema_version', 'current', 'history'])
+    if (!Array.isArray(raw.history) || !raw.current) return corrupt()
+    const receipts = new Set<string>()
+    for (const [index, snapshot] of [...raw.history, raw.current].entries()) {
+      object(snapshot, [
+        ...draftKeys.filter((key) => key !== 'content'),
+        'id',
+        'revision',
+        'created_at',
+        'updated_at',
+        'change_reason',
+        'body_ref',
+        'body_sha256',
+        'body_bytes',
+        'receipt'
+      ])
+      if (
+        snapshot.id !== id ||
+        snapshot.revision !== index + 1 ||
+        !digest(snapshot.body_sha256) ||
+        integer(snapshot.body_bytes, L.bodyBytes) < 1
+      )
+        return corrupt()
+      if (
+        typeof snapshot.body_ref !== 'string' ||
+        !snapshot.body_ref.startsWith(`${id}/`) ||
+        !snapshot.body_ref.endsWith('.md') ||
+        !isUuid(snapshot.body_ref.slice(id.length + 1, -3))
+      )
+        return corrupt()
+      const metadata = Object.fromEntries(
+        draftKeys
+          .filter((key) => key !== 'content')
+          .filter((key) => snapshot[key] !== undefined)
+          .map((key) => [key, snapshot[key]])
+      )
+      draft({ ...metadata, content: 'validated separately' }, false)
+      if (!['active', 'archived'].includes(snapshot.status) || typeof snapshot.pinned !== 'boolean')
+        return corrupt()
+      if (
+        typeof snapshot.created_at !== 'string' ||
+        typeof snapshot.updated_at !== 'string' ||
+        timestamp(snapshot.created_at) !== snapshot.created_at ||
+        timestamp(snapshot.updated_at) !== snapshot.updated_at ||
+        snapshot.created_at !== raw.current.created_at
+      )
+        return corrupt()
+      text(snapshot.change_reason, L.reason)
+      if (index === 0 && snapshot.change_reason !== 'initial') return corrupt()
+      const receipt = object(snapshot.receipt, [
+        'operation',
+        'request_id',
+        'request_digest',
+        'result_revision'
+      ])
+      if (
+        receipt.operation !== (index === 0 ? 'store' : 'update') ||
+        !isUuid(receipt.request_id) ||
+        !digest(receipt.request_digest) ||
+        receipt.result_revision !== snapshot.revision
+      )
+        return corrupt()
+      const key = `${receipt.operation}:${receipt.request_id}`
+      if (receipts.has(key)) return corrupt()
+      receipts.add(key)
+    }
+    return raw as import('../shared').MemoryRecord
+  } catch {
+    return corrupt()
+  }
 }
