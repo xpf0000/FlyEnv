@@ -30,3 +30,13 @@ export const EXPERIMENT_BUDGETS: ScopeBudgets = {
   responseBytes: INPUT_LIMITS.responseBytes
 }
 export const utf8Bytes = (value: string): number => new TextEncoder().encode(value).byteLength
+
+// Measured on 1,000 records with 0/5/30 historical revisions; see the capacity report.
+// Serialized metadata is budgeted separately from whole-record JSON reads.
+export const PREVIEW_BUDGETS: Readonly<ScopeBudgets> = Object.freeze({
+  recordBytes: 256 * 1024,
+  scopeReadBytes: 8 * 1024 * 1024,
+  cacheBytes: 4 * 1024 * 1024,
+  readConcurrency: 4,
+  responseBytes: INPUT_LIMITS.responseBytes
+})

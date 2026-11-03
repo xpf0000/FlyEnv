@@ -1,3 +1,6 @@
+import { createHash } from 'node:crypto'
+import { MemoryFault, validateInput } from './validation'
+import { INPUT_LIMITS, utf8Bytes } from './limits'
 import type { SearchHit, SearchInput } from '../shared'
 
 const normalize = (value: string) => value.normalize('NFKC').toLowerCase()
@@ -96,4 +99,101 @@ export function rankMetadata(
         a.record.id.localeCompare(b.record.id)
     )
     .map((item) => item.record)
+}
+
+export type SearchSnapshot = {
+  scopeKey: string
+  generation: string
+  records: readonly SearchHit[]
+  warnings: readonly import('../shared').MemoryWarning[]
+}
+
+/** A cursor binds filters and every independent scope snapshot, not a network transaction. */
+export function searchPage(
+  snapshots: readonly SearchSnapshot[],
+  raw: SearchInput,
+  responseBytes = INPUT_LIMITS.responseBytes as number
+): import('../shared').MemoryResult<import('../shared').SearchPage> {
+  const input = validateInput('search', raw)
+  const limit = input.limit!
+  if (!Number.isSafeInteger(responseBytes) || responseBytes < 1)
+    throw new MemoryFault('response_budget_exceeded')
+  const budget = Math.min(responseBytes, INPUT_LIMITS.maxResponseBytes)
+  const {
+    cursor,
+    project_path: _path,
+    ...filters
+  } = input as SearchInput & { project_path?: string }
+  const fingerprint = createHash('sha256').update(JSON.stringify(filters)).digest('hex')
+  const scopes = snapshots
+    .map((snapshot) => [snapshot.scopeKey, snapshot.generation])
+    .sort((a, b) => a[0].localeCompare(b[0]))
+  let offset = 0
+  let asOf = Date.now()
+  if (cursor) {
+    try {
+      const decoded = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'))
+      if (
+        decoded.v !== 1 ||
+        decoded.fingerprint !== fingerprint ||
+        JSON.stringify(decoded.scopes) !== JSON.stringify(scopes) ||
+        !Number.isSafeInteger(decoded.offset) ||
+        decoded.offset < 0 ||
+        !Number.isSafeInteger(decoded.asOf) ||
+        decoded.asOf < 0 ||
+        decoded.asOf > Date.now()
+      )
+        throw new Error()
+      offset = decoded.offset
+      asOf = decoded.asOf
+    } catch {
+      throw new MemoryFault('cursor_invalid')
+    }
+  }
+  const ranked = rankMetadata(
+    snapshots.flatMap((snapshot) => [...snapshot.records]),
+    input,
+    asOf
+  )
+  if (offset > ranked.length) throw new MemoryFault('cursor_invalid')
+  const allWarnings = snapshots.flatMap((snapshot) => [...snapshot.warnings])
+  const partial = allWarnings.length > 0
+  const warnings = allWarnings.slice(0, 100)
+  let warningsTruncated = allWarnings.length > warnings.length
+  const selected = ranked.slice(offset, offset + limit)
+  const response = (): import('../shared').MemoryResult<import('../shared').SearchPage> => {
+    const next = offset + selected.length
+    return {
+      outcome: partial ? 'partial' : 'success',
+      data: {
+        results: [...selected],
+        truncated: next < ranked.length,
+        ...(next < ranked.length
+          ? {
+              next_cursor: Buffer.from(
+                JSON.stringify({ v: 1, fingerprint, scopes, offset: next, asOf })
+              ).toString('base64url')
+            }
+          : {})
+      },
+      ...(partial
+        ? {
+            warnings: [...warnings, ...(warningsTruncated ? [{ code: 'warnings_truncated' }] : [])]
+          }
+        : {})
+    }
+  }
+  let result = response()
+  while (utf8Bytes(JSON.stringify(result)) > budget && warnings.length) {
+    warnings.pop()
+    warningsTruncated = true
+    result = response()
+  }
+  while (utf8Bytes(JSON.stringify(result)) > budget && selected.length) {
+    selected.pop()
+    result = response()
+  }
+  if (utf8Bytes(JSON.stringify(result)) > budget || (!selected.length && offset < ranked.length))
+    throw new MemoryFault('response_budget_exceeded')
+  return result
 }

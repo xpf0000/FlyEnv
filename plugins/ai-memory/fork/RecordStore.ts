@@ -86,7 +86,9 @@ export class RecordStore {
     path: string,
     limit: number,
     missing: string,
-    oversized: string
+    oversized: string,
+    expectedBytes?: number,
+    onRead?: (bytes: number) => void
   ): Promise<Buffer> {
     try {
       await this.assertManagedPath(lease, dirname(path))
@@ -95,14 +97,18 @@ export class RecordStore {
         const metadata = await file.stat()
         if (!metadata.isFile()) throw new MemoryFault('managed_path_invalid')
         if (metadata.size > limit) throw new MemoryFault(oversized)
-        const buffer = Buffer.alloc(Math.min(limit + 1, metadata.size + 1))
+        if (expectedBytes !== undefined && metadata.size !== expectedBytes)
+          throw new MemoryFault('record_changed')
+        const buffer = Buffer.alloc(metadata.size)
         let length = 0
         while (length < buffer.length) {
           const { bytesRead } = await file.read(buffer, length, buffer.length - length, length)
           if (!bytesRead) break
           length += bytesRead
+          onRead?.(bytesRead)
         }
-        if (length > limit) throw new MemoryFault(oversized)
+        if (length !== metadata.size || (await file.stat()).size !== metadata.size)
+          throw new MemoryFault(oversized === 'body_corrupt' ? 'body_corrupt' : 'record_changed')
         return buffer.subarray(0, length)
       } finally {
         await file.close()
@@ -117,6 +123,14 @@ export class RecordStore {
     lease: ScopeLease,
     id: string
   ): Promise<MemoryRecord | MemoryTombstone | undefined> {
+    return (await this.readDocumentDetailed(lease, id)).document
+  }
+  async readDocumentDetailed(
+    lease: ScopeLease,
+    id: string,
+    expectedBytes?: number,
+    onRead?: (bytes: number) => void
+  ): Promise<{ document?: MemoryRecord | MemoryTombstone; bytes: number }> {
     lease.assertActive()
     if (!isUuid(id)) throw new MemoryFault('invalid_input')
     let bytes: Buffer
@@ -126,10 +140,12 @@ export class RecordStore {
         join(lease.scope.directory, 'records', `${id}.json`),
         this.budgets.recordBytes,
         'record_not_found',
-        'record_too_large'
+        'record_too_large',
+        expectedBytes,
+        onRead
       )
     } catch (error) {
-      if (error instanceof MemoryFault && error.code === 'record_not_found') return undefined
+      if (error instanceof MemoryFault && error.code === 'record_not_found') return { bytes: 0 }
       throw error
     }
     let json: unknown
@@ -138,7 +154,7 @@ export class RecordStore {
     } catch {
       throw new MemoryFault('record_corrupt')
     }
-    return validateRecordDocument(json, id)
+    return { document: validateRecordDocument(json, id), bytes: bytes.length }
   }
   private async body(lease: ScopeLease, snapshot: MemorySnapshot) {
     const bytes = await this.bytes(
