@@ -116,3 +116,12 @@ export function validatePluginMCP(value: PluginMCPDeclaration) {
     validateSchema(tool.inputSchema)
   }
 }
+
+/** Plugins may distinguish useful partial reads from incomplete mutations. */
+export function pluginToolIsError(result: { isError?: boolean; outcome?: string } | undefined) {
+  if (typeof result?.isError === 'boolean') return result.isError
+  return (
+    !!result?.outcome &&
+    !['success', 'partial', 'deleted', 'already_deleted'].includes(result.outcome)
+  )
+}

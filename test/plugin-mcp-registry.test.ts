@@ -202,3 +202,11 @@ test('all invocation outcomes retain only validated volatile metadata', async ()
     assert.equal(JSON.stringify(rows).includes(marker), false)
   }
 })
+
+test('plugin result adapter preserves explicit error classification for partial mutations', async () => {
+  const { pluginToolIsError } = await import('../src/shared/plugin/PluginMCP')
+  assert.equal(pluginToolIsError({ outcome: 'partial', isError: true }), true)
+  assert.equal(pluginToolIsError({ outcome: 'partial', isError: false }), false)
+  assert.equal(pluginToolIsError({ outcome: 'unknown' }), true)
+  assert.equal(pluginToolIsError({ outcome: 'success' }), false)
+})

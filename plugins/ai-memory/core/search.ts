@@ -112,7 +112,8 @@ export type SearchSnapshot = {
 export function searchPage(
   snapshots: readonly SearchSnapshot[],
   raw: SearchInput,
-  responseBytes = INPUT_LIMITS.responseBytes as number
+  responseBytes = INPUT_LIMITS.responseBytes as number,
+  extra: Pick<import('../shared').SearchPage, 'unregistered' | 'project_candidates'> = {}
 ): import('../shared').MemoryResult<import('../shared').SearchPage> {
   const input = validateInput('search', raw)
   const limit = input.limit!
@@ -166,6 +167,7 @@ export function searchPage(
     return {
       outcome: partial ? 'partial' : 'success',
       data: {
+        ...extra,
         results: [...selected],
         truncated: next < ranked.length,
         ...(next < ranked.length

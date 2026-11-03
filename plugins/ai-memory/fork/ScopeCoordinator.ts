@@ -17,6 +17,7 @@ type State = {
   queued: number
   active: number
   tail: Promise<void>
+  recovered?: boolean
   unknown?: ScopeUncertainty
 }
 export class ScopeLease {
@@ -32,6 +33,14 @@ export class ScopeLease {
   get generation() {
     this.assertActive()
     return `${this.state.epoch}:${this.state.revision}`
+  }
+  get recovered() {
+    this.assertActive()
+    return !!this.state.recovered
+  }
+  markRecovered() {
+    this.assertActive()
+    this.state.recovered = true
   }
   get unknown() {
     this.assertActive()

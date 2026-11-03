@@ -1,3 +1,4 @@
+import { pluginToolIsError } from '@shared/plugin/PluginMCP'
 import {
   createServer,
   type Server as HttpServer,
@@ -636,11 +637,7 @@ export default class MCPServer {
           () => this.confirmTool(name, args, true),
           server.getClientVersion()
         )
-        return textResult(
-          result,
-          !!result?.outcome &&
-            !['success', 'partial', 'deleted', 'already_deleted'].includes(result.outcome)
-        )
+        return textResult(result, pluginToolIsError(result))
       }
       const def = this.enabledToolDefs().find((t) => t.name === name)
       if (!def) {

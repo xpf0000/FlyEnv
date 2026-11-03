@@ -173,3 +173,17 @@ export type ProjectRecoveryReport = {
   unmappedAfterPreviousRestore: string[]
   warnings: MemoryWarning[]
 }
+
+export type MemoryAdminInput<M extends MemoryMethod> = Omit<
+  MemoryInputs[M],
+  'scope' | 'project_path'
+>
+export interface MemoryAdminAPI {
+  listProjects(): Promise<MemoryResult<MemoryProjectInfo[]>>
+  inspectRecovery(): Promise<MemoryResult<ProjectRecoveryReport>>
+  callForProject<M extends MemoryMethod>(
+    projectId: string,
+    method: M,
+    input: MemoryAdminInput<M>
+  ): Promise<MemoryResult<MemoryOutputs[M]>>
+}
