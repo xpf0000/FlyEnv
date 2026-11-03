@@ -6,6 +6,7 @@ import {
 // 业务运行时从轻量入口动态加载；IPC provider、插件桥和 dispatcher 继续归本进程。
 // 不在 bootstrap 引用这些依赖，才能分别观测 OS 启动和运行时模块加载耗时。
 import BaseManager from './BaseManager'
+import { PluginWorkerRuntime } from './runtime/PluginWorkerRuntime'
 import { appDebugLog } from '@shared/utils'
 import { ProcessSendError } from './ProcessSend'
 import { AppI18n, getActiveLocale, I18nT } from '@lang/runtime'
@@ -123,9 +124,40 @@ if (parentPort) {
 // ---------------------- 兼容层结束 ----------------------
 
 const manager = new BaseManager()
+let pluginWorker: PluginWorkerRuntime | undefined
 
 // 业务 dispatcher 继续使用 Node message 事件；上面的 parentPort 兼容层只负责转发。
 process.on('message', function (args: any) {
+  if (args?.type === 'plugin-worker-initialize') {
+    if (pluginWorker) return
+    pluginWorker = new PluginWorkerRuntime()
+    const workerGeneration = args.descriptor?.workerGeneration
+    void pluginWorker.initialize(args.descriptor).then(
+      () => process.send?.({ type: 'plugin-worker-ready', workerGeneration }),
+      () => {
+        process.send?.({ type: 'plugin-worker-failed', workerGeneration })
+        process.exit(1)
+      }
+    )
+    return
+  }
+  if (args?.type === 'plugin-worker-shutdown') {
+    void (pluginWorker?.close() ?? Promise.resolve()).then(
+      () => process.exit(0),
+      () => process.exit(1)
+    )
+    return
+  }
+  if (pluginWorker && Array.isArray(args)) {
+    const [key, module, method, ...input] = args
+    void pluginWorker
+      .dispatch(module, method, input, (data) => process.send?.({ key, info: { code: 200, data } }))
+      .then(
+        (data) => process.send?.({ key, info: { code: 0, data } }),
+        () => process.send?.({ key, info: { code: 1, msg: 'plugin_request_failed' } })
+      )
+    return
+  }
   const receivedAt = performanceDiagnosticNow()
   // 可选停止参数与原命令同一消息到达，完整表已经在参数中，不再请求 main 取批次表。
   // dispatcher 统一放入 stopService 第二参数；普通调用传 undefined，业务参数不混位。

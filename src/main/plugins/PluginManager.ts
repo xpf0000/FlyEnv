@@ -51,19 +51,13 @@ export type FlyEnvPluginRecord = {
   renderEntry?: string
   forkEntry?: string
   development: boolean
+  installGeneration?: string
   enabled: boolean
   source?: string
 }
 
-export type ForkPluginSnapshot = Record<
-  string,
-  {
-    id: string
-    version: string
-    module: string
-    entry: string
-  }
->
+export type { ForkPluginSnapshot } from '@shared/plugin/PluginRuntime'
+import type { ForkPluginSnapshot } from '@shared/plugin/PluginRuntime'
 
 export type InstalledPlugin = {
   id: string
@@ -168,6 +162,10 @@ export class PluginManager {
   private hasRefreshed = false
   private legacyState = false
   private stateDirty = false
+  private readonly runtimeGenerations = new Map<
+    string,
+    { fingerprint: string; generation: string }
+  >()
 
   constructor(options: PluginManagerOptions = {}) {
     this.rootOverride = options.pluginsRoot
@@ -477,6 +475,29 @@ export class PluginManager {
         )
         continue
       }
+      try {
+        if (record.manifest.runtime && record.forkEntry) {
+          const stat = await fs.stat(record.forkEntry)
+          const fingerprint = JSON.stringify([
+            record.rootPath,
+            record.manifest,
+            record.enabled,
+            stat.dev,
+            stat.ino,
+            stat.mtimeMs,
+            stat.size
+          ])
+          let identity = this.runtimeGenerations.get(record.manifest.id)
+          if (identity?.fingerprint !== fingerprint) {
+            identity = { fingerprint, generation: randomUUID() }
+            this.runtimeGenerations.set(record.manifest.id, identity)
+          }
+          record.installGeneration = identity.generation
+        }
+      } catch (error) {
+        this.recordDiagnostic(record.rootPath, error, record.manifest.id)
+        continue
+      }
       this.plugins.set(record.manifest.id, record)
       this.moduleToPlugin.set(moduleId, record)
     }
@@ -627,7 +648,15 @@ export class PluginManager {
         id: record.manifest.id,
         version: record.manifest.version,
         module: record.manifest.module.typeFlag,
-        entry: record.forkEntry
+        entry: record.forkEntry,
+        ...(record.manifest.runtime
+          ? {
+              runtime: record.manifest.runtime,
+              dataRoot: join(dirname(this.pluginsRoot), 'plugin-data', record.manifest.id),
+              installGeneration: record.installGeneration,
+              audit: record.manifest.mcp?.audit
+            }
+          : {})
       }
     }
     return result

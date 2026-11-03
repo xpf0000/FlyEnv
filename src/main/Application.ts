@@ -315,7 +315,11 @@ export default class Application extends EventEmitter {
     const registered = [...(ServiceProcessManager.servicePID[moduleId] ?? [])].filter(
       ({ pid }) => !!pid
     )
-    if (!registered.length) return { stopped: true }
+    if (!registered.length) {
+      // Dedicated data runtimes have no service PID, but still own their data directory.
+      await this.forkManager?.closePluginWorker(moduleId)
+      return { stopped: true }
+    }
     if (!this.forkManager) throw new Error(`Fork manager is not ready for ${moduleId}`)
 
     // 模块屏障已等待所有旧生命周期请求；与退出/MCP 共用并行停止及派发代次保护。
@@ -328,6 +332,7 @@ export default class Application extends EventEmitter {
     if (failures.length || ServiceProcessManager.servicePID[moduleId]?.some(({ pid }) => !!pid)) {
       throw new Error(`Service or companion ${moduleId} is still running: ${failures.join('\n')}`)
     }
+    await this.forkManager.closePluginWorker(moduleId)
     return { stopped: true }
   }
 

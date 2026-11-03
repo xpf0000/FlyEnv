@@ -1,12 +1,7 @@
 import { statSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 
-type ForkPluginInfo = {
-  id: string
-  version: string
-  module: string
-  entry: string
-}
+import type { ForkPluginSnapshot } from '@shared/plugin/PluginRuntime'
 
 type CachedModule = {
   key: string
@@ -16,10 +11,11 @@ type CachedModule = {
 export class PluginLoader {
   private cache = new Map<string, CachedModule>()
 
-  load(module: string): Promise<any | undefined> {
-    const plugins = ((global.Server as any)?.Plugins ?? {}) as Record<string, ForkPluginInfo>
+  load(module: string, dedicated = false): Promise<any | undefined> {
+    const plugins = ((global.Server as any)?.Plugins ?? {}) as ForkPluginSnapshot
     const info = plugins[module]
     if (!info?.entry) return Promise.resolve(undefined)
+    if (!!info.runtime !== dedicated) return Promise.reject(new Error('plugin_runtime_mismatch'))
 
     // Node caches dynamic import() by URL, so a same-URL reload would return the
     // stale module after an update/reinstall. Bust the cache with the entry's

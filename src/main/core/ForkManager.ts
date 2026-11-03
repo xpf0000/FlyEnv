@@ -4,6 +4,8 @@ import {
   writePerformanceLog
 } from '@shared/PerformanceDiagnostics'
 import { utilityProcess } from 'electron'
+import { PluginWorkerRegistry } from './PluginWorkerRegistry'
+import type { ForkPluginSnapshot } from '@shared/plugin/PluginRuntime'
 import { cpus } from 'os'
 import { fetchStopProcessListLocal } from '@shared/StopProcessList'
 import { appDebugLog } from '@shared/utils'
@@ -40,6 +42,19 @@ type Callback = (...args: any) => void
 const CupCount = cpus().length
 
 export class ForkManager {
+  readonly pluginWorkers = new PluginWorkerRegistry(
+    () => ((global.Server as any)?.Plugins ?? {}) as ForkPluginSnapshot,
+    () => {
+      const worker = this.createForkItem(TRANSIENT_FORK_IDLE_TIMEOUT_MS, false, true)
+      worker._on = this._on
+      return worker
+    }
+  )
+
+  closePluginWorker(module: string) {
+    return this.pluginWorkers.close(module)
+  }
+
   file: string
   forks: Array<ForkItem> = []
   ftpsrvFork?: ForkItem
@@ -113,12 +128,13 @@ export class ForkManager {
     return this.stopProcessListCache.get()
   }
 
-  private createForkItem(idleTimeoutMs: number, primary = false) {
+  private createForkItem(idleTimeoutMs: number, primary = false, dedicated = false) {
     return new ForkItem(
       this.file,
       {
         idleTimeoutMs,
         primary,
+        dedicated,
         forkProcess: (forkFile) => utilityProcess.fork(forkFile)
       },
       this.envSyncBridge,
@@ -149,7 +165,8 @@ export class ForkManager {
         this.dnsFork,
         this.ollamaChatFork,
         this.llamaCppModelFork,
-        ...this.forks
+        ...this.forks,
+        ...(this.pluginWorkers.workers() as ForkItem[])
       ].filter((item): item is ForkItem => !!item)
     )
     for (const fork of forks) {
@@ -170,7 +187,8 @@ export class ForkManager {
       this.ftpsrvFork,
       this.dnsFork,
       this.ollamaChatFork,
-      ...this.forks
+      ...this.forks,
+      ...(this.pluginWorkers.workers() as ForkItem[])
     ])) {
       if (!fork || fork.childExited) continue
       try {
@@ -215,6 +233,9 @@ export class ForkManager {
       )
       this.serviceLifecycleRequests.add(settled)
       return request
+    }
+    if (this.pluginWorkers.isDedicated(module)) {
+      return track(this.pluginWorkers.dispatch(module, param[0], param.slice(1)))
     }
     if (module === 'ftp-srv') {
       if (!this.ftpsrvFork) {
@@ -295,6 +316,7 @@ export class ForkManager {
   /** 关闭全部原始请求入口，已受理操作仍可凭异步许可完成。 */
   beginServiceLifecycleShutdown() {
     this.serviceLifecycleClosing = true
+    this.pluginWorkers.beginShutdown()
   }
 
   async drainServiceLifecycleRequests() {
@@ -322,7 +344,8 @@ export class ForkManager {
       this.ftpsrvFork,
       this.dnsFork,
       this.ollamaChatFork,
-      ...this.forks
+      ...this.forks,
+      ...(this.pluginWorkers.workers() as ForkItem[])
     ])) {
       fork?.cancelPendingRequests(reason)
     }
@@ -335,7 +358,8 @@ export class ForkManager {
         this.dnsFork,
         this.ollamaChatFork,
         this.llamaCppModelFork,
-        ...this.forks
+        ...this.forks,
+        ...(this.pluginWorkers.workers() as ForkItem[])
       ].filter((item): item is ForkItem => !!item && !item.childExited)
     )
     return Promise.all([...forks].map((fork) => fork.sendLanguage(message)))
@@ -348,7 +372,8 @@ export class ForkManager {
         this.dnsFork,
         this.ollamaChatFork,
         this.llamaCppModelFork,
-        ...this.forks
+        ...this.forks,
+        ...(this.pluginWorkers.workers() as ForkItem[])
       ].filter((item): item is ForkItem => !!item && !item.childExited)
     )
     for (const fork of forks) {
@@ -359,7 +384,11 @@ export class ForkManager {
   }
 
   async destroy() {
-    await this.binVersionCacheStore.flush()
+    // Independent workers still close when another worker or cache flush fails.
+    const cleanup = await Promise.allSettled([
+      this.pluginWorkers.closeAll(),
+      this.binVersionCacheStore.flush()
+    ])
     this.unsubscribeEnvSync()
     EnvSync.setProvider(undefined)
     this.dnsFork?.destroy()
@@ -369,5 +398,7 @@ export class ForkManager {
     this.forks.forEach((fork) => {
       fork.destroy()
     })
+    const failure = cleanup.find((result) => result.status === 'rejected')
+    if (failure?.status === 'rejected') throw failure.reason
   }
 }
