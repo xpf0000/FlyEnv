@@ -34,13 +34,17 @@ void app.whenReady().then(async () => {
       port: options.port,
       token: options.token,
       enabledTools: [
-        'memory_search',
-        'memory_get',
-        'memory_store',
-        'memory_update',
-        'memory_forget'
+        'flyenv_memory_search',
+        'flyenv_memory_get',
+        'flyenv_memory_store',
+        'flyenv_memory_update',
+        'flyenv_memory_forget'
       ],
-      approval: { memory_store: 'auto', memory_update: 'auto', memory_forget: 'auto' }
+      approval: {
+        flyenv_memory_store: 'auto',
+        flyenv_memory_update: 'auto',
+        flyenv_memory_forget: 'auto'
+      }
     })
     const registry = new PluginMCPRegistry(forks.pluginWorkers, (key, fallback) =>
       config.getConfig(key, fallback)
@@ -111,22 +115,26 @@ void app.whenReady().then(async () => {
           config.setConfig({ enabledTools: request.names })
           result = true
         } else if (request.kind === 'approvalRace') {
-          config.setConfig({ approval: { memory_store: 'confirm' } })
+          config.setConfig({ approval: { flyenv_memory_store: 'confirm' } })
           try {
-            result = await registry.invoke('memory_store', request.input, async () => {
-              config.setConfig({ enabledTools: ['memory_search', 'memory_get'] })
+            result = await registry.invoke('flyenv_memory_store', request.input, async () => {
+              config.setConfig({ enabledTools: ['flyenv_memory_search', 'flyenv_memory_get'] })
               return true
             })
           } finally {
             config.setConfig({
               enabledTools: [
-                'memory_search',
-                'memory_get',
-                'memory_store',
-                'memory_update',
-                'memory_forget'
+                'flyenv_memory_search',
+                'flyenv_memory_get',
+                'flyenv_memory_store',
+                'flyenv_memory_update',
+                'flyenv_memory_forget'
               ],
-              approval: { memory_store: 'auto', memory_update: 'auto', memory_forget: 'auto' }
+              approval: {
+                flyenv_memory_store: 'auto',
+                flyenv_memory_update: 'auto',
+                flyenv_memory_forget: 'auto'
+              }
             })
           }
         } else if (request.kind === 'stop') {

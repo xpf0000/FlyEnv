@@ -123,6 +123,7 @@
               ><small>{{ T(hit.scope) }}</small></span
             >
             <span>{{ hit.summary }}</span
+            ><small v-if="hit.metadata_omitted?.length">{{ T('metadataAbbreviated') }}</small
             ><small>{{ hit.type }} · {{ hit.topic }} · r{{ hit.revision }}</small
             ><small>{{ hit.tags.join(' · ') }}</small>
           </button>
@@ -312,6 +313,7 @@
     }
   }
   onMounted(async () => {
+    manager.clearDetail()
     await manager.initialize()
     const value = manager.preferredTarget
     if ('projectId' in value) scopeKey.value = value.projectId

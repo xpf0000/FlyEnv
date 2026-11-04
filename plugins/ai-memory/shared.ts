@@ -95,7 +95,6 @@ export type SearchHit = Pick<
   | 'title'
   | 'summary'
   | 'tags'
-  | 'source'
   | 'created_at'
   | 'updated_at'
   | 'status'
@@ -106,6 +105,8 @@ export type SearchHit = Pick<
   scope: 'project' | 'global'
   projectId?: string
   expired?: boolean
+  source?: MemorySource
+  metadata_omitted?: ('source' | 'summary' | 'tags' | 'topic')[]
 }
 export type ProjectCandidate = { name: string; project_path: string }
 export type SearchPage = {

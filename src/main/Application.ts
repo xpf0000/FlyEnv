@@ -148,6 +148,8 @@ export default class Application extends EventEmitter {
     this.serverManager = new ServerManager(this.configManager)
     this.pluginManager = new PluginManager({
       stopPluginServices: (moduleId) => this.stopPluginServices(moduleId),
+      recoverPluginRuntime: (moduleId) =>
+        this.forkManager?.reopenPluginWorker(moduleId) ?? Promise.resolve(),
       licenseCheck: process.env.FLYENV_PLUGIN_SMOKE === '1' ? async () => true : undefined,
       // OS account keychain (Keychain / DPAPI / system keyring) encryption for
       // the plugin install secret, so copying the secret file to another

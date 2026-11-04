@@ -191,8 +191,23 @@ export function searchPage(
     warningsTruncated = true
     result = response()
   }
-  while (utf8Bytes(JSON.stringify(result)) > budget && selected.length) {
+  while (utf8Bytes(JSON.stringify(result)) > budget && selected.length > 1) {
     selected.pop()
+    result = response()
+  }
+  // A valid record must not block this page or every subsequent page. Rank using
+  // complete cached metadata, but abbreviate the first wire hit explicitly when
+  // necessary; get retains the complete revision and source without alteration.
+  for (const field of ['source', 'summary', 'tags', 'topic'] as const) {
+    if (utf8Bytes(JSON.stringify(result)) <= budget || !selected.length) break
+    const hit = {
+      ...selected[0],
+      metadata_omitted: [...(selected[0].metadata_omitted ?? []), field]
+    }
+    if (field === 'source') delete hit.source
+    else if (field === 'tags') hit.tags = []
+    else hit[field] = ''
+    selected[0] = hit
     result = response()
   }
   if (utf8Bytes(JSON.stringify(result)) > budget || (!selected.length && offset < ranked.length))

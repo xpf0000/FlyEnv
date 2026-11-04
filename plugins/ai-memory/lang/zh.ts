@@ -22,6 +22,7 @@ export default {
   refresh: '刷新',
   next: '下一页',
   empty: '没有匹配的记忆。',
+  metadataAbbreviated: '列表元数据已缩略，打开可查看完整信息。',
   unregistered: '此路径尚未登记，保存时可登记。若属于已有项目，请选择下方候选。',
   missing: '项目路径不可用，仍可管理已存记忆。',
   candidates: '已登记的祖先项目',

@@ -23,6 +23,63 @@ const draft = (): MemoryInputs['store'] => ({
   content: 'Complete fixture body',
   source: { kind: 'user_statement', agent: 'fixture', description: 'Constructed choice' }
 })
+
+test('public MCP names retain the approved flyenv_memory prefix', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../plugin.json', import.meta.url), 'utf8'))
+  assert.deepEqual(
+    manifest.mcp.tools.map((tool: any) => tool.name),
+    ['search', 'get', 'store', 'update', 'forget'].map((method) => `flyenv_memory_${method}`)
+  )
+})
+
+test('accepted large UTF-8 or escaped metadata remains searchable with bounded pages and complete get', async () => {
+  const f = await fixture()
+  try {
+    const ids: string[] = []
+    const small = await f.engine.call('store', draft())
+    ids.push(small.data!.id)
+    for (const char of ['😀', '\u0001']) {
+      const input = {
+        ...draft(),
+        pinned: true,
+        title: char.repeat(120),
+        summary: char.repeat(600),
+        topic: char.repeat(160),
+        tags: Array.from({ length: 12 }, (_, i) => char.repeat(62) + i),
+        source: {
+          kind: 'document' as const,
+          agent: char.repeat(120),
+          description: char.repeat(600),
+          uri: 'https://x/' + 'a'.repeat(2038)
+        }
+      }
+      const stored = await f.engine.call('store', input)
+      assert.equal(stored.outcome, 'success')
+      ids.push(stored.data!.id)
+      assert.deepEqual(
+        (await f.engine.call('get', { scope: 'global', id: stored.data!.id })).data!.source,
+        input.source
+      )
+    }
+    const seen: string[] = []
+    let cursor: string | undefined
+    do {
+      const page = await f.engine.call('search', { scope: 'global', ...(cursor ? { cursor } : {}) })
+      assert.equal(page.outcome, 'success')
+      assert.ok(Buffer.byteLength(JSON.stringify(page)) <= PREVIEW_BUDGETS.responseBytes)
+      assert.ok(page.data!.results.length > 0)
+      for (const row of page.data!.results) {
+        if (row.id !== small.data!.id) assert.ok(row.metadata_omitted?.length)
+      }
+      seen.push(...page.data!.results.map((row) => row.id))
+      assert.ok(seen.length <= ids.length, 'pagination must advance without duplicates')
+      cursor = page.data!.next_cursor
+    } while (cursor)
+    assert.deepEqual(seen.sort(), ids.sort())
+  } finally {
+    await f.clean()
+  }
+})
 async function fixture(options: ConstructorParameters<typeof MemoryEngine>[1] = {}) {
   const temp = await mkdtemp(join(tmpdir(), 'flyenv-api-'))
   const root = join(temp, 'data')
@@ -299,11 +356,11 @@ test('unknown JSON commit is reported, then reconciled from disk before a depend
 test('manifest exposes exactly five valid schemas and classifies MCP failures without losing machine fields', async () => {
   const manifest = JSON.parse(await readFile(new URL('../plugin.json', import.meta.url), 'utf8'))
   assert.deepEqual(manifest.mcp.tools.map((tool: any) => tool.name).sort(), [
-    'memory_forget',
-    'memory_get',
-    'memory_search',
-    'memory_store',
-    'memory_update'
+    'flyenv_memory_forget',
+    'flyenv_memory_get',
+    'flyenv_memory_search',
+    'flyenv_memory_store',
+    'flyenv_memory_update'
   ])
   const valid: Record<MemoryMethod, any> = {
     search: { scope: 'global' },

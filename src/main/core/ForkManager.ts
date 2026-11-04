@@ -55,6 +55,10 @@ export class ForkManager {
     return this.pluginWorkers.close(module)
   }
 
+  reopenPluginWorker(module: string) {
+    return this.pluginWorkers.reopen(module)
+  }
+
   file: string
   forks: Array<ForkItem> = []
   ftpsrvFork?: ForkItem

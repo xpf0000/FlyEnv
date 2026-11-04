@@ -22,6 +22,7 @@ export default {
   refresh: 'Refresh',
   next: 'Next page',
   empty: 'No matching memories.',
+  metadataAbbreviated: 'Search metadata abbreviated; open for complete details.',
   unregistered:
     'This path is not registered. Saving can register it. Select an existing project below if appropriate.',
   missing: 'Project path unavailable; stored memories remain accessible.',

@@ -1,6 +1,6 @@
 # AI Memory 开发者预览验收
 
-验收环境：2026-11-04，macOS ARM64，Electron 39.8.10。只使用构造样例及隔离的插件目录、userData、项目目录和 MCP token；没有操作正式记忆库、已安装 Helper 或系统 hosts。真实客户端仅 Codex、Kimi，未继续测试 Claude Code。
+验收环境：2026-11-04～05，macOS ARM64，Electron 39.8.10。只使用构造样例及隔离的插件目录、userData、项目目录和 MCP token；没有操作正式记忆库、已安装 Helper 或系统 hosts。真实客户端仅 Codex、Kimi，未继续测试 Claude Code。
 
 ## 验证入口
 
@@ -9,7 +9,7 @@
 - `yarn tsx --test plugins/ai-memory/tests/*.test.ts` 与本计划宿主测试：故障注入、协议、存储、并发、缓存、生命周期、审批及审计。
 - `yarn plugin:test ai-memory`、`yarn test:renderer-operation-boundaries`：实际插件打包、初始化/关闭、规则资源字节一致及页面操作归属。
 
-`--skip-agents` 只跳过外部 CLI，不能把该结果当作真实 Agent 验收。脚本退出后清理临时数据库，报告保留构造数据的调用证据。
+`--skip-agents` 只跳过外部 CLI；`--retrieval-only` 和 `--retrieval-baseline-only` 仅用于对照场景定向复测，不能单独当作完整 Agent 验收。最终使用无参数的完整命令通过。脚本退出后清理临时数据库，报告保留构造数据的调用证据。
 
 ## V1 完成标准与证据对应
 
@@ -33,13 +33,13 @@
 
 ## 真实客户端结果
 
-版本：codex-cli 0.166.0；2.4.1。CLI 版本由可执行文件报告，MCP 客户端名称/版本仅为自报，诊断将未识别名称归为 other。
+版本：codex-cli 0.166.0；kimi-cli 2.4.1。CLI 版本由可执行文件报告，MCP 客户端名称/版本仅为自报，诊断将未识别名称归为 other。
 
 | 场景 | 观测结果 |
 | --- | --- |
-| Codex 保存 → Kimi 新会话读取 | 通过；`a6c2ea60-e9f0-8e5d-9d2d-2e22b4aa5f74`，revision 1，实际 get 验证。 |
-| Kimi 保存 → 重启后 Codex 从子目录读取 | 通过；`7438f5fb-f0be-8524-a6f7-66711ef2483e`，revision 1，实际 get 验证。 |
-| 独立子项目写入与父项目隔离 | 通过；`1ecc81c5-d563-83bc-923f-6f640b275f43`，revision 1，实际 get 验证。 |
+| Codex 保存 → Kimi 新会话读取 | 通过；`71d29d70-8562-8e90-9a6d-0306a333e06b`，revision 1，实际 get 验证。 |
+| Kimi 保存 → 重启后 Codex 从子目录读取 | 通过；`d0f3f2e8-0723-8880-a67a-f26e37ea667a`，revision 1，实际 get 验证。 |
+| 独立子项目写入与父项目隔离 | 通过；`610c3fd4-4f02-8eb5-a6a2-6a165309b291`，revision 1，实际 get 验证。 |
 | Explicit 无效路径 | 两个客户端均实际调用 store，返回 failed/invalid_project_path，并如实说明未保存；没有改用其他范围。 |
 | Explicit 未知回执 | 两个客户端均重放同一个 store，请求 ID 和全部参数一致，得到原提交回执，get 验证且只有一条记录。 |
 
@@ -70,8 +70,8 @@ Automatic 以实际成功 store 回执计数，未把口头承诺算作保存。
 
 | Codex 检索方式 | input_tokens | cached_input_tokens | output_tokens |
 | -------------- | ------------ | ------------------- | ------------- |
-| baseline       | 16743        | 12288               | 282           |
-| memory         | 87309        | 68736               | 698           |
+| baseline       | 18485        | 12288               | 236           |
+| memory         | 80554        | 68864               | 692           |
 
 完整场景的首轮在对照阶段因 Codex baseline 为 4/8 而退出非零；生产 MCP 两端均为 8/8。定位到 baseline 只标注 project、未给每条资料绑定实际项目根（同时清理了重复根提示），补齐与 MCP 相同的 project_path 元数据后，定向复测两个客户端的 baseline/MCP。上表取最终对照结果；初始失败记录保留，不将其算作插件收益。比较器只报告 baseline 得分，生产 MCP 的 8/8 仍是本组验收门槛。
 
@@ -85,6 +85,12 @@ Automatic 以实际成功 store 回执计数，未把口头承诺算作保存。
 
 ## 检查与交付边界
 
-相关自动回归 **135/135** 通过；插件实际打包/初始化/关闭与规则资源校验、renderer 操作边界通过。95 个改动代码文件 ESLint 与 Prettier 通过。全量 `vue-tsc --noEmit` 扩大堆后完成，仍有 53 组既有诊断；按文件/错误消息归一化行号与基线比较无新增，不能称全量类型检查通过。此交付为本地可测试预览，不包含 registry 发布、上传插件、合并主分支或正式安装包发布。
+相关自动回归 **143/143** 通过；插件实际打包/初始化/关闭与规则资源校验、renderer 操作边界通过。95 个改动代码文件 ESLint 与 Prettier 通过。全量 `vue-tsc --noEmit` 扩大堆后完成，仍有 59 条、归一化后 53 组既有诊断；按文件/错误消息归一化行号与基线比较无新增，不能称全量类型检查通过。此交付为本地可测试预览，不包含 registry 发布、上传插件、合并主分支或正式安装包发布。
 
 自动规则安装、完整历史 UI/回滚、路径重绑定、多个 worktree 共享身份、在线备份恢复及语义搜索仍按 V1 后置。复制规则成功、配置连接成功、实际调用成功分别呈现，未把手工接入称为一键安装。
+
+## 最终分支审查
+
+一次独立审查后的修复、RED→GREEN 证据及未验证范围见[审查处理](2026-11-05-flyenv-ai-memory-review.md)。最终公开工具名保持已批准的 `flyenv_memory_*`；审查后的完整客户端验收从头运行，包含全部共享/重启/未知/自动/对照场景。
+
+本地最终构建保留在 `tmp/ai-memory-preview-package/`，脱敏调用证据、界面截图和检查日志保留在 `tmp/ai-memory-preview-evidence/final-acceptance/`；这些是当前工作区的忽略产物，不随 Git 分发。复现入口为上方脚本。

@@ -62,6 +62,7 @@ export class MemoryController {
   actions: Record<string, Action> = {}
   private searchSequence = 0
   private detailSequence = 0
+  private detailRequest?: { target: MemoryTarget; id: string }
   private mutationFlight?: Promise<MemoryResult<any>>
   private projectsFlight?: Promise<MemoryResult<MemoryProjectInfo[]>>
   private initialization?: Promise<void>
@@ -176,9 +177,11 @@ export class MemoryController {
     this.detailSequence++
     this.detail = undefined
     this.detailBusy = false
+    this.detailRequest = undefined
   }
   get(target: MemoryTarget, id: string, revision?: number) {
     const sequence = ++this.detailSequence
+    this.detailRequest = { target: clone(target), id }
     this.detailBusy = true
     this.detail = undefined
     return this.call(clone(target), 'get', { id, ...(revision ? { revision } : {}) }).then(
@@ -215,7 +218,19 @@ export class MemoryController {
           ['success', 'already_deleted', 'partial'].includes(result.outcome)
         ) {
           const id = result.data.id
-          if (this.detail?.data?.id === id) this.clearDetail()
+          const pending = this.detailRequest
+          const sameTarget =
+            pending &&
+            ('projectId' in pending.target
+              ? 'projectId' in operation.target &&
+                pending.target.projectId === operation.target.projectId
+              : !('projectId' in operation.target) &&
+                pending.target.scope === operation.target.scope &&
+                (pending.target.scope === 'global' ||
+                  (operation.target.scope === 'project' &&
+                    pending.target.project_path === operation.target.project_path)))
+          if ((pending?.id === id && sameTarget) || (!pending && this.detail?.data?.id === id))
+            this.clearDetail()
           this.searchSequence++
           this.searchBusy = false
           if (this.searchResult?.data)

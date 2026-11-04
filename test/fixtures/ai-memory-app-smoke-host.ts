@@ -112,6 +112,65 @@ async function run() {
     const body = await call('get', { scope: 'global', id: edited.id })
     assert.equal(body.data.data.change_reason, 'UI acceptance edit')
     checkpoints.push('edit-save-navigation-reentry-durable-receipt')
+    const projectPath = join(root, 'reentry-project')
+    await mkdir(projectPath)
+    const projectRecord = await call('store', {
+      scope: 'project',
+      project_path: projectPath,
+      request_id: randomUUID(),
+      type: 'note',
+      title: 'Project reentry fixture',
+      topic: 'reentry',
+      summary: 'Project detail scope',
+      tags: ['reentry'],
+      content: 'Project-scoped body',
+      source: { kind: 'document', agent: 'smoke', description: 'Temporary reentry sample' }
+    })
+    assert.equal(projectRecord.data.outcome, 'success')
+    await js(
+      `document.querySelector('#memory-search').click(); document.querySelector('#memory-scope').click()`
+    )
+    await waitFor(
+      `Array.from(document.querySelectorAll('.el-select-dropdown__item')).some(el => el.textContent.includes(${JSON.stringify(projectPath)}))`
+    )
+    await js(
+      `Array.from(document.querySelectorAll('.el-select-dropdown__item')).find(el => el.textContent.includes(${JSON.stringify(projectPath)})).click()`
+    )
+    await waitFor(
+      `document.querySelector('.memory-row')?.textContent.includes('Project reentry fixture')`
+    )
+    await js(`document.querySelector('.memory-row').click()`)
+    await waitFor(
+      `document.querySelector('.memory-detail h3')?.textContent === 'Project reentry fixture'`
+    )
+    await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/mcp')`)
+    await waitFor(`!document.querySelector('#memory-search')`)
+    await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/ai-memory')`)
+    await waitFor(`!!document.querySelector('#memory-search')`)
+    assert.equal(
+      await js(`!!document.querySelector('#memory-edit')`),
+      false,
+      'remount must not retain project content with a reset global target'
+    )
+    checkpoints.push('project-detail-cleared-on-remount')
+    await js(
+      `Array.from(document.querySelectorAll('.el-checkbox')).find(el => el.textContent.includes('Include global')).click(); document.querySelector('#memory-search').click()`
+    )
+    await waitFor(
+      `Array.from(document.querySelectorAll('.memory-row')).some(el => el.textContent.includes('Edited in full FlyEnv UI'))`
+    )
+    await js(
+      `Array.from(document.querySelectorAll('.memory-row')).find(el => el.textContent.includes('Edited in full FlyEnv UI')).click()`
+    )
+    await waitFor(
+      `document.querySelector('.memory-detail h3')?.textContent === 'Edited in full FlyEnv UI'`
+    )
+    await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/mcp')`)
+    await waitFor(`!document.querySelector('#memory-search')`)
+    await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/ai-memory')`)
+    await waitFor(`!!document.querySelector('#memory-search')`)
+    assert.equal(await js(`!!document.querySelector('#memory-edit')`), false)
+    checkpoints.push('global-hit-in-project-view-cleared-on-remount')
     await js(`document.querySelector('.memory-row').click()`)
     await waitFor(`!!document.querySelector('#memory-edit')`)
     window.webContents.closeDevTools()

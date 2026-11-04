@@ -47,6 +47,28 @@ const success = (id = 'saved') => ({
   data: { outcome: 'success', data: { id, revision: 1 } }
 })
 
+test('forget invalidates a pending detail for its scope and ID without discarding another record read', async () => {
+  for (const mode of ['same', 'other-id', 'other-scope']) {
+    const f = fixture()
+    const target = { projectId: 'project' }
+    const id = mode === 'other-id' ? 'other' : 'deleted'
+    const read = f.manager.get(mode === 'other-scope' ? { scope: 'global' } : target, id)
+    const forgotten = f.manager.forget(target, { id: 'deleted', revision: 1 } as any)
+    f.reply(1, success('deleted'))
+    await forgotten
+    f.reply(0, {
+      code: 0,
+      data: {
+        outcome: 'success',
+        data: { id, content: 'old snapshot' }
+      }
+    })
+    await read
+    assert.equal(f.manager.detail?.data?.id, mode === 'same' ? undefined : id)
+    assert.equal(f.manager.detailBusy, false)
+  }
+})
+
 test('double save fixes one input/request ID; progress remains busy and terminal cleanup survives page reentry', async () => {
   const f = fixture({
     notify: () => {

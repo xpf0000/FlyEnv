@@ -10,6 +10,8 @@ If a path is unregistered and `project_candidates` are returned, use the confirm
 
 Search accepts a bounded `queries` array. Try the task's language, precise technical identifiers and useful translations/aliases. No results means no matching stored evidence, not proof that an event never happened. Memory may be stale; check live process/port/service state with the appropriate tools.
 
+Large search metadata may be abbreviated to fit the response budget. `metadata_omitted` identifies the omitted fields; call get for the complete metadata and source before relying on those details. Stored content is not shortened.
+
 ## Explicit: when the user asks you to remember
 
 Search for the existing fact, then call store or update immediately. Use a fresh UUID request_id for each new operation. Return the actual ID and revision after a successful result. If the result failed, conflicted, was partial, or is unknown, say so accurately. Never substitute a verbal promise for a tool call.

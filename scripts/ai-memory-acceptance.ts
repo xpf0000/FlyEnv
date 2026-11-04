@@ -98,7 +98,10 @@ const stop = async () => {
   child = undefined
 }
 const call = async (method: string, input: any) => {
-  const envelope: any = await client!.callTool({ name: `memory_${method}`, arguments: input })
+  const envelope: any = await client!.callTool({
+    name: `flyenv_memory_${method}`,
+    arguments: input
+  })
   return { ...JSON.parse(envelope.content[0].text), mcpIsError: !!envelope.isError }
 }
 const ui = async (method: string, input: any) => {

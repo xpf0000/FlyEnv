@@ -24,6 +24,40 @@ function deferred<T = void>() {
   return { promise, resolve, reject }
 }
 const tick = () => new Promise<void>((resolve) => setImmediate(resolve))
+
+test('failed initialization retains the lease when cleanup fails and close cannot report success', async () => {
+  let released = false
+  const runtime = new PluginWorkerRuntime({
+    acquire: async () => ({
+      dataRoot: '/fixture',
+      release: async () => {
+        released = true
+      }
+    }),
+    load: async () => ({
+      initialize: async () => {
+        throw new Error('private init')
+      },
+      exec: () => {},
+      close: async () => {
+        throw new Error('private cleanup')
+      }
+    })
+  })
+  await assert.rejects(
+    runtime.initialize({
+      pluginId: 'sample',
+      moduleId: 'sample',
+      dataRoot: '/fixture',
+      installGeneration: 'a',
+      workerGeneration: 'b'
+    }),
+    /^Error: plugin_initialization_failed$/
+  )
+  assert.equal(released, false)
+  await assert.rejects(runtime.close())
+  assert.equal(released, false)
+})
 class Worker implements PluginWorker {
   ready = deferred()
   exited = deferred()
@@ -80,6 +114,34 @@ async function waitWorker(f: Awaited<ReturnType<typeof fixture>>) {
   assert.equal(f.workers.length, 1)
   return f.workers[0]
 }
+test('aborted replacement can reopen the same generation only after actual exit and rejects stale captures', async () => {
+  const f = await fixture()
+  try {
+    const oldCapture = f.registry.capture('sample')
+    const oldWorker = await waitWorker(f)
+    oldWorker.ready.resolve()
+    const old = await oldCapture
+    const stopping = f.registry.close('sample')
+    await assert.rejects(
+      Promise.resolve().then(() => (f.registry as any).reopen('sample')),
+      /stopping|busy/
+    )
+    oldWorker.exited.resolve()
+    await stopping
+    await (f.registry as any).reopen('sample')
+    const newCapture = f.registry.capture('sample')
+    while (f.workers.length < 2) await tick()
+    f.workers[1].ready.resolve()
+    assert.notEqual((await newCapture).workerGeneration, old.workerGeneration)
+    await assert.rejects(Promise.resolve(f.registry.dispatch('sample', 'read', [], old)), /stale/)
+    assert.ok(await f.registry.dispatch('sample', 'read', []))
+    const stop = f.registry.close('sample')
+    f.workers[1].exited.resolve()
+    await stop
+  } finally {
+    await f.clean()
+  }
+})
 test('simultaneous UI and MCP first calls share one canonical owner and await ready', async () => {
   const f = await fixture()
   try {

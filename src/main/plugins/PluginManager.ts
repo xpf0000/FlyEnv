@@ -83,6 +83,7 @@ export type PluginManagerOptions = {
   statePath?: string
   fetchImpl?: typeof fetch
   stopPluginServices?: (moduleId: string) => Promise<{ stopped: true }>
+  recoverPluginRuntime?: (moduleId: string) => Promise<void>
   licenseCheck?: () => Promise<boolean>
   secretProtect?: PluginSecretProtection | (() => PluginSecretProtection | undefined)
 }
@@ -152,6 +153,7 @@ export class PluginManager {
   private readonly stateOverride?: string
   private readonly fetchImpl: typeof fetch
   private readonly stopPluginServices?: (moduleId: string) => Promise<{ stopped: true }>
+  private readonly recoverPluginRuntime?: PluginManagerOptions['recoverPluginRuntime']
   private readonly licenseCheck: () => Promise<boolean>
   private readonly secretProtect?: PluginManagerOptions['secretProtect']
   private readonly operations = new Map<string, Promise<unknown>>()
@@ -174,6 +176,7 @@ export class PluginManager {
     this.stateOverride = options.statePath
     this.fetchImpl = options.fetchImpl ?? proxiedFetch
     this.stopPluginServices = options.stopPluginServices
+    this.recoverPluginRuntime = options.recoverPluginRuntime
     this.licenseCheck = options.licenseCheck ?? (() => verifyLicenseCode(global.Server.Licenses))
     this.secretProtect = options.secretProtect
   }
@@ -711,16 +714,39 @@ export class PluginManager {
     return this.runSerialized(id, async () => {
       await this.ensureStateLoaded()
       if (!this.plugins.has(id)) throw new Error(`Plugin not installed: ${id}`)
+      const installed = this.plugins.get(id)!
       if (!enabled) {
         await this.stopPluginServices?.(this.plugins.get(id)!.manifest.module.typeFlag)
       }
       const state = this.state.plugins[id] ?? { enabled: true }
       state.enabled = enabled
       this.state.plugins[id] = state
-      await this.writeState()
+      try {
+        await this.writeState()
+      } catch (error) {
+        if (!enabled) return await this.failAfterRuntimeRecovery(installed, error)
+        throw error
+      }
       await this.refreshLoaded()
       return this.plugins.get(id)
     })
+  }
+
+  private async failAfterRuntimeRecovery(
+    installed: FlyEnvPluginRecord,
+    error: unknown
+  ): Promise<never> {
+    // The caller has confirmed exit and restored the previous durable state/files.
+    // Reopening is lazy and never changes the failed operation into a success.
+    try {
+      if (installed.enabled) await this.recoverPluginRuntime?.(installed.manifest.module.typeFlag)
+    } catch (recoveryError) {
+      throw new AggregateError(
+        [error, recoveryError],
+        'Plugin change failed; runtime recovery also failed'
+      )
+    }
+    throw error
   }
 
   async listSources() {
@@ -915,7 +941,6 @@ export class PluginManager {
       await this.validatePackageRoot(packageRoot, manifest)
       this.assertToolNamesAvailable(manifest)
       const installed = this.plugins.get(manifest.id)
-      if (installed) await this.stopPluginServices?.(manifest.module.typeFlag)
       const targetRoot = join(this.pluginsRoot, manifest.id, manifest.version)
       await fs.mkdir(dirname(targetRoot), { recursive: true })
       const previousState = this.state.plugins[manifest.id]
@@ -928,6 +953,7 @@ export class PluginManager {
         .catch(() => false)
       let backedUp = false
       let packageMoved = false
+      if (installed) await this.stopPluginServices?.(manifest.module.typeFlag)
       try {
         if (targetExists) {
           await fs.rename(targetRoot, backupRoot)
@@ -958,6 +984,7 @@ export class PluginManager {
             `Plugin installation failed; original files were preserved at ${backupRoot}`
           )
         }
+        if (installed) return await this.failAfterRuntimeRecovery(installed, error)
         throw error
       }
 

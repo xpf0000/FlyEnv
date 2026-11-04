@@ -14,6 +14,7 @@ export class PluginWorkerRuntime {
   private descriptor?: PluginRuntimeDescriptor
   private initializing?: Promise<void>
   private closing?: Promise<void>
+  private disposal?: Promise<void>
   private readonly pending = new Set<Promise<unknown>>()
   private readonly dependencies: {
     acquire(root: string): Promise<Lease>
@@ -45,11 +46,12 @@ export class PluginWorkerRuntime {
         await this.target.initialize({ ...descriptor, dataRoot: this.lease.dataRoot })
         if (this.state === 'starting') this.state = 'ready'
       } catch {
-        this.state = 'closed'
+        this.state = 'closing'
         try {
-          await this.target?.close?.()
-        } finally {
-          await this.lease?.release()
+          await this.dispose()
+          this.state = 'closed'
+        } catch {
+          /* Failed cleanup retains the lease until actual process exit. */
         }
         throw new Error('plugin_initialization_failed')
       }
@@ -77,6 +79,12 @@ export class PluginWorkerRuntime {
     void task.finally(() => this.pending.delete(task)).catch(() => {})
     return task
   }
+  private dispose() {
+    return (this.disposal ??= (async () => {
+      await this.target?.close?.()
+      await this.lease?.release()
+    })())
+  }
   close() {
     if (this.closing) return this.closing
     const wasClosed = this.state === 'closed'
@@ -86,8 +94,7 @@ export class PluginWorkerRuntime {
       await Promise.allSettled([...this.pending])
       if (!wasClosed && this.state !== 'closed') {
         // If close fails, retain the lease until OS exit; no second live owner can open the data.
-        await this.target?.close()
-        await this.lease?.release()
+        await this.dispose()
       }
       this.state = 'closed'
     })())

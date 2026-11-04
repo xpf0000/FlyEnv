@@ -166,6 +166,21 @@ export class PluginWorkerRegistry {
     if (failed?.status === 'rejected') throw failed.reason
   }
 
+  /** Re-enable lazy dispatch only after an aborted change has restored its old installation. */
+  async reopen(module: string) {
+    if (this.closing) throw new Error('plugin_closed_or_stopping')
+    const generation = this.gates.get(module)
+    if (!generation) return
+    if (this.snapshot()[module]?.installGeneration !== generation)
+      throw new Error('plugin_stale_generation')
+    if (
+      [...this.owners.values()].some((owner) => owner.descriptor.moduleId === module) ||
+      [...this.opening.keys()].some((key) => key.startsWith(`${module}:`))
+    )
+      throw new Error('plugin_owner_stopping')
+    this.gates.delete(module)
+  }
+
   async closeAll() {
     this.beginShutdown()
     const modules = new Set([

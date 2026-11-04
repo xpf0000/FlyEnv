@@ -22,7 +22,7 @@ export function automaticMetrics(client: string, initial: any, changed: any, pro
   const committed = (run: any): any[] => {
     const records = new Map<string, any>()
     for (const call of run.calls) {
-      if (call.name !== 'memory_store') continue
+      if (call.name !== 'flyenv_memory_store') continue
       const receipt = run.audit.find(
         (row: any) =>
           row.request_id === call.arguments.request_id && row.outcome === 'success' && row.id
@@ -42,7 +42,7 @@ export function automaticMetrics(client: string, initial: any, changed: any, pro
       )
     ).length,
     incidental: saved.filter((row) => !expected.includes(row.topic)).length,
-    contextChangeGet: changed.calls.some((call: any) => call.name === 'memory_get'),
+    contextChangeGet: changed.calls.some((call: any) => call.name === 'flyenv_memory_get'),
     newRecordsWithoutOpportunity: committed(changed).length
   }
 }
@@ -55,7 +55,7 @@ export async function runAgentAcceptance(ctx: Context) {
   const output = join(ctx.output, 'agents')
   await mkdir(output, { recursive: true })
   const rules = await readFile('plugins/ai-memory/assets/memory-rules.md', 'utf8')
-  const tools = ['memory_search', 'memory_get', 'memory_store']
+  const tools = ['flyenv_memory_search', 'flyenv_memory_get', 'flyenv_memory_store']
   const runs: any[] = []
   let calls: any[] = []
   let replaceReceipt = false
@@ -82,7 +82,11 @@ export async function runAgentAcceptance(ctx: Context) {
         ...(body ? { body } : {})
       })
       let text = await upstream.text()
-      if (replaceReceipt && rpc?.params?.name === 'memory_store' && text.includes('success')) {
+      if (
+        replaceReceipt &&
+        rpc?.params?.name === 'flyenv_memory_store' &&
+        text.includes('success')
+      ) {
         const transform = (value: any) => {
           if (value.result?.content) {
             value.result = {
@@ -293,7 +297,8 @@ export async function runAgentAcceptance(ctx: Context) {
       )
       assert.ok(
         written.calls.some(
-          (c: any) => c.name === 'memory_store' && c.arguments.request_id === first.request_id
+          (c: any) =>
+            c.name === 'flyenv_memory_store' && c.arguments.request_id === first.request_id
         )
       )
       const firstRows = await search(first.topic)
@@ -306,7 +311,9 @@ export async function runAgentAcceptance(ctx: Context) {
       )
       assert.ok(read.answerText.includes('CORAL-742'))
       assert.ok(
-        read.calls.some((c: any) => c.name === 'memory_get' && c.arguments.id === firstRows[0].id)
+        read.calls.some(
+          (c: any) => c.name === 'flyenv_memory_get' && c.arguments.id === firstRows[0].id
+        )
       )
       const secondRows = await search(second.topic)
       assert.equal(secondRows.length, 1)
@@ -318,7 +325,7 @@ export async function runAgentAcceptance(ctx: Context) {
       assert.ok(
         restored.calls.some(
           (c: any) =>
-            c.name === 'memory_get' &&
+            c.name === 'flyenv_memory_get' &&
             c.arguments.id === secondRows[0].id &&
             c.arguments.project_path === ctx.projectA
         )
@@ -341,7 +348,8 @@ export async function runAgentAcceptance(ctx: Context) {
       )
       assert.ok(
         childRun.calls.some(
-          (c: any) => c.name === 'memory_store' && c.arguments.project_path === ctx.childProject
+          (c: any) =>
+            c.name === 'flyenv_memory_store' && c.arguments.project_path === ctx.childProject
         )
       )
       assert.equal((await search(independent.topic)).length, 0)
@@ -360,7 +368,7 @@ export async function runAgentAcceptance(ctx: Context) {
         assert.ok(
           failure.calls.some(
             (c: any) =>
-              c.name === 'memory_store' && c.arguments.project_path === invalid.project_path
+              c.name === 'flyenv_memory_store' && c.arguments.project_path === invalid.project_path
           )
         )
         assert.equal((await search(invalid.topic)).length, 0)
@@ -375,7 +383,7 @@ export async function runAgentAcceptance(ctx: Context) {
           `Explicitly remember with these exact fields, following the copied rules for any unknown result. Verify using get and report the actual receipt: ${JSON.stringify(uncertain)}`
         )
         assert.equal(replaceReceipt, false)
-        const stores = confirmed.calls.filter((c: any) => c.name === 'memory_store')
+        const stores = confirmed.calls.filter((c: any) => c.name === 'flyenv_memory_store')
         assert.ok(stores.length >= 2, `${agent}: unknown must confirm same request`)
         for (const store of stores) assert.deepEqual(store.arguments, stores[0].arguments)
         assert.equal((await search(uncertain.topic)).length, 1)
