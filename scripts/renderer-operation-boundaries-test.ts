@@ -696,4 +696,13 @@ assert.match(damengLogs, /<LogVM ref="log"/)
 assert.match(damengLogs, /<ToolVM :log="log"/)
 assert.doesNotMatch(damengLogs, /IPC\.send|<pre/)
 
+for (const name of ['Index.vue', 'MemoryEditor.vue', 'MemorySetup.vue']) {
+  const page = readFileSync(join(root, 'plugins/ai-memory/render', name), 'utf8')
+  assert.doesNotMatch(page, /from\s+['"]@\/util\/IPC['"]|IPC\.send|defineStore\(|config\.setup/)
+}
+const memoryManager = readFileSync(join(root, 'plugins/ai-memory/render/manager.ts'), 'utf8')
+assert.match(memoryManager, /reactiveBind\(/)
+assert.match(memoryManager, /StorageGetAsync/)
+assert.match(memoryManager, /StorageSetAsync/)
+assert.doesNotMatch(memoryManager, /defineStore\(|config\.setup/)
 console.log('renderer operation boundary tests passed')

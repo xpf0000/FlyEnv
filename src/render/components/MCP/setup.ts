@@ -1,3 +1,4 @@
+import { configureMCPClient } from './clientConfig'
 import IPC from '@/util/IPC'
 import { MCP_BUILTIN_RUNTIME_TOOLS, type MCPRuntimeTool } from '@shared/mcpRuntimeCatalog'
 import { reactiveBind } from '@/util/Index'
@@ -214,37 +215,15 @@ class MCP {
     })
   }
 
-  /** 一键把 FlyEnv 注册进某个 AI CLI 的 MCP 列表（复用现有 addMcp） */
-  addToClient(
-    clientFlag: 'claudeCode' | 'codex' | 'openCode' | 'kimi' | 'antigravity' | 'copilotCli'
-  ) {
-    // 各 CLI 对 HTTP/SSE 型 MCP 的 type 标识不同
-    const typeMap: Record<typeof clientFlag, string> = {
-      claudeCode: 'http',
-      codex: 'http',
-      openCode: 'remote',
-      kimi: 'http',
-      antigravity: 'http',
-      copilotCli: 'http'
-    }
-    return new Promise((resolve) => {
-      IPC.send(
-        `app-fork:${clientFlag}`,
-        'addMcp',
-        'flyenv',
-        typeMap[clientFlag],
-        this.serverUrl,
-        this.config.token
-      ).then((key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
-        resolve(res?.code === 0)
-      })
+  /** Register FlyEnv through the shared client-config operation. */
+  async addToClient(clientFlag: MCPHttpClientFlag) {
+    const result = await configureMCPClient(clientFlag, {
+      serverUrl: this.serverUrl,
+      token: this.config.token
     })
+    if (result.success) MessageSuccess(I18nT('base.success'))
+    else MessageError(I18nT('base.fail'))
+    return result.success
   }
 }
 
