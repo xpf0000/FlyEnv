@@ -34,5 +34,6 @@
   "databaseBackup": "Respaldo de base de datos",
   "backupSaveDirSet": "Configuración de ubicación de guardado",
   "saveDirError": "La ubicación de guardado no es válida",
-  "backupFail": "El respaldo de {database} falló, error: {error}"
+  "backupFail": "El respaldo de {database} falló, error: {error}",
+  "socket": "Ruta del socket para la conexión local (predeterminada: /tmp/mysql.sock). En Windows, es el nombre de la canalización con nombre (predeterminado: MySQL)."
 }

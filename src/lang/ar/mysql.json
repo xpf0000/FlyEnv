@@ -34,5 +34,6 @@
   "databaseBackup": "نسخ احتياطي لقاعدة البيانات",
   "backupSaveDirSet": "إعدادات موقع الحفظ",
   "saveDirError": "موقع الحفظ غير صالح",
-  "backupFail": "فشل النسخ الاحتياطي لـ {database}، الخطأ: {error}"
+  "backupFail": "فشل النسخ الاحتياطي لـ {database}، الخطأ: {error}",
+  "socket": "مسار مقبس الاتصال المحلي (الافتراضي: /tmp/mysql.sock). في Windows، يُستخدم اسم الأنبوب المُسمّى (الافتراضي: MySQL)."
 }

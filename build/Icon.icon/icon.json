@@ -1,0 +1,426 @@
+{
+  "features" : [
+    "refractivity",
+    "specular-location"
+  ],
+  "fill-specializations" : [
+    {
+      "value" : {
+        "linear-gradient" : [
+          "display-p3:0.14118,0.17577,0.39782,1.00000",
+          "display-p3:0.11373,0.14294,0.33569,1.00000"
+        ]
+      }
+    },
+    {
+      "appearance" : "dark",
+      "value" : {
+        "linear-gradient" : [
+          "display-p3:0.11373,0.14294,0.33569,1.00000",
+          "display-p3:0.02783,0.03482,0.09131,1.00000"
+        ]
+      }
+    }
+  ],
+  "groups" : [
+    {
+      "blur-material" : 0.5,
+      "hidden" : false,
+      "layers" : [
+        {
+          "fill-specializations" : [
+            {
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : "none"
+            }
+          ],
+          "image-name" : "thumb.svg",
+          "name" : "Thumb",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              130.22557471264378,
+              -171.50000000000006
+            ]
+          }
+        },
+        {
+          "fill-specializations" : [
+            {
+              "value" : {
+                "solid" : "display-p3:0.11373,0.14294,0.33569,1.00000"
+              }
+            },
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "display-p3:0.11373,0.14294,0.33569,1.00000"
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : {
+                "solid" : "display-p3:0.02745,0.03482,0.09131,1.00000"
+              }
+            }
+          ],
+          "image-name" : "track.svg",
+          "name" : "Track",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              152,
+              -171.5
+            ]
+          }
+        },
+        {
+          "fill-specializations" : [
+            {
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : {
+                "solid" : "extended-srgb:0.00000,0.78431,0.70196,1.00000"
+              }
+            }
+          ],
+          "glass" : true,
+          "image-name" : "Rectangle.svg",
+          "name" : "Switch",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              43,
+              -171.5
+            ]
+          }
+        }
+      ],
+      "lighting" : "individual",
+      "name" : "Top Switch",
+      "position" : {
+        "scale" : 1.16,
+        "translation-in-points" : [
+          30,
+          7
+        ]
+      },
+      "refractivity" : {
+        "depth" : 0.0743359375,
+        "enabled" : true,
+        "strength" : 0.5996875
+      },
+      "shadow" : {
+        "kind" : "layer-color",
+        "opacity" : 0.5
+      },
+      "specular" : "inside",
+      "translucency-specializations" : [
+        {
+          "value" : {
+            "enabled" : true,
+            "value" : 0.3
+          }
+        },
+        {
+          "appearance" : "dark",
+          "value" : {
+            "enabled" : true,
+            "value" : 0.6
+          }
+        }
+      ]
+    },
+    {
+      "blur-material" : null,
+      "hidden" : false,
+      "layers" : [
+        {
+          "blend-mode-specializations" : [
+            {
+              "value" : "normal"
+            },
+            {
+              "appearance" : "tinted",
+              "value" : "normal"
+            }
+          ],
+          "fill-specializations" : [
+            {
+              "appearance" : "tinted",
+              "value" : {
+                "solid" : "extended-gray:0.00000,1.00000"
+              }
+            }
+          ],
+          "glass-specializations" : [
+            {
+              "value" : true
+            },
+            {
+              "appearance" : "tinted",
+              "value" : true
+            }
+          ],
+          "image-name" : "thumb.svg",
+          "name" : "Thumb",
+          "opacity-specializations" : [
+            {
+              "value" : 0.8
+            },
+            {
+              "appearance" : "tinted",
+              "value" : 1
+            }
+          ],
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              173.5,
+              -171.11290322580646
+            ]
+          }
+        },
+        {
+          "fill-specializations" : [
+            {
+              "value" : {
+                "solid" : "extended-srgb:0.20392,0.78039,0.34902,1.00000"
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            }
+          ],
+          "image-name" : "track.svg",
+          "name" : "Track",
+          "opacity" : 1,
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              152,
+              -171.5
+            ]
+          }
+        },
+        {
+          "fill-specializations" : [
+            {
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : {
+                "solid" : "extended-srgb:0.00000,0.78431,0.70196,1.00000"
+              }
+            }
+          ],
+          "image-name" : "Rectangle.svg",
+          "name" : "Switch",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              43,
+              -171.5
+            ]
+          }
+        }
+      ],
+      "name" : "Middle Switch",
+      "position" : {
+        "scale" : 1.2,
+        "translation-in-points" : [
+          -50,
+          205
+        ]
+      },
+      "refractivity" : {
+        "depth" : 0.0743359375,
+        "enabled" : false,
+        "strength" : 0.5996875
+      },
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency-specializations" : [
+        {
+          "value" : {
+            "enabled" : true,
+            "value" : 0.3
+          }
+        },
+        {
+          "appearance" : "dark",
+          "value" : {
+            "enabled" : true,
+            "value" : 0.6
+          }
+        }
+      ]
+    },
+    {
+      "blur-material" : null,
+      "hidden" : false,
+      "layers" : [
+        {
+          "fill-specializations" : [
+            {
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : "none"
+            }
+          ],
+          "image-name" : "thumb.svg",
+          "name" : "Thumb",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              130.5,
+              -171.5
+            ]
+          }
+        },
+        {
+          "fill-specializations" : [
+            {
+              "value" : {
+                "solid" : "display-p3:0.11373,0.14294,0.33569,1.00000"
+              }
+            },
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "display-p3:0.11373,0.14294,0.33569,1.00000"
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : {
+                "solid" : "display-p3:0.02745,0.03482,0.09131,1.00000"
+              }
+            }
+          ],
+          "image-name" : "track.svg",
+          "name" : "Track",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              152,
+              -171.5
+            ]
+          }
+        },
+        {
+          "fill-specializations" : [
+            {
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "extended-gray:1.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : {
+                "solid" : "extended-srgb:0.00000,0.78431,0.70196,1.00000"
+              }
+            }
+          ],
+          "image-name" : "Rectangle.svg",
+          "name" : "Switch",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              43,
+              -171.5
+            ]
+          }
+        }
+      ],
+      "name" : "Botton Switch",
+      "position" : {
+        "scale" : 1.25,
+        "translation-in-points" : [
+          -130,
+          407
+        ]
+      },
+      "refractivity" : {
+        "depth" : 0.0743359375,
+        "enabled" : false,
+        "strength" : 0.5996875
+      },
+      "shadow" : {
+        "kind" : "none",
+        "opacity" : 0.5
+      },
+      "translucency-specializations" : [
+        {
+          "value" : {
+            "enabled" : true,
+            "value" : 0.3
+          }
+        },
+        {
+          "appearance" : "dark",
+          "value" : {
+            "enabled" : true,
+            "value" : 0.6
+          }
+        }
+      ]
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : [
+      "macOS"
+    ]
+  }
+}

@@ -99,5 +99,7 @@
     "readonlyFs": "रीडओनली रूट FS",
     "maxRetry": "अधिकतम पुनरावृत्ति",
     "loading": "कंटेनर जानकारी लोड हो रही है..."
-  }
+  },
+  "rosettaGlobalTip": "Apple Silicon मशीनों पर Podman की वैश्विक सेटिंग के रूप में लागू होता है (हर VM के लिए अलग नहीं)। Podman >= 5.1.0 आवश्यक है।",
+  "rosettaNeedVersion": "Rosetta के लिए Podman >= 5.1.0 आवश्यक है। इस स्विच को सक्षम करने के लिए Podman अपग्रेड करें।"
 }

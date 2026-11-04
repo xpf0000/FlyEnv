@@ -1,4 +1,5 @@
 {
+  "hostsAppliedPreferencesFailed": "系统 hosts 已更新，但设置保存失败：{error}",
   "phpVersion": "php版本",
   "newProject": "新建项目",
   "frameworkVersion": "框架版本",

@@ -34,5 +34,6 @@
   "databaseBackup": "데이터베이스 백업",
   "backupSaveDirSet": "저장 위치 설정",
   "saveDirError": "잘못된 저장 위치",
-  "backupFail": "{database} 백업 실패, 오류: {error}"
+  "backupFail": "{database} 백업 실패, 오류: {error}",
+  "socket": "로컬 연결의 Socket 경로(기본값: /tmp/mysql.sock). Windows에서는 명명된 파이프 이름입니다(기본값: MySQL)."
 }

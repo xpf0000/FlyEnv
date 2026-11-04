@@ -5,5 +5,6 @@
   "trayMenuBarStyle": "Stil Popup pentru târguri",
   "classic": "Clasic",
   "modern": "Modern",
-  "trayMenuBarStyleTips": "Alegeți stilul popup al tăviței. Pe unele desktop-uri Linux, stilul modern poate avea probleme, astfel încât să puteți selecta stilul clasic în schimb."
+  "trayMenuBarStyleTips": "Alegeți stilul popup al tăviței. Pe unele desktop-uri Linux, stilul modern poate avea probleme, astfel încât să puteți selecta stilul clasic în schimb.",
+  "more": "Mai multe"
 }

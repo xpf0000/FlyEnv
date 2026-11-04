@@ -315,7 +315,7 @@ export async function buildPlugin(name: string, options: BuildPluginOptions = {}
             // Fork plugin bundles must share the fork process's live i18n
             // instance (a bundled copy never receives language payloads and is
             // stuck on the fallback locale). The fork process exposes it on
-            // `globalThis.__FLYENV_PLUGIN_HOST__.lang` (src/fork/index.ts);
+            // `globalThis.__FLYENV_PLUGIN_HOST__.lang` (src/fork/runtime.ts);
             // rewrite every `@lang/runtime` import to read from that bridge.
             build.onResolve({ filter: /^@lang\/runtime$/ }, () => ({
               path: '@lang/runtime',

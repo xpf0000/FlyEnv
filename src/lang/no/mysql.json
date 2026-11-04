@@ -34,5 +34,6 @@
   "databaseBackup": "Sikkerhetskopi av database",
   "backupSaveDirSet": "Lagre posisjonsinnstillinger",
   "saveDirError": "Ugyldig lagringssted",
-  "backupFail": "{database} sikkerhetskopiering feilet: {error}"
+  "backupFail": "{database} sikkerhetskopiering feilet: {error}",
+  "socket": "Socketsti for lokal tilkobling (standard: /tmp/mysql.sock). På Windows er dette navnet på det navngitte røret (standard: MySQL)."
 }

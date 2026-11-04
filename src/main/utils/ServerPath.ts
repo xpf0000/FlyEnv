@@ -11,6 +11,7 @@ import {
   type DirectoryPermissionRecoveryResult
 } from './ServerDirectory'
 import Helper from '../../fork/Helper'
+import { windowsSystemDirectory } from '@shared/WindowsSystemPaths'
 
 let onServerDirectoryPermissionDenied:
   ((reason: DirectoryPermissionFailureReason) => void) | undefined
@@ -44,6 +45,8 @@ const recoverFlyEnvDataDirectory = (
       if (isAppHelperError(error, 'helper_binary_missing')) {
         return 'helper-binary-missing'
       }
+      // 启动阶段缺少交互授权时延后目录恢复，窗口就绪后再走统一权限选择。
+      if (isAppHelperError(error, 'windows_authorization_required')) return 'helper-unavailable'
       if (isAppHelperError(error, 'helper_signature_invalid')) {
         return 'failed'
       }
@@ -102,6 +105,11 @@ export const MakeServerDir = async (dataDirectory: string): Promise<boolean> => 
 export const SetupGlobalPaths = (runpath: string): Promise<boolean> => {
   global.Server.UserHome = app.getPath('home')
   global.Server.UserDocuments = app.getPath('documents')
+  // hosts 路径与 UAC 白名单使用同一个系统目录规则；环境变量无效时明确失败，
+  // 不在非 C 盘设备上误读/误写另一份 C:\Windows\System32\drivers\etc\hosts。
+  if (isWindows()) {
+    global.Server.WindowsHostsFile = join(windowsSystemDirectory(), 'drivers', 'etc', 'hosts')
+  }
   global.Server.isArmArch = isArmArch()
   global.Server.BaseDir = join(runpath, 'server')
   global.Server.AppDir = join(runpath, 'app')

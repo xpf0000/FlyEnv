@@ -113,15 +113,17 @@ class LinkTaskItem {
           .then((res) => {
             clearTimeout(timer)
             const typeHeader = res.headers['content-type']
-            const contentType =
-              Array.isArray(typeHeader) ? typeHeader[0] : typeof typeHeader === 'string' ? typeHeader : ''
+            const contentType = Array.isArray(typeHeader)
+              ? typeHeader[0]
+              : typeof typeHeader === 'string'
+                ? typeHeader
+                : ''
             const lengthHeader = res.headers['content-length']
-            const contentLength =
-              Array.isArray(lengthHeader)
-                ? lengthHeader[0]
-                : typeof lengthHeader === 'string'
-                  ? lengthHeader
-                  : '0'
+            const contentLength = Array.isArray(lengthHeader)
+              ? lengthHeader[0]
+              : typeof lengthHeader === 'string'
+                ? lengthHeader
+                : '0'
             const size = Number.parseInt(contentLength, 10) || 0
             link.type = contentType || undefined
             link.size = size

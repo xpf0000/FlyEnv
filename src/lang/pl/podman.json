@@ -99,5 +99,7 @@
     "readonlyFs": "Korzeń tylko do odczytu FS",
     "maxRetry": "Maksymalna ponowna próba",
     "loading": "Ładowanie informacji o kontenerach..."
-  }
+  },
+  "rosettaGlobalTip": "Obowiązuje jako globalne ustawienie Podmana na komputerach z Apple Silicon (nie dla poszczególnych maszyn wirtualnych). Wymaga Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta wymaga Podman >= 5.1.0. Zaktualizuj Podmana, aby włączyć ten przełącznik."
 }

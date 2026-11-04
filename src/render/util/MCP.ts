@@ -1,9 +1,13 @@
 import IPC from '@/util/IPC'
 import { BrewStore } from '@/store/brew'
 import { AppStore } from '@/store/app'
-import { syncServiceStatusFromMcp } from '@/util/mcpServiceStatus'
+import {
+  shouldApplyServiceStatusNotification,
+  syncServiceStatusFromMcp
+} from '@/util/mcpServiceStatus'
 import type { AllAppModule } from '@/core/type'
 import { HostStore } from '@/components/Host/store'
+import { MysqlStore } from '@/components/Mysql/mysql'
 
 function handleServiceStatusChanged(res: any) {
   const flag = res?.flag as AllAppModule | undefined
@@ -17,11 +21,15 @@ function handleServiceStatusChanged(res: any) {
     if (!module) {
       return
     }
+    const instances = Array.isArray(res?.instances) ? res.instances : []
+    if (!shouldApplyServiceStatusNotification(flag, res?.revision, instances.length === 0)) return
+    // 组实例以配置路径登记，普通已安装项同步不能覆盖它；交由 MySQL 模块自己的状态所有者消费。
+    if (flag === 'mysql') MysqlStore().syncServiceStatus(instances)
     const current = appStore.config.server?.[flag]?.current
     const nextCurrent = syncServiceStatusFromMcp({
       current,
       installed: module.installed,
-      instances: res?.instances ?? [],
+      instances,
       isOnlyRunOne: module.isOnlyRunOne
     })
     if (

@@ -34,5 +34,6 @@
   "databaseBackup": "Adatbázis biztonsági mentés",
   "backupSaveDirSet": "Mentési hely beállítása",
   "saveDirError": "Érvénytelen mentési hely",
-  "backupFail": "{database} biztonsági mentése sikertelen, hiba: {error}"
+  "backupFail": "{database} biztonsági mentése sikertelen, hiba: {error}",
+  "socket": "A helyi kapcsolat socketjének útvonala (alapértelmezés: /tmp/mysql.sock). Windows rendszeren ez a névvel ellátott cső neve (alapértelmezés: MySQL)."
 }

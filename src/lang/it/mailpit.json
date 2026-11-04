@@ -28,7 +28,7 @@
   "MP_SMTP_AUTH_ALLOW_INSECURE": "Consente autenticazione SMTP PLAIN & LOGIN anche non sicura (solo se si usa STARTTLS).",
   "MP_SMTP_STRICT_RFC_HEADERS": "Forza Mailpit a restituire errore SMTP se le intestazioni contengono \\n anziché \\r\\n. Per default Mailpit le corregge in silenzio.",
   "MP_SMTP_MAX_RECIPIENTS": "Numero massimo di destinatari SMTP per messaggio.",
-  "MP_SMTP_ALLOWED_RECIPIENTS": "Consente solo destinatari SMTP che corrispondono a una regex. Es: --smtp-allowed-recipients '{'@'}example.com$' per accettare solo mail verso @example.com.",
+  "MP_SMTP_ALLOWED_RECIPIENTS": "Consente solo destinatari SMTP che corrispondono a una regex. Es: --smtp-allowed-recipients '{'@'}example.com$' per accettare solo mail verso {'@'}example.com.",
   "MP_SMTP_DISABLE_RDNS": "Disabilita il reverse DNS nel server SMTP. Utile in reti di test dove può causare ritardi.",
   "MP_SMTP_RELAY_CONFIG": "File di configurazione SMTP per inoltro/rilascio dei messaggi (vedi documentazione). Alternativamente configurabile via variabili d’ambiente.",
   "MP_SMTP_RELAY_ALL": "Inoltra automaticamente tutti i messaggi in entrata tramite server SMTP esterno (vedi documentazione). Usare con cautela!",

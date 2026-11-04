@@ -1,0 +1,58 @@
+export default {
+  repairPermissions: '修复权限',
+  permissionRepairFailed: '修复 SQL Server 权限失败（已完成的授权会保留）',
+  permissionsRepaired: 'SQL Server 权限已修复',
+  logAccessDenied:
+    '无法读取日志 {path}。请在服务页面的操作菜单执行“修复权限”，完成一次授权后再刷新。',
+  configurationManager: '配置管理',
+  configurationManagerOpenFailed: '打开 SQL Server Configuration Manager 失败',
+  configurationManagerWindowsOnly: 'SQL Server Configuration Manager 仅支持 Windows。',
+  configurationManagerNotFound:
+    '未找到 SQL Server Configuration Manager：{path}。请修复此版本的 SQL Server 安装后重试。',
+  windowsServiceAlreadyRunning:
+    '此 SQL Server 服务已在 FlyEnv 外部运行，请先在 services.msc 中停止，再通过 FlyEnv 启动。',
+  windowsServiceNotOwned: 'SQL Server 服务 PID 与 FlyEnv 启动的实例不符，未操作外部服务。',
+  settings: '设置',
+  unsupportedArchitecture: 'SQL Server 仅支持 x64 Windows 或 Linux，不支持 ARM64。',
+  operationTimeout: 'SQL Server 操作超时，请检查日志并刷新状态后再重试。',
+  operationFailed: 'SQL Server 操作失败',
+  operationInProgress: '此 SQL Server 版本仍在安装或卸载，请等待操作完成。',
+  rescanFailed: '操作已完成，但未能刷新已安装版本列表，请在服务页面手动刷新。',
+  windowsServiceUnknown: '无法确认 Windows 服务状态，请刷新并通过 services.msc 检查后重试。',
+  mediaInvalid: 'SQL Server 下载未生成包含 setup.exe 的完整且唯一的安装媒体。',
+  checksumMissing: '微软软件包索引未提供有效的 SHA256 校验值。',
+  ownedInstallRequired: '此操作仅适用于由本插件管理的 SQL Server 安装目录。',
+  installDirectoryExists: 'SQL Server 安装目录已存在，请刷新已安装列表后再重试。',
+  bubblewrapRequired:
+    'Linux 上的 SQL Server 需要 Bubblewrap 将系统文件保存在 FlyEnv 数据目录中。请运行 sudo apt install bubblewrap 后重试；系统必须允许普通用户创建用户命名空间。',
+  linuxRuntimeNotice:
+    'Linux 需要 Bubblewrap（sudo apt install bubblewrap）及普通用户命名空间支持，数据库文件保存在 FlyEnv 数据目录中。',
+  initialPasswordNotice: '此密码仅用于首次初始化，修改此设置不会重置已有 sa 账户的密码。',
+  saPassword: 'sa 密码',
+  saPasswordPlaceholder: '内置 sa 账户的密码',
+  saPasswordRule: '至少 8 位，且包含大写字母、小写字母、数字、符号四类中的三类',
+  saPasswordInvalid: 'sa 密码不符合要求：至少 8 位，且包含大小写字母、数字、符号中的三类',
+  saPasswordRequired: '首次启动前需要设置强 sa 密码，请在本页的设置中填写。',
+  port: '端口',
+  invalidPort: '端口无效：必须是 1-65535 之间的整数',
+  memoryNotice: 'SQL Server 启动至少需要 2 GB 内存，磁盘占用约 6 GB。',
+  windowsOperationUnknown: 'SQL Server 外部进程结果未知，请检查安装日志和 services.msc 后再重试。',
+  windowsInstallHandoffFailed:
+    'SQL Server 已安装，但未能将新服务准备为 FlyEnv 可启动的状态：{error}。请检查 services.msc，不要重复安装。',
+  windowsRestartRequired: 'SQL Server 已安装且服务已停止，请重启 Windows 后再通过 FlyEnv 启动。',
+  distroUnsupported:
+    '当前版本的插件仅支持 Ubuntu 22.04/24.04（x64）仓库；其他发行版返回空列表（rpm 支持在规划中）。',
+  repoProbeFailed: '获取微软软件仓库索引失败：{error}',
+  debUnpackFailed: 'deb 包解包失败：{error}',
+  debContentInvalid: '解包结果中不包含 opt/mssql/bin/sqlservr',
+  instanceScanItemSkipped: '跳过一条损坏的 SQL Server 实例注册表项（{instance}）：{error}',
+  windowsServiceStartFailed: '启动 Windows 服务 {service} 失败：{error}',
+  windowsServiceStopFailed: '停止 Windows 服务 {service} 失败：{error}',
+  windowsServiceTimeout: '等待 Windows 服务 {service} 进入 {state} 状态超时',
+  serviceNameUnknown: '无法确定该实例的 SQL Server Windows 服务名，请刷新已安装列表后重试。',
+  startFailDiagnostics: 'sqlservr 在启动过程中退出，最近的输出：\n{log}',
+  manifestInvalid: '{dir} 下的 flyenv-runtime.json 无效：{error}',
+  installConfirmTitle: '安装 SQL Server',
+  editSettings: '首次初始化 sa 密码 / 端口',
+  uninstallConfirm: '确定删除 {path} 下解包的 SQL Server {version} 文件吗？'
+}

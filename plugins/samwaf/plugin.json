@@ -1,0 +1,24 @@
+{
+  "apiVersion": 1,
+  "id": "samwaf",
+  "name": "SamWaf",
+  "version": "0.1.1",
+  "description": {
+    "en": "Open-source lightweight WAF. Sits in front of your local sites as a reverse proxy to block attacks, with a built-in web admin panel.",
+    "zh": "开源轻量级网站防火墙。以反向代理方式前置保护本地站点、拦截攻击，内置 Web 管理面板。"
+  },
+  "author": "FlyEnv",
+  "module": {
+    "typeFlag": "samwaf",
+    "moduleType": "webServer",
+    "label": "SamWaf",
+    "asideIndex": 71,
+    "isService": true,
+    "isTray": true,
+    "platform": ["Windows", "macOS", "Linux"]
+  },
+  "entry": {
+    "render": "render/Module.ts",
+    "fork": "fork/index.ts"
+  }
+}

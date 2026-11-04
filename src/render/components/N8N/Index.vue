@@ -55,9 +55,7 @@
   })
 
   const parseEnvValue = (content: string, key: string) => {
-    const match = content
-      .split(/\r?\n/)
-      .find((line: string) => line.trim().startsWith(`${key}=`))
+    const match = content.split(/\r?\n/).find((line: string) => line.trim().startsWith(`${key}=`))
     const raw = match?.trim().split('=').slice(1).join('=').trim()
     return raw?.replace(/^['"]|['"]$/g, '')
   }

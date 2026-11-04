@@ -36,25 +36,17 @@ export interface StartupGroupConfigData {
 export type StartupGroupDraft = Pick<StartupGroupData, 'name' | 'description' | 'color' | 'items'>
 export type StartupGroupMemberState = 'stopped' | 'running' | 'executing' | 'invalid'
 export type StartupGroupCardState =
-  | 'stopped'
-  | 'running'
-  | 'partial-running'
-  | 'executing'
-  | 'invalid'
+  'stopped' | 'running' | 'partial-running' | 'executing' | 'invalid'
 export type StartupGroupRunAction = 'start' | 'stop'
 export type StartupGroupMemberOutcome =
-  | 'started'
-  | 'stopped'
-  | 'skipped'
-  | 'failed'
-  | 'not-run'
-  | 'invalid'
+  'started' | 'stopped' | 'skipped' | 'failed' | 'not-run' | 'invalid'
 
 export interface StartupGroupAdapter {
   exists(item: StartupGroupItem): Promise<boolean>
   getState(item: StartupGroupItem): Promise<StartupGroupMemberState>
-  start(item: StartupGroupItem): Promise<void>
-  stop(item: StartupGroupItem): Promise<void>
+  // 启动组只传授权意图，真实进程和 PID 仍由既有服务/项目 lifecycle 持有。
+  start(item: StartupGroupItem, interactive?: boolean): Promise<void>
+  stop(item: StartupGroupItem, interactive?: boolean): Promise<void>
 }
 
 export type StartupGroupRunMemberResult = {
@@ -73,7 +65,12 @@ export interface StartupGroupRunnerContract {
   revision: number
   getItemState(item: StartupGroupItem): Promise<StartupGroupMemberState>
   getGroupState(group: StartupGroupData): Promise<StartupGroupCardState>
-  run(group: StartupGroupData, action: StartupGroupRunAction): Promise<StartupGroupRunResult>
+  // 默认为手动交互；自动启动必须显式 false，不能因通知关闭而推断权限意图。
+  run(
+    group: StartupGroupData,
+    action: StartupGroupRunAction,
+    interactive?: boolean
+  ): Promise<StartupGroupRunResult>
 }
 
 export type StartupGroupHideStopResult = {
@@ -92,8 +89,8 @@ export type StartupGroupInstalledTarget = {
   run: boolean
   running: boolean
   port?: number
-  start(): Promise<string | boolean>
-  stop(): Promise<string | boolean>
+  start(interactive?: boolean): Promise<string | boolean>
+  stop(interactive?: boolean): Promise<string | boolean>
 }
 
 export type StartupGroupProjectTarget = {
@@ -103,8 +100,12 @@ export type StartupGroupProjectTarget = {
   isService: boolean
   projectPort?: number
   state: { isRun: boolean; running: boolean }
-  start(showMessage?: boolean): Promise<string | boolean>
-  stop(showMessage?: boolean): Promise<boolean>
+  start(
+    showMessage?: boolean,
+    runInTerminal?: boolean,
+    interactive?: boolean
+  ): Promise<string | boolean>
+  stop(showMessage?: boolean, interactive?: boolean): Promise<boolean>
 }
 
 export type StartupGroupRuntimeModule = {

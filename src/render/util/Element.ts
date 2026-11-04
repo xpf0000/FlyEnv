@@ -1,4 +1,6 @@
 import { ElMessage } from 'element-plus'
+import { I18nT } from '@lang/index'
+import { formatHelperConnectionErrorMessage } from '@shared/WindowsHelperState'
 
 export const MessageSuccess = (msg: string) => {
   ElMessage({
@@ -13,7 +15,7 @@ export const MessageSuccess = (msg: string) => {
 
 export const MessageError = (msg: string) => {
   ElMessage({
-    message: `<div class="wapper">${msg}</div>`,
+    message: `<div class="wapper">${formatHelperConnectionErrorMessage(msg, I18nT('menu.needInstallHelper'))}</div>`,
     dangerouslyUseHTMLString: true,
     type: 'error',
     showClose: true,
@@ -24,7 +26,7 @@ export const MessageError = (msg: string) => {
 
 export const MessageWarning = (msg: string) => {
   ElMessage({
-    message: msg,
+    message: formatHelperConnectionErrorMessage(msg, I18nT('menu.needInstallHelper')),
     type: 'warning',
     showClose: true,
     customClass: 'app-el-message',

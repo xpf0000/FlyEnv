@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv 需要安裝輔助程式",
   "helperInstalling": "輔助程式正在安裝，請稍候",
   "waitHelper": "輔助程式正在啟動，請稍候",
-  "helperInstallFailTips": "輔助程式安裝失敗，請嘗試在彈出的終端中手動安裝",
+  "helperInstallFailTips": "輔助程式安裝失敗。",
   "helperInstallSuccessTips": "輔助程式安裝成功",
   "helperInstallTitle": "安裝輔助程式"
 }

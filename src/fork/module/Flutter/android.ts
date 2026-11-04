@@ -5,6 +5,7 @@ import { addPath, execPromiseWithEnv, getSubDirAsync } from '../../Fn'
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { appDebugLog } from '@shared/utils'
 import { userInfo } from 'os'
+import { notifyWindowsEnvironmentChanged } from '@shared/WindowsEnvironmentBroadcast'
 
 export const androidMethods = {
   _androidSdkCandidates(this: any) {
@@ -128,116 +129,126 @@ export const androidMethods = {
   },
 
   androidAutoFix(this: any, action: 'set-sdk-env' | 'add-platform-tools-path' | 'all' = 'all') {
-    return new ForkPromise(async (resolve) => {
-      const sdkDir = this._detectAndroidSdkDir()
-      const platformToolsDir = sdkDir ? join(sdkDir, 'platform-tools') : ''
+    return new ForkPromise(async (resolve, reject) => {
+      // 此前 addPath 通过底层通知；现在由 Android 修复业务在自身终态后通知 PATH 变更。
+      let environmentWritten = false
+      try {
+        const sdkDir = this._detectAndroidSdkDir()
+        const platformToolsDir = sdkDir ? join(sdkDir, 'platform-tools') : ''
 
-      const results: Array<{ key: string; ok: boolean; message: string }> = []
+        const results: Array<{ key: string; ok: boolean; message: string }> = []
 
-      if (!sdkDir) {
-        resolve({
-          ok: false,
-          message: 'Android SDK not found. Install Android SDK first.',
-          results,
-          sdkDir: '',
-          platformToolsDir: ''
-        })
-        return
-      }
-
-      const shouldSetSdkEnv = action === 'all' || action === 'set-sdk-env'
-      const shouldSetPath = action === 'all' || action === 'add-platform-tools-path'
-
-      if (shouldSetSdkEnv) {
-        let ok = true
-        let message = 'ANDROID_HOME and ANDROID_SDK_ROOT updated'
-        try {
-          if (isWindows()) {
-            await execPromiseWithEnv(`setx ANDROID_HOME "${sdkDir}"`)
-            await execPromiseWithEnv(`setx ANDROID_SDK_ROOT "${sdkDir}"`)
-          } else {
-            const profile = isMacOS() ? '$HOME/.zshrc' : '$HOME/.bashrc'
-            const exportHome = `export ANDROID_HOME=\"${sdkDir}\"`
-            const exportRoot = `export ANDROID_SDK_ROOT=\"${sdkDir}\"`
-            await execPromiseWithEnv(
-              `grep -q 'ANDROID_HOME=' ${profile} || echo '${exportHome}' >> ${profile}`
-            )
-            await execPromiseWithEnv(
-              `grep -q 'ANDROID_SDK_ROOT=' ${profile} || echo '${exportRoot}' >> ${profile}`
-            )
-          }
-
-          process.env.ANDROID_HOME = sdkDir
-          process.env.ANDROID_SDK_ROOT = sdkDir
-        } catch (e: any) {
-          ok = false
-          message = e?.message ?? 'Failed to set Android SDK environment variables'
+        if (!sdkDir) {
+          resolve({
+            ok: false,
+            message: 'Android SDK not found. Install Android SDK first.',
+            results,
+            sdkDir: '',
+            platformToolsDir: ''
+          })
+          return
         }
-        results.push({
-          key: 'set-sdk-env',
-          ok,
-          message
-        })
-      }
 
-      if (shouldSetPath) {
-        let ok = true
-        let message = 'platform-tools added to PATH'
+        const shouldSetSdkEnv = action === 'all' || action === 'set-sdk-env'
+        const shouldSetPath = action === 'all' || action === 'add-platform-tools-path'
 
-        if (!platformToolsDir || !existsSync(platformToolsDir)) {
-          ok = false
-          message = 'platform-tools not found in Android SDK'
-        } else {
+        if (shouldSetSdkEnv) {
+          let ok = true
+          let message = 'ANDROID_HOME and ANDROID_SDK_ROOT updated'
           try {
             if (isWindows()) {
-              await addPath(platformToolsDir)
+              await execPromiseWithEnv(`setx ANDROID_HOME "${sdkDir}"`)
+              await execPromiseWithEnv(`setx ANDROID_SDK_ROOT "${sdkDir}"`)
             } else {
               const profile = isMacOS() ? '$HOME/.zshrc' : '$HOME/.bashrc'
-              const exportPath = `export PATH=\"${platformToolsDir}:$PATH\"`
+              const exportHome = `export ANDROID_HOME=\"${sdkDir}\"`
+              const exportRoot = `export ANDROID_SDK_ROOT=\"${sdkDir}\"`
               await execPromiseWithEnv(
-                `grep -q '${platformToolsDir.replace(/\\/g, '\\\\')}' ${profile} || echo '${exportPath}' >> ${profile}`
+                `grep -q 'ANDROID_HOME=' ${profile} || echo '${exportHome}' >> ${profile}`
+              )
+              await execPromiseWithEnv(
+                `grep -q 'ANDROID_SDK_ROOT=' ${profile} || echo '${exportRoot}' >> ${profile}`
               )
             }
 
-            const sep = isWindows() ? ';' : ':'
-            const oldPath = process.env.PATH ?? ''
-            const hasPath = oldPath
-              .split(sep)
-              .map((s) => s.trim())
-              .some((p) => p === platformToolsDir)
-            if (!hasPath) {
-              process.env.PATH = `${platformToolsDir}${sep}${oldPath}`
-            }
+            process.env.ANDROID_HOME = sdkDir
+            process.env.ANDROID_SDK_ROOT = sdkDir
           } catch (e: any) {
             ok = false
-            message = e?.message ?? 'Failed to add platform-tools to PATH'
+            message = e?.message ?? 'Failed to set Android SDK environment variables'
           }
+          results.push({
+            key: 'set-sdk-env',
+            ok,
+            message
+          })
         }
 
-        results.push({
-          key: 'add-platform-tools-path',
+        if (shouldSetPath) {
+          let ok = true
+          let message = 'platform-tools added to PATH'
+
+          if (!platformToolsDir || !existsSync(platformToolsDir)) {
+            ok = false
+            message = 'platform-tools not found in Android SDK'
+          } else {
+            try {
+              if (isWindows()) {
+                // addPath 只返回是否真的提交；完整修复结果结算后才广播。
+                environmentWritten = (await addPath(platformToolsDir)) === true
+              } else {
+                const profile = isMacOS() ? '$HOME/.zshrc' : '$HOME/.bashrc'
+                const exportPath = `export PATH=\"${platformToolsDir}:$PATH\"`
+                await execPromiseWithEnv(
+                  `grep -q '${platformToolsDir.replace(/\\/g, '\\\\')}' ${profile} || echo '${exportPath}' >> ${profile}`
+                )
+              }
+
+              const sep = isWindows() ? ';' : ':'
+              const oldPath = process.env.PATH ?? ''
+              const hasPath = oldPath
+                .split(sep)
+                .map((s) => s.trim())
+                .some((p) => p === platformToolsDir)
+              if (!hasPath) {
+                process.env.PATH = `${platformToolsDir}${sep}${oldPath}`
+              }
+            } catch (e: any) {
+              ok = false
+              message = e?.message ?? 'Failed to add platform-tools to PATH'
+            }
+          }
+
+          results.push({
+            key: 'add-platform-tools-path',
+            ok,
+            message
+          })
+        }
+
+        const ok = results.every((r) => r.ok)
+        const message = ok
+          ? 'Android auto-fix completed'
+          : 'Android auto-fix completed with partial failures'
+
+        appDebugLog(
+          '[flutter][androidAutoFix][result]',
+          JSON.stringify({ action, sdkDir, platformToolsDir, results, ok })
+        ).catch()
+
+        resolve({
           ok,
-          message
+          message,
+          results,
+          sdkDir,
+          platformToolsDir
         })
+      } catch (error) {
+        reject(error)
+      } finally {
+        // 已写入但后续失败也先结算；仅结算之后通知，不等待或覆盖业务终态。
+        if (environmentWritten) notifyWindowsEnvironmentChanged()
       }
-
-      const ok = results.every((r) => r.ok)
-      const message = ok
-        ? 'Android auto-fix completed'
-        : 'Android auto-fix completed with partial failures'
-
-      appDebugLog(
-        '[flutter][androidAutoFix][result]',
-        JSON.stringify({ action, sdkDir, platformToolsDir, results, ok })
-      ).catch()
-
-      resolve({
-        ok,
-        message,
-        results,
-        sdkDir,
-        platformToolsDir
-      })
     })
   },
 

@@ -1,0 +1,14 @@
+# MySQL Cluster 0.1.15 global DbGate
+
+Changed only the plugin DbGateRuntime base from BaseDir/mysql-cluster to BaseDir. Existing and missing installations now both use the native global server/dbgate paths, including workspace, credentials, PID, port and logs. Existing entry skips installation; missing entry retains the existing installer, progress, strict terminal errors, IPv4/IPv6 discovery and sensitive process launch. Renderer transport remains plugin-owned, preserving ordinary/batch/exit shutdown paths without host changes.
+
+The last verified MySQL instance stop still closes the panel, including a global panel previously opened by MongoDB. MongoDB can reopen it afterward. Existing admission queue, unknown-peer policy, required cleanup failure propagation and preservation of completed sibling results are unchanged. No new throw/reject/return, cleanup swallowing, retry, privilege workflow or module state. Existing old private installations are not migrated or deleted. Cross-module simultaneous admission is not globally locked; the existing host runtime has per-instance coordination, and this change adds no host-wide locking protocol.
+
+## Evidence
+
+- Updated actual Fork-entry regression failed with the old private root, then passed after changing the runtime base. Seventeen focused IPC/Fork/installer tests passed (`/tmp/mc-global-dbgate-{path-red,green}.log`).
+- Full suite:194 tests,191 passed,three opt-in native skips,zero failures (`/tmp/mc-global-dbgate-tests.log`).
+- Opt-in native fixture:two passed in11.03s (`/tmp/mc-global-dbgate-native.log`). Existing-global scenario starts through the actual native MongoDB endpoint and MySQL reuses the same PID. Missing-global scenario executes the real plugin installer with a local fake npm subprocess, installs only once, and leaves no mysql-cluster/dbgate directory. Both stop through MySQL, confirm PID removal, reopen through native MongoDB and preserve workspace/credentials. These tests use a small authenticated HTTP fixture, not a newly downloaded real DbGate package. All files/processes are isolated and cleaned up.
+- ESLint zero errors/three existing copied-help warnings; renderer operation boundaries passed. vue-tsc diagnostics byte-identical to the53-diagnostic baseline. Logs `/tmp/mc-global-dbgate-{lint,boundaries,types}.log`.
+- Production build and7z integrity/extracted manifest/registry SHA256 passed. Package `dist/plugins/mysql-cluster/mysql-cluster-0.1.15.flyenv-plugin`:1,653,755 bytes; SHA256 `823f631fdc9b109ba206440916d5a107c5c1f546bf9176cd60a6dd7bc17cdd84`.
+- Host src/scripts remain byte-for-byte unchanged from619d7c8d. No user service/panel was operated; no upload, activation or push. Cancelled Node26 executable probing/fallback was not reintroduced. Native Windows/Linux and simultaneous cross-module admission were not tested.

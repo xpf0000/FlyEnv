@@ -50,5 +50,7 @@
   "auto": "Automatisk",
   "noVerionsFoundInLib": "Ingen tilgjengelig versjon",
   "showToolBtn": "Vis flytende verktøyknapp",
-  "inputSearchKey": "Søk nøkkelord"
+  "inputSearchKey": "Søk nøkkelord",
+  "macPortsSourceTerminal": "Kontroller kildekonfigurasjonen, og ta den deretter i bruk i terminalen med sudo-autentisering.",
+  "linuxSystemFileReadOnly": "Systemets miljøfiler er skrivebeskyttet her. Bruk en terminal med administratorrettigheter for å vedlikeholde dem; filene i brukerprofilen din kan fortsatt redigeres."
 }

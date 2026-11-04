@@ -10,7 +10,6 @@ import (
 )
 
 var windowsSIDPattern = regexp.MustCompile(`(?i)^S-1-(?:\d+-)+\d+$`)
-var windowsAbsolutePathPattern = regexp.MustCompile(`(?i)^(?:[a-z]:[\\/]|\\\\)`)
 
 type WindowsHelperPaths struct {
 	InstanceID         string
@@ -37,8 +36,10 @@ func WindowsHelperInstancePaths(programData, sid string) (WindowsHelperPaths, er
 	if err != nil {
 		return WindowsHelperPaths{}, err
 	}
-	if strings.TrimSpace(programData) == "" || (!filepath.IsAbs(programData) && !windowsAbsolutePathPattern.MatchString(programData)) {
-		return WindowsHelperPaths{}, fmt.Errorf("ProgramData must be an absolute path")
+	// 每 SID SYSTEM 实例只能部署到完整本机路径；不能以 UNC、设备路径、ADS 或
+	// 含穿越/尾点的字符串构造实例。实际运行仍使用 ProgramData known-folder API。
+	if err := ValidateWindowsAbsolutePath(programData, false); err != nil {
+		return WindowsHelperPaths{}, fmt.Errorf("ProgramData must be a full local Windows path: %w", err)
 	}
 	instanceRoot := filepath.Join(programData, "FlyEnv", "Helper", "users", instanceID)
 	return WindowsHelperPaths{

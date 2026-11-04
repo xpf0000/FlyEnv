@@ -23,14 +23,20 @@ func PeerInfoFromConn(conn net.Conn) (PeerInfo, error) {
 	var (
 		cred    *unix.Xucred
 		credErr error
+		peerPID int
+		pidErr  error
 	)
 	if err := raw.Control(func(fd uintptr) {
 		cred, credErr = unix.GetsockoptXucred(int(fd), unix.SOL_LOCAL, unix.LOCAL_PEERCRED)
+		peerPID, pidErr = unix.GetsockoptInt(int(fd), unix.SOL_LOCAL, unix.LOCAL_PEERPID)
 	}); err != nil {
 		return PeerInfo{}, err
 	}
 	if credErr != nil {
 		return PeerInfo{}, credErr
+	}
+	if pidErr != nil || peerPID <= 0 {
+		return PeerInfo{}, fmt.Errorf("cannot establish peer PID: %v", pidErr)
 	}
 	if cred == nil {
 		return PeerInfo{}, fmt.Errorf("missing Unix peer credentials")
@@ -41,7 +47,7 @@ func PeerInfoFromConn(conn net.Conn) (PeerInfo, error) {
 		gid = int(cred.Groups[0])
 	}
 	return PeerInfo{
-		PID: -1,
+		PID: peerPID,
 		UID: int(cred.Uid),
 		GID: gid,
 	}, nil

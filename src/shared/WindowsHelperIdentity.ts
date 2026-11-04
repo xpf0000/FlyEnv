@@ -3,19 +3,16 @@ import { promisify } from 'node:util'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
+import { buildWindowsHelperProcessStopScript } from './WindowsHelperProcess'
+import {
+  resolveWindowsPowerShellPath,
+  windowsPowerShellEnv,
+  windowsPowerShellPath
+} from './WindowsSystemPaths'
 
 const execFileAsync = promisify(execFile)
 
 const WINDOWS_SID_PATTERN = /^S-1-(?:\d+-)+\d+$/i
-
-export const windowsPowerShellPath = (systemRoot = process.env.SystemRoot || 'C:\\Windows') =>
-  path.win32.join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe')
-
-export const windowsPowerShellEnv = (): NodeJS.ProcessEnv => ({
-  ...process.env,
-  // Installation must not autoload user modules that shadow Windows commands.
-  PSModulePath: path.win32.join(path.win32.dirname(windowsPowerShellPath()), 'Modules')
-})
 
 export type WindowsHelperInstancePaths = {
   instanceId: string
@@ -43,7 +40,13 @@ export const windowsHelperInstancePaths = (
   sid: string,
   programData = process.env.ProgramData || 'C:\\ProgramData'
 ): WindowsHelperInstancePaths => {
-  if (!path.win32.isAbsolute(programData)) {
+  // 实例必须部署到本机的完整 ProgramData 路径；仅 isAbsolute 会接受 \\folder。
+  // 禁止 UNC/设备命名空间/ADS，避免每 SID 实例被放到另一个盘符上下文或网络位置。
+  if (
+    !/^[a-z]:[\\/]/iu.test(programData) ||
+    /[\x00-\x1f\x7f<>"|?*:]/u.test(programData.slice(2)) ||
+    programData.split(/[\\/]/u).some((part) => part === '..' || /[. ]$/u.test(part))
+  ) {
     throw new Error('ProgramData must be an absolute Windows path')
   }
   const instanceId = windowsHelperInstanceId(sid)
@@ -72,27 +75,13 @@ export type WindowsHelperIdentity = WindowsHelperInstancePaths & {
   localAppData: string
 }
 
-export const parseWindowsWhoAmIUserCsv = (
-  output: string
-): Pick<WindowsHelperIdentity, 'account' | 'sid'> => {
-  const record = output
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .find((line) => /^"[^"]+","S-1-/.test(line))
-  const match = record?.match(/^"([^"]+)","(S-1-[^"]+)"$/)
-  if (!match) {
-    throw new Error('Could not parse whoami /user CSV output')
-  }
-  return { account: match[1], sid: match[2] }
-}
-
 export const getWindowsHelperIdentity = async (): Promise<WindowsHelperIdentity> => {
   const localAppData = process.env.LOCALAPPDATA ?? ''
   // Execute in the original process context, with explicit UTF-8 for Unicode accounts.
   const script =
     "[Console]::OutputEncoding = [Text.Encoding]::UTF8; $ErrorActionPreference = 'Stop'; $identity = [Security.Principal.WindowsIdentity]::GetCurrent(); @{ account = $identity.Name; sid = $identity.User.Value; programData = [Environment]::GetFolderPath([Environment+SpecialFolder]::CommonApplicationData) } | ConvertTo-Json -Compress"
   const { stdout } = await execFileAsync(
-    windowsPowerShellPath(),
+    resolveWindowsPowerShellPath(),
     [
       '-NoProfile',
       '-NonInteractive',
@@ -127,11 +116,22 @@ export type WindowsHelperInstallConfig = {
 export const buildWindowsHelperInstallScript = (
   template: string,
   config: WindowsHelperInstallConfig
-): string =>
-  template.replace(
-    '#INSTALL_CONFIG#',
-    Buffer.from(JSON.stringify(config), 'utf8').toString('base64')
-  )
+): string => {
+  if (!template.includes('#STOP_HELPER_PROCESSES#')) {
+    throw new Error('Windows Helper installer template is missing the process shutdown stage')
+  }
+  return template
+    .replace('#INSTALL_CONFIG#', Buffer.from(JSON.stringify(config), 'utf8').toString('base64'))
+    .replace(
+      '#STOP_HELPER_PROCESSES#',
+      () =>
+        buildWindowsHelperProcessStopScript({
+          instanceId: config.identity.instanceId,
+          sid: config.identity.sid,
+          executablePaths: [config.executable, config.sourceExecutable, config.backupExecutable]
+        })
+    )
+}
 
 export const windowsHelperInstallerCommand = (
   scriptPath: string,
@@ -149,18 +149,40 @@ export const windowsHelperInstalledPath = (
 export const windowsHelperArguments = (identity: WindowsHelperIdentity): string =>
   `--instance-id "${identity.instanceId}" --expected-user-sid "${identity.sid}"`
 
-export const windowsHelperBinariesMatch = async (
-  executable: string,
-  sourceExecutable: string
+// 安装指纹只用于验证已部署文件的完整性；重新构建/签名不代表协议升级。
+// instance.json 由提权安装器写入并锁定 ACL，不能以新安装包的 SHA 替代此基线。
+export const windowsHelperInstallationMatches = async (
+  identity: WindowsHelperIdentity,
+  helperVersion: number
 ): Promise<boolean> => {
   try {
-    const [executableData, sourceData] = await Promise.all([
-      fs.readFile(executable),
-      fs.readFile(sourceExecutable)
+    const [executableData, configData] = await Promise.all([
+      fs.readFile(identity.executable),
+      fs.readFile(identity.instanceConfigPath, 'utf8')
     ])
+    // Windows PowerShell 5 的 Set-Content -Encoding UTF8 会写入 BOM。
+    const config = JSON.parse(configData.replace(/^\uFEFF/, ''))
+    if (
+      !config ||
+      config.schemaVersion !== 1 ||
+      config.helperProtocol !== helperVersion ||
+      config.instanceId !== identity.instanceId ||
+      config.sid !== identity.sid ||
+      config.pipeName !== identity.pipeName ||
+      typeof config.helperSha256 !== 'string' ||
+      !/^[a-f0-9]{64}$/i.test(config.helperSha256)
+    )
+      return false
+    for (const key of ['executable', 'keyPath', 'allowedRootsPath'] as const) {
+      if (
+        typeof config[key] !== 'string' ||
+        path.win32.normalize(config[key]).toLowerCase() !==
+          path.win32.normalize(identity[key]).toLowerCase()
+      )
+        return false
+    }
     const executableHash = crypto.createHash('sha256').update(executableData).digest()
-    const sourceHash = crypto.createHash('sha256').update(sourceData).digest()
-    return crypto.timingSafeEqual(executableHash, sourceHash)
+    return crypto.timingSafeEqual(executableHash, Buffer.from(config.helperSha256, 'hex'))
   } catch {
     return false
   }
@@ -201,20 +223,18 @@ export const windowsHelperTaskInvalidReason = (
     return 'Scheduled task instance ID or expected-user-sid does not match target user'
   if (task.triggerCount !== 1 || task.triggerSid !== identity.sid)
     return 'Scheduled task logon trigger does not match target user'
-  if (!task.binaryMatches) return 'Installed helper executable differs from bundled version'
+  if (!task.binaryMatches) return 'Installed helper integrity or protocol version does not match'
   return undefined
 }
 
 export const readWindowsHelperTask = async (
   identity: WindowsHelperIdentity,
-  sourceExecutable: string,
+  helperVersion: number,
   startIfStopped = false
 ): Promise<WindowsHelperTask | null> => {
-  if (
-    startIfStopped &&
-    !(await windowsHelperBinariesMatch(identity.executable, sourceExecutable))
-  ) {
-    throw new Error('Installed helper executable differs from bundled version')
+  const binaryMatches = await windowsHelperInstallationMatches(identity, helperVersion)
+  if (startIfStopped && !binaryMatches) {
+    throw new Error('Refusing to start a helper with invalid integrity or protocol version')
   }
   const config = Buffer.from(
     JSON.stringify({
@@ -223,6 +243,8 @@ export const readWindowsHelperTask = async (
       executable: identity.executable,
       arguments: windowsHelperArguments(identity),
       sid: identity.sid,
+      instanceConfigPath: identity.instanceConfigPath,
+      installationRoot: path.win32.resolve(identity.instanceRoot, '../../..'),
       startIfStopped
     }),
     'utf8'
@@ -231,6 +253,29 @@ export const readWindowsHelperTask = async (
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
 $ErrorActionPreference = 'Stop'
 $config = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${config}')) | ConvertFrom-Json
+# 安装记录成为指纹基线前，确认它、程序及实例目录不能被普通用户改写。
+# 与安装器一致，只允许 Administrators/SYSTEM 持有资产或拥有写权限。
+$trustedSids = @('S-1-5-18', 'S-1-5-32-544')
+$checkedPaths = @{}
+$writeMask = [int64]([Security.AccessControl.FileSystemRights]::Write -bor [Security.AccessControl.FileSystemRights]::Delete -bor [Security.AccessControl.FileSystemRights]::DeleteSubdirectoriesAndFiles -bor [Security.AccessControl.FileSystemRights]::ChangePermissions -bor [Security.AccessControl.FileSystemRights]::TakeOwnership)
+foreach ($asset in @($config.instanceConfigPath, $config.executable)) {
+  $candidate = [string]$asset
+  while ($candidate) {
+    if ($checkedPaths.ContainsKey($candidate)) { break }
+    $checkedPaths[$candidate] = $true
+    $item = Get-Item -LiteralPath $candidate -Force -ErrorAction Stop
+    if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'Helper installation contains a reparse point' }
+    if ($candidate -ieq $config.installationRoot -or $candidate.StartsWith(([string]$config.installationRoot + '\\'), [StringComparison]::OrdinalIgnoreCase)) {
+      $acl = Get-Acl -LiteralPath $candidate -ErrorAction Stop
+      # 程序文件按安装契约继承 bin 目录权限；目录和 instance.json 禁用继承。
+      if (($candidate -ine $config.executable -and -not $acl.AreAccessRulesProtected) -or $acl.GetOwner([Security.Principal.SecurityIdentifier]).Value -notin $trustedSids) { throw 'Helper installation ACL is not protected' }
+      foreach ($rule in $acl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier])) {
+        if ($rule.AccessControlType -eq [Security.AccessControl.AccessControlType]::Allow -and $rule.IdentityReference.Value -notin $trustedSids -and ([int64]$rule.FileSystemRights -band $writeMask) -ne 0) { throw 'Helper installation permits untrusted writes' }
+      }
+    }
+    $candidate = Split-Path -Parent $candidate
+  }
+}
 $scheduler = New-Object -ComObject 'Schedule.Service'
 $scheduler.Connect()
 try { $task = $scheduler.GetFolder([string]$config.taskFolder).GetTask([string]$config.taskName) } catch { Write-Output 'null'; exit 0 }
@@ -250,7 +295,7 @@ if ($config.startIfStopped) {
 @{ principal=$principal; logonType=[int]$definition.Principal.LogonType; runLevel=[int]$definition.Principal.RunLevel; enabled=[bool]$task.Enabled; actionCount=$definition.Actions.Count; executable=[string]$action.Path; arguments=[string]$action.Arguments; triggerCount=$definition.Triggers.Count; triggerSid=[string]$triggerSid; state=[int]$task.State; lastTaskResult=[int64]$task.LastTaskResult } | ConvertTo-Json -Compress
 `
   const { stdout } = await execFileAsync(
-    windowsPowerShellPath(),
+    resolveWindowsPowerShellPath(),
     [
       '-NoProfile',
       '-NonInteractive',
@@ -263,18 +308,18 @@ if ($config.startIfStopped) {
   if (!task) return null
   return {
     ...task,
-    binaryMatches: await windowsHelperBinariesMatch(identity.executable, sourceExecutable)
+    binaryMatches
   }
 }
 
 // Diagnostics are best-effort and bounded; they must never hide the original failure.
 export const readWindowsHelperDiagnostics = async (
   identity: WindowsHelperIdentity,
-  sourceExecutable: string
+  helperVersion: number
 ): Promise<string> => {
   const details: string[] = []
   try {
-    const task = await readWindowsHelperTask(identity, sourceExecutable)
+    const task = await readWindowsHelperTask(identity, helperVersion)
     details.push(
       task
         ? `Task state=${task.state}, LastTaskResult=${task.lastTaskResult}`

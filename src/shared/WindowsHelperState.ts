@@ -1,4 +1,8 @@
+// 新增三种状态分别表示需交互授权、用户取消选择和真实拒绝访问；禁止混成“安装损坏”。
 export type AppHelperErrorCode =
+  | 'windows_authorization_required'
+  | 'windows_choice_cancelled'
+  | 'windows_permission_denied'
   | 'helper_binary_missing'
   | 'helper_key_missing'
   | 'helper_key_inaccessible'
@@ -13,6 +17,7 @@ export type AppHelperErrorCode =
   | 'helper_task_start_failed'
   | 'helper_start_timeout'
   | 'elevation_uac_cancelled'
+  | 'elevation_cancelled'
   | 'elevation_launch_failed'
   | 'elevation_pipe_connect_failed'
   | 'elevation_status_timeout'
@@ -22,6 +27,9 @@ export type AppHelperErrorCode =
 export type WindowsElevationMethod = 'helper' | 'uac'
 
 export const DEFAULT_WINDOWS_ELEVATION_METHOD: WindowsElevationMethod = 'helper'
+
+// 纯数据常量放在 renderer 可用的共享文件，升级确认版本时所有入口统一引用。
+export const WINDOWS_ELEVATION_CHOICE_VERSION = 1
 
 export const resolveWindowsElevationMethod = (value: unknown): WindowsElevationMethod => {
   return value === 'uac' ? 'uac' : DEFAULT_WINDOWS_ELEVATION_METHOD
@@ -33,7 +41,11 @@ export type HelperCheckResponse =
   | { code: 0; data: true }
   | { code: 1; data: false; reason: AppHelperErrorCode; msg?: string; stderr?: string }
 
+// 跨 IPC 序列化后仍识别权限错误，供目录延迟恢复及服务失败终态使用。
 const APP_HELPER_ERROR_CODES = new Set<AppHelperErrorCode>([
+  'windows_authorization_required',
+  'windows_choice_cancelled',
+  'windows_permission_denied',
   'helper_binary_missing',
   'helper_key_missing',
   'helper_key_inaccessible',
@@ -48,6 +60,7 @@ const APP_HELPER_ERROR_CODES = new Set<AppHelperErrorCode>([
   'helper_task_start_failed',
   'helper_start_timeout',
   'elevation_uac_cancelled',
+  'elevation_cancelled',
   'elevation_launch_failed',
   'elevation_pipe_connect_failed',
   'elevation_status_timeout',
@@ -128,6 +141,18 @@ export const isAppHelperError = (
 export const isAppHelperUnavailableError = (error: unknown): error is AppHelperError => {
   return isAppHelperError(error) && APP_HELPER_UNAVAILABLE_ERROR_CODES.has(error.code)
 }
+
+const HELPER_CONNECTION_ERROR_MESSAGE = new RegExp(
+  String.raw`(?:(?:AppHelper)?Error:\s*)*connect\s+(?:ENOENT|ECONNREFUSED)\s+` +
+    String.raw`(?:\\\\\.\\pipe\\FlyEnv\.Helper\.[a-f0-9]{32}|/run/flyenv-helper/helper\.sock|/private/var/run/flyenv-helper/helper\.sock)(?=$|[\s'"),;])`,
+  'giu'
+)
+
+// 仅用于界面文案；原错误、错误码与日志保持不变，也保留外层的部分完成说明。
+export const formatHelperConnectionErrorMessage = (message: string, needsInstall: string): string =>
+  typeof message === 'string'
+    ? message.replace(HELPER_CONNECTION_ERROR_MESSAGE, () => needsInstall)
+    : message
 
 export const isWindowsHelperFallbackAllowed = (module: string, fn: string): boolean => {
   return FALLBACK_ALLOWLIST.has(`${module}/${fn}`)

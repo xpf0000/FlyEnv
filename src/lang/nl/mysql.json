@@ -34,5 +34,6 @@
   "databaseBackup": "Databaseback-up",
   "backupSaveDirSet": "Bewaar locatie instellingen",
   "saveDirError": "Ongeldige opslaglocatie",
-  "backupFail": "{database} back-up mislukt, fout: {error}"
+  "backupFail": "{database} back-up mislukt, fout: {error}",
+  "socket": "Socketpad voor een lokale verbinding (standaard: /tmp/mysql.sock). Op Windows is dit de naam van de named pipe (standaard: MySQL)."
 }

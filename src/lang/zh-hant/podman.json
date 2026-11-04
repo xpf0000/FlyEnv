@@ -99,5 +99,7 @@
     "readonlyFs": "只讀根檔案系統",
     "maxRetry": "最大重試",
     "loading": "容器資訊載入中..."
-  }
+  },
+  "rosettaGlobalTip": "此設定會套用至 Apple Silicon 裝置的 Podman 全域偏好，並非個別虛擬機器的開關。需要 Podman >= 5.1.0。",
+  "rosettaNeedVersion": "Rosetta 需要 Podman >= 5.1.0。請先升級 Podman 再啟用此選項。"
 }

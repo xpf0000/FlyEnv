@@ -7,7 +7,6 @@ import {
   AppLog,
   brewInfoJson,
   brewSearch,
-  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -35,6 +34,7 @@ import { I18nT } from '@lang/runtime'
 import { isLinux, isWindows } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
 import EnvSync from '@shared/EnvSync'
+import { tomcatListenPorts } from './Ports'
 
 class Tomcat extends Base {
   constructor() {
@@ -226,36 +226,6 @@ class Tomcat extends Base {
           )
         })
         reject(new Error('Start failed'))
-      } else if (isLinux()) {
-        // Linux keeps the privileged Helper script path (root) unchanged.
-        const execEnvs: string[] = [
-          `export CATALINA_BASE="${baseDir}"`,
-          `export CATALINA_PID="${this.pidPath}"`
-        ]
-        const env = await EnvSync.sync()
-        if (env?.JAVA_HOME) {
-          execEnvs.push(`export JAVA_HOME="${env?.JAVA_HOME}"`)
-        } else if (env?.JAR_HOME) {
-          execEnvs.push(`export JAR_HOME="${env?.JAR_HOME}"`)
-        }
-        const execEnv = execEnvs.join('\n')
-        try {
-          const res = await serviceStartExec({
-            root: true,
-            version,
-            pidPath: this.pidPath,
-            baseDir: tomcatDir,
-            bin,
-            execArgs,
-            execEnv,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
       } else {
         // macOS: version.bin is `startup.sh`, which always `exec`s `catalina.sh start`
         // (daemonizes + parent exits) — serviceStartSpawn would see the launcher exit
@@ -275,6 +245,8 @@ class Tomcat extends Base {
         }
         try {
           const res = await serviceStartSpawn({
+            lowPortService: isLinux(),
+            listenPorts: isLinux() ? await tomcatListenPorts(baseDir) : undefined,
             version,
             pidPath: this.pidPath,
             baseDir: tomcatDir,
@@ -317,7 +289,9 @@ class Tomcat extends Base {
         if (flag === 'del') {
           const certificateOwnerId = tomcatAutoSSLDeletionId(host as any, old as any)
           if (certificateOwnerId !== undefined) {
-            await removeByRoot(join(global.Server.BaseDir!, `CA/${certificateOwnerId}`)).catch(() => {})
+            await removeByRoot(join(global.Server.BaseDir!, `CA/${certificateOwnerId}`)).catch(
+              () => {}
+            )
           }
         }
         resolve({ host: hostList })
@@ -428,7 +402,10 @@ class Tomcat extends Base {
     })
   }
 
-  getConfigFiles(_version?: SoftInstalled, catalinaBase?: string): Array<{ name: string; path: string }> {
+  getConfigFiles(
+    _version?: SoftInstalled,
+    catalinaBase?: string
+  ): Array<{ name: string; path: string }> {
     const v = _version?.version?.split('.')?.shift() ?? ''
     const confDir = join(catalinaBase ?? join(global.Server.BaseDir!, `tomcat/tomcat${v}`), 'conf')
     return [
@@ -442,7 +419,10 @@ class Tomcat extends Base {
     ]
   }
 
-  getLogFiles(_version?: SoftInstalled, catalinaBase?: string): Array<{ name: string; path: string }> {
+  getLogFiles(
+    _version?: SoftInstalled,
+    catalinaBase?: string
+  ): Array<{ name: string; path: string }> {
     const v = _version?.version?.split('.')?.shift() ?? ''
     const logsDir = join(catalinaBase ?? join(global.Server.BaseDir!, `tomcat/tomcat${v}`), 'logs')
     return [{ name: 'catalina.out', path: join(logsDir, 'catalina.out') }]

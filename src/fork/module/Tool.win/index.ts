@@ -24,6 +24,7 @@ import { openPathByApp } from './ide'
 import { initAllowDir, initFlyEnvSH } from './init'
 import EnvSync from '@shared/EnvSync'
 import { appDebugLog } from '@shared/utils'
+import { resolveWindowsPowerShellPath, windowsSystemDirectory } from '@shared/WindowsSystemPaths'
 
 const quotePowerShellSingle = (value: string) => {
   return `'${value.replace(/'/g, "''")}'`
@@ -222,8 +223,10 @@ subjectAltName=@alt_names
 
       try {
         await EnvSync.sync()
-        const systemPath = EnvSync.SystemPath ?? 'C:\\Windows\\System32'
-        powershell = EnvSync.PowerShellPath ?? 'powershell.exe'
+        // 设置页的系统环境窗口也是 UAC 启动入口，不能只保护业务执行器。
+        // 系统工具从启动环境的实际安装目录派生，不从同步 PATH/ComSpec 推导。
+        const systemPath = windowsSystemDirectory()
+        powershell = resolveWindowsPowerShellPath()
         rundll32 = join(systemPath, 'rundll32.exe')
         sysdm = join(systemPath, 'sysdm.cpl')
         systemPropertiesAdvanced = join(systemPath, 'SystemPropertiesAdvanced.exe')

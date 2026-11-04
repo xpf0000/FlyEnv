@@ -34,5 +34,6 @@
   "databaseBackup": "Database sikkerhedskopi",
   "backupSaveDirSet": "Gem placeringsindstillinger",
   "saveDirError": "Ugyldig gem placering",
-  "backupFail": "{database} backup mislykkedes, fejl: {error}"
+  "backupFail": "{database} backup mislykkedes, fejl: {error}",
+  "socket": "Socketsti til lokal forbindelse (standard: /tmp/mysql.sock). På Windows er dette navnet på den navngivne pipe (standard: MySQL)."
 }

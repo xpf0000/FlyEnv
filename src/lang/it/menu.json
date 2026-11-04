@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv necessita di installare un programma ausiliario",
   "helperInstalling": "Installazione del programma di supporto in corso, attendere prego",
   "waitHelper": "Il programma ausiliario si sta avviando, attendere",
-  "helperInstallFailTips": "Installazione del programma di supporto non riuscita, provare a installarlo manualmente nel terminale che appare",
+  "helperInstallFailTips": "Installazione del programma di supporto non riuscita.",
   "helperInstallSuccessTips": "Programma di supporto installato con successo",
   "helperInstallTitle": "Installa programma di supporto"
 }

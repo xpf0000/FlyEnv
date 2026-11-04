@@ -50,5 +50,7 @@
   "auto": "Automatisch",
   "noVerionsFoundInLib": "Geen beschikbare versie",
   "showToolBtn": "Zwevende tool knop weergeven",
-  "inputSearchKey": "Zoek op trefwoord"
+  "inputSearchKey": "Zoek op trefwoord",
+  "macPortsSourceTerminal": "Controleer de bronconfiguratie en pas deze vervolgens toe in de terminal met sudo-authenticatie.",
+  "linuxSystemFileReadOnly": "Systeemomgevingsbestanden zijn hier alleen-lezen. Beheer ze in een terminal met beheerdersrechten; uw gebruikersprofielbestanden blijven bewerkbaar."
 }

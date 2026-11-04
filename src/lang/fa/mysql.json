@@ -34,5 +34,6 @@
   "databaseBackup": "پشتیبان‌گیری دیتابیس",
   "backupSaveDirSet": "تنظیمات محل ذخیره‌سازی",
   "saveDirError": "محل ذخیره‌سازی نامعتبر است",
-  "backupFail": "پشتیبان‌گیری از {database} ناموفق بود، خطا: {error}"
+  "backupFail": "پشتیبان‌گیری از {database} ناموفق بود، خطا: {error}",
+  "socket": "مسیر سوکت اتصال محلی (پیش‌فرض: /tmp/mysql.sock). در Windows، نام پایپ نام‌گذاری‌شده است (پیش‌فرض: MySQL)."
 }

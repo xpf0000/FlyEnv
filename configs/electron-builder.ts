@@ -37,7 +37,7 @@ const ptyPrebuildExcludes = [
 const conf: Configuration = {
   productName: 'FlyEnv',
   executableName: 'FlyEnv',
-  buildVersion: '4.19.1',
+  buildVersion: '4.20.2',
   electronVersion: '39.8.10',
   appId: 'phpstudy.xpfme.com',
   asar: true,
@@ -90,7 +90,9 @@ const conf: Configuration = {
     extendInfo: {
       'Icon file': 'icon.icns',
       CFBundleDisplayName: 'FlyEnv',
-      CFBundleExecutable: 'FlyEnv'
+      CFBundleExecutable: 'FlyEnv',
+      // Sealed installation protocol; fixed bootstrap rejects older signed installers.
+      FlyEnvHelperProtocolVersion: 50
     },
     type: 'distribution',
     darkModeSupport: true,

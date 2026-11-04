@@ -99,5 +99,7 @@
     "readonlyFs": "Resurse URL Readonly",
     "maxRetry": "Reîncercare maximă",
     "loading": "Se încarcă informațiile containerului..."
-  }
+  },
+  "rosettaGlobalTip": "Se aplică drept preferință globală Podman pentru computerele Apple Silicon (nu pentru fiecare mașină virtuală). Necesită Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta necesită Podman >= 5.1.0. Actualizați Podman pentru a activa acest comutator."
 }

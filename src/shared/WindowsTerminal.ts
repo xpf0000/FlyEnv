@@ -1,4 +1,5 @@
 import { encodePowerShellCommand } from './PowerShellCommand'
+import { windowsPowerShellPath } from './WindowsSystemPaths'
 
 function powerShellSingleQuoted(value: string): string {
   return `'${`${value}`.replace(/'/g, "''")}'`
@@ -10,7 +11,8 @@ export function powerShellDoubleQuoted(value: string): string {
 
 export function buildWindowsTerminalInlineScript(
   command: string,
-  windowsPowerShellPath = 'powershell.exe'
+  // 纯脚本构造使用完整系统路径；真正启动的调用方另做存在检查，不依赖 PATH。
+  powerShellPath = windowsPowerShellPath()
 ): string {
   const commandBytes = Buffer.from(command, 'utf8').toString('base64')
   const terminalPayload = `
@@ -51,28 +53,29 @@ $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
 
   return `
 $terminalFound = $false
+$systemPowerShell = ${powerShellSingleQuoted(powerShellPath)}
 $encodedPayload = ${powerShellSingleQuoted(encodedPayload)}
 $argumentList = @('-NoExit', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encodedPayload)
+# 可选终端只接受已解析的应用程序，避免命令别名/函数改变执行目标。
+# Windows Terminal 的 ArgumentList 会拼成一条命令行，因此系统路径须保留双引号，
+# 支持非默认盘及带空格的 Windows 安装目录；业务内容仍由 EncodedCommand 携带。
+$windowsTerminal = Get-Command 'wt.exe' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+$powerShell7 = Get-Command 'pwsh.exe' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
 $terminals = @(
     @{
         Name = 'Windows Terminal'
-        Test = { Get-Command 'wt' -ErrorAction SilentlyContinue }
-        Launch = { Start-Process -FilePath 'wt' -ArgumentList (@('powershell.exe') + $argumentList) }
+        Test = { $null -ne $windowsTerminal }
+        Launch = { Start-Process -FilePath $windowsTerminal.Source -ArgumentList (@(('"' + $systemPowerShell + '"')) + $argumentList) }
     },
     @{
         Name = 'PowerShell 7'
-        Test = { Get-Command 'pwsh' -ErrorAction SilentlyContinue }
-        Launch = { Start-Process -FilePath 'pwsh' -ArgumentList $argumentList }
+        Test = { $null -ne $powerShell7 }
+        Launch = { Start-Process -FilePath $powerShell7.Source -ArgumentList $argumentList }
     },
     @{
         Name = 'Windows PowerShell'
-        Test = { Get-Command 'powershell' -ErrorAction SilentlyContinue }
-        Launch = { Start-Process -FilePath 'powershell' -ArgumentList $argumentList }
-    },
-    @{
-        Name = 'Windows PowerShell'
-        Test = { Test-Path -LiteralPath ${powerShellSingleQuoted(windowsPowerShellPath)} }
-        Launch = { Start-Process -FilePath ${powerShellSingleQuoted(windowsPowerShellPath)} -ArgumentList $argumentList }
+        Test = { Test-Path -LiteralPath $systemPowerShell -PathType Leaf }
+        Launch = { Start-Process -FilePath $systemPowerShell -ArgumentList $argumentList }
     }
 )
 

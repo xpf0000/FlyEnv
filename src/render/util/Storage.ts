@@ -52,3 +52,7 @@ export const StorageSetAsync = async (key: string, obj: any, second?: number) =>
     data: obj
   })
 }
+
+export const StorageRemoveAsync = async (key: string) => {
+  await localForage.removeItem(key)
+}

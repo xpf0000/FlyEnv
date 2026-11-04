@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv需要安装帮助程序",
   "helperInstalling": "帮助程序正在安装, 请稍候",
   "waitHelper": "帮助程序正在启动, 请稍候",
-  "helperInstallFailTips": "帮助程序安装失败, 请尝试在弹出的终端中手动安装",
+  "helperInstallFailTips": "帮助程序安装失败。",
   "helperInstallSuccessTips": "帮助程序安装成功",
   "helperInstallTitle": "安装帮助程序"
 }

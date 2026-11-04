@@ -34,5 +34,6 @@
   "databaseBackup": "Sigurnosna kopija baze podataka",
   "backupSaveDirSet": "Postavke lokacije pohrane",
   "saveDirError": "Nevaljana lokacija pohrane",
-  "backupFail": "{database} sigurnosna kopija nije uspjela, greška: {error}"
+  "backupFail": "{database} sigurnosna kopija nije uspjela, greška: {error}",
+  "socket": "Putanja socketa za lokalnu vezu (zadano: /tmp/mysql.sock). U sustavu Windows to je naziv imenovane cijevi (zadano: MySQL)."
 }

@@ -3,7 +3,7 @@ export {}
 type CallbackFn = (...args: any) => void
 declare module 'vue' {
   export interface GlobalComponents {
-    YbIcon: typeof import('@/components/VueSvgIcon/use.vue')['default']
+    YbIcon: (typeof import('@/components/VueSvgIcon/use.vue'))['default']
   }
 
   interface ComponentCustomProperties {
@@ -37,5 +37,5 @@ declare module 'svg-inline-loader' {
 }
 
 declare global {
-  const YbIcon: typeof import('@/components/VueSvgIcon/use.vue')['default']
+  const YbIcon: (typeof import('@/components/VueSvgIcon/use.vue'))['default']
 }

@@ -1,22 +1,31 @@
-import { ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { I18nT } from '@lang/index'
 import IPC from '@/util/IPC'
 import { dialog } from '@/util/NodeFn'
-import { AsyncComponentShow } from '@/util/AsyncComponent'
 import { reactiveBind } from '@/util/Index'
-import { shouldOpenHelperInstaller } from '@shared/WindowsHelperState'
+import {
+  shouldOpenHelperInstaller,
+  formatHelperConnectionErrorMessage
+} from '@shared/WindowsHelperState'
 import { handleWriteHosts } from '@/util/Host'
+import { MessageError } from '@/util/Element'
 
 class Helper {
   show: boolean = false
   private installResultPending = false
+  private manualInstallerOpening = false
   private installPromise?: Promise<any>
+  private installNotice?: ReturnType<typeof ElMessage>
 
   shouldShowNeedInstallDialog(reason?: string) {
     return shouldOpenHelperInstaller(reason)
   }
 
   isInstallResultPending() {
+    return this.installResultPending || this.manualInstallerOpening
+  }
+
+  isInstalling() {
     return this.installResultPending
   }
 
@@ -26,6 +35,19 @@ class Helper {
     }
 
     this.installResultPending = true
+    // 确认后立即反馈，覆盖权限排队与健康预检；不等待 main 判定是否需要重装。
+    try {
+      this.installNotice = ElMessage({
+        message: I18nT('menu.helperInstalling'),
+        type: 'info',
+        duration: 0,
+        showClose: true,
+        customClass: 'app-el-message',
+        zIndex: 99999
+      })
+    } catch {
+      // 提示属于附加动作，窗口状态不能阻止实际安装请求。
+    }
     const request = new Promise<any>((resolve, reject) => {
       const sent = IPC.send('APP-FlyEnv-Helper-Install')
       const timer = setTimeout(() => {
@@ -63,6 +85,13 @@ class Helper {
       .finally(() => {
         this.installResultPending = false
         this.installPromise = undefined
+        const notice = this.installNotice
+        this.installNotice = undefined
+        try {
+          notice?.close()
+        } catch {
+          // 关闭提示不能覆盖安装终态。
+        }
       })
 
     return this.installPromise.then((res) => res?.code === 0)
@@ -71,12 +100,24 @@ class Helper {
   /**
    * 手动安装（终端脚本）走不到安装结果回调，先确认帮助程序真的可用再补写。
    */
-  verifyHelperReady() {
-    IPC.send('APP:FlyEnv-Helper-Check').then((key: string, res: any) => {
-      IPC.off(key)
-      if (res?.code === 0) {
-        handleWriteHosts().catch(() => {})
-      }
+  verifyHelperReady(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      IPC.send('APP:FlyEnv-Helper-Check', true).then((key: string, res: any) => {
+        if (res?.code === 200) return
+        IPC.off(key)
+        if (res?.code !== 0) {
+          reject(new Error(res?.msg ?? res?.reason ?? 'Helper is unavailable'))
+          return
+        }
+        this.syncHostsAfterInstall()
+        resolve(true)
+      })
+    })
+  }
+
+  syncHostsAfterInstall() {
+    handleWriteHosts().catch((error) => {
+      MessageError(`${I18nT('base.hostsSaveFailed')}: ${error}`)
     })
   }
 
@@ -87,14 +128,14 @@ class Helper {
       this.showInstallFailDialog(res?.reason, res?.stderr || res?.msg)
       return
     }
-    handleWriteHosts().catch(() => {})
+    this.syncHostsAfterInstall()
   }
 
   showNeedInstallDialog(reason?: string) {
     if (!shouldOpenHelperInstaller(reason)) {
       return
     }
-    if (this.show || this.installResultPending) {
+    if (this.show || this.isInstallResultPending()) {
       return
     }
     this.show = true
@@ -112,10 +153,28 @@ class Helper {
   }
 
   showInstallFailDialog(reason?: string, stderr?: string) {
-    if (window.Server.isWindows) {
-      if (reason === 'elevation_uac_cancelled') return
-      const message = I18nT('setup.flyenvHelperInstallFailTips')
-      const diagnostic = stderr?.trim().slice(0, 1024)
+    if (reason === 'elevation_uac_cancelled' || reason === 'elevation_cancelled') return
+    if (
+      window.Server.isWindows ||
+      reason === 'elevation_status_timeout' ||
+      (window.Server.isMacOS &&
+        ['helper_signature_invalid', 'helper_version_mismatch', 'helper_acl_invalid'].includes(
+          reason ?? ''
+        ))
+    ) {
+      const message = I18nT(
+        reason === 'elevation_status_timeout'
+          ? 'setup.flyenvHelperInstallTimeout'
+          : window.Server.isWindows
+            ? 'setup.flyenvHelperInstallFailTips'
+            : 'menu.helperInstallFailTips'
+      )
+      const diagnostic = stderr
+        ? formatHelperConnectionErrorMessage(stderr.trim(), I18nT('menu.needInstallHelper')).slice(
+            0,
+            1024
+          )
+        : undefined
       dialog
         .showMessageBox({
           type: 'info',
@@ -125,9 +184,14 @@ class Helper {
         })
         .catch(() => {})
     } else {
-      import('@/components/FlyEnvHelper/index.vue').then((m) => {
-        AsyncComponentShow(m.default).then()
-      })
+      if (this.manualInstallerOpening) return
+      this.manualInstallerOpening = true
+      import('@/components/FlyEnvHelper/setup')
+        .then(({ FlyEnvHelperSetup }) => FlyEnvHelperSetup.open())
+        .catch((error) => MessageError(`${I18nT('menu.helperInstallFailTips')}: ${error}`))
+        .finally(() => {
+          this.manualInstallerOpening = false
+        })
     }
   }
 }

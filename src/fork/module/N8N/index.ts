@@ -5,7 +5,6 @@ import { Base } from '../Base'
 import type { SoftInstalled } from '@shared/app'
 import {
   AppLog,
-  execPromise,
   mkdirp,
   readFile,
   writeFile,
@@ -17,12 +16,11 @@ import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import { I18nT } from '@lang/runtime'
 import { isWindows } from '@shared/utils'
-import { ProcessListSearch, fetchProcessPidByPort, ProcessPidList } from '@shared/Process.win'
+import { ProcessPidList } from '@shared/Process.win'
 import axios from 'axios'
 import http from 'http'
 import {
   getEnvFilePath,
-  getPort,
   parseEnvFile,
   getN8nConfig,
   resolveDataDir,
@@ -38,15 +36,10 @@ import {
   userCreate,
   userChangeOwnerPassword
 } from './database'
-import {
-  ProcessKill,
-  ProcessOwnedPidsByPid,
-  fetchProcessPidByPort as fetchPidByPort,
-  PItem,
-  ProcessListFetch
-} from '@shared/Process'
-import { StopProcessPidList } from '@shared/StopProcessList'
+import { PItem, ProcessListFetch } from '@shared/Process'
 import { allInstalledVersions, fetchAllOnlineVersion } from './version'
+import { windowsN8nRootMatcher } from './Process'
+import { stopWindowsServiceProcesses } from '@shared/ServiceStop'
 
 class N8N extends Base {
   constructor() {
@@ -58,15 +51,13 @@ class N8N extends Base {
     this.pidPath = join(global.Server.BaseDir!, 'n8n/n8n.pid')
   }
 
-  /** Clean up pid files */
-  private async _cleanupPidFiles(): Promise<void> {
-    try {
-      const appPidFile = this.appPidFile()
-      if (existsSync(appPidFile)) await remove(appPidFile)
-    } catch {}
-    try {
-      if (existsSync(this.pidPath)) await remove(this.pidPath)
-    } catch {}
+  protected _stopSearchName(): string | undefined {
+    return isWindows() ? 'n8n' : super._stopSearchName()
+  }
+
+  /** 使用同一停止快照清理本模块文件和 Base 文件，避免覆盖后的新实例登记被删除。 */
+  private async _cleanupPidFiles(pids: string[], finalList: PItem[]): Promise<void> {
+    await this.cleanupStoppedServicePidFiles(pids, finalList, [this.appPidFile(), this.pidPath])
   }
 
   _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': string[] }> {
@@ -76,52 +67,19 @@ class N8N extends Base {
     return new ForkPromise(async (resolve, _reject, on) => {
       on({ 'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type })) })
 
-      const port = await getPort()
-      const allPid = new Set<string>()
+      // 精确入口谓词负责确认安装归属；n8n 标记让通用建树兼容 env/node 联接别名。
+      // 按完整进程表恢复孤立根，不依赖当前配置端口或固定反斜杠文本。
+      const targets = await this.windowsServiceTargets(
+        version,
+        ['n8n'],
+        windowsN8nRootMatcher(version)
+      )
+      const arr = targets.pids
+      // Node 的 runner 等后代随已确认父树停止，退出时同样等待实际退出。
+      const finalList = await stopWindowsServiceProcesses(arr, targets.list, { confirmExit: true })
 
-      const processList = await StopProcessPidList()
-      const ownedMarkers = this.ownedProcessMarkers(version)
-
-      // 1. Kill by saved app pid file
-      try {
-        const savedPid = await this.readPidFromFile(this.appPidFile())
-        if (savedPid) {
-          ProcessOwnedPidsByPid(savedPid, processList, ownedMarkers).forEach((pid) =>
-            allPid.add(pid)
-          )
-        }
-      } catch {}
-
-      // 2. Kill by n8n.pid (persisted real node pid from the last successful start)
-      try {
-        const savedPid = await this.readPidFromFile()
-        if (savedPid) {
-          ProcessOwnedPidsByPid(savedPid, processList, ownedMarkers).forEach((pid) =>
-            allPid.add(pid)
-          )
-        }
-      } catch {}
-
-      // 3. Kill by port — most reliable: finds node.exe actually listening
-      try {
-        const portPids = await fetchProcessPidByPort(port)
-        for (const pid of portPids) {
-          ProcessOwnedPidsByPid(pid, processList, ownedMarkers).forEach((item) => allPid.add(item))
-        }
-      } catch {}
-
-      // 4. Kill any node.exe whose command contains '\\n8n\\'
-      try {
-        const n8nProcs = await ProcessListSearch('\\n8n\\', false, processList)
-        n8nProcs.forEach((p) => allPid.add(p.PID!))
-      } catch {}
-
-      const arr = Array.from(allPid).filter(Boolean)
-      if (arr.length > 0) {
-        await ProcessKill('-9', arr)
-      }
-
-      await this._cleanupPidFiles()
+      const cleanupCandidates = [...arr, ...targets.candidates]
+      await this._cleanupPidFiles(cleanupCandidates, finalList)
 
       on({ 'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type })) })
       resolve({ 'APP-Service-Stop-PID': arr })
@@ -210,6 +168,7 @@ class N8N extends Base {
             })
           }
 
+      const matchesWindowsRoot = isWindows() ? windowsN8nRootMatcher(version) : undefined
       const checkPid = async (times = 0) => {
         if (times > 10) {
           throw new Error(I18nT('fork.startFail'))
@@ -231,8 +190,10 @@ class N8N extends Base {
         /**
          * Check Is n8n start success
          */
-        const find = all.find(
-          (a) => a?.COMMAND && a.COMMAND.includes('n8n') && a.COMMAND.includes('start')
+        const find = all.find((a) =>
+          matchesWindowsRoot
+            ? matchesWindowsRoot(a)
+            : a?.COMMAND && a.COMMAND.includes('n8n') && a.COMMAND.includes('start')
         )
         if (find) {
           return find.PID
@@ -351,60 +312,6 @@ class N8N extends Base {
 
   allInstalledVersions() {
     return allInstalledVersions.call(this)
-  }
-
-  /**
-   * Check if n8n is accessible — first tries HTTP health endpoint,
-   * then falls back to port-listener check so we also detect processes
-   * that were started outside FlyEnv.
-   */
-  checkRunning(): ForkPromise<{ running: boolean; pid: string; status: number }> {
-    return new ForkPromise(async (resolve) => {
-      const port = await getPort()
-
-      // 1. HTTP health check
-      try {
-        const res = await axios({
-          url: `http://127.0.0.1:${port}/healthz`,
-          method: 'get',
-          timeout: 3000,
-          withCredentials: false,
-          httpAgent: new http.Agent({ keepAlive: false }),
-          proxy: false as any
-        })
-        if (res.status === 200) {
-          // Also grab the PID via port listener so the UI can track it
-          let pid = ''
-          try {
-            if (isWindows()) {
-              const pids = await fetchProcessPidByPort(port)
-              if (pids.length > 0) pid = pids[0]
-            } else {
-              const r = await execPromise(`lsof -ti :${port}`)
-              pid = r.stdout.trim().split('\n').filter(Boolean)[0] ?? ''
-            }
-          } catch {}
-          resolve({ running: true, pid, status: res.status })
-          return
-        }
-      } catch {}
-
-      // 2. Port-listener fallback (process running but not yet serving HTTP)
-      try {
-        let pids: string[] = []
-        if (isWindows()) {
-          pids = await fetchProcessPidByPort(port)
-        } else {
-          pids = (await fetchPidByPort(port)).map((p) => p.PID)
-        }
-        if (pids.length > 0) {
-          resolve({ running: true, pid: pids[0], status: 0 })
-          return
-        }
-      } catch {}
-
-      resolve({ running: false, pid: '', status: 0 })
-    })
   }
 
   /**

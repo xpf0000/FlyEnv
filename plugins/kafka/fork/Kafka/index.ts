@@ -32,6 +32,8 @@ import { ProcessListSearch } from '@shared/Process.win'
 import { validateKafkaJava, KAFKA_MIN_JAVA_MAJOR } from './policy'
 import { KafkaT } from '../lang'
 import KafkaVersionFetch from './version'
+import { patchKafkaWindowsRunClass } from './WindowsRunClass'
+import { kafkaClusterUuidFromOutput, kafkaPropertiesValue } from './kraft'
 
 const KAFKA_STARTUP_CHECK_TIMES = 60
 const KAFKA_VERSION_COMMAND_TIMEOUT_MS = 60_000
@@ -109,7 +111,7 @@ controller.quorum.voters=1@127.0.0.1:9093
 listeners=PLAINTEXT://127.0.0.1:9092,CONTROLLER://127.0.0.1:9093
 advertised.listeners=PLAINTEXT://127.0.0.1:9092
 controller.listener.names=CONTROLLER
-log.dirs=${pathFixedToUnix(dataDir)}
+log.dirs=${kafkaPropertiesValue(pathFixedToUnix(dataDir))}
 offsets.topic.replication.factor=1
 transaction.state.log.replication.factor=1
 transaction.state.log.min.isr=1
@@ -178,12 +180,8 @@ transaction.state.log.min.isr=1
     let uuid = ''
     try {
       const res = await execPromiseWithEnv(`"${storageBin}" random-uuid`, opt)
-      uuid =
-        res.stdout
-          .split('\n')
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .pop() ?? ''
+      uuid = kafkaClusterUuidFromOutput(res.stdout)
+      if (!uuid && res.stderr.trim()) throw new Error(res.stderr.trim())
     } catch (e: any) {
       throw new Error(KafkaT('kraftUuidFailed', { error: e?.stderr ?? e?.message ?? e }))
     }
@@ -459,19 +457,9 @@ transaction.state.log.min.isr=1
     if (!existsSync(file)) {
       return
     }
-    try {
-      const content = await readFile(file, 'utf-8')
-      if (content.includes('call :concat "%BASE_DIR%\\libs\\*"')) {
-        return
-      }
-      const fixed = content.replace(
-        /for %%i in \("%BASE_DIR%\\libs\\\*"\) do \(\r?\n\s*call :concat "%%i"\r?\n\)/,
-        'call :concat "%BASE_DIR%\\libs\\*"'
-      )
-      if (fixed !== content) {
-        await writeFile(file, fixed)
-      }
-    } catch {}
+    const content = await readFile(file, 'utf-8')
+    const fixed = patchKafkaWindowsRunClass(content)
+    if (fixed !== content) await writeFile(file, fixed)
   }
 
   /**
@@ -552,7 +540,14 @@ transaction.state.log.min.isr=1
             KAFKA_VERSION_COMMAND_TIMEOUT_MS
           )
         })
-        const results = await Promise.all(checks)
+        const results = await Promise.all(
+          checks.map((check) =>
+            check.catch((error) => ({
+              version: undefined,
+              error: error instanceof Error ? error.message : String(error)
+            }))
+          )
+        )
         results.forEach((result, index) => {
           const { error, version } = result
           const num = version ? Number(versionFixed(version).split('.').slice(0, 2).join('')) : null

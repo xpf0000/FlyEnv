@@ -197,8 +197,7 @@
                   <pre
                     v-if="item.content"
                     class="whitespace-pre-wrap break-all text-xs leading-5"
-                    >{{ item.content }}</pre
-                  >
+                    >{{ item.content }}</pre>
                 </div>
               </template>
             </div>

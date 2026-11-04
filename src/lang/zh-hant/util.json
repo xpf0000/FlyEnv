@@ -50,5 +50,7 @@
   "auto": "自動",
   "noVerionsFoundInLib": "無可用版本",
   "showToolBtn": "顯示工具浮動按鈕",
-  "inputSearchKey": "搜尋關鍵詞"
+  "inputSearchKey": "搜尋關鍵詞",
+  "macPortsSourceTerminal": "請先預覽來源設定，再於終端機透過 sudo 認證套用變更。",
+  "linuxSystemFileReadOnly": "系統環境檔案在此僅供讀取，請於終端機使用管理員權限維護；個人使用者設定檔仍可編輯。"
 }

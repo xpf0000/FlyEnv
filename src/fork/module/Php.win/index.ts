@@ -1,4 +1,4 @@
-import { join, dirname, basename, isAbsolute } from 'path'
+import { join, dirname, basename, win32 } from 'path'
 import { createWriteStream, existsSync } from 'fs'
 import { Base } from '../Base'
 import { I18nT } from '@lang/runtime'
@@ -6,6 +6,7 @@ import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   AppLog,
   execPromise,
+  spawnPromiseWithEnv,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -21,16 +22,61 @@ import {
 } from '../../Fn'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
+import { isReadableServiceStopRoot, processSnapshotParentMatches } from '@shared/ProcessSnapshot'
 import TaskQueue from '../../TaskQueue'
 import axios from 'axios'
-import { StopProcessListSearch } from '@shared/StopProcessList'
+import { StopProcessListFetch } from '@shared/StopProcessList'
+import { isCommandOnlyServiceStopResult } from '@shared/ServiceStop'
 import { parse as iniParse } from 'ini'
 import { IniParse } from '../../../render/util/IniParse'
-import { ProcessKill } from '@shared/Process'
+import { ProcessListByExactPid } from '@shared/Process'
+import type { PItem } from '@shared/Process'
 import { FastCgiWorkerStore } from './FastCgiWorkers'
+import windowsExtensions from './WindowsExtensions'
+import {
+  configuredExtensions,
+  extensionDirectory,
+  extensionName,
+  iniValue,
+  updateExtensionIni
+} from './ExtensionConfig'
+import { replaceIniIfUnchanged, withPhpIniMutation } from './IniMutation'
+import { loadedExtensionsCommand, parseLoadedExtensions } from '../Php/LoadedExtensions'
+import { timeOperation, timeOperationSync } from '@shared/OperationTiming'
+import {
+  logServiceStop,
+  serviceStopProcessRows,
+  withServiceStopDiagnostics
+} from '@shared/ServiceStopDiagnostics'
 
 class Php extends Base {
   private workerStore?: FastCgiWorkerStore
+
+  fetchLoadedExtensions(version: SoftInstalled) {
+    return new ForkPromise(async (resolve) => {
+      const ini = await this.getIniPath(version)
+      const command = loadedExtensionsCommand(version, ini, true)
+      const { stdout } = await spawnPromiseWithEnv(command.bin, command.args, {
+        cwd: command.cwd,
+        shell: false,
+        windowsHide: true,
+        timeout: 30000
+      })
+      resolve(parseLoadedExtensions(stdout))
+    })
+  }
+
+  windowsExtensionCatalog(version: SoftInstalled, query: string) {
+    return windowsExtensions.catalog(version, query)
+  }
+
+  windowsExtensionInstall(version: SoftInstalled, name: string) {
+    return windowsExtensions.install(version, name)
+  }
+
+  windowsExtensionDisable(version: SoftInstalled, name: string) {
+    return windowsExtensions.disable(version, name)
+  }
 
   constructor() {
     super()
@@ -202,35 +248,217 @@ class Php extends Base {
     })
   }
 
-  _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': string[] }> {
-    return new ForkPromise(async (resolve, reject, on) => {
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
-      })
-      const all = await StopProcessListSearch(`phpwebstudy.90${version.num}`, false)
-      const arr: Array<string> = []
-      const fpm: Array<string> = []
-      all.forEach((item) => {
-        if (item?.COMMAND?.includes('php-cgi-spawner.exe')) {
-          fpm.push(item.PID)
-        } else {
-          arr.push(item.PID)
+  /**
+   * PHP 自己识别服务归属：实际程序路径必须是当前版本的 spawner/php-cgi，且
+   * 命令行带本版本 FlyEnv 专用 ini。相对命令行不能拿来区分两个安装目录；
+   * EXECUTABLE 来自系统查询，中文/空格路径按 Windows 规则比较，不依赖 PATH。
+   */
+  private fastCgiProcesses(version: SoftInstalled, list: PItem[], parentsOnly = false): PItem[] {
+    const normalizeExe = (path: string) => win32.normalize(path).replace(/\\/g, '/').toLowerCase()
+    const exes = new Set([
+      normalizeExe(join(version.path, 'php-cgi-spawner.exe')),
+      normalizeExe(join(version.path, 'php-cgi.exe'))
+    ])
+    const ini = `php.phpwebstudy.90${version.num}.ini`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const marker = new RegExp(`(?:^|[\\\\/\\s"'])${ini}(?:$|[\\s"'])`, 'i')
+    return list.filter((process) => {
+      // 过滤只发生在父/独立根候选阶段；缺字段或归属不匹配不影响其他有效树。
+      // 完整后代随后从原列表收集，无需每个正常 worker 的命令/EXE 都可读。
+      if (!isReadableServiceStopRoot(process)) return false
+      // 正常路径先仅识别父节点；其 worker 在下方由进程树直接覆盖，不作单独校验。
+      if (
+        parentsOnly &&
+        win32.basename(process.EXECUTABLE ?? '').toLowerCase() !== 'php-cgi-spawner.exe'
+      ) {
+        return false
+      }
+      if (!marker.test(process.COMMAND)) return false
+      // 专用 ini 与实际安装路径一起证明归属；EXE 单独相同不足以选中其他实例。
+      return exes.has(normalizeExe(process.EXECUTABLE ?? ''))
+    })
+  }
+
+  /**
+   * 仅为诊断保留相关 PHP 行和显式候选，包括未被归属规则选中的行；否则无法区分
+   * “首次列表没有 worker”和“列表有但筛选遗漏”。完全复用现成列表，不增加系统查询。
+   */
+  private stopDiagnosticRows(list: PItem[], pids: string[]) {
+    const included = new Set(pids)
+    const byPid = new Map(list.map((item) => [item.PID, item]))
+    return list
+      .filter(
+        (item) =>
+          included.has(item.PID) ||
+          /^php-cgi(?:-spawner)?\.exe$/i.test(win32.basename(item.EXECUTABLE ?? '')) ||
+          /php(?:-cgi|-fpm)|php\.phpwebstudy/i.test(item.COMMAND ?? '')
+      )
+      .map((item) => {
+        const parent = byPid.get(item.PPID)
+        return {
+          ...serviceStopProcessRows([item], true)[0],
+          readableRoot: isReadableServiceStopRoot(item),
+          parentCreated: parent?.CREATED ?? null,
+          validParentEdge: parent ? processSnapshotParentMatches(item, parent) : null
         }
       })
-      arr.unshift(...fpm)
-      console.log('php arr: ', arr)
-      if (arr.length > 0) {
-        try {
-          await ProcessKill('-INT', arr)
-        } catch {}
-      }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
-      })
-      resolve({
-        'APP-Service-Stop-PID': arr
-      })
-    })
+  }
+
+  _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': string[] }> {
+    // trace 在调用时建立，首次筛选/根派发/末次确认/补停共用，三个并行 PHP 不混日志。
+    return withServiceStopDiagnostics(
+      { module: this.type, version: version.version, bin: version.bin, rootPid: version.pid },
+      () =>
+        new ForkPromise(async (resolve, reject, on) => {
+          try {
+            on({
+              'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
+            })
+            await logServiceStop('php.begin', {
+              installPath: version.path,
+              versionNum: version.num
+            })
+            // 多版本 PHP 与其他服务共用 main 的首次全量查询及 650ms 缓存。
+            // main 在启动/登记时撤销旧表；停止后确认仍严格重查，不能复用这份首表。
+            // 分阶段观察真实停止，不替换进程表或停止执行器；用来区分全量查询、
+            // 权限管道与原树退出确认的固定开销，事件中不放命令行或配置内容。
+            const snapshotQueryStartedAt = new Date().toISOString()
+            const all = await timeOperation('php.stop.discover-processes', () =>
+              StopProcessListFetch()
+            )
+            const snapshotQueryCompletedAt = new Date().toISOString()
+            // 文件值只作为清理候选保存；首次列表的父筛选决定实际目标。共享 app PID
+            // 可指向另一版本，不能因一条不可读登记提前阻断本版本所有有效树。
+            const candidates = new Set([`${version.pid ?? ''}`.trim()])
+            const pidFiles: Array<{ file: string; pid: string }> = []
+            for (const file of [
+              this.appPidFile(),
+              join(global.Server.PhpDir!, `php${version.num}.pid`)
+            ]) {
+              if (existsSync(file)) {
+                const pid = await timeOperation('php.stop.read-pid-file', () =>
+                  this.readPidFromFile(file)
+                )
+                candidates.add(pid)
+                pidFiles.push({ file, pid })
+              }
+            }
+            const parents = timeOperationSync('php.stop.identify-parents', () =>
+              this.fastCgiProcesses(version, all, true)
+            )
+            // 有效 spawner 已确认当前安装路径/专用配置；其完整后代直接属于这棵服务树，
+            // 不再为四个 worker 分别比较创建时间。旧残留只在不属于任何有效父树时回收。
+            const covered = new Set(
+              parents.flatMap(({ PID }) => ProcessListByExactPid(PID, all).map(({ PID }) => PID))
+            )
+            const orphans = this.fastCgiProcesses(
+              version,
+              all.filter(({ PID }) => !covered.has(PID))
+            ).flatMap(({ PID }) => ProcessListByExactPid(PID, all).map(({ PID }) => PID))
+            const arr = [...new Set([...covered, ...orphans])]
+            // 持久日志明确区分文件/登记候选、确认根、父树后代、独立根和最终完整目标。
+            // 相关但未选中的 PHP 行也保留，配合创建时间/路径/ini 能复核实际筛选原因。
+            await logServiceStop('php.detected', {
+              snapshotQueryStartedAt,
+              snapshotQueryCompletedAt,
+              snapshotCount: all.length,
+              pidFiles,
+              candidates: [...candidates],
+              missingCandidates: [...candidates].filter(
+                (pid) => pid && !all.some((item) => item.PID === pid)
+              ),
+              parentPids: parents.map(({ PID }) => PID),
+              coveredPids: [...covered],
+              orphanTreePids: orphans,
+              targetPids: [...arr],
+              processes: this.stopDiagnosticRows(all, [...arr, ...candidates])
+            })
+            // 模块只提供按 ini/安装路径确认的目标。正常父树和已确认的孤立根一起交给
+            // 首次列表筛选/建树已形成父先子后的目标顺序；公共执行器直接委托
+            // ProcessKillStrict，不再排序或校验后代身份字段。
+            // quit 不追加全量确认，UI/MCP 停止仍确认；不能拿首表误判版本残留。
+            // 孤立根的后代直接按同一列表收集，不逐 worker 授权或单独启动第二套 kill。
+            let finalList = await timeOperation('php.stop.execute-and-confirm', () =>
+              this.stopWindowsServiceProcesses(arr, all)
+            )
+            if (arr.length && !isCommandOnlyServiceStopResult(finalList)) {
+              // 原树消失与版本残留共用公共执行器返回的停止后快照，只在内存筛选。
+              let remaining = timeOperationSync('php.stop.check-version-residuals', () =>
+                this.fastCgiProcesses(version, finalList)
+              )
+              await logServiceStop('php.after-primary', {
+                requestedPids: [...arr],
+                remainingPids: remaining.map(({ PID }) => PID),
+                processes: this.stopDiagnosticRows(finalList, arr)
+              })
+              if (remaining.length) {
+                // 首次列表与真正执行之间有权限管道/调度等待，spawner 此时仍可产生 worker。
+                // 公共等待只证明首次 PID 集合已退出；它不能证明快照之后出现的新 worker
+                // 也退出。先前这里直接报错，导致可明确证明归属的额外 worker 遗留在退出后。
+                // 只在该异常分支复用现成末次列表，确认本安装实际 EXE + 专用 ini 的独立根；
+                // 不能仅按 php-cgi 名称/EXE，或旧父 PPID 选中其他用户进程。
+                await logServiceStop('php.recover-residuals', {
+                  requested: arr,
+                  remaining: remaining.map(({ PID, PPID, CREATED }) => ({
+                    pid: PID,
+                    ppid: PPID,
+                    created: CREATED,
+                    originalCreated: all.find((process) => process.PID === PID)?.CREATED ?? null,
+                    originallyRequested: arr.includes(PID)
+                  }))
+                })
+                // 已独立确认的根授权其当前完整子树，仍不逐个检测普通后代。补停也使用
+                // 公共执行器：从本轮列表取创建身份、派发前复核根、走原 Helper/UAC 分流，
+                // 然后严格取新列表确认退出。不能拿首次列表的旧 PID 身份授权新 worker。
+                const residualPids = [
+                  ...new Set(
+                    remaining.flatMap(({ PID }) =>
+                      ProcessListByExactPid(PID, finalList).map((process) => process.PID)
+                    )
+                  )
+                ]
+                finalList = await timeOperation('php.stop.recover-residuals', () =>
+                  this.stopWindowsServiceProcesses(residualPids, finalList)
+                )
+                // 成功补停的 PID 合并进本次终态，登记注销与 PID 文件清理仍使用最终快照。
+                // 仅补停一次，避免持续新建进程或外部重启使 FlyEnv 退出无限循环；权限、
+                // 身份变化、查询和原树等待失败仍直接传播，不清文件或伪装成功。
+                arr.push(...residualPids.filter((pid) => !arr.includes(pid)))
+                remaining = timeOperationSync('php.stop.check-version-residuals', () =>
+                  this.fastCgiProcesses(version, finalList)
+                )
+                await logServiceStop('php.after-recovery', {
+                  requestedPids: residualPids,
+                  remainingPids: remaining.map(({ PID }) => PID),
+                  processes: this.stopDiagnosticRows(finalList, arr)
+                })
+              }
+              if (remaining.length) {
+                await logServiceStop('php.failed-residuals', {
+                  remaining: serviceStopProcessRows(remaining, true)
+                })
+                throw new Error(
+                  `PHP processes are still running; PIDs=${remaining.map(({ PID }) => PID).join(',')}`
+                )
+              }
+            }
+            await this.cleanupStoppedServicePidFiles([...arr, ...candidates], finalList, [
+              this.appPidFile(),
+              join(global.Server.PhpDir!, `php${version.num}.pid`)
+            ])
+            on({
+              'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+            })
+            await logServiceStop('php.completed', { stoppedPids: [...arr] })
+            resolve({
+              'APP-Service-Stop-PID': arr
+            })
+          } catch (error) {
+            // 包括首次查询/文件读取失败和补停失败；日志收尾不能吞掉真正停止错误。
+            await logServiceStop('php.failed', { error: String(error) })
+            reject(error)
+          }
+        })
+    )
   }
 
   #initFPM() {
@@ -419,137 +647,59 @@ class Php extends Base {
   fetchExtensionDir(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve) => {
       const ini = await this.getIniPath(version)
-      let content: string = await readFile(ini, 'utf-8')
-
-      let dir: string = ''
-      const regex: RegExp = /^(?!\s*;)\s*extension_dir\s*=\s*"?([^"\s]+)"?/gm
-      let m: any
-      while ((m = regex.exec(content)) !== null) {
-        if (m && m.length > 0) {
-          dir = m[1].trim()
-        }
-      }
-
-      if (!dir) {
-        content = content.trim() + `\nextension_dir = "ext"`
-        await writeFile(ini, content)
-        dir = join(dirname(version.bin), 'ext')
-      } else if (!isAbsolute(dir)) {
-        dir = join(dirname(version.bin), dir)
-      }
-      if (existsSync(dir)) {
-        resolve(dir)
-      }
-      resolve('')
+      const content = await readFile(ini, 'utf-8')
+      const dir = extensionDirectory(content, version.phpBin || join(version.path, 'php.exe'))
+      resolve(existsSync(dir) ? dir : '')
     })
   }
 
   localExec(item: any, version: SoftInstalled) {
-    return new ForkPromise(async (resolve, reject) => {
+    return new ForkPromise(async (resolve) => {
       const ini = await this.getIniPath(version)
-      let content: string = await readFile(ini, 'utf-8')
-      content = content.trim()
-
-      if (item.installed) {
-        const type = item.iniStr.includes('zend_') ? 'zend_extension' : 'extension'
-        const regex: RegExp = new RegExp(
-          `^(?!\\s*;)\\s*${type}\\s*=\\s*"?(${item.name})(\\.dll)?"?`,
-          'gm'
-        )
-        content = content.replace(regex, ``).trim()
-        if (item.name === 'php_xdebug') {
-          content = content
-            .replace(/;\[FlyEnv-xdebug-ini-begin\]([\s\S]*?);\[FlyEnv-xdebug-ini-end\]/g, ``)
-            .trim()
-        }
-      } else {
-        let dll = item.iniStr
-        if (!dll.includes(`.dll`)) {
-          dll = dll.replace(/"/g, '').trim()
-          dll += '.dll'
-        }
-        content += `\n${dll}`
-        if (item.name === 'php_xdebug') {
-          const output_dir = join(global.Server.PhpDir!, 'xdebug')
-          await mkdirp(output_dir)
-          content += `\n;[FlyEnv-xdebug-ini-begin]
-xdebug.idekey = "PHPSTORM"
-xdebug.client_host = localhost
-xdebug.client_port = 9003
-xdebug.mode = debug
-xdebug.profiler_append = 0
-xdebug.profiler_output_name = cachegrind.out.%p
-xdebug.start_with_request = yes
-xdebug.trigger_value=StartProfileForMe
-xdebug.output_dir = "${output_dir}"
-;[FlyEnv-xdebug-ini-end]`
-        }
-      }
-
-      content = content.trim()
-      await writeFile(ini, content)
-      this.fetchLocalExtend(version).then(resolve).catch(reject)
+      resolve(
+        await withPhpIniMutation(ini, async () => {
+          const original = Buffer.from(await readFile(ini, 'utf-8'))
+          const name = extensionName(item.name)
+          const directory = extensionDirectory(
+            original.toString('utf8'),
+            version.phpBin || join(version.path, 'php.exe')
+          )
+          const xdebugDirectory = join(global.Server.PhpDir!, 'xdebug')
+          if (name === 'xdebug' && !item.installed) await mkdirp(xdebugDirectory)
+          const value = iniValue(item.iniStr.slice(item.iniStr.indexOf('=') + 1))
+          const dll = value.toLowerCase().endsWith('.dll') ? value : `${value}.dll`
+          if (extensionName(dll) !== name)
+            throw new Error('The selected extension DLL does not match its name')
+          const content = updateExtensionIni(
+            original.toString('utf8'),
+            name,
+            !item.installed,
+            name === 'xdebug' || name === 'opcache' || item.iniStr.includes('zend_'),
+            win32.resolve(directory, dll),
+            xdebugDirectory
+          )
+          await replaceIniIfUnchanged(ini, original, Buffer.from(content))
+          return await this.fetchLocalExtend(version)
+        })
+      )
     })
   }
 
   fetchLocalExtend(version: SoftInstalled) {
     return new ForkPromise(async (resolve) => {
       const ini = await this.getIniPath(version)
-      let content: string = await readFile(ini, 'utf-8')
-
-      let dir: string = ''
-      let regex: RegExp = /^(?!\s*;)\s*extension_dir\s*=\s*"?([^"\s]+)"?/gm
-      let m: any
-      while ((m = regex.exec(content)) !== null) {
-        if (m && m.length > 0) {
-          dir = m[1].trim()
-        }
-      }
-
-      if (!dir) {
-        content = content.trim() + `\nextension_dir = "ext"`
-        await writeFile(ini, content)
-        dir = join(dirname(version.bin), 'ext')
-      } else if (!isAbsolute(dir)) {
-        dir = join(dirname(version.bin), dir)
-      }
-
-      console.log('fetchLocalExtend dir: ', dir)
-
+      const content = await readFile(ini, 'utf-8')
+      const dir = extensionDirectory(content, version.phpBin || join(version.path, 'php.exe'))
       const local: any = []
-      const used: any = []
-
-      regex = /^(?!\s*;)\s*extension\s*=\s*"?([^"\s]+)"?/gm
-      while ((m = regex.exec(content)) !== null) {
-        if (m && m.length > 0) {
-          const name = m[1].split('.').shift().trim()
-          const iniStr = m[0].trim()
-          used.push({
-            name,
-            iniStr
-          })
-        }
-      }
-
-      regex.lastIndex = 0
-      regex = /^(?!\s*;)\s*zend_extension\s*=\s*"?([^"\s]+)"?/gm
-      while ((m = regex.exec(content)) !== null) {
-        if (m && m.length > 0) {
-          const name = m[1].split('.').shift().trim()
-          const iniStr = m[0].trim()
-          used.push({
-            name,
-            iniStr
-          })
-        }
-      }
+      const configured = new Set(configuredExtensions(content, []).map((item) => item.name))
 
       const zend = ['php_opcache', 'php_xdebug']
 
       if (existsSync(dir)) {
         let all: any = await readdir(dir)
         all = all
-          .map((a: string) => a.split('.').shift()!)
+          .filter((a: string) => a.toLowerCase().endsWith('.dll'))
+          .map((a: string) => a.slice(0, -4).toLowerCase())
           .map((a: string) => {
             return {
               name: a,
@@ -561,7 +711,7 @@ xdebug.output_dir = "${output_dir}"
 
       resolve({
         local,
-        used,
+        used: local.filter((item: { name: string }) => configured.has(extensionName(item.name))),
         dir
       })
     })
@@ -583,6 +733,13 @@ xdebug.output_dir = "${output_dir}"
   }
 
   libExec(item: any, version: SoftInstalled) {
+    return new ForkPromise(async (resolve, _reject, on) => {
+      const ini = await this.getIniPath(version)
+      resolve(await withPhpIniMutation(ini, () => this.libExecUnlocked(item, version).on(on)))
+    })
+  }
+
+  private libExecUnlocked(item: any, version: SoftInstalled) {
     return new ForkPromise(async (resolve, reject, on) => {
       const ini = await this.getIniPath(version)
       let content: string = await readFile(ini, 'utf-8')

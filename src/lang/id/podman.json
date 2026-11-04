@@ -16,6 +16,8 @@
   "rootful": "Mode Rootful",
   "userModeNetworking": "Jaringan Mode Pengguna",
   "rosetta": "Rosetta untuk Mac",
+  "rosettaGlobalTip": "Berlaku sebagai preferensi Podman global untuk mesin Apple Silicon (bukan per-VM). Membutuhkan Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta membutuhkan Podman >= 5.1.0. Perbarui Podman untuk mengaktifkan opsi ini.",
   "identityPath": "Path Kunci SSH",
   "remoteUsername": "Pengguna Jarak Jauh",
   "Dashboard": "Dasbor",

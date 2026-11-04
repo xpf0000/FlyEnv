@@ -50,5 +50,7 @@
   "auto": "Tự động",
   "noVerionsFoundInLib": "Không tìm thấy phiên bản khả dụng",
   "showToolBtn": "Hiển thị nút công cụ nổi",
-  "inputSearchKey": "Từ khóa tìm kiếm"
+  "inputSearchKey": "Từ khóa tìm kiếm",
+  "macPortsSourceTerminal": "Xem lại cấu hình nguồn, sau đó áp dụng trong terminal bằng xác thực sudo.",
+  "linuxSystemFileReadOnly": "Các tệp môi trường hệ thống chỉ có thể đọc tại đây. Hãy dùng terminal với quyền quản trị viên để quản lý chúng; các tệp hồ sơ người dùng của bạn vẫn có thể chỉnh sửa."
 }

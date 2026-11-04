@@ -51,5 +51,7 @@
   "noVerionsFoundInLib": "Nincs elérhető verzió",
   "showToolBtn": "Lebegő eszközgomb megjelenítése",
   "toolSaveConfirm": "Biztosan menteni szeretné?",
-  "inputSearchKey": "Keresési kulcsszó"
+  "inputSearchKey": "Keresési kulcsszó",
+  "macPortsSourceTerminal": "Ellenőrizze a forrás konfigurációját, majd alkalmazza a terminálban sudo-hitelesítéssel.",
+  "linuxSystemFileReadOnly": "A rendszer környezeti fájljai itt csak olvashatók. Karbantartásukhoz használjon rendszergazdai jogosultságú terminált; a felhasználói profil fájljai továbbra is szerkeszthetők."
 }

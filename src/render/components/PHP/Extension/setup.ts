@@ -6,6 +6,7 @@ import { MacPortsSetup } from '@/components/PHP/Extension/Macports/setup'
 import { join } from '@/util/path-browserify'
 import { shell, fs, exec } from '@/util/NodeFn'
 import { PHPSetup } from '@/components/PHP/store'
+import windowsExtensions from './Windows/controller'
 
 export const ExtensionSetup = reactive<{
   dir: Partial<Record<string, string>>
@@ -96,7 +97,8 @@ export const Setup = (version: SoftInstalled) => {
       return PHPSetup.localFetching?.[version.bin] ?? false
     }
     if (lib.value === 'lib') {
-      return PHPSetup.libFetching?.[version.bin] ?? false
+      const entry = windowsExtensions.entry(version)
+      return entry.fetching || entry.installing
     }
     return false
   })
@@ -149,7 +151,7 @@ export const Setup = (version: SoftInstalled) => {
     }
     if (lib.value === 'loaded') {
       console.log('reFetch brew !!!')
-      LoadedSetup.reFetch()
+      LoadedSetup.reFetch(version)
     }
     if (lib.value === 'macports') {
       console.log('reFetch port !!!', MacPortsSetup.reFetch)
@@ -159,7 +161,7 @@ export const Setup = (version: SoftInstalled) => {
       PHPSetup.fetchLocal(version as any)
     }
     if (lib.value === 'lib') {
-      PHPSetup.fetchLib(version as any)
+      windowsExtensions.search(version, windowsExtensions.entry(version).lastQuery)
     }
   }
 

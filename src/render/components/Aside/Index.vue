@@ -644,7 +644,8 @@
       .catch()
   }
 
-  const legacyGroupDo = () => {
+  // 旧“一键启停”也传递同一意图，避免旧入口绕开后台无弹窗约束。
+  const legacyGroupDo = (interactive = true) => {
     if (legacyGroupDisabled.value) {
       return
     }
@@ -652,13 +653,13 @@
     const asideModules = asideServiceShowModule.value
     const all: Array<Promise<string | boolean>> = []
     asideModules.forEach((m) => {
-      const arr = m?.groupDo(isRun) ?? []
+      const arr = m?.groupDo(isRun, interactive) ?? []
       all.push(...arr)
     })
     const customerModule = AppCustomerModule.module
       .filter((a) => a.isService && showItem.value?.[a.typeFlag] !== false)
       .map((m) => {
-        return isRun ? m.stop() : m.start()
+        return isRun ? m.stop(interactive) : m.start(interactive)
       })
     all.push(...customerModule)
     if (all.length > 0) {
@@ -702,14 +703,16 @@
       })
       .join('<br/>')
 
-  const executeStartupGroup = async (group: StartupGroup) => {
+  // 复用启动组控制器和结果展示；interactive 只改变授权策略，不改变服务所有权。
+  const executeStartupGroup = async (group: StartupGroup, interactive = true) => {
     if (StartupGroupManager.busy || group.empty) return
 
     startupGroupBusy.value = true
     try {
       const result = await StartupGroupManager.setGroupEnabled(
         group,
-        !StartupGroupManager.isGroupRunning(group)
+        !StartupGroupManager.isGroupRunning(group),
+        interactive
       )
       if (!result) return
       const message = startupGroupResultMessage(result)
@@ -726,16 +729,17 @@
     }
   }
 
-  const groupDo = async () => {
+  // click/tray 可能传入 MouseEvent 等参数；仅显式 false 才表示后台操作。
+  const groupDo = async (interactive: unknown = true) => {
     if (groupDisabled.value) return
 
     const group = defaultStartupGroup.value
     if (startupGroupRoute.value === 'legacy') {
-      legacyGroupDo()
+      legacyGroupDo(interactive !== false)
       return
     }
 
-    await executeStartupGroup(group!)
+    await executeStartupGroup(group!, interactive !== false)
   }
 
   const startupGroupDo = async (id: string) => {
@@ -791,7 +795,8 @@
 
   const doAutoStart = () => {
     if (window.Server.isWindows) {
-      groupDo()
+      // Windows 开机启动不能突然要求用户选方式/批准 UAC；权限不足作为可重试失败。
+      groupDo(false)
       return
     }
     IPC.send('APP:FlyEnv-Helper-Check').then((key: string, res: any) => {

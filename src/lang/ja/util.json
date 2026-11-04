@@ -50,5 +50,7 @@
   "auto": "自動",
   "noVerionsFoundInLib": "利用可能なバージョンがありません",
   "showToolBtn": "フローティングツールボタンを表示",
-  "inputSearchKey": "検索キーワード"
+  "inputSearchKey": "検索キーワード",
+  "macPortsSourceTerminal": "ソース設定を確認し、ターミナルで sudo 認証を行って適用してください。",
+  "linuxSystemFileReadOnly": "システム環境ファイルはここでは読み取り専用です。管理者権限のターミナルで管理してください。ユーザープロファイルのファイルは引き続き編集できます。"
 }

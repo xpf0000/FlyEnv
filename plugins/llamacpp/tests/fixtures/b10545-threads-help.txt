@@ -1,0 +1,5 @@
+-t,    --threads N                      number of CPU threads to use during generation (default: -1)
+                                        (env: LLAMA_ARG_THREADS)
+--spec-draft-threads, -td, --threads-draft N
+                                        number of threads to use during generation (default: same as
+                                        --threads)

@@ -22,10 +22,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { onMounted, watch } from 'vue'
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
-  import { BrewStore } from '@/store/brew'
-  import IPC from '@/util/IPC'
 
   const {
     showItem,
@@ -47,42 +44,4 @@
     serviceDisabled,
     showItem
   } as any
-
-  // On app startup, check if n8n is already running (e.g. started from CLI)
-  const brewStore = BrewStore()
-  let checked = false
-  const doCheck = () => {
-    if (checked) return
-    const installed = brewStore.module('n8n').installed
-    if (installed.length === 0) return
-    checked = true
-    const item = installed[0]
-    if (item.run) return
-    IPC.send('app-fork:n8n', 'checkRunning', JSON.parse(JSON.stringify(item))).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0 && res?.data?.running) {
-          item.run = true
-          item.pid = res.data.pid ?? ''
-        }
-      }
-    )
-  }
-
-  onMounted(() => {
-    const installed = brewStore.module('n8n').installed
-    if (installed.length > 0) {
-      doCheck()
-    } else {
-      const stop = watch(
-        () => brewStore.module('n8n').installed.length,
-        (len) => {
-          if (len > 0) {
-            stop()
-            doCheck()
-          }
-        }
-      )
-    }
-  })
 </script>

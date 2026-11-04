@@ -1,10 +1,18 @@
-import { mkdirp, readFile, spawnPromiseWithEnv, writeFile } from '../../Fn'
+import {
+  performanceDiagnosticNow,
+  performanceDiagnosticElapsed,
+  writePerformanceLog,
+  measurePerformanceStep
+} from '@shared/PerformanceDiagnostics'
+import { readFile, spawnPromiseWithEnv } from '../../Fn'
 import Helper from '../../Helper'
 import { ForkPromise } from '@shared/ForkPromise'
 import { encodePowerShellCommand } from '@shared/PowerShellCommand'
 import EnvSync from '@shared/EnvSync'
 import { dirname, join } from 'path'
 import { appDebugLog } from '@shared/utils'
+import { resolveWindowsPowerShellPath, windowsPowerShellEnv } from '@shared/WindowsSystemPaths'
+import { installGitBashIntegration, syncShellDirectories } from './GitBashIntegration'
 
 type ProfileEdition = 'windows-powershell' | 'pwsh'
 
@@ -15,10 +23,13 @@ type PowerShellProfile = {
   reason?: string
 }
 
+type GitBashIntegrationState = 'updated' | 'unchanged' | 'failed'
+
 export type FlyEnvShellInitResult = {
   status: 'ready' | 'degraded'
   scriptPath: string
   scriptState: 'updated' | 'unchanged'
+  gitBashState: GitBashIntegrationState
   profiles: PowerShellProfile[]
   warnings: string[]
 }
@@ -32,23 +43,19 @@ let initFlyEnvSHInFlight: ForkPromise<FlyEnvShellInitResult> | undefined
 let executionPolicyRepairInFlight: Promise<void> | undefined
 
 const logShellInitTiming = (details: Record<string, unknown>) => {
-  void appDebugLog('[Tool.win][initFlyEnvSH][timing]', JSON.stringify(details))
+  void writePerformanceLog(appDebugLog, '[Tool.win][initFlyEnvSH][timing]', details)
 }
 
 const measureShellInitStep = async <T>(
   timings: Record<string, number>,
   step: string,
   operation: () => Promise<T>
-): Promise<T> => {
-  const startedAt = Date.now()
-  try {
-    return await operation()
-  } finally {
-    const durationMs = Date.now() - startedAt
+): Promise<T> =>
+  measurePerformanceStep(step, operation, (event) => {
+    const durationMs = event.durationMs ?? 0
     timings[step] = durationMs
     logShellInitTiming({ event: 'step', step, durationMs })
-  }
-}
+  })
 
 const asErrorMessage = (error: unknown) => (error instanceof Error ? error.message : `${error}`)
 
@@ -58,9 +65,10 @@ if ($policy -eq 'Restricted') {
   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 }`
   await spawnPromiseWithEnv(
-    EnvSync.PowerShellPath || 'powershell.exe',
+    // shell 初始化的配套操作也固定系统 PowerShell；不能只在 UAC 主入口固定路径。
+    resolveWindowsPowerShellPath(),
     ['-NoProfile', '-NonInteractive', '-EncodedCommand', encodePowerShellCommand(script)],
-    { windowsHide: true }
+    { windowsHide: true, env: windowsPowerShellEnv() }
   )
 }
 
@@ -99,10 +107,16 @@ const profileCandidates = () => buildPowerShellProfileTargets(global.Server.User
 
 export function initAllowDir(json: string) {
   return new ForkPromise(async (resolve) => {
-    const jsonFile = join(dirname(global.Server.AppDir!), 'bin/.flyenv.dir')
-    await mkdirp(dirname(jsonFile))
-    await writeFile(jsonFile, json)
-    resolve(true)
+    const allowedDirectories = JSON.parse(json)
+    if (
+      !Array.isArray(allowedDirectories) ||
+      allowedDirectories.some((item) => typeof item !== 'string')
+    ) {
+      throw new Error('FlyEnv shell directory list must be an array of paths')
+    }
+    resolve(
+      await syncShellDirectories(join(dirname(global.Server.AppDir!), 'bin'), allowedDirectories)
+    )
   })
 }
 
@@ -111,7 +125,7 @@ export function initFlyEnvSH(): ForkPromise<FlyEnvShellInitResult> {
 
   const operation = new ForkPromise<FlyEnvShellInitResult>(async (resolve, reject, on) => {
     const timings: Record<string, number> = {}
-    const startedAt = Date.now()
+    const startedAt = performanceDiagnosticNow()
     let currentStep = 'preparing'
     try {
       on('Preparing FlyEnv PowerShell integration')
@@ -135,6 +149,26 @@ export function initFlyEnvSH(): ForkPromise<FlyEnvShellInitResult> {
       const scriptContent = await measureShellInitStep(timings, currentStep, () =>
         readFile(join(global.Server.Static!, 'sh/fly-env.ps1'))
       )
+      const gitBashScriptPath = join(dirname(global.Server.AppDir!), 'bin/fly-env.sh')
+      let gitBashState: GitBashIntegrationState = 'failed'
+      try {
+        const gitBashScriptContent = await measureShellInitStep(
+          timings,
+          'read-git-bash-script',
+          () => readFile(join(global.Server.Static!, 'sh/fly-env.sh'))
+        )
+        gitBashState = await measureShellInitStep(timings, 'install-git-bash-hook', () =>
+          installGitBashIntegration(
+            global.Server.UserHome!,
+            gitBashScriptPath,
+            gitBashScriptContent
+          )
+        )
+      } catch (error) {
+        const reason = `Git Bash integration failed: ${asErrorMessage(error)}`
+        warnings.push(reason)
+        logShellInitTiming({ event: 'warning', step: 'install-git-bash-hook', reason })
+      }
       const profiles: PowerShellProfile[] = []
 
       on('Preparing PowerShell profile targets')
@@ -192,12 +226,13 @@ export function initFlyEnvSH(): ForkPromise<FlyEnvShellInitResult> {
         status: warnings.length > 0 ? 'degraded' : 'ready',
         scriptPath: flyenvScriptPath,
         scriptState: integration.scriptState,
+        gitBashState,
         profiles,
         warnings
       }
       logShellInitTiming({
         event: 'completed',
-        totalMs: Date.now() - startedAt,
+        totalMs: performanceDiagnosticElapsed(startedAt),
         status: result.status,
         timings
       })
@@ -206,7 +241,7 @@ export function initFlyEnvSH(): ForkPromise<FlyEnvShellInitResult> {
       logShellInitTiming({
         event: 'failed',
         step: currentStep,
-        totalMs: Date.now() - startedAt,
+        totalMs: performanceDiagnosticElapsed(startedAt),
         timings,
         error: asErrorMessage(error)
       })

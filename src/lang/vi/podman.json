@@ -99,5 +99,7 @@
     "readonlyFs": "Hệ thống tệp chỉ đọc",
     "maxRetry": "Số lần thử tối đa",
     "loading": "Đang tải thông tin container..."
-  }
+  },
+  "rosettaGlobalTip": "Áp dụng như tùy chọn chung của Podman trên máy Apple Silicon (không riêng cho từng VM). Yêu cầu Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta yêu cầu Podman >= 5.1.0. Nâng cấp Podman để bật công tắc này."
 }

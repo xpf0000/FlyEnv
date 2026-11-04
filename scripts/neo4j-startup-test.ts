@@ -1,187 +1,137 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import {
   neo4jProcessCommandMatchesInstance,
-  neo4jStopProcessPids,
   neo4jStartupProcessState,
-  waitForNeo4jStartupProcess
+  neo4jStopProcessPids,
+  waitForNeo4jStartupProcess,
+  type Neo4jStartupProcess
 } from '../src/fork/module/Neo4j/startup'
 
-const root = join(import.meta.dirname, '..')
-const neo4jFork = readFileSync(join(root, 'src/fork/module/Neo4j/index.ts'), 'utf-8')
-const neo4jStartup = readFileSync(join(root, 'src/fork/module/Neo4j/startup.ts'), 'utf-8')
-
-assert.doesNotMatch(neo4jFork, /import axios from 'axios'/)
-assert.doesNotMatch(neo4jFork, /waitForHttp\(/)
-assert.doesNotMatch(neo4jFork, /checkNeo4jHealth\(/)
-assert.doesNotMatch(neo4jFork, /logOffset\(|startupLogOffset|readLog:/)
-assert.doesNotMatch(neo4jFork, /readFile\(paths\.(?:startOut|startError)/)
-assert.doesNotMatch(neo4jFork, /const config = await readFile\(paths\.configFile, 'utf-8'\)/)
-assert.doesNotMatch(neo4jFork, /is ready on HTTP/)
-assert.match(neo4jFork, /waitForNeo4jStartupProcess\(/)
-assert.match(neo4jFork, /\{ isMacOS, isWindows, waitTime \} from '@shared\/utils'/)
-assert.match(
-  neo4jStartup,
-  /import \{ ProcessListByExactPid, ProcessPidsByPid, type PItem \} from '@shared\/Process'/
+const home = 'D:/Program Files/Neo4j/2026.07.0'
+const config = "D:/Program Files/FlyEnv/user's instance/conf"
+const rootCommand = `powershell.exe -File "${home}/bin/neo4j.ps1" console`
+const row = (
+  PID: string,
+  PPID: string,
+  COMMAND: string,
+  extra: Partial<Neo4jStartupProcess> = {}
+): Neo4jStartupProcess => ({
+  PID,
+  PPID,
+  COMMAND,
+  CREATED: '2026-10-25T00:00:00.000000Z',
+  EXECUTABLE: 'C:/Java/bin/java.exe',
+  ...extra
+})
+const root = row('24752', '1', rootCommand, { EXECUTABLE: 'C:/Windows/powershell.exe' })
+const launcher = row(
+  '25920',
+  root.PID,
+  `java -Dbasedir="${home}" org.neo4j.server.startup.Neo4jCommand console`
 )
-assert.doesNotMatch(neo4jStartup, /function processTreePids\(/)
-assert.match(
-  neo4jFork,
-  /const startupPid = res\['APP-Service-Start-PID'\][\s\S]{0,300}const startupCommand/
+let count = 0
+for (const args of [
+  `"--home-dir=${home}" "--config-dir=${config}"`,
+  `--home-dir="${home}" --config-dir="${config}"`,
+  `--home-dir "${home}" --config-dir "${config}"`,
+  `"--home-dir" "${home}" "--config-dir" "${config}"`,
+  `"--home-dir=${home.replaceAll('/', '\\')}" "--config-dir=${config.replaceAll('/', '\\')}"`
+]) {
+  const server = row(
+    '14988',
+    launcher.PID,
+    `java org.neo4j.server.Neo4jCommunity ${args} --console-mode`
+  )
+  assert.equal(neo4jProcessCommandMatchesInstance(server.COMMAND, home, config), true)
+  const list = [root, launcher, server, row('999', server.PID, 'worker')]
+  assert.deepEqual(neo4jStartupProcessState(list, root.PID, rootCommand, home, config), {
+    status: 'ready'
+  })
+  assert.deepEqual(neo4jStopProcessPids(list, root.PID, home, config), [
+    root.PID,
+    launcher.PID,
+    server.PID,
+    '999'
+  ])
+  assert.deepEqual(
+    neo4jStopProcessPids(list.slice(1), root.PID, home, config),
+    [launcher.PID, server.PID, '999'],
+    'exact home/config recovers the server tree after the PowerShell launcher exits'
+  )
+  count += 1
+}
+for (const args of [
+  `"--home-dir=${home}.other" "--config-dir=${config}"`,
+  `"--home-dir=${home}" "--config-dir=${config}.other"`,
+  `"--home-dir=${home}" "--config-dir=${config.replace("user's", 'users')}"`,
+  `"--description=prefix --home-dir=${home} --config-dir=${config}"`,
+  `"--home-dir=${home}"suffix "--config-dir=${config}"`,
+  `"--home-dir=${home}" --config-directory="${config}"`
+]) {
+  assert.equal(neo4jProcessCommandMatchesInstance(`java ${args}`, home, config), false, args)
+  count += 1
+}
+const server = row(
+  '14988',
+  launcher.PID,
+  `java org.neo4j.server.Neo4jCommunity "--home-dir=${home}" "--config-dir=${config}"`
 )
-
-const installationPath = 'E:\\FlyEnv Data\\neo4j\\2026.07.0'
-const configDir = 'E:\\FlyEnv Data\\server\\neo4j\\instances\\test\\conf'
-const startupCommand = `powershell.exe -File ${installationPath}\\bin\\neo4j.ps1 console`
-const processes = [
-  { PID: '100', PPID: '1', COMMAND: startupCommand },
-  {
-    PID: '101',
-    PPID: '100',
-    COMMAND: `java.exe --home-dir="${installationPath}" --config-dir="${configDir}" --console-mode`
-  }
-]
-
+const external = { ...server, PID: '777', PPID: '1' }
 assert.equal(
-  neo4jProcessCommandMatchesInstance(processes[1].COMMAND, installationPath, configDir),
-  true
+  neo4jStartupProcessState([root, external], root.PID, rootCommand, home, config).status,
+  'server-command-missing',
+  'the same instance command outside the startup tree is not proof of this startup'
 )
-
-const orphanedNeo4jProcesses = [
-  {
-    PID: '200',
-    PPID: '999',
-    COMMAND: `java.exe -cp ${installationPath}\\lib\\* org.neo4j.server.startup.Neo4jCommand console`
-  },
-  {
-    PID: '201',
-    PPID: '200',
-    COMMAND: `java.exe --home-dir=${installationPath} --config-dir=${configDir} --console-mode`
-  },
-  { PID: '202', PPID: '201', COMMAND: 'java.exe org.neo4j.worker' },
-  { PID: '203', PPID: '1', COMMAND: 'java.exe --home-dir=E:\\other --config-dir=E:\\other\\conf' }
-]
-
-assert.deepEqual(
-  neo4jStopProcessPids(orphanedNeo4jProcesses, '100', installationPath, configDir),
-  ['200', '201', '202'],
-  'stop must recover the matching Java process and its wrapper/children when the startup PID is gone'
-)
-assert.deepEqual(
-  neo4jStopProcessPids(
-    [processes[0], ...orphanedNeo4jProcesses.slice(0, 3)],
-    '100',
-    installationPath,
-    configDir
-  ),
-  ['100', '200', '201', '202'],
-  'stop must include the startup PID tree as well as an already reparented matching Java tree'
-)
-
-const orphanedStartupTree = [
-  { PID: '14956', PPID: '24692', COMMAND: '\\??\\C:\\WINDOWS\\system32\\conhost.exe 0x4' },
-  {
-    PID: '26516',
-    PPID: '24692',
-    COMMAND: `java.exe -cp ${installationPath}\\lib\\* org.neo4j.server.startup.Neo4jCommand console`
-  },
-  {
-    PID: '19692',
-    PPID: '26516',
-    COMMAND: `java.exe --home-dir=${installationPath} --config-dir=${configDir} --console-mode`
-  }
-]
-assert.deepEqual(
-  neo4jStopProcessPids(orphanedStartupTree, '24692', installationPath, configDir),
-  ['26516', '19692', '14956'],
-  'stop must include all surviving descendants when the recorded Windows launcher PID already exited'
-)
-
-const liveStartupTree = [
-  { PID: '24692', PPID: '1', COMMAND: 'powershell.exe -NoProfile -Command neo4j console' },
-  ...orphanedStartupTree
-]
-assert.deepEqual(
-  neo4jStopProcessPids(liveStartupTree, '24692', installationPath, configDir),
-  ['26516', '24692', '14956', '19692'],
-  'the exact Neo4j JVM must verify the recorded launcher tree even when the launcher command omits its path'
-)
-
+assert.equal(neo4jStartupProcessState([], root.PID, rootCommand, home, config).status, 'exited')
 assert.equal(
-  neo4jProcessCommandMatchesInstance(
-    processes[1].COMMAND,
-    'E:\\FlyEnv Data\\neo4j\\other-copy\\2026.07.0',
-    configDir
-  ),
-  false,
-  'same product version in another installation path must not match'
-)
-assert.deepEqual(
-  neo4jStartupProcessState(processes, '100', startupCommand, installationPath, configDir),
-  { status: 'ready' }
-)
-assert.equal(
-  neo4jStartupProcessState([], '100', startupCommand, installationPath, configDir).status,
-  'exited'
-)
-assert.equal(
-  neo4jStartupProcessState(
-    [{ ...processes[0], COMMAND: 'powershell.exe other.ps1 console' }, processes[1]],
-    '100',
-    startupCommand,
-    installationPath,
-    configDir
-  ).status,
+  neo4jStartupProcessState([{ ...root, COMMAND: 'other' }], root.PID, rootCommand, home, config)
+    .status,
   'command-changed'
 )
-assert.equal(
-  neo4jStartupProcessState(
-    [processes[0], { ...processes[1], COMMAND: 'java.exe --home-dir=C:\\other' }],
-    '100',
-    startupCommand,
-    installationPath,
-    configDir
-  ).status,
-  'server-command-missing'
+const unreadable = { ...external, COMMAND: '', EXECUTABLE: '' }
+assert.deepEqual(
+  neo4jStopProcessPids([unreadable, launcher, server], root.PID, home, config),
+  [launcher.PID, server.PID],
+  'an unreadable candidate must not prevent discovery of the valid tree'
 )
-
-await assert.doesNotReject(() =>
+let calls = 0
+let waits = 0
+await waitForNeo4jStartupProcess({
+  startupPid: root.PID,
+  startupCommand: rootCommand,
+  installationPath: home,
+  configDir: config,
+  attempts: 3,
+  listProcesses: async () => [root, launcher, ...(calls++ === 2 ? [server] : [])],
+  wait: async () => {
+    waits += 1
+  }
+})
+assert.equal(calls, 3)
+assert.equal(waits, 2)
+await assert.rejects(
   waitForNeo4jStartupProcess({
-    startupPid: '100',
-    startupCommand,
-    installationPath,
-    configDir,
-    listProcesses: async () => processes,
-    wait: async () => undefined,
-    attempts: 2
-  })
+    startupPid: root.PID,
+    startupCommand: rootCommand,
+    installationPath: home,
+    configDir: config,
+    attempts: 2,
+    listProcesses: async () => [root, launcher],
+    wait: async () => {}
+  }),
+  /Neo4j server command was not found/
 )
-
-let readyThenExitedCalls = 0
-await assert.doesNotReject(() =>
+await assert.rejects(
   waitForNeo4jStartupProcess({
-    startupPid: '100',
-    startupCommand,
-    installationPath,
-    configDir,
-    listProcesses: async () => (readyThenExitedCalls++ === 0 ? processes : []),
-    wait: async () => undefined,
-    attempts: 2
-  })
+    startupPid: root.PID,
+    startupCommand: rootCommand,
+    installationPath: home,
+    configDir: config,
+    listProcesses: async () => {
+      throw new Error('process list failed')
+    },
+    wait: async () => assert.fail('a failed query cannot be treated as an empty startup tree')
+  }),
+  /process list failed/
 )
-
-let pendingThenReadyCalls = 0
-await assert.doesNotReject(() =>
-  waitForNeo4jStartupProcess({
-    startupPid: '100',
-    startupCommand,
-    installationPath,
-    configDir,
-    listProcesses: async () => (pendingThenReadyCalls++ === 0 ? [processes[0]] : processes),
-    wait: async () => undefined,
-    attempts: 2
-  })
-)
-
-console.log('Neo4j startup tests passed')
+console.log(`Neo4j startup/stop regression: ${count + 7} cases passed`)

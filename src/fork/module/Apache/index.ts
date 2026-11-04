@@ -10,7 +10,6 @@ import {
   getAllFileAsync,
   md5,
   portSearch,
-  serviceStartExec,
   versionBinVersion,
   versionFilterSame,
   versionFixed,
@@ -20,11 +19,13 @@ import {
   writeFile,
   mkdirp
 } from '../../Fn'
-import { serviceStartSpawn } from '../../util/ServiceStart'
+import { prepareUnixLogDirectory, serviceStartSpawn } from '../../util/ServiceStart'
+import { portsFromListenConfig } from '../../util/ListenPorts'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { fetchHostList } from '../Host/HostFile'
 import { isLinux, isWindows, pathFixedToUnix } from '@shared/utils'
+import { resolveLinuxApacheLaunch } from './Launch'
 
 class Apache extends Base {
   constructor() {
@@ -342,6 +343,7 @@ IncludeOptional "${vhost}"`
           I18nT('appLog.startServiceBegin', { service: `apache-${version.version}` })
         )
       })
+      const launch = isLinux() ? await resolveLinuxApacheLaunch(version.bin) : { bin: version.bin }
       await this.#resetConf(version).on(on)
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.apachePortHandleBegin'))
@@ -367,7 +369,7 @@ IncludeOptional "${vhost}"`
       }
 
       const pidFile = join(global.Server.ApacheDir!, 'httpd.pid')
-      const bin = version.bin
+      const bin = launch.bin
       if (isWindows()) {
         const execArgs = ['-f', conf]
         try {
@@ -385,35 +387,16 @@ IncludeOptional "${vhost}"`
           reject(e)
           return
         }
-      } else if (isLinux()) {
-        // Linux Apache binds privileged ports (80/443) and needs root, which
-        // serviceStartSpawn cannot provide — keep the Helper script path.
-        const logFile = join(global.Server.ApacheDir, `common/logs/access_log`)
-        const baseDir = global.Server.ApacheDir!
-        const execEnv = ``
-        const execArgs = `-f "${conf}" -c "PidFile \"${pidFile}\"" -c "CustomLog \"${logFile}\" common" -k start`
-        try {
-          const res = await serviceStartExec({
-            root: true,
-            version,
-            pidPath: pidFile,
-            baseDir,
-            bin,
-            execArgs,
-            execEnv,
-            on
-          })
-          resolve(res)
-        } catch (e: any) {
-          console.log('-k start err: ', e)
-          reject(e)
-          return
-        }
       } else {
         // `-D FOREGROUND` keeps httpd in the foreground (vs `-k start`, which
         // daemonizes) so the detached spawn owns the process directly.
         const logFile = join(global.Server.ApacheDir, `common/logs/access_log`)
         const baseDir = global.Server.ApacheDir!
+        await prepareUnixLogDirectory(join(baseDir, 'common/logs'))
+        await prepareUnixLogDirectory(
+          join(global.Server.BaseDir!, 'vhost/logs'),
+          (name) => name.endsWith('-access_log') || name.endsWith('-error_log')
+        )
         const execArgs = [
           '-f',
           conf,
@@ -426,10 +409,16 @@ IncludeOptional "${vhost}"`
         ]
         try {
           const res = await serviceStartSpawn({
+            lowPortService: isLinux(),
+            listenPorts: isLinux()
+              ? portsFromListenConfig(await readFile(conf, 'utf8'))
+              : undefined,
             version,
             pidPath: pidFile,
             baseDir,
             bin,
+            execEnv: launch.execEnv,
+            sensitive: !!launch.execEnv,
             execArgs,
             on
           })

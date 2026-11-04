@@ -63,12 +63,14 @@ export class StartupGroup implements StartupGroupData {
     return this
   }
 
-  start() {
-    return this.runner.run(this, 'start')
+  /** 用户点击默认为交互；开机入口明确 false，runner 继续持有原运行生命周期。 */
+  start(interactive = true) {
+    return this.runner.run(this, 'start', interactive)
   }
 
-  stop() {
-    return this.runner.run(this, 'stop')
+  /** 停止保持同一授权意图，失败由 runner 记录到成员结果而非伪报停止成功。 */
+  stop(interactive = true) {
+    return this.runner.run(this, 'stop', interactive)
   }
 
   async toggle() {

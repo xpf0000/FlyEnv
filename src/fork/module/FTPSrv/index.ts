@@ -39,10 +39,12 @@ class Manager extends Base {
   }
 
   _stopServer(): ForkPromise<any> {
-    return new ForkPromise((resolve) => {
-      this.server?.close()
+    return new ForkPromise(async (resolve) => {
+      // FTP server 由专用 fork 持有；close 完成才报告停止，拒绝时 ForkPromise 保留失败。
+      await this.server?.close()
       this.server = undefined
-      resolve(true)
+      // 这里只回传宿主 fork PID 用于注销运行登记，不按该 PID 结束 Electron worker。
+      resolve({ 'APP-Service-Stop-PID': [`${process.pid}`] })
     })
   }
 
@@ -102,7 +104,8 @@ class Manager extends Base {
         .listen()
         .then(() => {
           console.log('Ftp server is starting...')
-          resolve(true)
+          // 登记宿主 PID 仅用于状态与退出编排，stopService 自己关闭 FTP server。
+          resolve({ 'APP-Service-Start-PID': `${process.pid}` })
         })
         .catch(reject)
     })

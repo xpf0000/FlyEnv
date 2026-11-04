@@ -10,10 +10,15 @@ import {
 } from '@shared/AppHelperCheck'
 import type { AppHelper } from '../main/core/AppHelper'
 import JSON5 from 'json5'
+import { hasWindowsPrivilegeProvider, resolveWindowsPrivilege } from '@shared/WindowsPrivilege'
 import { appDebugLog, isWindows, uuid } from '@shared/utils'
+import { timeOperation } from '@shared/OperationTiming'
+import { bindWindowsPathLogger } from '@shared/WindowsPathDiagnostics'
+import { I18nT } from '@lang/runtime'
 import {
   AppHelperError,
   isAppHelperError,
+  isAppHelperUnavailableError,
   isWindowsHelperFallbackAllowed,
   resolveWindowsElevationMethod,
   resolveWindowsHelperTransport,
@@ -22,8 +27,27 @@ import {
 } from '@shared/WindowsHelperState'
 
 type Module =
-  'helper' | 'tools' | 'mariadb' | 'redis' | 'php' | 'mailpit' | 'mysql' | 'rabbitmq' | 'host'
+  | 'helper'
+  | 'tools'
+  | 'mariadb'
+  | 'redis'
+  | 'php'
+  | 'mailpit'
+  | 'mysql'
+  | 'rabbitmq'
+  | 'host'
+  | 'service'
+  | 'ftp'
 type FN =
+  | 'start'
+  | 'stop'
+  | 'refreshUsers'
+  | 'readHosts'
+  | 'replaceHostsContent'
+  | 'syncManagedEntries'
+  | 'clearManagedEntries'
+  | 'repairManagedPidDirectory'
+  | 'launchLowPort'
   | 'version'
   | 'health'
   | 'writeFileByRoot'
@@ -56,20 +80,6 @@ type FN =
 
 type WindowsHelperFallback = typeof import('@shared/WindowsHelperFallback').runWindowsHelperFallback
 
-const summarizeHelperArgs = (args: any[]) =>
-  args.map((arg) => {
-    if (typeof arg === 'string') {
-      return { type: 'string', length: arg.length }
-    }
-    if (Array.isArray(arg)) {
-      return { type: 'array', length: arg.length }
-    }
-    if (arg && typeof arg === 'object') {
-      return { type: 'object', keys: Object.keys(arg).slice(0, 32) }
-    }
-    return { type: typeof arg }
-  })
-
 const lazyWindowsHelperFallback: WindowsHelperFallback = async (...args) => {
   const { runWindowsHelperFallback } = await import('@shared/WindowsHelperFallback')
   return runWindowsHelperFallback(...args)
@@ -93,7 +103,9 @@ const defaultHelperDeps: HelperDeps = {
   appHelperCheck: AppHelperCheck,
   getHelperKey,
   helperBinaryExists: () => !isWindows() || !global.Server?.Static || windowsHelperBinaryExists(),
-  helperRequestTimeoutMs: 30_000,
+  // Darwin's fixed FTP sequence can take 92 seconds; allow the 120s server
+  // budget plus connection/response overhead. Unknown results are never replayed.
+  helperRequestTimeoutMs: process.platform === 'darwin' ? 125_000 : 30_000,
   isWindows,
   getWindowsElevationMethod: () =>
     resolveWindowsElevationMethod(global.Server?.WindowsElevationMethod),
@@ -108,21 +120,76 @@ const defaultHelperDeps: HelperDeps = {
   runWindowsHelperFallback: lazyWindowsHelperFallback
 }
 
+// 安装前置失败仍是业务失败；IPC 文案只提示安装，原始原因保留在 cause 和 debug 日志。
+class HelperInstallRequiredError extends AppHelperError {
+  constructor(error: AppHelperError) {
+    super(error.code, I18nT('menu.needInstallHelper'))
+    this.cause = error
+  }
+
+  toString(): string {
+    return this.message
+  }
+}
+
 export class Helper {
   enable = false
   appHelper?: AppHelper
   private helperKey: Buffer | null = null
+  // 用户切换方式后旧 enable/key 缓存失效；下次确需 Helper 时重新做健康校验。
+  private windowsPrivilegeRevision = -1
+  private helperGeneration = 0
+  private windowsPreparation?: Promise<void>
 
   constructor(private readonly deps: HelperDeps = defaultHelperDeps) {}
 
   async ensureKey() {
     if (this.helperKey) return
     this.helperKey = await this.deps.getHelperKey()
+    if (!this.deps.isWindows()) {
+      if (!this.helperKey)
+        throw new AppHelperError('helper_key_missing', 'Helper key is missing before dispatch')
+      if (this.helperKey.length !== 32)
+        throw new AppHelperError('helper_key_invalid', 'Helper key must contain exactly 32 bytes')
+    }
   }
 
   private invalidateHelperState() {
     this.enable = false
     this.helperKey = null
+    this.helperGeneration += 1
+    this.windowsPreparation = undefined
+  }
+
+  private syncWindowsPrivilegeRevision() {
+    const revision = global.Server?.WindowsPrivilegeRevision ?? 0
+    if (this.windowsPrivilegeRevision !== revision) {
+      this.invalidateHelperState()
+      this.windowsPrivilegeRevision = revision
+    }
+  }
+
+  private prepareWindowsHelper(): Promise<void> {
+    if (this.enable) return Promise.resolve()
+    if (this.windowsPreparation) return this.windowsPreparation
+    const generation = this.helperGeneration
+    // helper/ready 的成功响应来自 main 的完整校验/恢复；同一 worker 的并发请求复用它。
+    const preparation = resolveWindowsPrivilege('helper/ready')
+      .then((method) => {
+        if (method !== 'helper' || generation !== this.helperGeneration) {
+          throw new AppHelperError(
+            'windows_authorization_required',
+            'Helper readiness changed before execution; retry the operation'
+          )
+        }
+        this.windowsPrivilegeRevision = global.Server?.WindowsPrivilegeRevision ?? 0
+        this.enable = true
+      })
+      .finally(() => {
+        if (this.windowsPreparation === preparation) this.windowsPreparation = undefined
+      })
+    this.windowsPreparation = preparation
+    return preparation
   }
 
   private validatePathArg(arg: any): boolean {
@@ -134,6 +201,8 @@ export class Helper {
   }
 
   private validateSendArgs(module: string, fn: string, args: any[]): boolean {
+    // Hosts text is data, including arbitrary comments and paths.
+    if (!this.deps.isWindows() && module === 'host') return true
     for (const [index, arg] of args.entries()) {
       if (module === 'tools' && fn === 'setSystemPath' && (index === 0 || index === 2)) {
         continue
@@ -149,6 +218,22 @@ export class Helper {
       }
     }
     return true
+  }
+
+  private installRequiredError(error: unknown): Error {
+    if (isAppHelperUnavailableError(error)) {
+      void appDebugLog(
+        '[Fork][Helper][need-install]',
+        JSON.stringify({
+          code: error.code,
+          message: error.message,
+          stderr: error.stderr,
+          stack: error.stack
+        })
+      ).catch(() => {})
+      return new HelperInstallRequiredError(error)
+    }
+    return this.normalizeError(error)
   }
 
   private notifyNeedInstall() {
@@ -190,6 +275,31 @@ export class Helper {
     fn: FN,
     args: any[]
   ): Promise<{ handled: boolean; value?: T }> {
+    if (!this.deps.isWindows()) {
+      this.invalidateHelperState()
+      if (
+        isAppHelperError(error) &&
+        [
+          'helper_binary_missing',
+          'helper_key_missing',
+          'helper_key_invalid',
+          'helper_unreachable',
+          'helper_pipe_unreachable',
+          'helper_signature_invalid',
+          'helper_version_mismatch',
+          'helper_health_invalid'
+        ].includes(error.code)
+      ) {
+        this.notifyNeedInstall()
+        throw this.installRequiredError(error)
+      }
+      throw this.normalizeError(error)
+    }
+    if (this.deps.isWindows() && hasWindowsPrivilegeProvider()) {
+      // 生产权限路由不再自动 fallback/repair，错误不能替用户决定使用另一种方式。
+      this.invalidateHelperState()
+      throw this.normalizeError(error)
+    }
     if (this.deps.isWindows() && isAppHelperError(error, 'helper_binary_missing')) {
       this.invalidateHelperState()
     }
@@ -206,7 +316,7 @@ export class Helper {
     if (transport === 'prompt') {
       this.enable = false
       this.notifyNeedInstall()
-      throw this.normalizeError(error)
+      throw this.installRequiredError(error)
     }
 
     this.enable = false
@@ -214,6 +324,50 @@ export class Helper {
   }
 
   send<T>(module: Module, fn: FN, ...args: any): Promise<T> {
+    if (this.deps.isWindows() && module !== 'helper' && hasWindowsPrivilegeProvider()) {
+      this.syncWindowsPrivilegeRevision()
+      // 在检查二进制、密钥或计划任务前进入共享权限路由；没有安装 Helper 的机器
+      // 也必须能够通过用户已选 UAC 或当前管理员权限完成操作。
+      // 先单独记录权限路由模块的冷导入，避免它落在 PATH 提交与首个权限阶段之间。
+      return timeOperation(
+        'privilege.import-router',
+        () => import('@shared/WindowsPrivilegeOperation')
+      ).then(({ executeWindowsPrivilegeOperation }) =>
+        executeWindowsPrivilegeOperation<T>(module, fn, args, async (processes) => {
+          // 准备失败仍拒绝本次业务，不静默切换授权方式；成功后无需在 worker 重跑校验。
+          await this.prepareWindowsHelper()
+          const { withWindowsElevationLease } = await import('@shared/WindowsPrivilege')
+          // 授权前采集的同一身份快照必须覆盖 Helper 实际执行的所有结束目标。
+          // 新的四参数形状让普通 PID 与树模式都明确携带 mode 和身份数组。
+          const helperArgs =
+            module === 'tools' && fn === 'kill'
+              ? [args[0], args[1], args[2] === true, processes ?? []]
+              : module === 'tools' && fn === 'killPorts'
+                ? [...args, processes ?? []]
+                : args
+          return withWindowsElevationLease(
+            () => this.sendInternal<T>(module, fn, helperArgs, true, true),
+            'helper'
+          )
+        })
+      )
+    }
+    // The helper-only legacy tuple has no authorized process identity snapshot.
+    // Refuse it before RPC dispatch instead of passing `true` as a Go identity slice.
+    if (
+      this.deps.isWindows() &&
+      module === 'tools' &&
+      fn === 'kill' &&
+      args[2] === true &&
+      !Array.isArray(args[3])
+    ) {
+      return Promise.reject(
+        new AppHelperError(
+          'windows_fallback_not_supported',
+          'Windows tree stop requires an identity provider'
+        )
+      )
+    }
     return this.sendInternal<T>(module, fn, args, true)
   }
 
@@ -221,16 +375,17 @@ export class Helper {
     module: Module,
     fn: FN,
     args: any[],
-    retrySignature: boolean
+    retrySignature: boolean,
+    // 明确 Helper 选择才跳过旧自动 UAC 分支；签名重试必须保留同一传输方式。
+    helperSelected = false
   ): Promise<T> {
     return new Promise(async (resolve, reject) => {
-      console.trace('[Fork][Helper][send]', {
-        module,
-        fn,
-        argCount: args.length,
-        args: summarizeHelperArgs(args)
-      })
+      // RPC 内部连接/响应回调不一定恢复 ALS，捕获原 PATH 请求；不输出签名、密钥或 args。
+      const logPath = bindWindowsPathLogger()
+      logPath('helper.rpc-begin', { fn, enabled: this.enable })
       let settled = false
+      let requestMayHaveBeenSent = false
+      let client: ReturnType<HelperDeps['createConnection']> | undefined
       const isHelperFirstOperation =
         module === 'tools' &&
         (fn === 'installFlyEnvPowerShellIntegration' || fn === 'ensureFlyEnvDataDirectory')
@@ -248,6 +403,7 @@ export class Helper {
           return
         }
         settled = true
+        logPath('helper.rpc-completed', { fn })
         clearRequestTimer()
         resolve(value)
       }
@@ -257,188 +413,262 @@ export class Helper {
           return
         }
         settled = true
+        logPath('helper.rpc-failed', { fn })
         clearRequestTimer()
         reject(error)
       }
 
-      if (!this.validateSendArgs(module, fn, args)) {
-        rejectOnce(new Error('Path traversal detected'))
-        return
-      }
-
-      // A running fork can outlive the Helper binary (for example after an
-      // antivirus cleanup). Invalidate the cached socket state before trying
-      // to send another task, so the normal binary-missing route is used.
-      if (this.deps.isWindows() && this.enable && !this.deps.helperBinaryExists()) {
-        this.invalidateHelperState()
-      }
-
-      // These operations require a healthy Helper. A previous automatic UAC
-      // fallback must not bypass it, because neither operation has a generic
-      // UAC fallback and both can complete silently through the running Helper.
-      if (
-        this.deps.isWindows() &&
-        this.deps.getWindowsElevationMethod() === 'uac' &&
-        !isHelperFirstOperation
-      ) {
-        try {
-          resolveOnce(await this.runWindowsUacFallback<T>(module, fn, args))
-        } catch (error) {
-          rejectOnce(this.normalizeError(error))
-        }
-        return
-      }
-
-      if (!this.enable) {
-        try {
-          await this.deps.appHelperCheck()
-          this.enable = true
-        } catch (error) {
+      let closeClient = () => {}
+      try {
+        closeClient = () => {
           try {
-            const routed = await this.routeUnavailableHelper<T>(error, module, fn, args)
+            client?.destroy()
+          } catch {}
+        }
+
+        // 排队等待租约期间也可能切换方式；旧就绪结果不能越过新权限版本。
+        if (helperSelected) this.syncWindowsPrivilegeRevision()
+
+        if (!this.validateSendArgs(module, fn, args)) {
+          rejectOnce(new Error('Path traversal detected'))
+          return
+        }
+
+        // fork 可能比 Helper 二进制存活更久（例如被杀毒软件清理）；发送前使旧 socket
+        // 状态失效，让本次走正常的二进制缺失错误路径，而不是误认为 Helper 仍可用。
+        if (this.deps.isWindows() && this.enable && !this.deps.helperBinaryExists()) {
+          this.invalidateHelperState()
+        }
+
+        // 这两项必须由健康 Helper 执行。此前的自动 UAC 状态不能绕过健康检查，
+        // 因为它们没有通用 UAC 实现，而且常驻 Helper 的操作可能静默完成。
+        if (
+          this.deps.isWindows() &&
+          this.deps.getWindowsElevationMethod() === 'uac' &&
+          !isHelperFirstOperation &&
+          !helperSelected
+        ) {
+          try {
+            resolveOnce(await this.runWindowsUacFallback<T>(module, fn, args))
+          } catch (error) {
+            rejectOnce(this.normalizeError(error))
+          }
+          return
+        }
+
+        if (!this.enable) {
+          try {
+            await timeOperation('helper.health-check', () => this.deps.appHelperCheck())
+            this.enable = true
+          } catch (error) {
+            try {
+              const routed = await this.routeUnavailableHelper<T>(error, module, fn, args)
+              if (routed.handled) {
+                resolveOnce(routed.value as T)
+              }
+            } catch (routeError) {
+              rejectOnce(this.normalizeError(routeError))
+            }
+            return
+          }
+        }
+        let transportFailed = false
+        const buffer: Buffer[] = []
+        let requestParam: any
+
+        const handleSocketError = async (error: Error) => {
+          if (settled || transportFailed) {
+            return
+          }
+          transportFailed = true
+          appDebugLog(
+            '[Fork][Helper][error]',
+            JSON.stringify({
+              module,
+              fn,
+              error: {
+                message: error.message,
+                code: (error as NodeJS.ErrnoException).code
+              }
+            })
+          ).catch()
+          closeClient()
+          if (requestMayHaveBeenSent) {
+            // 一旦 write 被调用，Helper 可能已执行但响应丢失；不得切到 UAC/普通权限
+            // 再执行一次，否则 stop 周边动作也可能被重复提交。保留未知终态给调用方。
+            rejectOnce(
+              new AppHelperError(
+                'helper_pipe_unreachable',
+                `Helper response was lost after request dispatch; execution result is unknown: ${error.message}`
+              )
+            )
+            return
+          }
+          try {
+            const routed = await this.routeUnavailableHelper<T>(
+              isAppHelperError(error)
+                ? error
+                : new AppHelperError('helper_pipe_unreachable', error.message),
+              module,
+              fn,
+              args
+            )
             if (routed.handled) {
               resolveOnce(routed.value as T)
             }
           } catch (routeError) {
             rejectOnce(this.normalizeError(routeError))
           }
-          return
         }
-      }
-      await this.ensureKey()
-      const key = uuid()
-      const client = this.deps.createConnection(await AppHelperSocketPathGet())
-      const buffer: Buffer[] = []
-      let transportFailed = false
-      let requestParam: any
 
-      const closeClient = () => {
-        try {
-          client.destroy()
-        } catch {}
-      }
-
-      const handleSocketError = async (error: Error) => {
-        if (settled || transportFailed) {
-          return
+        // 覆盖密钥读取、socket 路径解析与 connect 阶段；超时只在尚未派发 RPC 时
+        // 允许 routeUnavailableHelper 选择备用执行方式。
+        if (this.deps.helperRequestTimeoutMs > 0) {
+          requestTimer = setTimeout(() => {
+            handleSocketError(
+              new AppHelperError(
+                'helper_pipe_unreachable',
+                requestMayHaveBeenSent
+                  ? 'Helper response timed out after request dispatch; execution result is unknown'
+                  : 'Helper initialization timed out'
+              )
+            ).catch((routeError) => rejectOnce(this.normalizeError(routeError)))
+          }, this.deps.helperRequestTimeoutMs)
         }
-        transportFailed = true
-        appDebugLog(
-          '[Fork][Helper][error]',
-          `${JSON.stringify({
-            module,
-            fn,
-            args: summarizeHelperArgs(args),
-            error: {
-              message: error.message,
-              code: (error as NodeJS.ErrnoException).code
+
+        void (async () => {
+          try {
+            await timeOperation('helper.read-key', () => this.ensureKey())
+            if (settled || transportFailed) return
+            const socketPath = await timeOperation('helper.resolve-socket', () =>
+              AppHelperSocketPathGet()
+            )
+            if (settled || transportFailed) return
+            logPath('helper.connect-requested')
+            client = this.deps.createConnection(socketPath)
+          } catch (error) {
+            if (!settled && !transportFailed) {
+              void handleSocketError(error instanceof Error ? error : new Error(`${error}`)).catch(
+                (routeError) => rejectOnce(this.normalizeError(routeError))
+              )
             }
-          })}`
-        ).catch()
-        closeClient()
-        console.log('connect failed error: ', error)
-        try {
-          const routed = await this.routeUnavailableHelper<T>(
-            new AppHelperError('helper_pipe_unreachable', error.message),
-            module,
-            fn,
-            args
-          )
-          if (routed.handled) {
-            resolveOnce(routed.value as T)
+            return
           }
-        } catch (routeError) {
-          rejectOnce(this.normalizeError(routeError))
-        }
-      }
 
-      client.on('connect', () => {
-        requestParam = {
-          key,
-          module,
-          function: fn,
-          args,
-          ...helperTaskAuthFields()
-        }
-        if (this.helperKey) {
-          requestParam.sig = signTaskItem(this.helperKey, requestParam)
-        }
-        console.log('[Fork][Helper][request]', {
-          module,
-          fn,
-          argCount: args.length,
-          args: summarizeHelperArgs(args),
-          clientPid: requestParam.clientPid,
-          clientExe: requestParam.clientExe,
-          hasSignature: typeof requestParam.sig === 'string',
-          signatureLength: typeof requestParam.sig === 'string' ? requestParam.sig.length : 0,
-          timestamp: requestParam.ts,
-          noncePresent: typeof requestParam.nonce === 'string' && requestParam.nonce.length > 0
-        })
-        try {
-          client.write(JSON.stringify(requestParam), (error?: Error | null) => {
-            if (error) {
-              handleSocketError(error).catch((routeError) => {
-                rejectOnce(this.normalizeError(routeError))
+          if (!client || settled || transportFailed) {
+            closeClient()
+            return
+          }
+
+          const activeClient = client
+          activeClient.on('connect', () => {
+            logPath('helper.connected')
+            try {
+              if (settled || transportFailed) {
+                closeClient()
+                return
+              }
+              requestParam = {
+                key: uuid(),
+                module,
+                function: fn,
+                args,
+                ...helperTaskAuthFields()
+              }
+              if (this.helperKey) {
+                requestParam.sig = signTaskItem(this.helperKey, requestParam)
+              }
+              // write 被调用后即标记为结果不确定，即使 callback 返回错误也不能盲目重放。
+              requestMayHaveBeenSent = true
+              logPath('helper.request-sent', { fn })
+              activeClient.write(JSON.stringify(requestParam), (error?: Error | null) => {
+                if (error) {
+                  void handleSocketError(error).catch((routeError) => {
+                    rejectOnce(this.normalizeError(routeError))
+                  })
+                }
               })
+            } catch (error) {
+              void handleSocketError(error instanceof Error ? error : new Error(`${error}`)).catch(
+                (routeError) => rejectOnce(this.normalizeError(routeError))
+              )
+            }
+          })
+
+          activeClient.on('data', (data: any) => {
+            buffer.push(data)
+          })
+
+          activeClient.on('end', () => {
+            logPath('helper.response-ended', {
+              byteCount: buffer.reduce((sum, item) => sum + item.length, 0)
+            })
+            if (settled || transportFailed) {
               return
             }
-          })
-        } catch (e) {
-          handleSocketError(e instanceof Error ? e : new Error(`${e}`)).catch((routeError) => {
-            rejectOnce(this.normalizeError(routeError))
-          })
-        }
-      })
+            let res: any
+            try {
+              const content = Buffer.concat(buffer).toString().trim()
+              res = JSON5.parse(content)
+            } catch {}
+            if (res && res?.key && res?.key === requestParam?.key) {
+              buffer.splice(0)
+              if (res?.code === 0) {
+                closeClient()
+                return resolveOnce(res?.data)
+              }
+              if (typeof res?.code !== 'number' || typeof res?.msg !== 'string') {
+                transportFailed = true
+                closeClient()
+                rejectOnce(
+                  new AppHelperError(
+                    'helper_pipe_unreachable',
+                    'Helper returned a malformed response after dispatch; execution result is unknown'
+                  )
+                )
+                return
+              }
+              const error = new AppHelperError(helperResponseErrorCode(res.msg), res.msg)
+              transportFailed = true
+              closeClient()
 
-      client.on('data', (data: any) => {
-        buffer.push(data)
-      })
-
-      client.on('end', () => {
-        if (settled || transportFailed) {
-          return
-        }
-        console.log('Disconnected from server')
-        let res: any
-        try {
-          const content = Buffer.concat(buffer).toString().trim()
-          res = JSON5.parse(content)
-        } catch {}
-        if (res && res?.key && res?.key === key) {
-          buffer.splice(0)
-          if (res?.code === 0) {
+              if (error.code === 'helper_signature_invalid') {
+                // Helper 明确拒绝签名才证明业务方法未派发，可安全重签一次。
+                appDebugLog(
+                  '[Fork][Helper][signature-mismatch]',
+                  JSON.stringify({ module, fn, retry: retrySignature })
+                ).catch(() => {})
+                if (retrySignature) {
+                  clearRequestTimer()
+                  this.invalidateHelperState()
+                  this.sendInternal<T>(module, fn, args, false, helperSelected)
+                    .then(resolveOnce)
+                    .catch((retryError) => rejectOnce(this.normalizeError(retryError)))
+                  return
+                }
+                this.routeUnavailableHelper<T>(error, module, fn, args)
+                  .then((routed) => {
+                    if (routed.handled) {
+                      resolveOnce(routed.value as T)
+                      return
+                    }
+                    rejectOnce(error)
+                  })
+                  .catch((routeError) => rejectOnce(this.normalizeError(routeError)))
+                return
+              }
+              return rejectOnce(error)
+            }
+            transportFailed = true
             closeClient()
-            return resolveOnce(res?.data)
-          }
-          const error = new AppHelperError(
-            helperResponseErrorCode(res?.msg ?? ''),
-            res?.msg ?? 'Execution failed'
-          )
-          transportFailed = true
-          closeClient()
-
-          if (error.code === 'helper_signature_invalid') {
-            appDebugLog(
-              '[Fork][Helper][signature-mismatch]',
-              JSON.stringify({
-                module,
-                fn,
-                requestId: requestParam?.key,
-                clientPid: requestParam?.clientPid,
-                clientExe: requestParam?.clientExe,
-                helperKeyLength: this.helperKey?.length ?? 0,
-                signatureLength:
-                  typeof requestParam?.sig === 'string' ? requestParam.sig.length : 0,
-                retry: retrySignature
-              })
-            ).catch(() => {})
-            if (retrySignature) {
-              clearRequestTimer()
-              this.invalidateHelperState()
-              this.sendInternal<T>(module, fn, args, false)
-                .then(resolveOnce)
-                .catch((retryError) => rejectOnce(this.normalizeError(retryError)))
+            const error = new AppHelperError('helper_pipe_unreachable', 'Invalid Helper response')
+            if (requestMayHaveBeenSent) {
+              rejectOnce(
+                new AppHelperError(
+                  'helper_pipe_unreachable',
+                  'Helper returned an invalid response after request dispatch; execution result is unknown'
+                )
+              )
               return
             }
             this.routeUnavailableHelper<T>(error, module, fn, args)
@@ -449,41 +679,26 @@ export class Helper {
                 }
                 rejectOnce(error)
               })
-              .catch((routeError) => rejectOnce(this.normalizeError(routeError)))
-            return
+              .catch((routeError) => {
+                rejectOnce(this.normalizeError(routeError))
+              })
+          })
+
+          activeClient.on('error', (error) => {
+            void handleSocketError(error).catch((routeError) => {
+              rejectOnce(this.normalizeError(routeError))
+            })
+          })
+        })().catch((error) => {
+          if (!settled && !transportFailed) {
+            void handleSocketError(error instanceof Error ? error : new Error(`${error}`)).catch(
+              (routeError) => rejectOnce(this.normalizeError(routeError))
+            )
           }
-          return rejectOnce(error)
-        }
-        transportFailed = true
-        closeClient()
-        const error = new AppHelperError('helper_pipe_unreachable', 'Invalid Helper response')
-        this.routeUnavailableHelper<T>(error, module, fn, args)
-          .then((routed) => {
-            if (routed.handled) {
-              resolveOnce(routed.value as T)
-              return
-            }
-            rejectOnce(error)
-          })
-          .catch((routeError) => {
-            rejectOnce(this.normalizeError(routeError))
-          })
-      })
-
-      client.on('error', (error) => {
-        handleSocketError(error).catch((routeError) => {
-          rejectOnce(this.normalizeError(routeError))
         })
-      })
-
-      if (this.deps.helperRequestTimeoutMs > 0) {
-        requestTimer = setTimeout(() => {
-          handleSocketError(
-            new AppHelperError('helper_pipe_unreachable', 'Helper response timed out')
-          ).catch((routeError) => {
-            rejectOnce(this.normalizeError(routeError))
-          })
-        }, this.deps.helperRequestTimeoutMs)
+      } catch (error) {
+        closeClient()
+        rejectOnce(this.normalizeError(error))
       }
     })
   }

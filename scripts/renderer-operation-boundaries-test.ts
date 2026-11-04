@@ -28,12 +28,9 @@ const walk = (dir: string): string[] => {
 
 const legacyDirectIpcIndexPages = [
   'Aside/Index.vue',
-  'Host/Index.vue',
   'Temporal/Index.vue',
   'Tools/BomClean/Index.vue',
   'Tools/PhpObfuscator/Index.vue',
-  'Tools/PortKill/Index.vue',
-  'Tools/ProcessKill/Index.vue',
   'Tools/SSLMake/Index.vue',
   'Tools/SiteSucker/Index.vue',
   'Tools/SystenEnv/Index.vue'
@@ -46,6 +43,33 @@ const actualDirectIpcIndexPages = walk(componentsDir)
   .sort()
 
 assert.deepEqual(actualDirectIpcIndexPages, legacyDirectIpcIndexPages)
+
+const phpWindowsPage = readFileSync(join(componentsDir, 'PHP/Extension/Windows/index.vue'), 'utf-8')
+const phpWindowsController = readFileSync(
+  join(componentsDir, 'PHP/Extension/Windows/controller.ts'),
+  'utf-8'
+)
+assert.doesNotMatch(phpWindowsPage, /from\s+['"]@\/util\/IPC['"]|IPC\.send/)
+assert.match(phpWindowsPage, /windowsExtensions\.install\(version,/)
+assert.match(phpWindowsPage, /windowsExtensions\.disable\(version,/)
+assert.match(phpWindowsController, /reactiveBind\(\s*new WindowsExtensionController/)
+assert.doesNotMatch(
+  phpWindowsPage,
+  /entry\.value\.(?:operation|log|result|error|installing)\s*=/,
+  'closing operation details must not clear controller-owned work or results'
+)
+
+const loadedPhpSetup = readFileSync(join(componentsDir, 'PHP/Extension/Loaded/setup.ts'), 'utf-8')
+const loadedPhpPage = readFileSync(join(componentsDir, 'PHP/Extension/Loaded/index.vue'), 'utf-8')
+assert.match(loadedPhpSetup, /reactiveBind\(\s*new LoadedExtensionsController/)
+assert.doesNotMatch(loadedPhpSetup, /exec\.exec|IPC\.send|LoadedSetup\.reFetch\s*=/)
+assert.match(loadedPhpPage, /v-if="error"/)
+
+const n8nAside = readFileSync(join(componentsDir, 'N8N/aside.vue'), 'utf8')
+const n8nFork = readFileSync(join(root, 'src/fork/module/N8N/index.ts'), 'utf8')
+assert.doesNotMatch(n8nAside, /IPC|checkRunning|onMounted|\bwatch\s*\(|\.run\s*=|\.pid\s*=/)
+assert.doesNotMatch(n8nFork, /\bcheckRunning\s*\(/)
+
 assert.match(agentsSource, /## Module Boundaries and Operation Ownership/)
 assert.match(agentsSource, /UI state belongs to the mounted Vue component only/)
 assert.match(
@@ -296,6 +320,28 @@ assert.match(
 )
 assert.match(serviceActionStoreSource, /ServiceActionStore\.fetchPathing = false/)
 
+const versionDeleteDialog = readFileSync(
+  join(componentsDir, 'ServiceManager/delDialog.vue'),
+  'utf8'
+)
+const versionDeleteController = readFileSync(
+  join(componentsDir, 'ServiceManager/VersionDeleteController.ts'),
+  'utf8'
+)
+const versionDeleteOperation = readFileSync(
+  join(componentsDir, 'ServiceManager/VersionDeleteOperation.ts'),
+  'utf8'
+)
+assert.doesNotMatch(versionDeleteDialog, /fs\.remove|IPC\.send|MessageError|\.stop\(/)
+assert.match(versionDeleteDialog, /v-if="managedDirectory"/)
+assert.match(versionDeleteDialog, /confirmation\.value === FORCE_DELETE_CONFIRMATION/)
+assert.match(versionDeleteDialog, /VersionDeleteController\.remove\(/)
+assert.match(versionDeleteController, /reactiveBind\(/)
+assert.match(versionDeleteController, /new VersionDeleteOperation\(/)
+assert.match(versionDeleteController, /service\.stop\(\)/)
+assert.match(versionDeleteOperation, /private operations = new Map/)
+assert.match(versionDeleteOperation, /stopped !== true/)
+
 const redisPage = readFileSync(join(componentsDir, 'Redis/Index.vue'), 'utf-8')
 const redisPanel = readFileSync(join(componentsDir, 'Redis/RedisCommanderPanel.ts'), 'utf-8')
 const pgAdminPythonCandidates = [
@@ -356,7 +402,13 @@ assert.deepEqual(redisCommanderOpenRequest, {
 })
 assert.doesNotMatch(JSON.stringify(redisCommanderOpenRequest), /node-secret|redis-secret/)
 assert.match(redisPage, /<template v-if="isRunning" #tool-left>/)
-assert.match(redisPage, /:disabled="redisCommanderOpening \|\| !redisCommanderNodeAvailable"/)
+assert.match(redisPage, /:disabled="redisCommanderOpening"/)
+assert.doesNotMatch(redisPage, /redisCommanderNodeAvailable/)
+assert.match(redisPanel, /await brewStore\.module\('node'\)\.fetchInstalled\(true\)/)
+assert.ok(
+  redisPanel.indexOf('this.opening.value = true') <
+    redisPanel.indexOf("await brewStore.module('node').fetchInstalled(true)")
+)
 assert.match(redisPanel, /IPC\.sendSensitive\('app-fork:redis', 'openRedisCommander'/)
 assert.match(redisPanel, /redisCommanderRequest\(node, redis\)/)
 assert.match(redisPanel, /isWebPanelInstallNotice/)
@@ -410,6 +462,12 @@ assert.match(
 )
 assert.match(shellInitControllerSource, /response\?\.code === 200/)
 assert.match(shellInitControllerSource, /IPC\.off\(key\)/)
+assert.match(shellInitControllerSource, /response\.data\?\.warnings/)
+assert.doesNotMatch(
+  readFileSync(join(root, 'src/fork/module/Tool.win/GitBashIntegration.ts'), 'utf-8'),
+  /readFileByRoot|Helper\.send|spawnPromise/,
+  'normal Git Bash profiles must not trigger privileged operations'
+)
 
 const phpCreateControllerPath = join(
   componentsDir,
@@ -466,5 +524,176 @@ assert.ok(
   phpCreateControllerSource.indexOf('await terminal.send(commands, false)') <
     phpCreateControllerSource.indexOf("IPC.send('app-fork:project', 'handleProjectDir'")
 )
+
+// 权限页只能绑定控制器；IPC、进度、超时清理与版本保护必须由单例所有。
+const privilegeDir = join(componentsDir, 'Setup', 'WindowsElevationMethod')
+const privilegeController = readFileSync(join(privilegeDir, 'Controller.ts'), 'utf-8')
+for (const filename of ['Choice.vue', 'index.vue']) {
+  const page = readFileSync(join(privilegeDir, filename), 'utf-8')
+  assert.doesNotMatch(page, /IPC\.send\(/)
+}
+assert.match(privilegeController, /reactiveBind\(new WindowsPrivilegeController\(\)\)/)
+assert.match(privilegeController, /result\?\.code === 200/)
+assert.match(privilegeController, /IPC\.off\(key\)/)
+assert.match(privilegeController, /private operation\?: Promise<void>/)
+assert.match(privilegeController, /snapshot\.revision < /)
+
+const openSearchDir = join(root, 'plugins', 'opensearch', 'render')
+const openSearchDashboardsPage = readFileSync(join(openSearchDir, 'Index.vue'), 'utf-8')
+const openSearchDashboardsController = readFileSync(
+  join(openSearchDir, 'DashboardsPanel.ts'),
+  'utf-8'
+)
+assert.doesNotMatch(openSearchDashboardsPage, /IPC\.send\(/)
+assert.match(openSearchDashboardsPage, /installed\.find\(\(item\) =>/)
+assert.match(openSearchDashboardsPage, /item\.run &&/)
+assert.match(openSearchDashboardsPage, /!item\.running &&/)
+assert.match(openSearchDashboardsPage, /dashboardsPanel\.open\(runningVersion\)/)
+assert.match(openSearchDashboardsController, /export class OpenSearchDashboardsPanel\b/)
+assert.match(openSearchDashboardsController, /response\?\.code === 200/)
+assert.match(openSearchDashboardsController, /ipc\.off\(request\.key\)/)
+assert.match(openSearchDashboardsController, /private operation\?: Promise<void>/)
+assert.match(openSearchDashboardsController, /maxTimeoutMs/)
+assert.match(openSearchDashboardsController, /shell\.openExternal/)
+const openSearchConfigPage = readFileSync(join(openSearchDir, 'Config.vue'), 'utf8')
+const openSearchTLSController = readFileSync(join(openSearchDir, 'LocalTLS.ts'), 'utf8')
+assert.doesNotMatch(openSearchConfigPage, /IPC\.send\(/)
+assert.match(openSearchConfigPage, /OpenSearchTLS\.configure\(/)
+assert.match(openSearchTLSController, /private operation\?: Promise<boolean>/)
+assert.match(openSearchTLSController, /response\?\.code === 200/)
+assert.match(openSearchTLSController, /ipc\.off\(request\.key\)/)
+assert.match(openSearchTLSController, /JSON\.parse\(JSON\.stringify\(\{ version, input \}\)\)/)
+
+const llamaRuntimePage = readFileSync(
+  join(root, 'plugins/llamacpp/render/runtime/Index.vue'),
+  'utf-8'
+)
+const llamaController = readFileSync(join(root, 'plugins/llamacpp/render/controller.ts'), 'utf-8')
+assert.doesNotMatch(llamaRuntimePage, /from\s+['"]@\/util\/IPC['"]|#footer/)
+assert.match(llamaRuntimePage, /LlamaCppManager\.getRuntimeOperation\(variant\)/)
+assert.match(llamaRuntimePage, /LlamaCppManager\.getRuntimeOperation\(runtime\.path\)/)
+assert.match(llamaRuntimePage, /LlamaCppManager\.installRuntime\(row\.variant\)/)
+assert.match(llamaController, /runtimeOperations: Record<string, OperationState>/)
+const llamaModelsPage = readFileSync(
+  join(root, 'plugins/llamacpp/render/models/Index.vue'),
+  'utf-8'
+)
+assert.match(llamaModelsPage, /LlamaCppManager\.refreshLocalModels\(\)/)
+assert.doesNotMatch(llamaModelsPage, /['"]inspectLocalModelFiles['"]/)
+assert.match(llamaController, /private catalogueFlight\?: Promise<void>/)
+assert.match(llamaController, /ipc\.off\(key\)/)
+const llamaLaunchOwner = readFileSync(
+  join(root, 'plugins/llamacpp/render/launchController.ts'),
+  'utf8'
+)
+const llamaAside = readFileSync(join(root, 'plugins/llamacpp/render/aside.vue'), 'utf8')
+for (const name of [
+  'Index.vue',
+  'settings/ModelSettings.vue',
+  'settings/ServiceSettings.vue',
+  'settings/CommandPreview.vue'
+]) {
+  const page = readFileSync(join(root, 'plugins/llamacpp/render', name), 'utf8')
+  assert.doesNotMatch(page, /from\s+['"]@\/util\/IPC['"]|ipc\.send|defineStore\(/)
+}
+assert.match(llamaAside, /startExtParam/)
+assert.match(llamaController, /startParameters\(version/)
+assert.match(llamaController, /withLaunchInput/)
+assert.match(llamaLaunchOwner, /class ModuleMutationGate/)
+assert.match(llamaLaunchOwner, /clone\(input\)/)
+assert.match(llamaLaunchOwner, /service\.restart\(\)/)
+assert.match(llamaLaunchOwner, /generation === this\.generation/)
+assert.doesNotMatch(llamaController, /config\.setup|defineStore\(/)
+
+const mssqlPage = readFileSync(join(root, 'plugins/mssql/render/Index.vue'), 'utf8')
+const mssqlController = readFileSync(join(root, 'plugins/mssql/render/store.ts'), 'utf8')
+assert.doesNotMatch(mssqlPage, /IPC\.send\(/)
+assert.doesNotMatch(mssqlPage, /developerEditionNote|with-eula/)
+assert.match(mssqlPage, /MssqlManager\.onlineVersions\.filter/)
+const mssqlDialog = readFileSync(join(root, 'plugins/mssql/render/SetupDialog.vue'), 'utf8')
+assert.doesNotMatch(mssqlDialog, /eula|developerEditionNote/i)
+assert.doesNotMatch(mssqlController, /fs\.remove\(/)
+assert.match(mssqlController, /private operations = new Map/)
+assert.match(mssqlController, /res\?\.code === 200/)
+assert.match(mssqlController, /IPC\.off\(request\.key\)/)
+assert.match(mssqlPage, /#action="\{ row \}"/)
+assert.match(mssqlPage, /v-if="isWindows"/)
+assert.match(mssqlPage, /MssqlManager\.openConfigurationManager\(row\)/)
+assert.match(mssqlController, /private configurationManagerRequest\?: Promise<boolean>/)
+assert.match(mssqlPage, /MssqlManager\.repairPermissions\(row\)/)
+assert.match(mssqlController, /private permissionRepairs = new Map/)
+assert.doesNotMatch(
+  readFileSync(join(root, 'plugins/mssql/render/log/setup.ts'), 'utf8'),
+  /allowElevation|readFileByRoot/
+)
+const mssqlLogs = readFileSync(join(root, 'plugins/mssql/render/Logs.vue'), 'utf8')
+assert.match(mssqlLogs, /<LogVM v-else ref="log" :log-file="filepath"/)
+assert.match(mssqlLogs, /<WindowsLogVM v-if="isWindows"/)
+assert.doesNotMatch(mssqlLogs, /IPC\.send|<pre|<el-select/)
+assert.match(mssqlLogs, /<ToolVM :log="log"/)
+assert.doesNotMatch(mssqlController, /readWindowsLog|logWatcher|windowsLog =/)
+
+const damengPage = readFileSync(join(root, 'plugins/dameng/render/Index.vue'), 'utf8')
+const shortcutsDir = join(root, 'plugins/command-shortcuts/render')
+const shortcutsPage = readFileSync(join(shortcutsDir, 'Index.vue'), 'utf8')
+const shortcutsController = readFileSync(join(shortcutsDir, 'controller.ts'), 'utf8')
+const shortcutsManager = readFileSync(join(shortcutsDir, 'manager.ts'), 'utf8')
+const shortcutsCard = readFileSync(join(shortcutsDir, 'FolderCard.vue'), 'utf8')
+assert.doesNotMatch(shortcutsPage, /from\s+['"]@\/util\/IPC['"]/)
+assert.doesNotMatch(shortcutsPage, /<el-table/)
+assert.doesNotMatch(shortcutsCard, /from\s+['"]@\/util\/IPC['"]/)
+assert.match(shortcutsCard, /manager\.run\(folder\.id, preset\.id\)/)
+assert.match(shortcutsPage, /manager\.reorderFolders\(/)
+assert.match(shortcutsCard, /manager\.reorderCommands\(/)
+assert.match(shortcutsCard, /manager\.openFolderTerminal\(folder\.id\)/)
+assert.match(shortcutsCard, /manager\.openFolderPath\(folder\.id\)/)
+assert.match(shortcutsController, /async openFolderTerminal\(folderId: string\)/)
+assert.match(shortcutsController, /async openFolderPath\(folderId: string\)/)
+assert.match(shortcutsController, /class CommandShortcutsController/)
+assert.match(shortcutsController, /status: 'opening' \| 'opened' \| 'failed'/)
+assert.match(shortcutsController, /this\.isOpening\(commandId\)/)
+assert.match(shortcutsController, /await this\.deps\.launch\(/)
+assert.match(shortcutsManager, /reactiveBind\(/)
+assert.match(shortcutsManager, /forkTerminalRequest\(/)
+assert.match(shortcutsManager, /StorageGetAsync/)
+assert.match(shortcutsManager, /StorageSetAsync/)
+assert.doesNotMatch(shortcutsManager, /defineStore|config\.setup/)
+const damengController = readFileSync(join(root, 'plugins/dameng/render/store.ts'), 'utf8')
+assert.doesNotMatch(damengPage, /IPC\.send|config\.setup|activeStates|role="status"/)
+assert.match(damengPage, /<InstallDialog ref="installDialog"/)
+const damengInstallDialog = readFileSync(
+  join(root, 'plugins/dameng/render/InstallDialog.vue'),
+  'utf8'
+)
+assert.doesNotMatch(damengInstallDialog, /IPC\.send|dialog\.showOpenDialog|config\.setup/)
+assert.match(damengInstallDialog, /DamengManager\.chooseInstallDirectory/)
+assert.match(damengInstallDialog, /DamengManager\.install/)
+assert.match(damengInstallDialog, /#append/)
+assert.match(damengInstallDialog, /installDirectoryRule/)
+assert.match(damengController, /private operations = new Map/)
+assert.match(damengController, /response\?\.code === 200/)
+assert.match(damengController, /IPC\.off\(request\.key\)/)
+assert.match(damengController, /IPC\.send\(/)
+assert.doesNotMatch(damengController, /sendSensitive|serviceControlsSupported/)
+assert.match(damengController, /StorageSetAsync/)
+assert.doesNotMatch(damengController, /defineStore|fs\.remove/)
+assert.match(damengController, /validateInstallPath/)
+assert.match(damengController, /dialog\.showOpenDialog/)
+assert.match(damengController, /setup\.dameng/)
+assert.doesNotMatch(damengPage, /show-custom-dir|show-delete|hostUpdateRequired/)
+const damengSetup = readFileSync(join(root, 'plugins/dameng/render/SetupDialog.vue'), 'utf8')
+assert.match(damengController, /private startRequests = new Map/)
+assert.match(damengController, /getInitializationState/)
+assert.match(damengController, /showSetupDialog/)
+assert.doesNotMatch(damengSetup, /IPC\.send|\.start\(/)
+assert.match(damengSetup, /el-scrollbar/)
+assert.match(damengSetup, /height: 75vh/)
+assert.match(damengSetup, /generateInitialPassword/)
+const damengSetupPrompt = readFileSync(join(root, 'plugins/dameng/render/setup.ts'), 'utf8')
+assert.match(damengSetupPrompt, /AsyncComponentShow/)
+const damengLogs = readFileSync(join(root, 'plugins/dameng/render/Logs.vue'), 'utf8')
+assert.match(damengLogs, /<LogVM ref="log"/)
+assert.match(damengLogs, /<ToolVM :log="log"/)
+assert.doesNotMatch(damengLogs, /IPC\.send|<pre/)
 
 console.log('renderer operation boundary tests passed')

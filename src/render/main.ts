@@ -19,6 +19,7 @@ import { RendererLanguage } from '@/core/LanguageService'
 import { MessageError } from '@/util/Element'
 import { loadAppPluginModules } from './core/AppModules'
 import { registerPluginRoutes } from './router'
+import WindowsPrivilegeController from '@/components/Setup/WindowsElevationMethod/Controller'
 
 window.Server = reactive({}) as any
 
@@ -41,6 +42,11 @@ IPC.on('APP-Ready-To-Show').then((key: string, res: any) => {
         await loadAppPluginModules()
         registerPluginRoutes()
         appRoot.mount('#app')
+        // 权限快照同步失败可提示并重试，窗口仍必须发送 ready，让待呈现的选择有宿主。
+        if (window.Server.isWindows)
+          await WindowsPrivilegeController.initialize().catch((error) =>
+            MessageError(error.message)
+          )
         IPC.send('application:renderer-initialized')
         if (bootstrap.warning) {
           MessageError(bootstrap.warning)

@@ -50,5 +50,7 @@
   "auto": "Auto",
   "noVerionsFoundInLib": "Aucune version disponible",
   "showToolBtn": "Afficher le bouton d'outil flottant",
-  "inputSearchKey": "Mots clés"
+  "inputSearchKey": "Mots clés",
+  "macPortsSourceTerminal": "Vérifiez la configuration de la source, puis appliquez-la dans le terminal avec l’authentification sudo.",
+  "linuxSystemFileReadOnly": "Les fichiers d’environnement système sont en lecture seule ici. Utilisez un terminal avec les droits administrateur pour les gérer ; les fichiers de votre profil utilisateur restent modifiables."
 }

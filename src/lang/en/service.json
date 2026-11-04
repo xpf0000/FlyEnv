@@ -1,4 +1,8 @@
 {
+  "pathSavedRefreshFailed": "Environment variables were saved, but the list could not be refreshed: {error}",
+  "linuxSudoRequiresTerminal": "Start this privileged task interactively in the terminal; background sudo is unavailable.",
+  "linuxFtpUnmanagedRoot": "This root FTP process was not started by FlyEnv's managed service. Stop it with administrator privileges before starting again.",
+  "linuxFtpUsersRefreshFailed": "FTP account changes were saved, but the running service could not apply them: {error}",
   "setaliase": "Set Alias",
   "env": "Env",
   "alias": "Alias",
@@ -7,7 +11,6 @@
   "useSysPHP": "Use default PHP version",
   "setByApp": "Environment variables set by FlyEnv",
   "setByNoApp": "Environment variables not set by FlyEnv",
-  "ftpdNeedPasswordToStart": "Pure-FTPd requires sudo privileges to start. Please enter your user password. The password will be used for auto-fill later. Or you can click the button below to input manually in the terminal, but this prompt may reappear.",
   "bundleinVersionDelTips": "This version is a built-in version, confirm not displayed?",
   "customDirVersionDelTips": "This version is a custom path version, confirm not displayed?",
   "ErrorTips": {

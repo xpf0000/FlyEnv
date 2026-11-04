@@ -223,6 +223,18 @@ Unless the user explicitly authorizes an exception for the specific module, appl
 
 Before implementation, record the exception authorization (if any) and verify this checklist in the plan. Do not infer authorization from an existing module that predates these rules.
 
+## Failure Boundaries and Partial Completion
+
+When adding or changing a multi-step operation, batch processing, candidate filtering, cleanup, or error propagation, read `docs/skills/flyenv-failure-boundaries/SKILL.md` before implementation and use it again during review. This project skill is loaded through this instruction; it does not depend on automatic skill discovery.
+
+- Define success by the user's requested outcome. Classify each changed step as a required dependency, independent item, or supplementary action; record what its failure may stop.
+- A supplementary action such as DNS refresh after a successful hosts write must only report its own failure. It must not reject the completed write, overwrite its result, or trigger a replay of the write.
+- Invalid or unverifiable candidates are skipped individually with a reason. Continue processing valid candidates; do not use one failed PID check to abort the entire batch. Skipping a candidate does not authorize executing it.
+- Required failures still propagate to their dependents. Do not swallow actual file-write failures, failed service termination, or a shared prerequisite failure and report success.
+- Preserve completed side effects and individual outcomes. Report partial completion when required items failed; distinguish skipped, failed, completed, and unknown results.
+- Review every added `throw`, `reject`, early `return`, and batch rejection for its impact on sibling work and already completed work. Keep failure handling at the smallest owner that can decide its consequence; reuse that policy across callers.
+- Do not introduce duplicate execution-layer PID validation, extra queries, retries, or privilege prompts solely to handle an optional failure. Follow the existing ownership and execution contracts.
+
 ## Adding a New Module
 
 ### Step 1: Define Module Type

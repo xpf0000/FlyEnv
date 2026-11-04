@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv необходимо установить вспомогательную программу",
   "helperInstalling": "Helper устанавливается, пожалуйста, подождите",
   "waitHelper": "Helper запускается, пожалуйста, подождите",
-  "helperInstallFailTips": "Не удалось установить Helper. Попробуйте вручную установить ее в окне терминала",
+  "helperInstallFailTips": "Не удалось установить Helper.",
   "helperInstallSuccessTips": "Установка программы Helper прошла успешно",
   "helperInstallTitle": "Установить FlyEnv Helper"
 }

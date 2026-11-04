@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnvはヘルパープログラムのインストールが必要です",
   "helperInstalling": "ヘルパープログラムをインストールしています。しばらくお待ちください",
   "waitHelper": "ヘルパープログラムを起動中です。お待ちください",
-  "helperInstallFailTips": "ヘルパープログラムのインストールに失敗しました。表示されたターミナルで手動でインストールを試してください",
+  "helperInstallFailTips": "ヘルパープログラムのインストールに失敗しました。",
   "helperInstallSuccessTips": "ヘルパープログラムが正常にインストールされました",
   "helperInstallTitle": "ヘルパープログラムのインストール"
 }

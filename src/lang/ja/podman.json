@@ -99,5 +99,7 @@
     "readonlyFs": "読み取り専用ルートFS",
     "maxRetry": "最大再試行回数",
     "loading": "コンテナ情報を読み込み中..."
-  }
+  },
+  "rosettaGlobalTip": "Apple Silicon マシンの Podman 全体の設定として適用されます（VM ごとの設定ではありません）。Podman >= 5.1.0 が必要です。",
+  "rosettaNeedVersion": "Rosetta には Podman >= 5.1.0 が必要です。このスイッチを有効にするには Podman をアップグレードしてください。"
 }

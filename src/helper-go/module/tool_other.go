@@ -15,5 +15,3 @@ func windowsSetMachineEnv(name, value string) error {
 func windowsSetMachineEnvExpandString(name, value string) error {
 	return fmt.Errorf("Windows registry is not available")
 }
-
-func windowsNotifyEnvironmentChanged() {}

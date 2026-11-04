@@ -34,5 +34,6 @@
   "databaseBackup": "Cadangkan database",
   "backupSaveDirSet": "Pengaturan lokasi penyimpanan",
   "saveDirError": "Lokasi penyimpanan tidak valid",
-  "backupFail": "Gagal mencadangkan {database}, kesalahan: {error}"
+  "backupFail": "Gagal mencadangkan {database}, kesalahan: {error}",
+  "socket": "Jalur Socket koneksi lokal (default: /tmp/mysql.sock). Di Windows, ini adalah nama named pipe (default: MySQL)."
 }

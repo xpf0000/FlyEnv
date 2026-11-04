@@ -50,5 +50,7 @@
   "auto": "Automaticky",
   "noVerionsFoundInLib": "Žádná dostupná verze",
   "showToolBtn": "Zobrazit plovoucí tlačítko nástrojů",
-  "inputSearchKey": "Hledat klíčové slovo"
+  "inputSearchKey": "Hledat klíčové slovo",
+  "macPortsSourceTerminal": "Zkontrolujte konfiguraci zdroje a poté ji použijte v terminálu s ověřením pomocí sudo.",
+  "linuxSystemFileReadOnly": "Systémové soubory prostředí jsou zde pouze pro čtení. Spravujte je v terminálu s oprávněními správce; soubory vašeho uživatelského profilu zůstávají upravitelné."
 }

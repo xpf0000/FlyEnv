@@ -1,9 +1,8 @@
-import { mkdirp, writeFile, readFile, existsSync } from '@shared/fs-extra'
+import { readFile, existsSync } from '@shared/fs-extra'
 import { createConnection } from 'node:net'
-import { userInfo } from 'node:os'
 import { dirname, join, resolve as pathResolve } from 'node:path'
 import is from 'electron-is'
-import { isWindows } from './utils'
+import { isLinux, isWindows } from './utils'
 import JSON5 from 'json5'
 import crypto from 'node:crypto'
 import { AppHelperError, type AppHelperErrorCode } from './WindowsHelperState'
@@ -14,20 +13,36 @@ import {
   type WindowsHelperIdentity
 } from './WindowsHelperIdentity'
 
-const SOCKET_PATH = '/tmp/flyenv-helper.sock'
-const Role_Path = '/tmp/flyenv.role'
-const Role_Path_Back = '/usr/local/share/FlyEnv/flyenv.role'
-const Key_Path_Unix = '/usr/local/share/FlyEnv/flyenv-helper.key'
+const DARWIN_SOCKET_PATH = '/private/var/run/flyenv-helper/helper.sock'
+const DARWIN_KEY_PATH = '/Library/Application Support/FlyEnv/Helper/client.key'
+const LINUX_SOCKET_PATH = '/run/flyenv-helper/helper.sock'
+const LINUX_KEY_PATH = '/etc/flyenv-helper/client.key'
 const WINDOWS_HELPER_FILE = 'flyenv-helper-windows-amd64-v1.exe'
 const Helper_Check_Timeout = 3000
 
-export const HelperVersion = 27
+// 与 src/helper-go/main.go 的 Helper_Version 同步：Go 源码变更必须升级发布版本。
+// version/health 校验据此拒绝旧 Helper，并由现有安装流程更新；Windows 系统路径
+// 和错误传播修复从 v28 开始，v29 新增父身份树协议，v30 扩展普通 PID/端口身份复核，
+// v31 将 Unix 进程/端口查询失败作为错误返回；v32 统一 Windows 监听查询来源并严格化
+// Helper 连接初始化与进程身份复核。
+// 此常量供各平台共用，发布时必须重建对应平台产物，
+// Windows 主备文件还须来自同一新产物，不能仅改常量就宣称二进制已经升级。
+// v33 同步 Go 执行端停止诊断；旧二进制不会产生新增的实际 taskkill 日志。
+// v34 服务停止改为完整有序 PID + 原句柄父先子后执行，旧 /T 二进制必须更新。
+// v35 与 Go 停止执行同步：一次请求连续终止，取消逐 PID 阻塞等待。
+// v36 环境广播改为 Helper 后台队列；旧程序仍阻塞写入 RPC，须通过版本检查更新。
+// v37 删除 Helper 提前广播，统一在环境业务结算后通知；旧 v36 会提前/重复广播。
+// v43 Unix 操作不限制用户配置的系统目录权限；仅保护 Helper 自身资产。
+export const HelperVersion = 50
 
 export type HelperHealth = {
   version: number
   pid: number
   sid?: string
   instanceId?: string
+  policyVersion?: number
+  policyUID?: number
+  healthy?: boolean
 }
 
 type HelperResponse = {
@@ -48,7 +63,8 @@ const currentWindowsHelperIdentity = (): Promise<WindowsHelperIdentity> => {
 }
 
 export const HelperKeyPath = (identity?: WindowsHelperIdentity): string => {
-  if (!isWindows()) return Key_Path_Unix
+  if (isLinux()) return LINUX_KEY_PATH
+  if (!isWindows()) return DARWIN_KEY_PATH
   if (!identity) throw new Error('Windows helper identity is required for the key path')
   return identity.keyPath
 }
@@ -66,6 +82,13 @@ export const getHelperKey = async (identity?: WindowsHelperIdentity): Promise<Bu
       throw new AppHelperError(
         'helper_key_inaccessible',
         `Windows helper key is inaccessible: ${keyPath}`,
+        error instanceof Error ? error.message : String(error)
+      )
+    }
+    if (!isWindows() && (code === 'EACCES' || code === 'EPERM')) {
+      throw new AppHelperError(
+        'helper_key_invalid',
+        `Helper key is inaccessible: ${keyPath}`,
         error instanceof Error ? error.message : String(error)
       )
     }
@@ -134,22 +157,9 @@ export const helperTaskAuthFields = () => ({
 
 export const AppHelperSocketPathGet = async (identity?: WindowsHelperIdentity): Promise<string> => {
   if (!isWindows()) {
-    return SOCKET_PATH
+    return isLinux() ? LINUX_SOCKET_PATH : DARWIN_SOCKET_PATH
   }
   return (identity ?? (await currentWindowsHelperIdentity())).pipePath
-}
-
-export const AppHelperRoleFix = async () => {
-  if (isWindows()) {
-    return
-  }
-  const uinfo = userInfo()
-  const role = `${uinfo.uid}:${uinfo.gid}`
-  await writeFile(Role_Path, role)
-  try {
-    await mkdirp(dirname(Role_Path_Back))
-    await writeFile(Role_Path_Back, role)
-  } catch {}
 }
 
 export const getWindowsHelperBinaryPath = (): string => {
@@ -180,7 +190,9 @@ export const getWindowsHelperValidationBinaryPath = (): string => {
 }
 
 type AppHelperCheckDeps = {
+  isLinux: () => boolean
   isWindows: () => boolean
+  getUnixUid: () => number | undefined
   helperBinaryExists: () => boolean
   createConnection: typeof createConnection
   getHelperKey: (identity?: WindowsHelperIdentity) => Promise<Buffer | null>
@@ -200,11 +212,14 @@ export const helperResponseErrorCode = (message: string): AppHelperErrorCode => 
 
 export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) => {
   const runtime = {
+    isLinux,
     isWindows,
+    getUnixUid: () => process.getuid?.(),
     helperBinaryExists: windowsHelperBinaryExists,
     createConnection,
     getHelperKey,
-    getWindowsIdentity: getWindowsHelperIdentity,
+    // 身份跟随当前进程令牌；复用已有的 SID 查询缓存，不缓存安装或健康结果。
+    getWindowsIdentity: currentWindowsHelperIdentity,
     readWindowsTask: readWindowsHelperTask,
     ...deps
   }
@@ -289,7 +304,10 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
         }
         if (response.code !== 0) {
           fail(
-            helperResponseErrorCode(response.msg ?? ''),
+            fn === 'health' &&
+              helperResponseErrorCode(response.msg ?? '') !== 'helper_signature_invalid'
+              ? 'helper_health_invalid'
+              : helperResponseErrorCode(response.msg ?? ''),
             response.msg ?? 'Helper rejected the health-check request'
           )
           return
@@ -304,7 +322,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
       )
     })
 
-  return async (): Promise<HelperHealth | true> => {
+  return async (getIdentity?: typeof getWindowsHelperIdentity): Promise<HelperHealth | true> => {
     if (runtime.isWindows() && !runtime.helperBinaryExists()) {
       throw new AppHelperError('helper_binary_missing', 'Windows helper binary missing')
     }
@@ -312,7 +330,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
     let identity: WindowsHelperIdentity | undefined
     if (runtime.isWindows()) {
       try {
-        identity = await runtime.getWindowsIdentity()
+        identity = await (getIdentity ?? runtime.getWindowsIdentity)()
       } catch (error) {
         throw new AppHelperError(
           'helper_task_invalid',
@@ -322,17 +340,22 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
     }
 
     const helperKey = await runtime.getHelperKey(identity)
-    if (runtime.isWindows() && !helperKey) {
-      throw new AppHelperError(
-        'helper_key_missing',
-        `Windows helper key missing: ${HelperKeyPath(identity)}`
-      )
-    }
-    if (runtime.isWindows() && helperKey && helperKey.length !== 32) {
-      throw new AppHelperError(
-        'helper_key_invalid',
-        'Windows helper key must contain exactly 32 bytes'
-      )
+    {
+      const platform = runtime.isWindows() ? 'Windows' : runtime.isLinux() ? 'Linux' : 'macOS'
+      const keyPath = runtime.isWindows()
+        ? HelperKeyPath(identity)
+        : runtime.isLinux()
+          ? LINUX_KEY_PATH
+          : DARWIN_KEY_PATH
+      if (!helperKey) {
+        throw new AppHelperError('helper_key_missing', `${platform} helper key missing: ${keyPath}`)
+      }
+      if (helperKey.length !== 32) {
+        throw new AppHelperError(
+          'helper_key_invalid',
+          `${platform} helper key must contain exactly 32 bytes`
+        )
+      }
     }
 
     let expectedSid: string | undefined
@@ -342,7 +365,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
         if (!identity) throw new Error('Windows helper identity is unavailable')
         expectedSid = identity.sid
         expectedInstanceId = identity.instanceId
-        const task = await runtime.readWindowsTask(identity, getWindowsHelperValidationBinaryPath())
+        const task = await runtime.readWindowsTask(identity, HelperVersion)
         const reason = windowsHelperTaskInvalidReason(task, identity, identity.executable)
         if (reason) throw new AppHelperError('helper_task_invalid', reason)
       } catch (error) {
@@ -354,7 +377,7 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
       }
     }
 
-    let pipePath = SOCKET_PATH
+    let pipePath = runtime.isLinux() ? LINUX_SOCKET_PATH : DARWIN_SOCKET_PATH
     if (runtime.isWindows()) {
       if (!identity) {
         throw new AppHelperError('helper_task_invalid', 'Windows helper pipe is unavailable')
@@ -366,6 +389,24 @@ export const createAppHelperChecker = (deps: Partial<AppHelperCheckDeps> = {}) =
       throw new AppHelperError('helper_version_mismatch', 'Helper version does not match FlyEnv')
     }
     if (!runtime.isWindows()) {
+      if (runtime.isLinux()) return true
+      const response = await request('health', helperKey, pipePath)
+      const health = response.data as Partial<HelperHealth> | undefined
+      if (
+        !health ||
+        health.version !== HelperVersion ||
+        health.policyVersion !== HelperVersion ||
+        !Number.isInteger(health.policyUID) ||
+        health.policyUID !== runtime.getUnixUid() ||
+        health.healthy !== true ||
+        !Number.isInteger(health.pid) ||
+        (health.pid ?? 0) <= 0
+      ) {
+        throw new AppHelperError(
+          'helper_health_invalid',
+          'macOS Helper health/policy does not match the installed account and version'
+        )
+      }
       return true
     }
 
@@ -402,14 +443,15 @@ export const AppHelperCheck = createAppHelperChecker()
 
 // Starting an intact current-SID task does not require replacing its binary/key.
 // Older installations without execute permission fall through to the UAC repair.
-export const recoverWindowsHelper = async (): Promise<boolean> => {
+export const recoverWindowsHelper = async (
+  getIdentity = getWindowsHelperIdentity
+): Promise<boolean> => {
   if (!isWindows()) return false
-  const identity = await getWindowsHelperIdentity()
+  const identity = await getIdentity()
   const key = await getHelperKey(identity)
   if (key?.length !== 32) return false
-  const source = getWindowsHelperValidationBinaryPath()
-  const task = await readWindowsHelperTask(identity, source)
+  const task = await readWindowsHelperTask(identity, HelperVersion)
   if (windowsHelperTaskInvalidReason(task, identity, identity.executable)) return false
-  const started = await readWindowsHelperTask(identity, source, true)
+  const started = await readWindowsHelperTask(identity, HelperVersion, true)
   return !windowsHelperTaskInvalidReason(started, identity, identity.executable)
 }

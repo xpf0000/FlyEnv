@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv må installere et hjelpeprogram",
   "helperInstalling": "Hjelper program installerer, vennligst vent",
   "waitHelper": "Hjelper program starter, vennligst vent",
-  "helperInstallFailTips": "Hjelper program installering feilet. Prøv manuelt installasjon i terminalvinduet",
+  "helperInstallFailTips": "Installasjon av hjelpeprogrammet mislyktes.",
   "helperInstallSuccessTips": "Hjelper program installasjon vellykket",
   "helperInstallTitle": "Installer FlyEnv Helper"
 }

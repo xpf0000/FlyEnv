@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv köməkçi proqramı quraşdırılmalıdır",
   "helperInstalling": "Köməkçi proqram quraşdırılır, zəhmət olmasa gözləyin",
   "waitHelper": "Köməkçi proqram işə salınır, zəhmət olmasa gözləyin",
-  "helperInstallFailTips": "Köməkçi proqramın quraşdırılması uğursuz oldu, zəhmət olmasa açılan terminalda əl ilə quraşdırmağa cəhd edin",
+  "helperInstallFailTips": "Köməkçi proqramın quraşdırılması uğursuz oldu.",
   "helperInstallSuccessTips": "Köməkçi proqram uğurla quraşdırıldı",
   "helperInstallTitle": "Köməkçi Proqramı Quraşdır"
 }

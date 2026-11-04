@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv treba instalirati pomoćni program",
   "helperInstalling": "Pomoćni program se instalira, molimo pričekajte",
   "waitHelper": "Pomoćni program se pokreće, molimo pričekajte",
-  "helperInstallFailTips": "Instalacija pomoćnog programa nije uspjela. Molimo pokušajte ručno instalirati u prozoru terminala",
+  "helperInstallFailTips": "Instalacija pomoćnog programa nije uspjela.",
   "helperInstallSuccessTips": "Instalacija pomoćnog programa uspješna",
   "helperInstallTitle": "Instaliraj FlyEnv Helper"
 }

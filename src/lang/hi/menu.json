@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv को एक सहायक प्रोग्राम इंस्टॉल करना है",
   "helperInstalling": "सहायक प्रोग्राम इंस्टॉल हो रहा है, कृपया प्रतीक्षा करें",
   "waitHelper": "सहायक प्रोग्राम शुरू हो रहा है, कृपया प्रतीक्षा करें",
-  "helperInstallFailTips": "सहायक प्रोग्राम इंस्टॉलेशन विफल। कृपया टर्मिनल विंडो में मैन्युअल रूप से इंस्टॉल करने का प्रयास करें",
+  "helperInstallFailTips": "सहायक प्रोग्राम इंस्टॉलेशन विफल।",
   "helperInstallSuccessTips": "सहायक प्रोग्राम इंस्टॉलेशन सफल",
   "helperInstallTitle": "FlyEnv Helper इंस्टॉल करें"
 }

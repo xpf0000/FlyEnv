@@ -106,9 +106,14 @@ export class StartupGroupRunner implements StartupGroupRunnerContract {
     return { ok: true, result, remaining: [] }
   }
 
+  /**
+   * 每个成员复用现有 adapter 生命周期。一次运行捕获 interactive，所有 await
+   * 之后继续传同一值，不会因用户同时手动操作而允许后台请求弹 UAC。
+   */
   async run(
     group: StartupGroupData,
-    action: StartupGroupRunAction
+    action: StartupGroupRunAction,
+    interactive = true
   ): Promise<StartupGroupRunResult> {
     if (this.executing) throw new Error('Startup group runner is already executing')
     this.executing = true
@@ -142,10 +147,10 @@ export class StartupGroupRunner implements StartupGroupRunnerContract {
           active = true
           this.changed()
           if (action === 'start') {
-            await adapter.start(item)
+            await adapter.start(item, interactive)
             members.push({ item, outcome: 'started' })
           } else {
-            await adapter.stop(item)
+            await adapter.stop(item, interactive)
             members.push({ item, outcome: 'stopped' })
           }
         } catch (error) {

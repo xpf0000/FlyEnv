@@ -10,6 +10,8 @@ import { AppStartFlagChech } from './app'
 export default class Launcher extends EventEmitter {
   exceptionHandler?: ExceptionHandler
   private isQuitting = false
+  // isQuitting 表示已经开始异步清理；只有 quitReady 才允许 Electron 真正退出。
+  private quitReady = false
 
   constructor() {
     super()
@@ -117,12 +119,12 @@ export default class Launcher extends EventEmitter {
 
   handleAppWillQuit() {
     app.on('before-quit', async (event) => {
-      if (this.isQuitting) {
-        return
-      }
+      if (this.quitReady) return
+      // 多次点击退出或第二次 app.quit 不能越过正在等待的 UAC/hosts 清理。
+      event.preventDefault()
+      if (this.isQuitting) return
       this.isQuitting = true
       logger.info('[FlyEnv] before-quit')
-      event.preventDefault()
       try {
         if (global.application) {
           await global.application.stop()
@@ -132,6 +134,7 @@ export default class Launcher extends EventEmitter {
       } catch (e) {
         logger.error('[FlyEnv] before-quit stop error:', e)
       }
+      this.quitReady = true
       app.quit()
     })
   }

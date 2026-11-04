@@ -34,5 +34,6 @@
   "databaseBackup": "Zálohování databáze",
   "backupSaveDirSet": "Nastavení umístění pro uložení",
   "saveDirError": "Neplatné umístění pro uložení",
-  "backupFail": "Zálohování {database} se nezdařilo, chyba: {error}"
+  "backupFail": "Zálohování {database} se nezdařilo, chyba: {error}",
+  "socket": "Cesta socketu pro místní připojení (výchozí: /tmp/mysql.sock). Ve Windows jde o název pojmenovaného kanálu (výchozí: MySQL)."
 }

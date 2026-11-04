@@ -562,16 +562,26 @@ try {
   $rootFolder = Get-OrCreateTaskFolder -Scheduler $scheduler -FolderPath $taskFolderPath -FolderSddl $taskFolderSddl
   $registeredTask = Get-TaskIfExists -TaskFolder $rootFolder -TaskName $taskName
   if ($registeredTask) {
+    # 禁用本 SID 任务的重启/登录触发，防止停止与替换之间又拉起旧实例。
+    $registeredTask.Enabled = $false
     $registeredTask.Stop(0)
     $stopDeadline = [DateTime]::UtcNow.AddSeconds(15)
-    while ($registeredTask.State -eq 4 -and [DateTime]::UtcNow -lt $stopDeadline) {
+    while ($registeredTask.State -in @(2, 4) -and [DateTime]::UtcNow -lt $stopDeadline) {
       Start-Sleep -Milliseconds 100
       $registeredTask = Get-TaskIfExists -TaskFolder $rootFolder -TaskName $taskName
       if (-not $registeredTask) { break }
     }
-    if ($registeredTask -and $registeredTask.State -eq 4) {
-      Throw-InstallerError -Code 'helper_task_start_failed' -Message 'Current SID helper task did not stop'
-    }
+  }
+  # 任务已停止不代表旧程序已退出；也处理从本安装包独立启动的同 SID 实例。
+  # 此处由主程序嵌入安装/停用共用的精确归属、进程句柄与退出确认逻辑。
+  try {
+#STOP_HELPER_PROCESSES#
+  } catch {
+    Throw-InstallerError -Code 'helper_task_start_failed' -Message "Current SID helper processes did not stop: $($_.Exception.Message)"
+  }
+  $registeredTask = Get-TaskIfExists -TaskFolder $rootFolder -TaskName $taskName
+  if ($registeredTask -and $registeredTask.State -in @(2, 4)) {
+    Throw-InstallerError -Code 'helper_task_start_failed' -Message 'Current SID helper task did not stop'
   }
 
   $stage = 'publish-replacements'

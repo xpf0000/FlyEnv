@@ -17,7 +17,7 @@
   "enabledTools": "활성화된 도구",
   "copyConfig": "구성 복사",
   "copied": "복사됨",
-  "addToClient": "__ PH0 __ 에 추가",
+  "addToClient": "{client}에 추가",
   "addToClientTip": "이 FlyEnv MCP 서버를 선택한 AI CLI의 MCP 목록에 등록합니다.",
   "regenerateToken": "토큰 재생성",
   "configHint": "아래 스니펫을 AI 클라이언트의 MCP 구성에 붙여넣습니다.",

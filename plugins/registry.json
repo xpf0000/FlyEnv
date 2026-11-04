@@ -30,14 +30,14 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "57116a11e1f7213df78a48cae0e7333b53cba40ea429506ef536557ab0999a34"
+        "sha256": "63a6412bc4e7da3644949b7be9c8ac5184cd6b3d8cdee4f90309c655e359575e"
       },
       "official": true
     },
     {
       "id": "kafka",
       "name": "Kafka",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "description": {
         "en": "Apache Kafka service module. Runs a single-node KRaft Kafka broker and requires a Java 17+ runtime.",
         "zh": "Apache Kafka 服务模块。以单节点 KRaft 模式运行 Kafka 服务，需要 Java 17+ 运行时。"
@@ -63,7 +63,267 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "ad2c7a92024fa4ad2c4bd4becc7126253fcd03ed6344b51fff3cf9d9303c4181"
+        "sha256": "445f2579d01e84e4f148a22d25b5a3068e7c5670cdad80367471d7bfe3061a74"
+      },
+      "official": true
+    },
+    {
+      "id": "llama-cpp",
+      "name": "llama.cpp",
+      "version": "0.2.11",
+      "description": {
+        "en": "Manage llama.cpp local inference runtimes and GGUF models.",
+        "zh": "管理 llama.cpp 本地推理运行时和 GGUF 模型。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "llama-cpp",
+        "moduleType": "ai",
+        "label": "llama.cpp",
+        "asideIndex": 70,
+        "isService": true,
+        "isTray": false,
+        "platform": [
+          "Windows",
+          "macOS",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "f3f0613a57c1609658254615b419760dedf58080400072da2ce154907d49f4bb"
+      },
+      "official": true
+    },
+    {
+      "id": "opensearch",
+      "name": "OpenSearch",
+      "version": "0.1.1",
+      "description": {
+        "en": "OpenSearch search & analytics engine (Apache 2.0 fork of Elasticsearch).",
+        "zh": "OpenSearch 搜索与分析引擎（Elasticsearch 的 Apache 2.0 分支）。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "opensearch",
+        "moduleType": "searchEngine",
+        "label": "OpenSearch",
+        "asideIndex": 4,
+        "isService": true,
+        "isTray": true,
+        "platform": [
+          "Windows",
+          "macOS",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "6984bca614c0ec41c8f676cd6a543174942f109484242f0b0fa37178b3b5b9ac"
+      },
+      "official": true
+    },
+    {
+      "id": "mssql",
+      "name": "SQL Server",
+      "version": "0.1.14",
+      "description": {
+        "en": "Microsoft SQL Server for x64 Windows and Ubuntu. Windows installs silently with official Setup and uses manual service startup. Ubuntu runs the unpacked engine with Bubblewrap.",
+        "zh": "适用于 x64 Windows 和 Ubuntu 的 SQL Server。Windows 使用官方 Setup 静默安装，服务按需启动；Ubuntu 通过 Bubblewrap 运行解包后的引擎。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "mssql",
+        "moduleType": "dataBaseServer",
+        "label": "SQL Server",
+        "asideIndex": 25,
+        "isService": true,
+        "isTray": false,
+        "platform": [
+          "Windows",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "b683ec6e658274f1623892d6df6caf8cb940cdc0e1ec825ae166a820ff4333a1"
+      },
+      "official": true
+    },
+    {
+      "id": "dameng",
+      "name": "Dameng DM8",
+      "version": "0.1.9",
+      "description": {
+        "en": "Dameng DM8 for x64 Windows and Ubuntu 22.04. Official downloads, database initialization and native service management.",
+        "zh": "适用于 x64 Windows 和 Ubuntu 22.04 的达梦 DM8 插件。官方源下载、数据库初始化及原生服务管理。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "dameng",
+        "moduleType": "dataBaseServer",
+        "label": "Dameng DM8",
+        "asideIndex": 26,
+        "isService": true,
+        "isTray": false,
+        "platform": [
+          "Windows",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "Windows",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "51ae078b451e2774c15d08c9cbba0b5f42cd22b55eeeb9cb4447cf929dcf39d5"
+      },
+      "official": true
+    },
+    {
+      "id": "command-shortcuts",
+      "name": "Command Shortcuts",
+      "version": "0.1.3",
+      "description": {
+        "en": "Organize preset commands by folder and run them in your system terminal.",
+        "zh": "按文件夹管理预设命令，一键在指定目录的系统终端中执行。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "command-shortcuts",
+        "moduleType": "console",
+        "label": "Command Shortcuts",
+        "asideIndex": 5,
+        "isService": false,
+        "isTray": false,
+        "platform": [
+          "Windows",
+          "macOS",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "f21cb4f056a360cd59ea5b7ef914882c09283d04fb68cc08a10c3f27c7841f30"
+      },
+      "official": true
+    },
+    {
+      "id": "mysql-cluster",
+      "name": "MySQL Cluster",
+      "version": "0.1.17",
+      "description": {
+        "en": "MySQL Cluster plugin: run multiple independent MySQL instances simultaneously on different ports, with one-click setup of GTID source/replica groups and single-primary Group Replication.",
+        "zh": "MySQL集群插件, 使用不同的端口号同时运行多个独立 MySQL 实例，一键创建 GTID 主从复制及单主 Group Replication。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "mysql-cluster",
+        "moduleType": "dataBaseServer",
+        "label": "MySQL Cluster",
+        "asideIndex": 27,
+        "isService": true,
+        "isTray": false,
+        "platform": [
+          "macOS",
+          "Windows",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "macOS",
+        "Windows",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "0b55403939d8af886aa26701b9a9d54a20b40e1ab2b2f3094b47ef6a78dbfab6"
+      },
+      "official": true
+    },
+    {
+      "id": "mariadb-cluster",
+      "name": "MariaDB Cluster",
+      "version": "0.1.2",
+      "description": {
+        "en": "MariaDB Cluster plugin: run multiple independent MariaDB instances simultaneously on different ports, with one-click setup of GTID source/replica groups.",
+        "zh": "MariaDB集群插件, 使用不同的端口号同时运行多个独立 MariaDB 实例，一键创建 GTID 主从复制组。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "mariadb-cluster",
+        "moduleType": "dataBaseServer",
+        "label": "MariaDB Cluster",
+        "asideIndex": 28,
+        "isService": true,
+        "isTray": false,
+        "platform": [
+          "macOS",
+          "Windows",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "macOS",
+        "Windows",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "5997ad5aebfba359789633e57967f95a314c32da7a23dcf0ae7d2de59e5b8ff6"
+      },
+      "official": true
+    },
+    {
+      "id": "samwaf",
+      "name": "SamWaf",
+      "version": "0.1.1",
+      "description": {
+        "en": "Open-source lightweight WAF. Sits in front of your local sites as a reverse proxy to block attacks, with a built-in web admin panel.",
+        "zh": "开源轻量级网站防火墙。以反向代理方式前置保护本地站点、拦截攻击，内置 Web 管理面板。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "samwaf",
+        "moduleType": "webServer",
+        "label": "SamWaf",
+        "asideIndex": 71,
+        "isService": true,
+        "isTray": true,
+        "platform": [
+          "Windows",
+          "macOS",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "8264ea145f1b080f3a998f684828f1860d455cd0fe29e9ac05c0803239e1fa97"
       },
       "official": true
     }

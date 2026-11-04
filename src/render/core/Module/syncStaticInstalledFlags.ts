@@ -1,23 +1,21 @@
 type StaticRow = {
-  version?: string
   bin?: string
   installed?: boolean
 }
 
-type InstalledRow = {
-  version?: string | null
-  bin?: string
-}
-
-export const syncStaticInstalledFlags = (rows: StaticRow[], installed: InstalledRow[]) => {
-  const installedBins = new Set(installed.map((item) => item.bin).filter(Boolean))
-  const installedVersions = new Set(
-    installed.map((item) => item.version).filter((value): value is string => !!value)
+export const syncStaticInstalledFlags = async (
+  rows: StaticRow[],
+  exists: (bin: string) => Promise<boolean>
+) => {
+  // Static actions target this package's files, not other installations with the same version.
+  await Promise.all(
+    rows.map(async (row) => {
+      try {
+        row.installed = row.bin ? await exists(row.bin) : false
+      } catch (error) {
+        // A failed supplementary check must not invalidate the installed-version scan.
+        console.error('syncStaticInstalledFlags error:', row.bin, error)
+      }
+    })
   )
-
-  rows.forEach((row) => {
-    row.installed =
-      (!!row.bin && installedBins.has(row.bin)) ||
-      (!!row.version && installedVersions.has(row.version))
-  })
 }

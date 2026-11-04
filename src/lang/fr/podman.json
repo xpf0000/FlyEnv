@@ -99,5 +99,7 @@
     "readonlyFs": "Système de fichiers en lecture seule",
     "maxRetry": "Nombre maximal de tentatives",
     "loading": "Chargement des informations du conteneur..."
-  }
+  },
+  "rosettaGlobalTip": "S’applique comme préférence globale de Podman aux machines Apple Silicon (pas à chaque machine virtuelle). Nécessite Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta nécessite Podman >= 5.1.0. Mettez Podman à niveau pour activer cette option."
 }

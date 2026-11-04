@@ -37,7 +37,7 @@
 <script lang="ts" setup>
   import { I18nT } from '@lang/index'
   import { AsyncComponentShow } from '@/util/AsyncComponent'
-  import { MessageSuccess } from '@/util/Element'
+  import { MessageError, MessageSuccess } from '@/util/Element'
   import type { MysqlGroupItem } from '@shared/app'
   import Base from '@/core/Base'
   import { MysqlStore } from '../mysql'
@@ -62,7 +62,11 @@
     }).then(() => {
       const index = mysqlStore.all.findIndex((f) => f === data)
       if (index >= 0) {
-        mysqlStore.stop(data).then(() => {
+        mysqlStore.stop(data).then((stopped) => {
+          if (stopped !== true) {
+            MessageError(typeof stopped === 'string' ? stopped : I18nT('base.fail'))
+            return
+          }
           mysqlStore.all.splice(index, 1)
           mysqlStore.save().then()
           MessageSuccess(I18nT('base.success'))

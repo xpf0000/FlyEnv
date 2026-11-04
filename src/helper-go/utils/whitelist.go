@@ -14,6 +14,7 @@ const allowedRootsFileUnix = "/usr/local/share/FlyEnv/flyenv.allowed-roots"
 
 var (
 	envKeyPattern       = regexp.MustCompile(`^[A-Z][A-Z0-9_]{0,63}$`)
+	envPathPattern      = regexp.MustCompile(`^%[A-Za-z0-9_]+%`)
 	chownUserPattern    = regexp.MustCompile(`^([0-9]+:[0-9]+|[A-Za-z0-9_.-]+(:[A-Za-z0-9_.-]+)?)$`)
 	commonNamePattern   = regexp.MustCompile(`^[A-Za-z0-9_.:@ -]{1,128}$`)
 	certNamePattern     = regexp.MustCompile(`^[A-Za-z0-9_.-]{1,128}\.crt$`)
@@ -74,6 +75,13 @@ func hasControlChars(value string) bool {
 }
 
 func cleanAbsPath(path string) (string, error) {
+	if runtime.GOOS == "windows" {
+		// 校验必须先于 TrimSpace/Clean：调用点可能直接打开原始字符串，不能让
+		// 验证后的路径与实际参数有不同含义。业务 UNC 保留，设备/ADS/尾点等拒绝。
+		if err := ValidateWindowsAbsolutePath(path, true); err != nil {
+			return "", err
+		}
+	}
 	path = strings.TrimSpace(path)
 	if path == "" {
 		return "", fmt.Errorf("path is empty")
@@ -188,14 +196,13 @@ func isConfiguredAllowedRoot(path string, roots []string) bool {
 }
 
 func windowsHostsPathCandidates() []string {
-	systemRoot := os.Getenv("SystemRoot")
-	if systemRoot == "" {
-		systemRoot = `C:\Windows`
+	// hosts 例外只属于操作系统实际安装位置，不信环境变量，也不额外允许 C: 同名文件。
+	systemRoot, err := WindowsSystemRoot()
+	if err != nil {
+		return nil
 	}
 	return []string{
 		filepath.Join(systemRoot, "System32", "drivers", "etc", "hosts"),
-		`C:\Windows\System32\drivers\etc\hosts`,
-		`c:\windows\system32\drivers\etc\hosts`,
 	}
 }
 
@@ -226,13 +233,15 @@ func isExplicitSystemFile(path string) bool {
 
 func isSensitiveSystemPath(path string) bool {
 	if runtime.GOOS == "windows" {
-		systemRoot := os.Getenv("SystemRoot")
-		if systemRoot == "" {
-			systemRoot = `C:\Windows`
+		systemRoot, err := WindowsSystemRoot()
+		if err != nil {
+			// 无法获得可信系统根时不能缩小保护范围；在布尔策略入口保守拒绝。
+			return true
 		}
 		sensitive := []string{
 			filepath.Join(systemRoot, "System32"),
 			filepath.Join(systemRoot, "SysWOW64"),
+			filepath.Join(systemRoot, "Sysnative"),
 		}
 		for _, s := range sensitive {
 			if pathInDir(path, s) {
@@ -440,6 +449,16 @@ func pathHasSymlinkComponent(path string, trust trustedSymlinkComponentFunc) (bo
 	for {
 		info, statErr := os.Lstat(clean)
 		if statErr == nil {
+			if runtime.GOOS == "windows" {
+				// 业务路径链按真实标签检查：拒绝重定向/未知标签，保留已知 Cloud 占位类型。
+				reparse, err := windowsPathIsReparsePoint(clean)
+				if err != nil {
+					return false, err
+				}
+				if reparse {
+					return true, nil
+				}
+			}
 			if info.Mode()&os.ModeSymlink != 0 && !trust(clean, info) {
 				return true, nil
 			}
@@ -464,6 +483,12 @@ func validatePathAccess(path string, forWrite bool) error {
 	clean, err := cleanAbsPath(path)
 	if err != nil {
 		return err
+	}
+	if runtime.GOOS == "windows" {
+		// 系统目录查询异常直接报错，不继续按名称/allowed-root 放行。
+		if _, err := WindowsSystemRoot(); err != nil {
+			return err
+		}
 	}
 	if runtime.GOOS == "windows" && forWrite {
 		protectedRoot := filepath.Dir(allowedRootsFilePath())
@@ -877,11 +902,23 @@ func ValidateSystemEnvValue(key, value string) error {
 	if value == "" {
 		return nil
 	}
-	if strings.Contains(value, "%") {
-		return ValidateSystemPathEntry(value)
-	}
 	if filepath.IsAbs(value) {
-		return ValidatePathForWrite(value)
+		// This value is registry data, not a filesystem write target. Match the
+		// Windows fallback: allow junctions and custom installation directories,
+		// while retaining absolute-path syntax checks. Filesystem operations keep
+		// their allowed-root and symlink protections in ValidatePathForWrite.
+		_, err := cleanAbsPath(value)
+		return err
+	}
+	if strings.Contains(value, "%") {
+		// Environment values are single paths, not semicolon-separated PATH
+		// entries. Validate the suffix without expanding or accessing it; legal
+		// apostrophes and semicolons must not depend on the elevation method.
+		prefix := envPathPattern.FindString(value)
+		if prefix == "" || (len(value) > len(prefix) && value[len(prefix)] != '\\') {
+			return fmt.Errorf("invalid environment path for %s", key)
+		}
+		return ValidateWindowsAbsolutePath(`C:\FlyEnvEnvValue`+value[len(prefix):], false)
 	}
 	if strings.ContainsAny(value, `/\`) {
 		return fmt.Errorf("environment variable value must be an allowed path: %s", key)

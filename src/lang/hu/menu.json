@@ -17,7 +17,7 @@
   "needInstallHelper": "A FlyEnv-nek segédprogramot kell telepítenie",
   "waitHelper": "A segédprogram indul, kérjük, várjon",
   "helperInstalling": "A segédprogram telepítése folyamatban van, kérjük, várjon",
-  "helperInstallFailTips": "A segédprogram telepítése sikertelen. Kérjük, próbálja meg kézzel telepíteni a terminál ablakban",
+  "helperInstallFailTips": "A segédprogram telepítése sikertelen.",
   "helperInstallSuccessTips": "A segédprogram telepítése sikeres",
   "helperInstallTitle": "FlyEnv Helper telepítése"
 }

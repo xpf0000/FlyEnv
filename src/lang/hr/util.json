@@ -50,5 +50,7 @@
   "auto": "Automatski",
   "noVerionsFoundInLib": "Nema dostupnih verzija",
   "showToolBtn": "Prikaži Plutajući Gumb Alata",
-  "inputSearchKey": "Ključna riječ za pretraživanje"
+  "inputSearchKey": "Ključna riječ za pretraživanje",
+  "macPortsSourceTerminal": "Pregledajte konfiguraciju izvora, a zatim je primijenite u terminalu uz sudo autentifikaciju.",
+  "linuxSystemFileReadOnly": "Datoteke sistemskog okruženja ovdje su dostupne samo za čitanje. Za njihovo održavanje koristite terminal s administratorskim ovlastima; datoteke vašeg korisničkog profila ostaju dostupne za uređivanje."
 }

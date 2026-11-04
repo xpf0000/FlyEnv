@@ -7,7 +7,6 @@
   "useSysPHP": "Usa la versione PHP predefinita",
   "setByApp": "Variabili d’ambiente impostate da FlyEnv",
   "setByNoApp": "Variabili d’ambiente non impostate da FlyEnv",
-  "ftpdNeedPasswordToStart": "Pure-FTPd richiede privilegi sudo per essere avviato. Inserisci la password del tuo utente. La password verrà salvata per l’inserimento automatico in futuro. Oppure puoi cliccare il pulsante qui sotto per inserirla manualmente nel terminale, ma questo avviso potrebbe riapparire.",
   "bundleinVersionDelTips": "Questa versione è incorporata, confermi di non visualizzarla?",
   "customDirVersionDelTips": "Questa versione usa un percorso personalizzato, confermi di non visualizzarla?",
   "ErrorTips": {
@@ -18,5 +17,8 @@
       "versionRange": "Intervallo Di Versione",
       "msvsVersion": "Versione MSVC"
     }
-  }
+  },
+  "linuxSudoRequiresTerminal": "Avvia manualmente questa attività che richiede privilegi elevati e completa l’autorizzazione nel terminale; macOS/Linux non supporta sudo automatico in background.",
+  "linuxFtpUnmanagedRoot": "Questo processo FTP eseguito come root non è stato avviato dal servizio gestito di FlyEnv. Arrestalo con privilegi di amministratore prima di riavviarlo.",
+  "linuxFtpUsersRefreshFailed": "Le modifiche agli account FTP sono state salvate, ma il servizio in esecuzione non ha potuto applicarle: {error}"
 }

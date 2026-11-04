@@ -3,10 +3,15 @@ package module
 import (
 	"encoding/base64"
 	"encoding/binary"
+	"errors"
+	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"unicode/utf16"
+
+	"helper-go/utils"
 )
 
 func decodePowerShellPayloadForTest(t *testing.T, payload string) string {
@@ -42,25 +47,29 @@ func TestPowerShellEncodedArgsAvoidScriptFiles(t *testing.T) {
 	}
 }
 
-func TestResolveWindowsSystemExePrefersSysnative(t *testing.T) {
-	systemRoot := `C:\Windows`
-	sysnativePath := filepath.Join(systemRoot, "Sysnative", "schtasks.exe")
-	system32Path := filepath.Join(systemRoot, "System32", "schtasks.exe")
-	got := resolveWindowsSystemExe("schtasks", systemRoot, func(path string) bool {
-		return path == sysnativePath || path == system32Path
-	}, true)
-
-	if got != sysnativePath {
-		t.Fatalf("expected Sysnative path, got %q", got)
+func TestResolveWindowsSystemExeUsesSystemAPI(t *testing.T) {
+	// 更新原有 Sysnative 优先断言：64 位进程应使用本机系统目录，不依赖该别名。
+	if runtime.GOOS != "windows" {
+		t.Skip("Windows system API is unavailable")
+	}
+	t.Setenv("SystemRoot", `Z:\not-the-system-root`)
+	t.Setenv("PATH", "")
+	got, err := utils.GetWindowsSystemExe("schtasks")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !filepath.IsAbs(got) || strings.HasPrefix(strings.ToLower(got), `z:\`) {
+		t.Fatalf("system executable must use the OS directory, got %q", got)
 	}
 }
 
-func TestResolveWindowsSystemExeFallsBackToCommandName(t *testing.T) {
-	got := resolveWindowsSystemExe("schtasks", "", func(string) bool {
-		return false
-	}, true)
-
-	if got != "schtasks.exe" {
-		t.Fatalf("expected fallback command name, got %q", got)
+func TestResolveWindowsSystemExeRefusesMissingFile(t *testing.T) {
+	// 更新原有“缺失即裸命令回退”断言，避免测试继续要求已移除的不安全行为。
+	if runtime.GOOS != "windows" {
+		t.Skip("Windows system API is unavailable")
+	}
+	got, err := utils.GetWindowsSystemExe("flyenv-nonexistent-system-tool-for-test")
+	if got != "" || !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("missing system file must fail without a command fallback, got %q, %v", got, err)
 	}
 }

@@ -19,15 +19,13 @@ import {
   mkdirp,
   chmod,
   copyFile,
-  waitTime,
-  execPromiseWithEnv
+  waitTime
 } from '../../Fn'
 import { serviceStartSpawn } from '../../util/ServiceStart'
 import { ForkPromise } from '@shared/ForkPromise'
 import TaskQueue from '../../TaskQueue'
 import { isWindows, pathFixedToUnix } from '@shared/utils'
 import { ProcessListSearch } from '@shared/Process.win'
-import { StopProcessListSearch } from '@shared/StopProcessList'
 import { RedisCommanderRuntime, type RedisCommanderOpenResult } from './RedisCommander'
 
 class Redis extends Base {
@@ -118,12 +116,22 @@ class Redis extends Base {
     })
   }
 
-  _stopServer(version: SoftInstalled): ForkPromise<{ 'APP-Service-Stop-PID': string[] }> {
+  /** Commander 独立登记时只回收面板，不能用其 Node bin 去停止 Redis。 */
+  companionStopArgs(command: string, pid: string, args: any[]): any[] | undefined {
+    if (command === 'openRedisCommander') return [{ ...args[0], pid }, { commanderOnly: true }]
+  }
+
+  _stopServer(
+    version: SoftInstalled,
+    options?: { commanderOnly?: boolean }
+  ): ForkPromise<{ 'APP-Service-Stop-PID': string[] }> {
     return new ForkPromise(async (resolve, reject, on) => {
-      const redisCommanderPids = await this.redisCommanderRuntime.stop().catch((error) => {
-        console.error('stop Redis Commander error: ', error)
-        return [] as string[]
-      })
+      // companion 失败必须随模块停止返回失败；退出与界面不能各自吞掉这项清理。
+      const redisCommanderPids = await this.redisCommanderRuntime.stop()
+      if (options?.commanderOnly) {
+        resolve({ 'APP-Service-Stop-PID': redisCommanderPids })
+        return
+      }
       const mergePids = (result: { 'APP-Service-Stop-PID'?: Array<string | number> }) => {
         result['APP-Service-Stop-PID'] = Array.from(
           new Set([...(result['APP-Service-Stop-PID'] ?? []), ...redisCommanderPids])
@@ -139,20 +147,17 @@ class Redis extends Base {
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
       })
-      const v = version?.version?.split('.')?.[0] ?? ''
-      const appConfName = `pws-app-redis-${v}.conf`
-      const all = await StopProcessListSearch(appConfName, false)
-      const arr: Array<string> = []
-      all.forEach((item) => {
-        arr.push(item.PID)
-      })
-      console.log('php arr: ', arr)
-      if (arr.length > 0) {
-        const str = arr.map((s) => `/pid ${s}`).join(' ')
-        try {
-          await execPromiseWithEnv(`taskkill /f /t ${str}`)
-        } catch {}
-      }
+      // 与 Base/PHP 共用权限树停止；相对配置路径的根由实际可执行路径确认。
+      // 不再通过 PATH 拼 taskkill 或吞取消/执行失败，确认真实退出才报告成功。
+      const modulePidBefore = existsSync(this.pidPath) ? await this.readPidFromFile() : ''
+      const targets = await this.windowsServiceTargets(version)
+      const arr = targets.pids
+      // 原树退出确认和文件清理复用共享的最终列表，避免同一停止再开 CIM。
+      const finalList = await this.stopWindowsServiceProcesses(arr, targets.list)
+      await this.cleanupStoppedServicePidFiles(
+        [...arr, ...targets.candidates, modulePidBefore],
+        finalList
+      )
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
       })

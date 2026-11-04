@@ -246,8 +246,7 @@
           >
             <el-descriptions-item :label="I18nT('common.label.startCommand')">
               <pre class="command-pre"
-                >{{ containerDetail.Path }} {{ containerDetail.Args.join(' ') }}</pre
-              >
+                >{{ containerDetail.Path }} {{ containerDetail.Args.join(' ') }}</pre>
             </el-descriptions-item>
             <el-descriptions-item :label="I18nT('common.label.workingDirectory')">
               <span class="font-mono text-sm">{{ containerDetail.Config.WorkingDir }}</span>

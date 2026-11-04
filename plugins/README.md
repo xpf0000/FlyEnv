@@ -4,6 +4,8 @@ Plugins live in `plugins/<plugin-name>` while developing in the FlyEnv repositor
 
 A plugin contains a `plugin.json` manifest and may provide both Renderer and Fork entries.
 
+`plugins/dameng` provides an experimental DM8 service plugin for native Windows x64 and Ubuntu 22.04 x86_64. It uses pinned official media, explicit initialization, Linux SIGINT/Windows SCM lifecycle, standard configuration/log views and official uninstall with data retention. See [its prerequisites, ownership policy and real-platform acceptance gaps](dameng/README.md). Its service/version panels reuse the default host components and require no host source changes.
+
 ## Localized manifest text
 
 `plugin.json` fields shown in the Plugin Market — currently `description` — accept either a
@@ -67,6 +69,26 @@ until the fork process restarts (the Version Manager's static tab still shows th
 its `installed` flags come from a separate `existsSync` check, which makes the stale service
 list look especially confusing).
 
+## Fork-side service shutdown
+
+The host keeps plugin `stopService(version, ...businessArgs)` calls in their existing
+argument order. Unlike built-in modules, plugins do not receive an inserted second
+`ServiceStopContext` argument. The dispatcher binds the request's process snapshot and
+`stop`/`quit` reason through a shared async context; freshly bundled `Base.stopService`
+inherits it, including when a plugin supplies a second business argument. Renderer
+`stopExtParam` registrations and `_stopServer(version, ...businessArgs)` overrides keep
+their existing signatures.
+
+`StopProcessListFetch()` reuses that immutable initial snapshot for target discovery.
+Let Base own signals, fresh exit confirmation, and PID-file cleanup; a plugin must not
+poll the discovery snapshot after Base completes or repeat its cleanup. Propagate Base
+failures and clear plugin runtime state only after successful completion. Windows quit
+uses the shared command-completion policy rather than adding plugin-specific polling.
+
+Plugins bundle Base and shared fork utilities, so previously published packages need
+to be rebuilt and released to receive updated shutdown behavior; updating the host
+alone does not update their bundled code.
+
 ## Real example: Mailpit
 
 `plugins/mailpit` is intentionally a real service plugin rather than a Hello World example.
@@ -124,6 +146,51 @@ The Renderer exercises real Mailpit operations through the plugin Fork module:
 - open the Mailpit web UI
 
 The example intentionally shares the built-in module's binary dirs config (`setup.mailpit.dirs`). Both manage the same Mailpit binaries/default ports, so they should not be started at the same time.
+
+## OpenSearch Dashboards
+
+The OpenSearch service page can open a local OpenSearch Dashboards companion. The
+button uses the running backend instance. First use installs the same Dashboards
+version from official Windows/Linux archives or the matching macOS Homebrew formula;
+subsequent opens reuse the owned healthy process. The panel binds to `127.0.0.1`,
+preferring port 5601 and selecting another available port when necessary.
+
+This first integration supports local development mode (HTTP without authentication).
+It verifies the actual backend version/security response before installation and does
+not change OpenSearch security settings. Authenticated/TLS cluster account and
+certificate configuration is not included. Homebrew availability and exact installed
+version are checked; a mismatched formula is not used against an older backend.
+macOS uses an existing matching installation or a matching Homebrew bottle; source
+compilation is not started from the panel button. Shared Homebrew plugin files remain
+untouched. Install/start operations have a five-minute budget inside the host deadline.
+
+Panel configuration, data, logs and PID records belong to the plugin. The renderer
+singleton owns IPC progress across page changes; the fork runtime owns process health
+and cleanup. Main receives the existing companion registration/stop arguments.
+Stopping or restarting OpenSearch also stops its companions, and FlyEnv exit can stop
+the panel independently. A panel failure does not stop a healthy OpenSearch backend.
+
+Validate with `yarn plugin:test opensearch`.
+
+## llama.cpp service plugin
+
+`plugins/llamacpp` is a separate service plugin with ID/type flag `llama-cpp`. It discovers the official `ggml-org/llama.cpp` GitHub Releases API, then offers only assets matching the current OS, architecture, and supported CPU, CUDA, Vulkan, or Apple Silicon Metal build. CUDA runtime archives are paired by exact release asset name. Runtime identity is release tag + platform + architecture + backend + CUDA runtime version when present.
+
+The plugin's distributable contains renderer/Fork code only. Installed binaries, staging files, GGUF weights, secret key files, and server logs are kept beneath `<FlyEnv data directory>/llama-cpp/` in `runtimes/`, `staging/`, `models/`, `secrets/`, and `logs/`. Structured launch settings and the local-model index use the host `StorageGetAsync`/`StorageSetAsync` store. Plugin disable, update, and uninstall leave these user files in place; runtime and model removal is an explicit operation.
+
+The Models page opens on a browsable list of popular public Hugging Face GGUF repositories; users can search by model name or `organization/repository`, expand a repository to compare GGUF variants and file sizes, or switch to their local models. It downloads one non-sharded text `.gguf` file at a time, checks the advertised size and SHA-256/LFS digest when available, then atomically activates the completed file. Private/gated repositories, multi-shard bundles, `mmproj` files, and persistent Hub credentials are not supported.
+
+The server starts from a typed profile using an argv array and binds to `127.0.0.1` by default. Non-loopback binding requires a private API-key file; it is currently disabled on Windows because the plugin cannot guarantee restrictive file permissions there. The plugin does not install GPU drivers or expose arbitrary command-line fragments.
+
+Develop and validate the plugin with:
+
+```bash
+yarn plugin:test llamacpp
+yarn plugin:build llamacpp
+yarn plugin:runtime-smoke
+```
+
+The repository's Electron runtime smoke covers generic plugin installation and lifecycle using local fixtures; it does not fetch public model weights or binaries.
 
 ## Commands
 

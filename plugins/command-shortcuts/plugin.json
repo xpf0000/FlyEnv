@@ -1,0 +1,21 @@
+{
+  "apiVersion": 1,
+  "id": "command-shortcuts",
+  "name": "Command Shortcuts",
+  "version": "0.1.3",
+  "description": {
+    "en": "Organize preset commands by folder and run them in your system terminal.",
+    "zh": "按文件夹管理预设命令，一键在指定目录的系统终端中执行。"
+  },
+  "author": "FlyEnv",
+  "module": {
+    "typeFlag": "command-shortcuts",
+    "moduleType": "console",
+    "label": "Command Shortcuts",
+    "asideIndex": 5,
+    "isService": false,
+    "isTray": false,
+    "platform": ["Windows", "macOS", "Linux"]
+  },
+  "entry": { "render": "render/Module.ts", "fork": "fork/index.ts" }
+}

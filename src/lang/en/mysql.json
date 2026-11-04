@@ -1,5 +1,6 @@
 {
   "port": "TCP Port (Default: 3306)",
+  "socket": "Local connection Socket path (default: /tmp/mysql.sock). On Windows, this is the named pipe name (default: MySQL).",
   "key_buffer_size": "Buffer size for indexing",
   "query_cache_size": "Query cache, please set to 0 if not enabled",
   "tmp_table_size": "Temporary table cache size",

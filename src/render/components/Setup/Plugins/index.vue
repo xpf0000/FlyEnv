@@ -43,6 +43,14 @@
 
     <div class="flex min-h-0 flex-1 flex-col gap-5 px-6 pb-5">
       <el-alert
+        v-if="PluginMarket.error"
+        :title="PluginMarket.error"
+        type="error"
+        :closable="false"
+        show-icon
+        class="!rounded-lg"
+      />
+      <el-alert
         v-if="PluginMarket.restartRequired"
         :title="I18nT('setup.pluginsRestartTip')"
         type="info"

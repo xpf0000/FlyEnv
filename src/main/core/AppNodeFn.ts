@@ -10,10 +10,17 @@ import { type FSWatcher, rm, stat, existsSync, watch, createReadStream, constant
 import { join } from 'node:path'
 import { readdir, access as fsAccess } from 'node:fs/promises'
 import Helper from '../../fork/Helper'
+import { AppHelperError } from '@shared/WindowsHelperState'
 import { resolve as PathResolve } from 'path'
-import { appDebugLog, isLinux, isMacOS, isWindows, pathFixedToUnix } from '@shared/utils'
+import { appDebugLog, isLinux, isWindows, pathFixedToUnix } from '@shared/utils'
 import { realpath } from '@shared/fs-extra'
 import { copy, mkdirp, writeFile, readFile, copyFile, chmod, remove } from '@shared/fs-extra'
+import {
+  readUnixHosts,
+  replaceUnixHosts,
+  isSystemHostsPath,
+  assertGenericUnixFileWrite
+} from '../../fork/module/Host/UnixHosts'
 import crypto from 'node:crypto'
 import is from 'electron-is'
 import { homedir } from 'node:os'
@@ -22,6 +29,11 @@ import { mergeProcessOptions } from '@shared/process-options'
 import { LazyRuntime } from './lazy/LazyRuntime'
 import { getWindowsHelperBinaryPath } from '@shared/AppHelperCheck'
 import { handleCompleteModuleOnboardingRequest } from './ModuleOnboardingConfig'
+import {
+  inspectManagedVersionDirectory,
+  removeManagedVersionDirectory
+} from './ManagedVersionDirectory'
+import type { ManagedVersionDirectory, VersionDeleteTarget } from '@shared/VersionDelete'
 
 const markdownRuntime = new LazyRuntime(async () => {
   const { createMarkdownRenderer } = await import('@/util/markdown/markdown')
@@ -367,15 +379,9 @@ X-GNOME-Autostart-enabled=true`
     const exePath = app.getPath('exe')
     console.log('exePath: ', exePath)
     const taskName = 'FlyEnvStartup'
-    try {
-      await Helper.send('tools', 'setAutoStartWin', autoLaunch, taskName, exePath)
-      return true
-    } catch (e: any) {
-      if (!autoLaunch) {
-        return true
-      }
-      throw e
-    }
+    // 关闭自启动也可能被策略拒绝；保留错误，不能仅因目标值是 false 就报告成功。
+    await Helper.send('tools', 'setAutoStartWin', autoLaunch, taskName, exePath)
+    return true
   }
 
   app_setLoginItemSettings(command: string, key: string, param: any) {
@@ -390,7 +396,11 @@ X-GNOME-Autostart-enabled=true`
           this?.mainWindow?.webContents.send('command', command, key, true)
         })
         .catch((error) => {
-          this?.mainWindow?.webContents.send('command', command, key, `${error}`)
+          // 保留权限错误类型，同时 renderer 展示 message；不再只传字符串丢失取消原因。
+          this?.mainWindow?.webContents.send('command', command, key, {
+            message: String(error),
+            errorCode: error instanceof AppHelperError ? error.code : undefined
+          })
         })
       return
     }
@@ -407,12 +417,6 @@ X-GNOME-Autostart-enabled=true`
     }
 
     app.setLoginItemSettings(obj)
-    if (!obj.openAtLogin && isMacOS()) {
-      try {
-        const name = is.production() ? 'FlyEnv' : 'Electron'
-        Helper.send('tools', 'removeLoginItemMac', name).catch()
-      } catch {}
-    }
     this?.mainWindow?.webContents.send('command', command, key, true)
   }
 
@@ -504,6 +508,33 @@ X-GNOME-Autostart-enabled=true`
       })
   }
 
+  async versionDelete_inspect(command: string, key: string, target: VersionDeleteTarget) {
+    let directory: ManagedVersionDirectory | undefined
+    try {
+      directory = await inspectManagedVersionDirectory(global.Server.AppDir, target)
+    } catch {
+      // Unknown/inaccessible/external paths never enable destructive UI.
+    }
+    this.mainWindow?.webContents.send('command', command, key, { code: 0, data: directory })
+  }
+
+  async versionDelete_remove(
+    command: string,
+    key: string,
+    target: ManagedVersionDirectory,
+    confirmation: string
+  ) {
+    try {
+      await removeManagedVersionDirectory(global.Server.AppDir, target, confirmation)
+      this.mainWindow?.webContents.send('command', command, key, { code: 0, data: true })
+    } catch (error) {
+      this.mainWindow?.webContents.send('command', command, key, {
+        code: 1,
+        msg: error instanceof Error ? error.message : String(error)
+      })
+    }
+  }
+
   fs_remove(command: string, key: string, path: string) {
     rm(path, { recursive: true, force: true }, (err) => {
       this?.mainWindow?.webContents.send('command', command, key, !err)
@@ -516,7 +547,14 @@ X-GNOME-Autostart-enabled=true`
       .then(() => {
         this?.mainWindow?.webContents.send('command', command, key, true)
       })
-      .catch(() => {
+      .catch((error) => {
+        if (!isWindows()) {
+          this?.mainWindow?.webContents.send('command', command, key, {
+            code: 1,
+            msg: String(error)
+          })
+          return
+        }
         Helper.send('tools', 'writeBufferBase64ByRoot', path, data)
           .then(() => {
             this?.mainWindow?.webContents.send('command', command, key, true)
@@ -633,41 +671,86 @@ X-GNOME-Autostart-enabled=true`
       })
   }
 
-  fs_readFile(command: string, key: string, path: string) {
+  host_readHosts(command: string, key: string) {
+    readUnixHosts()
+      .then((data) =>
+        this?.mainWindow?.webContents.send('command', command, key, { code: 0, data })
+      )
+      .catch((error) =>
+        this?.mainWindow?.webContents.send('command', command, key, { code: 1, msg: String(error) })
+      )
+  }
+
+  host_replaceHosts(command: string, key: string, content: string, digest: string) {
+    replaceUnixHosts(content, digest)
+      .then(() => this?.mainWindow?.webContents.send('command', command, key, { code: 0 }))
+      .catch((error) =>
+        this?.mainWindow?.webContents.send('command', command, key, { code: 1, msg: String(error) })
+      )
+  }
+
+  fs_readFile(command: string, key: string, path: string, strict = false) {
+    // strict 供 hosts/项目版本等会依据读取结果重写文件的调用方使用；旧只读调用
+    // 保持缺失返回空字符串的合同。只把访问拒绝交给权限分流，不以 UAC 掩盖 I/O 错误。
+    const fail = (error: NodeJS.ErrnoException) => {
+      this?.mainWindow?.webContents.send(
+        'command',
+        command,
+        key,
+        strict ? { code: 1, msg: error.message, errorCode: error.code } : ''
+      )
+    }
     path = pathFixedToUnix(path)
-    readFile(path, 'utf-8')
+    const reading =
+      !isWindows() && isSystemHostsPath(path)
+        ? readUnixHosts().then((snapshot) => snapshot.content)
+        : readFile(path, 'utf-8')
+    reading
       .then((data: string) => {
         this?.mainWindow?.webContents.send('command', command, key, data)
       })
       .catch((error: NodeJS.ErrnoException) => {
-        if (error.code === 'ENOENT') {
-          this?.mainWindow?.webContents.send('command', command, key, '')
+        if (!isWindows() || !['EACCES', 'EPERM'].includes(error.code ?? '')) {
+          fail(error)
           return
         }
         Helper.send('tools', 'readFileByRoot', path)
           .then((data) => {
             this?.mainWindow?.webContents.send('command', command, key, data)
           })
-          .catch(() => {
-            this?.mainWindow?.webContents.send('command', command, key, '')
-          })
+          .catch(fail)
       })
   }
 
   fs_writeFile(command: string, key: string, path: string, data: string) {
-    writeFile(path, data)
+    const writing = Promise.resolve().then(() => {
+      if (!isWindows()) assertGenericUnixFileWrite(pathFixedToUnix(path))
+      return writeFile(path, data)
+    })
+    writing
       .then(() => {
         this?.mainWindow?.webContents.send('command', command, key, true)
       })
       .catch((e) => {
         console.error('fs_writeFile error: ', e)
+        // 写入取消/失败必须回传结构化终态；false 被旧 renderer 当作 void 成功，
+        // 会导致 hosts 编辑器提示成功或项目版本继续注册。非权限错误不尝试提权。
+        const fail = (error: NodeJS.ErrnoException) => {
+          this?.mainWindow?.webContents.send('command', command, key, {
+            code: 1,
+            msg: error.message,
+            errorCode: error.code
+          })
+        }
+        if (!isWindows() || !['EACCES', 'EPERM'].includes(e.code ?? '')) {
+          fail(e)
+          return
+        }
         Helper.send('tools', 'writeFileByRoot', path, data)
           .then(() => {
             this?.mainWindow?.webContents.send('command', command, key, true)
           })
-          .catch(() => {
-            this?.mainWindow?.webContents.send('command', command, key, false)
-          })
+          .catch(fail)
       })
   }
 

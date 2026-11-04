@@ -50,5 +50,7 @@
   "auto": "Auto",
   "noVerionsFoundInLib": "Keine verfügbare Version",
   "showToolBtn": "Schwebende Werkzeugschaltfläche anzeigen",
-  "inputSearchKey": "Suchbegriff"
+  "inputSearchKey": "Suchbegriff",
+  "macPortsSourceTerminal": "Prüfen Sie die Quellenkonfiguration und wenden Sie sie anschließend im Terminal mit sudo-Authentifizierung an.",
+  "linuxSystemFileReadOnly": "Systemumgebungsdateien sind hier schreibgeschützt. Verwalten Sie sie in einem Terminal mit Administratorrechten; die Dateien Ihres Benutzerprofils bleiben bearbeitbar."
 }

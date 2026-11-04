@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv نیاز به نصب یک برنامه کمکی دارد",
   "helperInstalling": "برنامه کمکی در حال نصب است، لطفا صبر کنید",
   "waitHelper": "برنامه کمکی در حال راه‌اندازی است، لطفا صبر کنید",
-  "helperInstallFailTips": "نصب برنامه کمکی با خطا مواجه شد. لطفا سعی کنید آن را به صورت دستی در پنجره ترمینال نصب کنید",
+  "helperInstallFailTips": "نصب برنامه کمکی با خطا مواجه شد.",
   "helperInstallSuccessTips": "برنامه کمکی با موفقیت نصب شد",
   "helperInstallTitle": "نصب برنامه کمکی FlyEnv"
 }

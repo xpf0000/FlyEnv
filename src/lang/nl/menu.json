@@ -17,7 +17,7 @@
   "needInstallHelper": "FlyEnv moet een hulpprogramma installeren",
   "helperInstalling": "Helper programma wordt geïnstalleerd, even geduld a.u.b.",
   "waitHelper": "Helper programma wordt opgestart, even geduld a.u.b.",
-  "helperInstallFailTips": "Installatie van Helper programma is mislukt. Probeer handmatig te installeren in het terminal venster",
+  "helperInstallFailTips": "Installatie van het hulpprogramma is mislukt.",
   "helperInstallSuccessTips": "Installatie van Helper programma gelukt",
   "helperInstallTitle": "FlyEnv Helper installeren"
 }

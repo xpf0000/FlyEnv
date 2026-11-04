@@ -99,5 +99,7 @@
     "readonlyFs": "Datotečni Sustav samo za čitanje",
     "maxRetry": "Maksimalni Broj Pokušaja",
     "loading": "Učitavanje informacija o kontejneru..."
-  }
+  },
+  "rosettaGlobalTip": "Primjenjuje se kao globalna postavka Podmana za računala s Apple Silicon čipom (ne za svaki virtualni stroj zasebno). Potreban je Podman >= 5.1.0.",
+  "rosettaNeedVersion": "Rosetta zahtijeva Podman >= 5.1.0. Nadogradite Podman da biste omogućili ovaj prekidač."
 }

@@ -3,15 +3,21 @@ import IPC from '@/util/IPC'
 import { ElMessage } from 'element-plus'
 import { I18nT } from '@lang/index'
 import { FlyEnvHelperSetup } from '@/components/FlyEnvHelper/setup'
-import { AsyncComponentShow } from '@/util/AsyncComponent'
 
 export const FlyEnvHelperFix = reactive({
   fixing: false,
   doFix() {
-    if (this.fixing) {
+    if (this.fixing || FlyEnvHelperSetup.show || FlyEnvHelperSetup.loading) {
       return
     }
     this.fixing = true
+    if (window.Server.isLinux) {
+      // Explicit maintenance also permits approving a new CA on a healthy helper.
+      FlyEnvHelperSetup.open().finally(() => {
+        this.fixing = false
+      })
+      return
+    }
     IPC.send('APP:FlyEnv-Helper-Check').then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
@@ -20,9 +26,7 @@ export const FlyEnvHelperFix = reactive({
         ElMessage.error(I18nT('menu.helperInstallFailTips'))
       } else {
         if (!FlyEnvHelperSetup.show) {
-          import('@/components/FlyEnvHelper/index.vue').then((m) => {
-            AsyncComponentShow(m.default).then()
-          })
+          FlyEnvHelperSetup.open()
         }
       }
       this.fixing = false

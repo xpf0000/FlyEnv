@@ -51,7 +51,9 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   const versionRunning = computed(() => {
     const module = brewStore.module(typeFlag)
-    return module.starting || module.installed.some((item) => item.running)
+    // 只有独占模块需要阻挡整列操作。PHP-FPM 等多版本模块仅使用各行的 running，
+    // 不能因为 A 启动/停止就让 B 的按钮无反应；真正的同实例重入由 InstalledItem 管理。
+    return module.isOnlyRunOne && (module.starting || module.installed.some((item) => item.running))
   })
 
   const isInEnv = (item: SoftInstalled) => {
@@ -96,7 +98,7 @@ export const Setup = (typeFlag: AllAppModule) => {
     if (!item?.version || !item?.path) {
       return
     }
-    if (versionRunning.value) {
+    if (item.running || versionRunning.value) {
       return
     }
     let action: any

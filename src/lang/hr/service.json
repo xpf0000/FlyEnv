@@ -7,7 +7,6 @@
   "useSysPHP": "Koristi zadanu PHP verziju",
   "setByApp": "Varijable okruženja postavljene od FlyEnv-a",
   "setByNoApp": "Varijable okruženja nisu postavljene od FlyEnv-a",
-  "ftpdNeedPasswordToStart": "Pure-FTPd zahtijeva sudo privilegije za pokretanje. Molimo unesite svoju korisničku lozinku. Lozinka će se koristiti za automatsko popunjavanje kasnije. Ili možete kliknuti gumb ispod za ručni unos u terminalu, ali ovaj upit se može ponovo pojaviti.",
   "bundleinVersionDelTips": "Ova verzija je ugrađena verzija, potvrdite da nije prikazana?",
   "customDirVersionDelTips": "Ova verzija je verzija prilagođene putanje, potvrdite da nije prikazana?",
   "ErrorTips": {
@@ -18,5 +17,8 @@
       "versionRange": "Raspon Verzija",
       "msvsVersion": "MSVC Verzija"
     }
-  }
+  },
+  "linuxSudoRequiresTerminal": "Ručno pokrenite ovaj zadatak s povišenim ovlastima i dovršite autorizaciju u terminalu; macOS/Linux ne podržava automatski sudo u pozadini.",
+  "linuxFtpUnmanagedRoot": "Ovaj FTP proces s ovlastima root nije pokrenula upravljana usluga FlyEnva. Zaustavite ga s administratorskim ovlastima prije ponovnog pokretanja.",
+  "linuxFtpUsersRefreshFailed": "Promjene FTP računa su spremljene, ali ih pokrenuta usluga nije mogla primijeniti: {error}"
 }

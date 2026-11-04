@@ -2,6 +2,238 @@
 
 All notable changes to FlyEnv will be documented in this file.
 
+## [4.20.2] - 2026-10-26
+
+# **FlyEnv v4.20.2 Update Release Notes**
+
+## **🚀 New Features**
+
+### **1. Added Windows Project Environment Support for Git Bash**
+
+FlyEnv's Windows shell initialization now integrates with **Git Bash**, allowing configured projects to use their selected runtime paths automatically in the terminal.
+
+This integration provides:
+
+- **Automatic Project PATH Loading**: Load runtime paths from a configured project's `.flyenv` file when opening Git Bash in that directory or navigating into it
+- **Environment Switching**: Remove the previous project's injected paths when switching projects or leaving a configured directory
+- **Shell Profile Integration**: Configure interactive and login shells while preserving existing profile content and prompt handlers
+- **Setup Feedback**: Report Git Bash setup problems while allowing PowerShell initialization to complete
+
+Run **Shell Initialization** in FlyEnv and open a new Git Bash session to activate the integration. The script reads supported PATH assignments from Windows `.flyenv` files without executing their PowerShell commands.
+
+Thanks to [@Ray123fa](https://github.com/Ray123fa) for the contribution! [Pull Request #930](https://github.com/xpf0000/FlyEnv/pull/930)
+
+---
+
+### **2. Added a Windows PHP Extension Installer**
+
+The PHP Extensions page now includes an **Install extensions** view for the selected Windows PHP version, making it easier to find compatible extensions and manage their configuration.
+
+The installer provides:
+
+- **Extension Search and Status**: Search online packages alongside locally configured extensions, with loaded, not loaded, and not configured states
+- **Build Matching**: Select compatible binaries from PHP's official Windows extension archive by PHP version, thread safety, compiler, and architecture, with a checksum-verified PIE installer as a fallback
+- **Installation Progress and Backups**: View installer output, retain the operation result for each PHP version, and locate the `php.ini` backup
+- **Configuration Controls**: Repair configured extensions that are not loading or disable supported entries in the selected `php.ini`
+- **Loading Verification**: Check whether the extension loads after installation and show a warning when verification fails
+
+An online search result does not guarantee a compatible Windows binary. Restart the selected PHP service after changing extensions to apply the configuration to running sites.
+
+Thanks to [@mspacemedia](https://github.com/mspacemedia) for the contribution! [Pull Request #922](https://github.com/xpf0000/FlyEnv/pull/922)
+
+---
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **3. Improved Helper Installation and Upgrade Compatibility**
+
+Further improved macOS helper installation by staging only the required installer resources, clearing quarantine before execution, and waiting for the previous helper to finish stopping during an upgrade.
+
+On macOS and Linux, helper operations no longer reject accessible directories solely because their ownership, permission modes, or ACLs differ from preset expectations. Existing directory permissions are preserved, while actual file-access errors and helper authentication checks remain enforced.
+
+On Windows, helper validation now checks the installed binary against its installation record and required protocol, avoiding unnecessary replacement solely because a bundled binary was rebuilt or re-signed. Operations that require helper installation now request confirmation before proceeding with installation.
+
+---
+
+### **4. Fixed Plugin Loading, Installation Records, and Style Conflicts**
+
+Improved plugin startup and persistence so an installation-record read failure is reported instead of being treated as an empty plugin list that later changes could overwrite. Failed writes and concurrent loading also preserve the last committed installation state.
+
+Plugin update recovery now retains backups when restoration fails, and cleanup errors after a completed installation no longer undo that installation. Plugin Market displays loading errors directly and can refresh modules after a successful recovery.
+
+Also fixed plugin styles overriding host responsive layouts, including the Startup Groups grid.
+
+---
+
+### **5. Improved Service Startup and Shutdown Reliability**
+
+- **Windows Service Shutdown**: Improved process tracking for n8n, Numa, and RabbitMQ so stop operations identify the managed service and confirm its processes have exited
+- **Paths with Spaces**: Fixed MariaDB and Neo4j instance detection for quoted configuration arguments, and RustFS startup when its data directory contains spaces
+- **Graceful Shutdown on macOS and Linux**: Increased the stop wait to 40 seconds for Cloudflare Tunnel, 60 seconds for Consul, and 120 seconds for Neo4j, allowing more time for normal shutdown while retaining PID records if stopping fails
+- **Cloudflared on Linux**: Ensure downloaded binaries have execute permission so they can start after installation
+
+---
+
+### **6. Fixed PHP Loaded-Extension Detection**
+
+The Loaded Extensions view now queries the selected PHP executable and configuration for both ordinary and Zend extensions. This improves accuracy across Windows, Homebrew, MacPorts, and Linux installations.
+
+Query failures are shown explicitly, and a failed refresh preserves previously loaded rows instead of clearing them or presenting an empty result as successful.
+
+---
+
+### **7. Improved Local Model Handling and Error Messages**
+
+Fixed llama.cpp handling of locally discovered GGUF models without download metadata, kept model identities consistent across symbolic-link paths, and prevented directory scans from overwriting concurrent download or deletion updates.
+
+Also corrected broken translation placeholders and clarified missing-runtime messages for tools such as DbGate, pgAdmin 4, and Redis Commander, identifying the required runtime and where to select it.
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can inspect the build process and download workflow artifacts from the public build history:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues).
+
+**Enjoy the update!**
+
+## [4.20.1] - 2026-10-13
+
+# **FlyEnv v4.20.1 Update Release Notes**
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **1. Fixed macOS Helper Installation Failure**
+
+Resolved an issue where installing the FlyEnv helper after a DMG installation could repeatedly fail with `Terminal exited with code 5` or `Bootstrap failed: 5: Input/output error`, preventing access to local sites and other operations that require the helper.
+
+The installer now removes inherited macOS quarantine attributes from both the installed helper executable and its LaunchDaemon configuration before registering the service. This addresses the installation failure reported on macOS 27.
+
+Thanks to [@zhoujians](https://github.com/zhoujians) for the contribution, [@PaulDelwig](https://github.com/PaulDelwig) and [@lizejun999](https://github.com/lizejun999) for the reports, and [@Tastaturberuf](https://github.com/Tastaturberuf) for helping identify the cause! [Pull Request #893](https://github.com/xpf0000/FlyEnv/pull/893) · [Issue #899](https://github.com/xpf0000/FlyEnv/issues/899) · [Issue #901](https://github.com/xpf0000/FlyEnv/issues/901)
+
+---
+
+### **2. Fixed Apache Startup on Linux**
+
+Resolved an issue reported on Fedora 44 KDE where Apache failed to start after updating to v4.20.0 with `AppHelperError: unapproved service executable name`.
+
+FlyEnv now resolves Apache launcher scripts such as `apachectl` and `apache2ctl` to the actual `httpd` or `apache2` server executable before starting the service. Required Apache environment settings are preserved, along with the selected installation's existing FlyEnv configuration.
+
+Thanks to [@DigionsPieces](https://github.com/DigionsPieces) for the report! [Issue #894](https://github.com/xpf0000/FlyEnv/issues/894)
+
+---
+
+### **3. Fixed PostgreSQL Startup When the Server Is Already Stopped**
+
+Resolved an issue on macOS and Linux where starting a stopped PostgreSQL instance failed during the pre-start cleanup with a missing `postmaster.pid` error. Users no longer need to start PostgreSQL manually before using FlyEnv's start button.
+
+FlyEnv now checks whether the selected database instance is actually running before requesting a native stop. A stopped instance, including one with an outdated PID file from an unclean shutdown, can proceed to startup; genuine stop failures still report an error.
+
+Thanks to [@Megumi1773](https://github.com/Megumi1773) for the contribution and [@glitter1105](https://github.com/glitter1105) for the report! [Pull Request #900](https://github.com/xpf0000/FlyEnv/pull/900) · [Issue #902](https://github.com/xpf0000/FlyEnv/issues/902)
+
+---
+
+### **4. Fixed llama.cpp GPU Device Selection**
+
+Resolved an issue where the llama.cpp plugin passed a numeric GPU index directly to the server, causing startup to fail with an `invalid device: 0` error.
+
+Saved numeric indices now resolve to the device name for the selected backend, such as `CUDA0`, `Vulkan0`, or `MTL0`. The GPU device setting also accepts explicit device names and comma-separated device lists, while leaving it empty lets llama.cpp choose its default device. Updated settings hints explain the accepted values.
+
+Thanks to [@Megumi1773](https://github.com/Megumi1773) for the contribution! [Pull Request #898](https://github.com/xpf0000/FlyEnv/pull/898)
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can inspect the build process and download workflow artifacts from the public build history:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues).
+
+**Enjoy the update!**
+
+## [4.20.0] - 2026-10-07
+
+# **FlyEnv v4.20.0 Update Release Notes**
+
+## **🚀 New Features**
+
+### **1. Added Windows UAC Authorization Mode**
+
+FlyEnv can now perform supported Windows administrator operations through the native **User Account Control (UAC)** prompt, without requiring the FlyEnv helper to be installed. This gives users an alternative on devices where installing a background helper is inconvenient.
+
+The new authorization workflow provides:
+
+- **Your Choice of Authorization Method**: Choose UAC or the FlyEnv helper when administrator access is first needed, and change the preference later in Settings
+- **Helper-Free UAC Operation**: In UAC mode, privileged tasks request Windows authorization directly, without automatically installing or repairing the helper
+- **System Task Coverage**: Supports administrator operations for hosts entries, DNS refresh, environment variables and PATH, certificates, and managed process operations
+- **Clear Cancellation and Failure Feedback**: Cancelling an authorization request leaves the selected method intact and reports the affected operation's result
+- **Existing Helper Management**: Users switching to UAC can choose to disable their existing FlyEnv helper
+
+---
+
+### **2. Added llama.cpp Plugin**
+
+The Plugin Market now includes **llama.cpp** for managing local inference runtimes and GGUF models directly in FlyEnv.
+
+The plugin provides:
+
+- **Runtime Version Management**: Download and manage official llama.cpp releases with the CPU or GPU backend available for your platform
+- **GGUF Model Library**: Browse and search public Hugging Face model repositories, inspect model files and sizes, and download models into a local library
+- **Inference Settings**: Configure the selected model, context size, CPU threads, GPU layers, listening address, and port
+- **Service Controls and Logs**: Start, stop, and restart the local inference server through FlyEnv's service controls, and inspect its logs
+- **Local API Access**: Run an OpenAI-compatible local endpoint, with API key configuration for authenticated access
+
+Thanks to [@vaanwd](https://github.com/vaanwd) for the feature request! [Issue #722](https://github.com/xpf0000/FlyEnv/issues/722)
+
+---
+
+### **3. Added OpenSearch Plugin**
+
+The new **OpenSearch** plugin adds a search and analytics engine to the Plugin Market, with version management and the standard FlyEnv service workflow on Windows, macOS, and Linux.
+
+The plugin provides:
+
+- **Version Management**: Download and manage OpenSearch versions from FlyEnv
+- **Service Controls**: Start and stop OpenSearch from its module or the system tray
+- **Configuration and Logs**: Edit OpenSearch, JVM, and logging settings, and inspect service logs
+- **Local Development Mode**: Disable the OpenSearch security plugin through a dedicated development-mode switch, with restart guidance
+- **OpenSearch Dashboards**: Prepare and open the matching Dashboards version for the running OpenSearch service
+
+Thanks to [@xnhinzkyx](https://github.com/xnhinzkyx) for the feature request! [Issue #880](https://github.com/xpf0000/FlyEnv/issues/880)
+
+---
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **4. Fixed Excessively Long Classic Tray Menus**
+
+The classic tray menu now moves entries beyond its top-level limit into a **More** submenu. This keeps long lists of startup groups and services from pushing the main-window and exit actions out of reach, while retaining access to every service control.
+
+Thanks to [@TanNhatCMS](https://github.com/TanNhatCMS) for the report! [Issue #878](https://github.com/xpf0000/FlyEnv/issues/878)
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can inspect the build process and download workflow artifacts from the public build history:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues).
+
+**Enjoy the update!**
+
 ## [4.19.1] - 2026-09-27
 
 # **FlyEnv v4.19.1 Update Release Notes**

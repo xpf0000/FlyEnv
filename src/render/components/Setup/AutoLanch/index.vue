@@ -41,7 +41,8 @@
             store.config.setup.autoLaunch = v
             store.saveConfig()
           } else {
-            MessageError(res)
+            // 兼容非 Windows 的旧字符串，Windows 结构化错误保留 code 供后续分类。
+            MessageError(typeof res === 'object' && res ? res.message : res)
           }
         })
     }

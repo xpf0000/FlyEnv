@@ -5,5 +5,6 @@
   "trayMenuBarStyle": "Tray Popup Stijl",
   "classic": "Klassiek",
   "modern": "Vernieuwend",
-  "trayMenuBarStyleTips": "Kies de pop-upstijl van het tray. Op sommige desktops van Linux kan de moderne stijl problemen hebben, zodat je in plaats daarvan de klassieke stijl kunt selecteren."
+  "trayMenuBarStyleTips": "Kies de pop-upstijl van het tray. Op sommige desktops van Linux kan de moderne stijl problemen hebben, zodat je in plaats daarvan de klassieke stijl kunt selecteren.",
+  "more": "Meer"
 }

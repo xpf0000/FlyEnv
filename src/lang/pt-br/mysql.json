@@ -34,5 +34,6 @@
   "databaseBackup": "Backup do banco de dados",
   "backupSaveDirSet": "Definir diretório de salvamento",
   "saveDirError": "Diretório de salvamento inválido",
-  "backupFail": "Falha no backup de {database}. Erro: {error}"
+  "backupFail": "Falha no backup de {database}. Erro: {error}",
+  "socket": "Caminho do socket de conexão local (padrão: /tmp/mysql.sock). No Windows, é o nome do pipe nomeado (padrão: MySQL)."
 }

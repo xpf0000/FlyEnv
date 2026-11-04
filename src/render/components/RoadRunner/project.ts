@@ -1,11 +1,7 @@
 import { join } from '@/util/path-browserify'
 
 export type RoadRunnerProjectPreset =
-  | 'existing'
-  | 'php-worker'
-  | 'laravel-octane'
-  | 'fileserver'
-  | 'custom'
+  'existing' | 'php-worker' | 'laravel-octane' | 'fileserver' | 'custom'
 
 export type RoadRunnerProjectExtra = {
   roadRunnerPreset?: RoadRunnerProjectPreset

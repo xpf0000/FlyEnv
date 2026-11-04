@@ -5,6 +5,7 @@ import { I18nT } from '@lang/runtime'
 import type { OnlineVersionItem, SoftInstalled } from '@shared/app'
 import {
   execPromise,
+  spawnPromiseWithEnv,
   getAllFileAsync,
   versionLocalFetch,
   versionMacportsFetch,
@@ -31,16 +32,36 @@ import { ForkPromise } from '@shared/ForkPromise'
 import compressing from 'compressing'
 import axios from 'axios'
 import TaskQueue from '../../TaskQueue'
-import { ProcessKill, ProcessOwnedPidsByPid } from '@shared/Process'
-import { StopProcessListFetch } from '@shared/StopProcessList'
+import { ProcessOwnedPidsByPid, ProcessSearch } from '@shared/Process'
+import { StopProcessListFetch, fetchStopProcessListLocal } from '@shared/StopProcessList'
 import Helper from '../../Helper'
 import { unpack } from '../../util/Zip'
 import { parse as iniParse } from 'ini'
 import { IniParse } from '../../../render/util/IniParse'
-import { uuid } from '@shared/utils'
+import { isWindows, uuid } from '@shared/utils'
+import { createHash } from 'node:crypto'
 import { qualifyHomebrewCoreFormula } from '../../util/BrewFormula'
+import {
+  loadedExtensionsCommand,
+  parseLoadedExtensions,
+  parsePhpIniPath,
+  phpIniPathScript
+} from './LoadedExtensions'
 
 class Php extends Base {
+  fetchLoadedExtensions(version: SoftInstalled) {
+    return new ForkPromise(async (resolve) => {
+      const ini = await this.getIniPath(version)
+      const command = loadedExtensionsCommand(version, ini, false)
+      const { stdout } = await spawnPromiseWithEnv(command.bin, command.args, {
+        cwd: command.cwd,
+        shell: false,
+        timeout: 30000
+      })
+      resolve(parseLoadedExtensions(stdout))
+    })
+  }
+
   constructor() {
     super()
     this.type = 'php'
@@ -65,33 +86,48 @@ class Php extends Base {
 
   getIniPath(version: SoftInstalled): ForkPromise<string> {
     return new ForkPromise(async (resolve, reject) => {
-      let command = ''
       let res: any
       let ini = ''
-      if (version?.phpBin) {
-        command = `${version.phpBin} -i | grep php.ini`
-      } else {
-        command = `${join(version.path, 'bin/php')} -i | grep php.ini`
-      }
+      const bin = version.phpBin || join(version.path, 'bin/php')
       try {
-        console.log('getIniPath: ', command)
-        res = await execPromise(command)
-        ini = res?.stdout?.trim()?.split('=>')?.pop()?.trim() ?? ''
-        ini = ini?.split('=>')?.pop()?.trim() ?? ''
+        res = await spawnPromiseWithEnv(bin, ['-r', phpIniPathScript()], {
+          cwd: dirname(bin),
+          shell: false,
+          timeout: 30000
+        })
+        ini = parsePhpIniPath(res.stdout)
       } catch {}
 
       if (!ini) {
-        if (version?.phpConfig) {
-          command = `${version?.phpConfig} --ini-path`
-        } else {
-          command = `${join(version.path, 'bin/php-config')} --ini-path`
-        }
+        const config = version.phpConfig || join(version.path, 'bin/php-config')
         try {
-          res = await execPromise(command)
-          ini = res?.stdout?.trim()
+          res = await spawnPromiseWithEnv(config, ['--ini-path'], {
+            cwd: dirname(config),
+            shell: false,
+            timeout: 30000
+          })
+          ini = res.stdout.trim()
+          if (ini && existsSync(ini) && statSync(ini).isDirectory()) ini = join(ini, 'php.ini')
         } catch {}
       }
 
+      if (!isWindows()) {
+        const localIni = join(
+          global.Server.PhpDir!,
+          `php-${createHash('sha256').update(version.bin).digest('hex').slice(0, 16)}`,
+          'php.ini'
+        )
+        if (!existsSync(localIni)) {
+          await mkdirp(dirname(localIni))
+          const source =
+            ini && existsSync(ini) && !statSync(ini).isDirectory()
+              ? ini
+              : join(global.Server.Static!, 'tmpl/php.ini')
+          await copyFile(source, localIni)
+        }
+        resolve(localIni)
+        return
+      }
       const iniFix = async (ini: string, cacheFile: string) => {
         let hasError = false
         try {
@@ -241,39 +277,81 @@ xdebug.output_dir = "${output_dir}"
       on({
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
       })
-      const arr: Array<string> = []
-      if (version?.pid?.trim()) {
-        const plist: any = await StopProcessListFetch()
-        const pids = ProcessOwnedPidsByPid(
-          version.pid.trim(),
-          plist,
-          this.ownedProcessMarkers(version)
-        )
-        arr.push(...pids)
-      } else {
+      try {
         const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
         const confPath = join(global.Server.PhpDir!, v, 'conf')
-        const command = `ps aux | grep 'php' | awk '{print $2,$11,$12,$13,$14,$15}'`
-        const res = await execPromise(command)
-        const pids = res?.stdout?.toString()?.trim()?.split('\n') ?? []
-        for (const p of pids) {
-          if (p.includes(confPath)) {
-            arr.push(p.split(' ')[0])
+        // PHP 在 macOS 可把进程标题显示为 php-fpm master，不强制要求完整 exe 路径；
+        // 按本版本配置标记确认父，不按共享 PHP 可执行文件全量扫描。
+        // BaseDir 覆盖多个 PHP 版本；只用本实例配置、可执行文件和安装目录作归属证据。
+        const markers = [confPath, version?.bin, version?.path]
+        // 首次归属发现共用 main 短缓存；下面的 finalList 仍取停止后的新鲜快照。
+        const plist = await StopProcessListFetch()
+        const appPid = await this.readPidFromFile(this.appPidFile())
+        const modulePid = await this.readPidFromFile()
+        const candidates = new Set([appPid, modulePid, `${version?.pid ?? ''}`].filter(Boolean))
+        const targets = new Set<string>()
+        for (const pid of candidates) {
+          const root = plist.find(({ PID }) => PID === pid)
+          if (root) {
+            // 当前候选不匹配/不可读时归属工具返回空树，继续处理其他有效候选。
+            const ownedTree = ProcessOwnedPidsByPid(pid, plist, markers)
+            ownedTree.forEach((item) => targets.add(item))
+            continue
           }
+          const directChildren = plist.filter(({ PPID }) => `${PPID}` === pid)
+          if (!directChildren.length) continue
+          const coveredChildren = directChildren.filter(
+            ({ COMMAND }) =>
+              !!COMMAND && markers.some((marker) => !!marker && COMMAND.includes(marker))
+          )
+          // 父缺席时只恢复具有独立配置证据的根，其余历史后代过滤，不能阻断它们。
+          coveredChildren.forEach(({ PID }) =>
+            ProcessOwnedPidsByPid(PID, plist, markers).forEach((item) => targets.add(item))
+          )
         }
+        // 只有 php 进程名且命中本版本配置标记的根可恢复；同机其他 PHP 版本不会入选。
+        ProcessSearch('php', false, plist)
+          .filter(
+            (item) =>
+              !!item.COMMAND &&
+              markers.some((marker) => !!marker && item.COMMAND.includes(marker)) &&
+              !item.COMMAND.includes(' grep ') &&
+              !item.COMMAND.includes(' /bin/sh -c') &&
+              !item.COMMAND.includes(' install ')
+          )
+          .forEach((item) =>
+            ProcessOwnedPidsByPid(item.PID, plist, markers).forEach((pid) => targets.add(pid))
+          )
+        const arr = [...targets]
+        if (arr.length) {
+          // 已确认父的完整子树作为所有权单元。批量 INT 中若某 PID 自然退出报 ESRCH，
+          // 仍核对整份原目标；全部消失才幂等成功，否则保留信号错误/报告残留。
+          await this.stopUnixServicePids('-INT', arr, arr, 10_000, plist)
+        }
+        // 快照不存在的 PID 是旧登记；仍存活但不属于此版本的 PID 不能清除。
+        const finalList = await fetchStopProcessListLocal()
+        const stale = [...candidates].filter(
+          (pid) =>
+            !finalList.some(({ PID }) => PID === pid) &&
+            !finalList.some(({ PPID }) => `${PPID}` === pid)
+        )
+        await this.removeStoppedAppPid([...arr, ...stale])
+        const currentModulePid = await this.readPidFromFile()
+        if (
+          currentModulePid &&
+          (arr.includes(currentModulePid) ||
+            !finalList.some(({ PID }) => PID === currentModulePid)) &&
+          !finalList.some(({ PPID }) => `${PPID}` === currentModulePid)
+        ) {
+          await remove(this.pidPath)
+        }
+        on({
+          'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
+        })
+        resolve({ 'APP-Service-Stop-PID': arr })
+      } catch (error) {
+        reject(error)
       }
-      if (arr.length > 0) {
-        const sig = '-INT'
-        try {
-          await ProcessKill(sig, arr)
-        } catch {}
-      }
-      on({
-        'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceEnd', { service: this.type }))
-      })
-      resolve({
-        'APP-Service-Stop-PID': arr
-      })
     })
   }
 
@@ -345,6 +423,7 @@ xdebug.output_dir = "${output_dir}"
       // the master process directly; otherwise php-fpm forks and the parent exits,
       // which serviceStartSpawn would treat as a startup failure.
       const execArgs = ['-p', varPath, '-y', phpFpmConf, '-g', pid, '-F']
+      if (!isWindows()) execArgs.push('-c', await this.getIniPath(version))
 
       try {
         const res = await serviceStartSpawn({

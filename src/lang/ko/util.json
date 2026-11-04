@@ -50,5 +50,7 @@
   "auto": "자동",
   "noVerionsFoundInLib": "사용 가능한 버전이 없습니다",
   "showToolBtn": "플로팅 도구 버튼 표시",
-  "inputSearchKey": "검색 키워드"
+  "inputSearchKey": "검색 키워드",
+  "macPortsSourceTerminal": "소스 설정을 검토한 다음 터미널에서 sudo 인증을 통해 적용하세요.",
+  "linuxSystemFileReadOnly": "시스템 환경 파일은 여기에서 읽기 전용입니다. 관리자 권한이 있는 터미널에서 관리하세요. 사용자 프로필 파일은 계속 편집할 수 있습니다."
 }

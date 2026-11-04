@@ -12,7 +12,7 @@
             style="color: #01cc74"
             class="button"
             link
-            :disabled="redisCommanderOpening || !redisCommanderNodeAvailable"
+            :disabled="redisCommanderOpening"
             @click.stop="redisCommanderPanel.open()"
           >
             <el-icon
@@ -60,7 +60,6 @@
     return brewStore.module('redis').installed.some((item) => item.run)
   })
   const redisCommanderOpening = redisCommanderPanel.opening
-  const redisCommanderNodeAvailable = redisCommanderPanel.nodeAvailable
   const tabs = [
     I18nT('base.service'),
     I18nT('base.versionManager'),

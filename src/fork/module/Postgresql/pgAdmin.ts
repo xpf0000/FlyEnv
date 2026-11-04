@@ -11,6 +11,36 @@ export const PGADMIN4_PORT_SCAN_COUNT = 21
 const PGADMIN4_HEALTH_ATTEMPTS = 30
 const PGADMIN4_HEALTH_INTERVAL_MILLISECONDS = 1000
 
+export interface PgAdminPipOptions {
+  run: (args: string[]) => PromiseLike<{ stdout: string }>
+  bootstrap: (url: string) => Promise<void>
+}
+
+/** Repair pip in the private venv, including Linux installations without ensurepip. */
+export async function ensurePgAdminPip(options: PgAdminPipOptions): Promise<void> {
+  try {
+    await options.run(['-m', 'pip', '--version'])
+    return
+  } catch {
+    // An existing Python executable does not prove that venv creation completed.
+  }
+  const { stdout } = await options.run([
+    '-c',
+    'import importlib.util, sys; print("ensurepip" if importlib.util.find_spec("ensurepip") else ".".join(map(str, sys.version_info[:3])))'
+  ])
+  if (stdout.trim() === 'ensurepip') {
+    await options.run(['-m', 'ensurepip', '--upgrade', '--default-pip'])
+  } else {
+    assertPgAdminPythonVersion(stdout, 'pgAdmin virtual environment')
+    const url = stdout.trim().startsWith('3.9.')
+      ? 'https://bootstrap.pypa.io/pip/3.9/get-pip.py'
+      : 'https://bootstrap.pypa.io/get-pip.py'
+    await options.bootstrap(url)
+  }
+  // Bootstrap failures are required dependency failures; never continue to installation.
+  await options.run(['-m', 'pip', '--version'])
+}
+
 export interface PgAdminPaths {
   root: string
   data: string
@@ -226,34 +256,6 @@ export async function startPgAdminWithPortRetry<T>(
     await options.clearPort()
     throw error
   }
-}
-
-export interface PgAdminStrictStopOptions {
-  pids: string[]
-  kill: (pids: string[]) => Promise<void>
-  remainingPids: () => Promise<string[]>
-  wait: (milliseconds: number) => Promise<unknown>
-  attempts?: number
-  intervalMilliseconds?: number
-}
-
-export async function stopPgAdminPidsWithVerification(
-  options: PgAdminStrictStopOptions
-): Promise<void> {
-  const pids = Array.from(new Set(options.pids.map((pid) => pid.trim()).filter(Boolean)))
-  if (pids.length === 0) return
-
-  await options.kill(pids)
-  const attempts = Math.max(1, options.attempts ?? 10)
-  const intervalMilliseconds = options.intervalMilliseconds ?? 250
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    const remaining = await options.remainingPids()
-    if (remaining.length === 0) return
-    if (attempt + 1 < attempts) {
-      await options.wait(intervalMilliseconds)
-    }
-  }
-  throw new Error(`pgAdmin 4 process did not exit: ${pids.join(', ')}`)
 }
 
 export interface PgAdminPidPersistenceOptions {
