@@ -68,16 +68,20 @@ export class PluginMCPAudit {
       outcome: outcomes.has(result?.outcome) ? result.outcome : 'failed'
     }
     for (const key of ['id', 'request_id'] as const) {
-      const value = result?.[key] ?? input.args?.[key]
+      const value = result?.[key] ?? result?.data?.[key] ?? input.args?.[key]
       if (typeof value === 'string' && uuid.test(value)) row[key] = value
     }
-    if (Number.isSafeInteger(result?.revision) && result.revision > 0)
-      row.revision = result.revision
+    const revision = result?.revision ?? result?.data?.revision
+    if (Number.isSafeInteger(revision) && revision > 0) row.revision = revision
     if (Number.isFinite(input.durationMs) && input.durationMs! >= 0)
       row.duration_ms = Math.round(input.durationMs!)
-    if (Array.isArray(result?.data?.hits)) row.hit_count = result.data.hits.length
+    const hits = result?.data?.results ?? result?.data?.hits
+    if (Array.isArray(hits)) row.hit_count = hits.length
     if (typeof result?.data?.truncated === 'boolean') row.truncated = result.data.truncated
-    if (PLUGIN_ERROR_CODES.has(result?.error_code)) row.error_code = result.error_code
+    if (result?.error_code !== undefined)
+      row.error_code = PLUGIN_ERROR_CODES.has(result.error_code)
+        ? result.error_code
+        : 'operation_failed'
     if (input.client) {
       const name = ['codex', 'kimi', 'claude', 'claude-code', 'flyenv'].includes(
         input.client.name?.toLowerCase() ?? ''

@@ -34,3 +34,7 @@ memory 场景额外执行 Explicit store/get，所以 token 总量与 baseline �
 - Codex 自身报告既有 token-saver skill frontmatter 警告；未修改用户 skill，此警告不等同于 MCP 失败。
 
 配置依据：[Codex 官方配置](https://developers.openai.com/codex/config-reference)、[Kimi MCP](https://moonshotai.github.io/kimi-code/en/customization/mcp.html)、[Kimi Agent 工具白名单](https://moonshotai.github.io/kimi-code/en/customization/agents.html)。
+
+## 后续正式插件验收
+
+本文保留阶段 A 的临时内存服务器结果。生产文件存储、跨客户端反向共享、宿主重启、拒绝写入/未知回执及长日志/新会话结果见[最终验收](2026-11-03-flyenv-ai-memory-acceptance.md)，不与阶段 A 的短样例混算。

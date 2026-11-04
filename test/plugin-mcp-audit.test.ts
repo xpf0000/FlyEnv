@@ -91,3 +91,25 @@ test('dedicated worker native error report is excluded from fork.error.txt', asy
     await rm(root, { recursive: true, force: true })
   }
 })
+
+test('nested receipts and result-list counts survive metadata projection without retaining records', () => {
+  const audit = new PluginMCPAudit()
+  audit.register('fixture', ['fixture_write', 'fixture_read'])
+  const id = '123e4567-e89b-42d3-a456-426614174001'
+  audit.log('fixture_write', {
+    result: { outcome: 'success', data: { id, revision: 3, content: secret } }
+  })
+  audit.log('fixture_read', {
+    result: {
+      outcome: 'partial',
+      data: { results: [{ content: secret }, { query: secret }], truncated: true },
+      error_code: secret
+    }
+  })
+  const rows = audit.list('fixture')
+  assert.equal(rows[0].id, id)
+  assert.equal(rows[0].revision, 3)
+  assert.equal(rows[1].hit_count, 2)
+  assert.equal(rows[1].error_code, 'operation_failed')
+  assert.equal(JSON.stringify(rows).includes(secret), false)
+})

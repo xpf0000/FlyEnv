@@ -39,3 +39,7 @@ Unvisited scopes are not scanned at startup; pending deletions resume on first a
 写入后核实真实 ID/revision；unknown/超时保留原请求参数和 request_id 确认，版本冲突先读最新版本。删除 partial 表示逻辑删除已完成但文件清理未结束。项目搬家按新项目处理，旧路径失效仍可在管理页按项目 ID 编辑/删除。FlyEnv 退出后工具不可用，删除不会覆盖外部备份。
 
 备份/恢复必须先停用插件并等待实际 worker 退出，再复制整个数据根（主映射、previous 映射、global、projects 等）。恢复前保留当前目录，使用同一停止时刻的完整备份。仅修复映射时，先检查 previous 的有效性，再在停用状态明确复制为主映射；重新启用后检查缺失映射的项目 ID，保留目录，不猜测绑定、不删除未知数据。恢复检查本身不会修改数据。
+
+## Validation
+
+See the [acceptance report](../../docs/superpowers/reports/2026-11-03-flyenv-ai-memory-acceptance.md) for reproducible checks, real Codex/Kimi observations and explicit limits. Tests use disposable constructed data. Support remains macOS ARM64; manual rules, model behavior and non-macOS platforms have the limitations stated there.

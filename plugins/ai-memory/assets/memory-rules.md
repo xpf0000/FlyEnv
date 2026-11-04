@@ -14,7 +14,7 @@ Search accepts a bounded `queries` array. Try the task's language, precise techn
 
 Search for the existing fact, then call store or update immediately. Use a fresh UUID request_id for each new operation. Return the actual ID and revision after a successful result. If the result failed, conflicted, was partial, or is unknown, say so accurately. Never substitute a verbal promise for a tool call.
 
-For a timeout or unknown result, retain the original request_id and exact inputs to confirm the result; do not retry as a new record. For a revision conflict, get the latest revision, reconcile the evidence, then make a new update request.
+For a timeout or unknown result, repeat the SAME mutation tool with the SAME request_id and every original input unchanged to obtain its committed receipt. Do not create a new request or record. Search/get can check visible content, but cannot confirm which request committed it and are not a substitute for this receipt replay. If the replay is still unknown, report unknown and keep the original request for later confirmation. For a revision conflict, get the latest revision, reconcile the evidence, then make a new update request.
 
 ## Automatic: during useful milestones
 
