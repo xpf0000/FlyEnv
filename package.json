@@ -93,7 +93,7 @@
     "mime-types": "^3.0.1",
     "mysql2": "^3.14.1",
     "neoip": "^3.0.1",
-    "node-forge": "^1.4.0",
+    "node-forge": "^1.4.1",
     "node-machine-id": "^1.1.12",
     "node-pty": "^1.2.0-beta.12",
     "node-rsa": "^1.1.1",
