@@ -2,7 +2,7 @@ import { defineAsyncComponent } from 'vue'
 import { MemoryT } from './lang'
 import type { AppModuleItem } from '@/core/type'
 export default {
-  moduleType: 'tools',
+  moduleType: 'ai',
   typeFlag: 'ai-memory',
   label: () => MemoryT('title'),
   icon: import('@/svg/tool.svg?raw'),

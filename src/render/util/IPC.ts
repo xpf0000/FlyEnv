@@ -4,14 +4,14 @@ type IPCCallback = (...args: any) => void
 
 class IPC {
   listens: { [key: string]: IPCCallback }
-  sensitiveKeys: Set<string>
 
   constructor() {
     this.listens = {}
-    this.sensitiveKeys = new Set()
     window.FlyEnvNodeAPI.ipcReceiveFromMain(
       (e: any, command: string, key: string, ...args: any) => {
-        const sensitive = this.sensitiveKeys.has(key)
+        // Sensitivity belongs to the request identity, including late/duplicate
+        // replies after the listener has gone away. No retained key cache needed.
+        const sensitive = typeof key === 'string' && key.startsWith('IPC-Key-Sensitive-')
         if (sensitive) {
           console.log('ipcReceiveFromMain: ', command, key, '[sensitive]')
         } else {
@@ -21,9 +21,6 @@ class IPC {
           this.listens[key](key, ...args)
         } else if (this.listens[command]) {
           this.listens[command](command, ...args)
-        }
-        if (sensitive && args[0]?.code !== 200) {
-          this.sensitiveKeys.delete(key)
         }
       }
     )
@@ -35,11 +32,9 @@ class IPC {
    * @param args
    */
   private sendInternal(command: string, args: any[], log: boolean) {
-    const key = 'IPC-Key-' + uuid()
+    const key = (log ? 'IPC-Key-' : 'IPC-Key-Sensitive-') + uuid()
     if (log) {
       console.log('ipcSendToMain: ', command, key, args)
-    } else {
-      this.sensitiveKeys.add(key)
     }
     window.FlyEnvNodeAPI.ipcSendToMain(command, key, ...args)
     return {
@@ -64,7 +59,6 @@ class IPC {
   }
   off(command: string) {
     delete this.listens[command]
-    this.sensitiveKeys.delete(command)
   }
 }
 export default new IPC()

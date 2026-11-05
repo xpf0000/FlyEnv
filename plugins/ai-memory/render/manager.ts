@@ -13,9 +13,9 @@ import { MemoryT } from './lang'
 
 export const memoryRules = () =>
   `${AppI18n().global.locale ?? 'en'}`.startsWith('zh') ? rulesZh : rulesEn
-function readMCPConfig(): Promise<any> {
+function readMCP(command = 'mcp:getConfig'): Promise<any> {
   return new Promise((resolve, reject) => {
-    const call = IPC.sendSensitive('mcp:getConfig')
+    const call = IPC.sendSensitive(command)
     const timer = setTimeout(() => {
       IPC.off(call.key)
       reject(new Error('config_unavailable'))
@@ -35,8 +35,24 @@ export const MemoryManager = reactiveBind(
     id: () => crypto.randomUUID(),
     readPreferences: () => StorageGetAsync('flyenv-plugin-ai-memory-v1'),
     writePreferences: (value) => StorageSetAsync('flyenv-plugin-ai-memory-v1', value),
+    readConnection: async () => {
+      const [config, status] = await Promise.all([readMCP(), readMCP('mcp:status')])
+      const tools = ['search', 'get', 'store', 'update', 'forget']
+      return {
+        running: status?.running === true,
+        http: config?.transport?.http === true,
+        enabledCount: tools.filter((method) =>
+          config?.enabledTools?.includes(`flyenv_memory_${method}`)
+        ).length
+      }
+    },
+    chooseProject: async () => {
+      const choice = await dialog.showOpenDialog({ properties: ['openDirectory'] })
+      return choice.canceled ? undefined : choice.filePaths[0]
+    },
+    copyVerification: () => clipboard.writeText(MemoryT('verificationPrompt')),
     configure: async (client) => {
-      const config = await readMCPConfig()
+      const config = await readMCP()
       return configureMCPClient(client, { serverUrl: getMcpServerUrl(config), token: config.token })
     },
     copyRules: () => clipboard.writeText(memoryRules()),

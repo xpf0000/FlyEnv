@@ -696,7 +696,7 @@ assert.match(damengLogs, /<LogVM ref="log"/)
 assert.match(damengLogs, /<ToolVM :log="log"/)
 assert.doesNotMatch(damengLogs, /IPC\.send|<pre/)
 
-for (const name of ['Index.vue', 'MemoryEditor.vue', 'MemorySetup.vue']) {
+for (const name of ['Index.vue', 'MemoryEditor.vue', 'MemorySetup.vue', 'MemoryOperation.vue']) {
   const page = readFileSync(join(root, 'plugins/ai-memory/render', name), 'utf8')
   assert.doesNotMatch(page, /from\s+['"]@\/util\/IPC['"]|IPC\.send|defineStore\(|config\.setup/)
 }

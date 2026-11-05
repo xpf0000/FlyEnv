@@ -15,7 +15,8 @@ import type {
 export type MemoryTarget = ScopeRef | { projectId: string }
 type Filters = Omit<MemoryInputs['search'], 'scope' | 'project_path'>
 type MutationMethod = 'store' | 'update' | 'forget'
-type ActionResult = { success: boolean; errorCode?: string; cancelled?: boolean }
+type ActionResult = { success: boolean; errorCode?: string; cancelled?: boolean; path?: string }
+export type MemoryConnection = { running: boolean; http: boolean; enabledCount: number }
 type Action = { status: 'running' | 'complete'; result?: ActionResult }
 type Mutation = {
   target: MemoryTarget
@@ -36,6 +37,9 @@ export interface MemoryControllerDeps {
   readPreferences(): Promise<unknown>
   writePreferences(value: MemoryTarget): Promise<void>
   configure(client: MCPHttpClientFlag): Promise<ActionResult>
+  readConnection(): Promise<MemoryConnection>
+  chooseProject(): Promise<string | undefined>
+  copyVerification(): Promise<void>
   copyRules(): Promise<void>
   downloadRules(): Promise<boolean>
   openPath(path: string): Promise<void>
@@ -60,6 +64,7 @@ export class MemoryController {
   projectsBusy = false
   mutation?: Mutation
   actions: Record<string, Action> = {}
+  connection?: MemoryConnection
   private searchSequence = 0
   private detailSequence = 0
   private detailRequest?: { target: MemoryTarget; id: string }
@@ -173,6 +178,11 @@ export class MemoryController {
       return result
     })
   }
+  clearSearch() {
+    this.searchSequence++
+    this.searchResult = undefined
+    this.searchBusy = false
+  }
   clearDetail() {
     this.detailSequence++
     this.detail = undefined
@@ -260,6 +270,9 @@ export class MemoryController {
       return Promise.resolve({ outcome: 'failed', error_code: 'no_pending_request' })
     return this.executeMutation()
   }
+  mutationFor(requestId: string | undefined) {
+    return requestId && this.mutation?.input.request_id === requestId ? this.mutation : undefined
+  }
   save(target: MemoryTarget, draft: MemoryDraft, current?: MemoryView, reason = '') {
     return current
       ? this.mutate(target, 'update', {
@@ -281,7 +294,7 @@ export class MemoryController {
   forget(target: MemoryTarget, current: MemoryView) {
     return this.mutate(target, 'forget', { id: current.id, expected_revision: current.revision })
   }
-  private action(key: string, work: () => Promise<ActionResult>) {
+  private action(key: string, work: () => Promise<ActionResult>): Promise<ActionResult> {
     const current = this.actionFlights.get(key)
     if (current) return current
     this.actions[key] = { status: 'running' }
@@ -298,6 +311,25 @@ export class MemoryController {
   }
   configureClient(client: MCPHttpClientFlag) {
     return this.action(`configure:${client}`, () => this.deps.configure(client))
+  }
+  loadConnection() {
+    return this.action('connection', async () => {
+      this.connection = undefined
+      this.connection = await this.deps.readConnection()
+      return { success: true }
+    })
+  }
+  chooseProject() {
+    return this.action('project:choose', async () => {
+      const path = await this.deps.chooseProject()
+      return path ? { success: true, path } : { success: false, cancelled: true }
+    }).then((result) => result.path)
+  }
+  copyVerification() {
+    return this.action('verification:copy', async () => {
+      await this.deps.copyVerification()
+      return { success: true }
+    })
   }
   copyRules() {
     return this.action('rules:copy', async () => {

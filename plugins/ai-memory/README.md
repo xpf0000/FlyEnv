@@ -43,3 +43,9 @@ Unvisited scopes are not scanned at startup; pending deletions resume on first a
 ## Validation
 
 See the [acceptance report](../../docs/superpowers/reports/2026-11-03-flyenv-ai-memory-acceptance.md) for reproducible checks, real Codex/Kimi observations and explicit limits. Tests use disposable constructed data. Support remains macOS ARM64; manual rules, model behavior and non-macOS platforms have the limitations stated there.
+
+## Management and client setup
+
+The FlyEnv panel separates Memories, Connect an agent and Maintenance. Start with the connection guide for a new library. Project and global results are identified separately; technical metadata and advanced fields are collapsed. Unknown writes are confirmed by replaying the original request, including after leaving the page.
+
+Rules remain a manual step: append the supplied rules to your project AGENTS.md without replacing existing instructions, then open a new client session and run the provided save/read test. Supported instruction behavior is documented by [OpenAI](https://learn.chatgpt.com/docs/agent-configuration/agents-md) and [Kimi](https://moonshotai.github.io/kimi-cli/en/customization/agents.html). Service readiness and configuration writes do not prove that a client loaded its rules.

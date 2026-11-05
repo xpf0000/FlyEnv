@@ -5,6 +5,7 @@ import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
 
 async function run() {
+  app.commandLine.appendSwitch('disable-backgrounding-occluded-windows')
   const root = process.env.FLYENV_DATA_ROOT!
   const output = process.env.MEMORY_SMOKE_OUTPUT!
   app.setPath('userData', join(root, 'user'))
@@ -42,11 +43,32 @@ async function run() {
     await application.init()
     application.start('index')
     const window = application.mainWindow
+    window.webContents.setBackgroundThrottling(false)
     window.setSize(1260, 900)
-    const js = (source: string) => window.webContents.executeJavaScript(source, true)
+    window.show()
+    window.focus()
+    const js = async (source: string) => {
+      try {
+        return await window.webContents.executeJavaScript(source, true)
+      } catch (error) {
+        throw new Error(`UI script failed: ${source.slice(0, 200)}: ${String(error)}`)
+      }
+    }
+    const capture = async (name: string) => {
+      window.show()
+      window.focus()
+      await js(
+        `new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))`
+      )
+      await new Promise((resolve) => setTimeout(resolve, 400))
+      await writeFile(join(output, name), (await window.webContents.capturePage()).toPNG())
+    }
     const waitFor = async (expression: string, timeout = 60_000) => {
       const until = Date.now() + timeout
       while (Date.now() < until) {
+        await js(
+          `document.querySelectorAll('.el-message-box').forEach(box => { if (/FlyEnv Helper|Administrator|network is using a proxy/.test(box.textContent)) box.querySelector('.el-message-box__headerbtn')?.click(); })`
+        ).catch(() => {})
         if (await js(expression).catch(() => false)) return
         await new Promise((resolve) => setTimeout(resolve, 250))
       }
@@ -56,8 +78,13 @@ async function run() {
       `!!window.__FLYENV_PLUGIN_ROUTER__?.getRoutes().find(r => r.path === '/ai-memory')`,
       120_000
     )
-    await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/ai-memory')`)
+    await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/mcp')`)
+    const memoryAside = `Array.from(document.querySelectorAll('.aside .menu li')).find(item => item.textContent.includes('AI Memory'))`
+    await waitFor(`!!(${memoryAside})`, 10_000)
+    await js(`(${memoryAside}).click()`)
     await waitFor(`!!document.querySelector('#memory-search')`)
+    await waitFor(`!!document.querySelector('.aside .active .icon-block svg')`)
+    checkpoints.push('sidebar-plugin-entry-navigation')
     window.webContents.closeDevTools()
     await js(
       `document.querySelectorAll('.el-message-box').forEach(box => { if (box.textContent.includes('FlyEnv Helper')) box.querySelector('.el-message-box__headerbtn')?.click(); })`
@@ -67,6 +94,91 @@ async function run() {
       js(
         `new Promise(resolve => { const ipc = window.__FLYENV_PLUGIN_HOST__.ipc; ipc.sendSensitive('app-fork:ai-memory', ${JSON.stringify(method)}, ${JSON.stringify(input)}).then((key,res) => { if (res?.code === 200) return; ipc.off(key); resolve(res); }); })`
       )
+    // A real user starts in an empty library, validates a form, creates and deletes a record.
+    await waitFor(`!!document.querySelector('.memory-table .el-empty')`)
+    await capture('ui-empty.png')
+    await js(`document.querySelector('#memory-new').click()`)
+    await waitFor(`!!document.querySelector('#memory-save')`)
+    await js(`document.querySelector('#memory-save').click()`)
+    await waitFor(`!!document.querySelector('#memory-validation')`)
+    await waitFor(`document.querySelectorAll('.el-dialog .el-form-item__error').length >= 3`)
+    assert.equal(
+      await js(`document.querySelectorAll('.el-dialog .el-form-item__error').length >= 3`),
+      true
+    )
+    await js(
+      `for (const [selector,value] of [['#memory-title','First manual memory'],['#memory-summary','Saved from the actual form'],['#memory-content','A complete user-created memory']]) { const el=document.querySelector(selector); el.value=value; el.dispatchEvent(new Event('input',{bubbles:true})); }`
+    )
+    // Simulate a committed response lost in transit. Only this test renderer alters the reply.
+    await js(
+      `(() => { const ipc=window.__FLYENV_PLUGIN_HOST__.ipc; const original=ipc.sendSensitive.bind(ipc); ipc.sendSensitive=(command,...args) => { const call=original(command,...args); if(command!=='app-fork:ai-memory'||args[0]!=='store') return call; ipc.sendSensitive=original; return {key:call.key, then(cb) { call.then((key,res)=>cb(key,res?.code===0 ? {code:0,data:{outcome:'unknown',error_code:'response_timeout'}} : res)); }}; }; })()`
+    )
+    await js(`document.querySelector('#memory-save').click()`)
+    await waitFor(
+      `document.querySelector('.el-dialog #memory-operation')?.textContent.includes('uncertain')`
+    )
+    assert.equal(await js(`document.querySelector('#memory-save').disabled`), true)
+    await new Promise((resolve) => setTimeout(resolve, 350))
+    await capture('ui-unknown-dialog.png')
+    await js(`document.querySelector('.el-dialog #memory-operation button').click()`)
+    await waitFor(
+      `!!document.querySelector('.memory-row')?.textContent.includes('First manual memory')`
+    )
+    const manual = await call('search', { scope: 'global', queries: ['First manual memory'] })
+    assert.equal(manual.data.data.results.length, 1)
+    assert.equal(
+      manual.data.data.results[0].source.description,
+      'Entered manually by the user in FlyEnv.'
+    )
+    await js(`document.querySelector('.memory-row').click()`)
+    await waitFor(`!!document.querySelector('#memory-delete')`)
+    // Archive with required reason, find it through the archived filter, then restore.
+    for (const action of ['Archive', 'Restore']) {
+      await js(
+        `Array.from(document.querySelectorAll('.memory-detail-actions button')).find(el=>el.textContent.trim()===${JSON.stringify(action)}).click()`
+      )
+      await waitFor(`!!document.querySelector('#memory-archive-save')`)
+      if (action === 'Archive') {
+        await js(`document.querySelector('#memory-archive-save').click()`)
+        await waitFor(`!!document.querySelector('.el-dialog .el-form-item__error')`)
+      }
+      await js(
+        `var input=document.querySelector('#memory-archive-reason'); input.value='UI archive/restore test'; input.dispatchEvent(new Event('input',{bubbles:true})); document.querySelector('#memory-archive-save').click()`
+      )
+      await waitFor(`document.querySelectorAll('.memory-row').length===0`)
+      if (action === 'Archive') {
+        await js(
+          `Array.from(document.querySelectorAll('.memory-toolbar button')).find(el=>el.textContent.trim()==='Filters').click()`
+        )
+        await waitFor(`document.querySelectorAll('.memory-filters .el-select').length===2`)
+      }
+      await js(`document.querySelectorAll('.memory-filters .el-select')[1].click()`)
+      const option = action === 'Archive' ? 'Archived' : 'Active'
+      await waitFor(
+        `Array.from(document.querySelectorAll('.el-select-dropdown__item')).some(el=>el.textContent.trim()===${JSON.stringify(option)})`
+      )
+      await js(
+        `Array.from(document.querySelectorAll('.el-select-dropdown__item')).find(el=>el.textContent.trim()===${JSON.stringify(option)}).click(); document.querySelector('#memory-search').click()`
+      )
+      await waitFor(
+        `document.querySelector('.memory-row')?.textContent.includes('First manual memory')`
+      )
+      await js(`document.querySelector('.memory-row').click()`)
+      await waitFor(`!!document.querySelector('#memory-delete')`)
+    }
+    await js(
+      `Array.from(document.querySelectorAll('.memory-toolbar button')).find(el=>el.textContent.trim()==='Filters').click()`
+    )
+    checkpoints.push('manual-archive-required-reason-and-restore')
+    await js(`document.querySelector('#memory-delete').click()`)
+    await waitFor(
+      `Array.from(document.querySelectorAll('.el-popconfirm button')).some(el=>el.textContent.includes('Delete permanently'))`
+    )
+    await js(
+      `Array.from(document.querySelectorAll('.el-popconfirm button')).find(el=>el.textContent.includes('Delete permanently')).click()`
+    )
+    await waitFor(`document.querySelectorAll('.memory-row').length===0`)
+    checkpoints.push('empty-library-manual-create-validation-unknown-retry-delete')
     const ids: string[] = []
     for (let i = 0; i < 10; i++) {
       const result = await call('store', {
@@ -86,9 +198,49 @@ async function run() {
     }
     await js(`document.querySelector('#memory-search').click()`)
     await waitFor(`document.querySelectorAll('.memory-row').length === 8`)
+    await js(`document.querySelectorAll('.memory-row')[0].click()`)
+    await waitFor(`!!document.querySelector('#memory-delete')`)
+    await js(
+      `(() => { const ipc=window.__FLYENV_PLUGIN_HOST__.ipc; const original=ipc.sendSensitive.bind(ipc); ipc.sendSensitive=(command,...args)=> { if(command!=='app-fork:ai-memory'||args[0]!=='forget') return original(command,...args); ipc.sendSensitive=original; return {key:'fixture-failed-delete', then(cb) { setTimeout(()=>cb('fixture-failed-delete',{code:0,data:{outcome:'failed',error_code:'operation_failed'}}),0); }}; }; })()`
+    )
+    await js(`document.querySelector('#memory-delete').click()`)
+    await waitFor(
+      `Array.from(document.querySelectorAll('.el-popconfirm button')).some(el=>el.textContent.includes('Delete permanently'))`
+    )
+    await js(
+      `Array.from(document.querySelectorAll('.el-popconfirm button')).find(el=>el.textContent.includes('Delete permanently')).click()`
+    )
+    await waitFor(
+      `document.querySelector('.memory-detail #memory-operation')?.textContent.includes('Failed')`
+    )
+    await js(
+      `document.querySelector('.memory-detail').closest('.el-drawer').querySelector('.el-drawer__close-btn').click()`
+    )
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    await js(
+      `window.__memoryExpectedTitle=document.querySelectorAll('.memory-row strong')[1].textContent; document.querySelectorAll('.memory-row')[1].click()`
+    )
+    await waitFor(
+      `document.querySelector('.memory-detail h3')?.textContent.trim()===window.__memoryExpectedTitle`
+    )
+    await waitFor(`!!document.querySelector('#memory-edit')`)
+    assert.equal(
+      await js(`!!document.querySelector('.memory-detail #memory-operation')`),
+      false,
+      'another record must not offer to retry the previous deletion'
+    )
+    await js(
+      `document.querySelector('.memory-detail').closest('.el-drawer').querySelector('.el-drawer__close-btn').click()`
+    )
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    checkpoints.push('failed-delete-retry-stays-with-original-record')
     await js(`document.querySelector('#memory-next').click()`)
     await waitFor(`document.querySelectorAll('.memory-row').length === 2`)
-    checkpoints.push('pagination-8-then-2')
+    await js(`document.querySelector('#memory-prev').click()`)
+    await waitFor(`document.querySelectorAll('.memory-row').length === 8`)
+    await js(`document.querySelector('#memory-next').click()`)
+    await waitFor(`document.querySelectorAll('.memory-row').length === 2`)
+    checkpoints.push('pagination-next-previous-next')
     await js(`document.querySelector('.memory-row').click()`)
     await waitFor(`!!document.querySelector('#memory-edit')`)
     assert.equal(await js(`document.querySelectorAll('.memory-markdown img').length`), 0)
@@ -102,7 +254,9 @@ async function run() {
     )
     await new Promise((resolve) => setTimeout(resolve, 400))
     await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/ai-memory')`)
-    await waitFor(`document.querySelector('#memory-operation')?.textContent.includes('Completed')`)
+    await waitFor(
+      `Array.from(document.querySelectorAll('.memory-row')).some(el => el.textContent.includes('Edited in full FlyEnv UI'))`
+    )
     const result = await call('search', { scope: 'global', queries: ['Edited in full FlyEnv UI'] })
     const edited = result.data.data.results.find(
       (row: any) => row.title === 'Edited in full FlyEnv UI'
@@ -131,10 +285,10 @@ async function run() {
       `document.querySelector('#memory-search').click(); document.querySelector('#memory-scope').click()`
     )
     await waitFor(
-      `Array.from(document.querySelectorAll('.el-select-dropdown__item')).some(el => el.textContent.includes(${JSON.stringify(projectPath)}))`
+      `Array.from(document.querySelectorAll('.el-select-dropdown__item')).some(el => el.textContent.includes('reentry-project'))`
     )
     await js(
-      `Array.from(document.querySelectorAll('.el-select-dropdown__item')).find(el => el.textContent.includes(${JSON.stringify(projectPath)})).click()`
+      `Array.from(document.querySelectorAll('.el-select-dropdown__item')).find(el => el.textContent.includes('reentry-project')).click()`
     )
     await waitFor(
       `document.querySelector('.memory-row')?.textContent.includes('Project reentry fixture')`
@@ -153,6 +307,10 @@ async function run() {
       'remount must not retain project content with a reset global target'
     )
     checkpoints.push('project-detail-cleared-on-remount')
+    await js(
+      `Array.from(document.querySelectorAll('.memory-toolbar button')).find(el => el.textContent.includes('Filters')).click()`
+    )
+    await waitFor(`!!document.querySelector('.memory-filters')`)
     await js(
       `Array.from(document.querySelectorAll('.el-checkbox')).find(el => el.textContent.includes('Include global')).click(); document.querySelector('#memory-search').click()`
     )
@@ -181,28 +339,80 @@ async function run() {
       `window.__FLYENV_PLUGIN_HOST__['element-plus'].ElMessageBox.close(); document.documentElement.classList.remove('dark'); document.documentElement.classList.add('light')`
     )
     await new Promise((resolve) => setTimeout(resolve, 500))
-    await writeFile(join(output, 'ui-light.png'), (await window.webContents.capturePage()).toPNG())
+    await capture('ui-light.png')
     await js(
       `document.documentElement.classList.remove('light'); document.documentElement.classList.add('dark')`
     )
     await new Promise((resolve) => setTimeout(resolve, 200))
-    await writeFile(join(output, 'ui-dark.png'), (await window.webContents.capturePage()).toPNG())
+    await capture('ui-dark.png')
     await js(
-      `window.__FLYENV_PLUGIN_HOST__.lang.AppI18n().global.locale = 'zh'; document.querySelector('.el-collapse-item__header').click()`
+      `document.querySelector('.memory-detail').closest('.el-drawer').querySelector('.el-drawer__close-btn').click()`
+    )
+    await js(
+      `window.__FLYENV_PLUGIN_HOST__.lang.AppI18n().global.locale = 'zh'; document.querySelectorAll('.memory-page > .el-radio-group .el-radio-button')[1].click()`
+    )
+    await waitFor(`document.body.textContent.includes('准备记忆服务')`)
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    await waitFor(`document.body.textContent.includes('未启动')`)
+    assert.equal(
+      await js(
+        `Array.from(document.querySelectorAll('.memory-client-row button')).every(el => el.disabled)`
+      ),
+      true
+    )
+    const { createServer } = await import('node:net')
+    const portProbe = createServer()
+    await new Promise<void>((resolve) => portProbe.listen(0, '127.0.0.1', resolve))
+    const memoryPort = (portProbe.address() as any).port
+    await new Promise<void>((resolve) => portProbe.close(() => resolve()))
+    application.mcpConfigManager.setConfig('port', memoryPort)
+    application.mcpConfigManager.setConfig(
+      'enabledTools',
+      ['search', 'get', 'store', 'update', 'forget'].map((name) => 'flyenv_memory_' + name)
+    )
+    await application.mcpRuntime.start()
+    await js(
+      `Array.from(document.querySelectorAll('.memory-setting-actions button')).find(el=>el.textContent.trim()==='检查状态').click()`
+    )
+    await waitFor(`document.body.textContent.includes('服务已就绪')`)
+    assert.equal(
+      await js(
+        `Array.from(document.querySelectorAll('.memory-client-row button')).every(el=>!el.disabled)`
+      ),
+      true
+    )
+    checkpoints.push('connection-stopped-disabled-then-real-service-ready')
+    await new Promise((resolve) => setTimeout(resolve, 400))
+    await capture('ui-zh-setup.png')
+    await js(
+      `Array.from(document.querySelectorAll('.memory-page > .el-radio-group .el-radio-button')).find(el => el.textContent.includes('维护')).click()`
     )
     await waitFor(`document.body.textContent.includes('离线备份与恢复')`)
-    await js(`document.querySelector('.memory-setup').scrollIntoView({block:'start'})`)
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    await writeFile(
-      join(output, 'ui-zh-setup.png'),
-      (await window.webContents.capturePage()).toPNG()
+    assert.equal(
+      await js(
+        `document.querySelector('.memory-settings')?.textContent.includes('JSON.stringify')`
+      ),
+      false
     )
+    window.setSize(900, 760)
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    await capture('ui-zh-maintenance-narrow.png')
     checkpoints.push('light-dark-chinese-setup')
     await writeFile(join(output, 'result.json'), JSON.stringify({ ok: true, checkpoints }, null, 2))
   } catch (error) {
+    try {
+      await writeFile(
+        join(output, 'ui-failure.png'),
+        (await application!.mainWindow.webContents.capturePage()).toPNG()
+      )
+    } catch {}
     await writeFile(
       join(output, 'result.json'),
-      JSON.stringify({ ok: false, checkpoints, error: String(error) }, null, 2)
+      JSON.stringify(
+        { ok: false, checkpoints, error: error instanceof Error ? error.stack : String(error) },
+        null,
+        2
+      )
     )
   } finally {
     await application?.mcpRuntime

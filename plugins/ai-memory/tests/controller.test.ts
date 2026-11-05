@@ -31,6 +31,9 @@ function fixture(overrides: Partial<MemoryControllerDeps> = {}) {
     readPreferences: async () => undefined,
     writePreferences: async () => {},
     configure: async () => ({ success: true }),
+    readConnection: async () => ({ running: false, http: false, enabledCount: 0 }),
+    chooseProject: async () => undefined,
+    copyVerification: async () => {},
     copyRules: async () => {},
     downloadRules: async () => true,
     openPath: async () => {},
@@ -42,6 +45,78 @@ function fixture(overrides: Partial<MemoryControllerDeps> = {}) {
   const reply = (index: number, response: any) => calls[index].cb!(calls[index].key, response)
   return { manager, calls, removed, reply, ids: () => ids }
 }
+test('connection checks are shared, clear stale readiness on failure and never configure implicitly', async () => {
+  let resolve!: (value: any) => void
+  let reads = 0
+  let fail = false
+  let configured = 0
+  const f = fixture({
+    readConnection: () => {
+      reads++
+      if (fail) return Promise.reject(new Error('offline'))
+      return new Promise((done) => {
+        resolve = done
+      })
+    },
+    configure: async () => {
+      configured++
+      return { success: true }
+    }
+  })
+  const first = f.manager.loadConnection()
+  assert.equal(first, f.manager.loadConnection())
+  await Promise.resolve()
+  resolve({ running: true, http: true, enabledCount: 5 })
+  await first
+  assert.equal(reads, 1)
+  assert.equal(f.manager.connection?.enabledCount, 5)
+  assert.equal(configured, 0)
+  fail = true
+  await f.manager.loadConnection()
+  assert.equal(f.manager.connection, undefined)
+  assert.equal(f.manager.actions.connection.result?.success, false)
+})
+
+test('leaving an unfinished project selection clears old results and ignores the pending search response', async () => {
+  const f = fixture()
+  const pending = f.manager.search({ scope: 'global' })
+  f.manager.clearSearch()
+  f.reply(0, {
+    code: 0,
+    data: { outcome: 'success', data: { results: [{ id: 'old' }], truncated: false } }
+  })
+  await pending
+  assert.equal(f.manager.searchResult, undefined)
+  assert.equal(f.manager.searchBusy, false)
+  assert.deepEqual(f.removed, ['request-0'])
+})
+
+test('directory cancellation is not a failure; selection and verification copying use owned actions', async () => {
+  let selected: string | undefined = undefined
+  let copies = 0
+  const f = fixture({
+    chooseProject: async () => selected,
+    copyVerification: async () => {
+      copies++
+    }
+  })
+  assert.equal(await f.manager.chooseProject(), undefined)
+  assert.equal(f.manager.actions['project:choose'].result?.cancelled, true)
+  selected = '/project'
+  assert.equal(await f.manager.chooseProject(), '/project')
+  await f.manager.copyVerification()
+  assert.equal(copies, 1)
+})
+test('a retry panel can only access the request that its own form or record submitted', async () => {
+  const f = fixture()
+  const pending = f.manager.mutate({ scope: 'global' }, 'forget', { id: 'record-a' })
+  const requestId = f.manager.mutation!.input.request_id
+  f.reply(0, { code: 0, data: { outcome: 'failed', error_code: 'operation_failed' } })
+  await pending
+  assert.equal(f.manager.mutationFor(undefined), undefined)
+  assert.equal(f.manager.mutationFor('another-form'), undefined)
+  assert.equal(f.manager.mutationFor(requestId)?.input.id, 'record-a')
+})
 const success = (id = 'saved') => ({
   code: 0,
   data: { outcome: 'success', data: { id, revision: 1 } }

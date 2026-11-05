@@ -10,7 +10,7 @@
   "architecture": ["arm64"],
   "module": {
     "typeFlag": "ai-memory",
-    "moduleType": "tools",
+    "moduleType": "ai",
     "label": "AI Memory",
     "isService": false,
     "isTray": false,

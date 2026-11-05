@@ -4,9 +4,12 @@
     :class="['non-draggable', { active: currentPage === '/ai-memory' }]"
     @click="nav"
   >
-    <div class="left"
-      ><span class="title">{{ MemoryT('title') }}</span></div
-    >
+    <div class="left">
+      <div class="icon-block">
+        <yb-icon :svg="import('@/svg/tool.svg?raw')" style="padding: 5px" width="30" height="30" />
+      </div>
+      <span class="title">{{ MemoryT('title') }}</span>
+    </div>
   </li>
 </template>
 <script lang="ts" setup>
