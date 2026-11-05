@@ -32,6 +32,11 @@
               <el-form-item :label="I18nT('common.startupGroup.color')">
                 <el-color-picker v-model="draft.color" />
               </el-form-item>
+              <el-form-item>
+                <el-checkbox v-model="draft.continueOnFailure">
+                  {{ I18nT('common.startupGroup.continueOnFailure') }}
+                </el-checkbox>
+              </el-form-item>
             </el-form>
 
             <div
@@ -210,6 +215,7 @@
     name: '',
     description: '',
     color: '#409eff',
+    continueOnFailure: false,
     items: []
   })
 
@@ -324,6 +330,7 @@
     draft.name = props.group?.name ?? ''
     draft.description = props.group?.description ?? ''
     draft.color = props.group?.color ?? '#409eff'
+    draft.continueOnFailure = props.group?.continueOnFailure ?? false
     draft.items = (props.group?.items ?? []).map((item) => ({ ...item }))
     loading.value = true
     try {
@@ -400,6 +407,7 @@
         name: draft.name.trim(),
         description: draft.description?.trim() || undefined,
         color: draft.color || undefined,
+        continueOnFailure: draft.continueOnFailure || undefined,
         items: draft.items.map((item) => ({ ...item }))
       }
       if (props.group) await store.update(props.group.id, data)
