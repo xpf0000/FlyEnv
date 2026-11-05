@@ -76,6 +76,7 @@ export const versionBinVersionSync = (bin: string, command: string, reg: RegExp)
   try {
     process.chdir(cwd)
     const res = execSync(command, {
+      windowsHide: true,
       cwd,
       shell: undefined
     }).toString()
