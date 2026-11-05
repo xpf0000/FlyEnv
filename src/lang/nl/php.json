@@ -37,5 +37,15 @@
   "fastcgiWorkers": "FastCGI-workers",
   "fastcgiWorkerCount": "Aantal workers",
   "fastcgiWorkerInvalid": "Voer een geheel getal van {min} tot {max} in.",
-  "fastcgiWorkerRestart": "Deze PHP-service nu herstarten om het nieuwe aantal FastCGI-workers toe te passen?"
+  "fastcgiWorkerRestart": "Deze PHP-service nu herstarten om het nieuwe aantal FastCGI-workers toe te passen?",
+  "windowsSourcePecl": "PECL",
+  "windowsSourcePie": "PIE",
+  "windowsChooseVersion": "Choose extension version",
+  "windowsIncompatibleRelease": "No compatible Windows binary for this PHP build. Choose another version.",
+  "windowsPieWillVerify": "PIE will verify this package against the selected PHP build.",
+  "windowsRefresh": "Refresh catalog",
+  "windowsRetry": "Retry",
+  "windowsCopyCommand": "Copy command",
+  "windowsDownloadLink": "Download link",
+  "windowsInstallCommand": "Install command"
 }

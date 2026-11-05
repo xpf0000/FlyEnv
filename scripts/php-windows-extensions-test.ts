@@ -563,6 +563,19 @@ try {
   await assert.rejects(
     installPeclArchive({
       ...installOptions,
+      verify: async () => ({
+        ...transactionProfile,
+        loaded: [],
+        loadWarnings: 'Unable to load dependency: oci.dll'
+      })
+    }),
+    /oci\.dll/
+  )
+  assert.equal(await readFile(ini, 'utf8'), originalIni)
+  assert.deepEqual(await readFile(dll), oldDll)
+  await assert.rejects(
+    installPeclArchive({
+      ...installOptions,
       verify: async () => {
         await writeFile(ini, (await readFile(ini, 'utf8')) + '; concurrent user edit\r\n')
         throw new Error('verification failed')

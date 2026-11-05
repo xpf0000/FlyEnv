@@ -37,5 +37,15 @@
   "fastcgiWorkers": "FastCGI 워커",
   "fastcgiWorkerCount": "워커 수",
   "fastcgiWorkerInvalid": "{min}에서 {max} 사이의 정수를 입력하세요.",
-  "fastcgiWorkerRestart": "새 FastCGI 워커 수를 적용하기 위해 지금 PHP 서비스를 다시 시작할까요?"
+  "fastcgiWorkerRestart": "새 FastCGI 워커 수를 적용하기 위해 지금 PHP 서비스를 다시 시작할까요?",
+  "windowsSourcePecl": "PECL",
+  "windowsSourcePie": "PIE",
+  "windowsChooseVersion": "Choose extension version",
+  "windowsIncompatibleRelease": "No compatible Windows binary for this PHP build. Choose another version.",
+  "windowsPieWillVerify": "PIE will verify this package against the selected PHP build.",
+  "windowsRefresh": "Refresh catalog",
+  "windowsRetry": "Retry",
+  "windowsCopyCommand": "Copy command",
+  "windowsDownloadLink": "Download link",
+  "windowsInstallCommand": "Install command"
 }

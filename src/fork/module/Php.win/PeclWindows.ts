@@ -1,4 +1,3 @@
-import axios from 'axios'
 import compressing from 'compressing'
 import { createHash } from 'node:crypto'
 import { existsSync } from 'node:fs'
@@ -10,11 +9,10 @@ import { extensionIsLoaded, updateExtensionIni } from './ExtensionConfig'
 import { replaceIniIfUnchanged } from './IniMutation'
 
 const repository = 'https://downloads.php.net/~windows/pecl/releases/'
-const links = (html: string) => [...html.matchAll(/href="([^"?#]+)"/gi)].map((match) => match[1])
 
 export function compatiblePeclArchive(name: string, profile: PhpExtensionProfile): boolean {
   const match = name.match(
-    /^php_([a-z0-9_]+)-(\d+\.\d+\.\d+)-(\d+\.\d+)-(nts|ts)-(vc\d+|vs\d+)-(x64|x86|x86_64)\.zip$/i
+    /^php_([a-z0-9_]+)-(\d+(?:\.\d+){1,3})-(\d+\.\d+)-(nts|ts)-(vc\d+|vs\d+)-(x64|x86|x86_64)\.zip$/i
   )
   if (!match) return false
   const build = profile.build.toLowerCase().split(',')
@@ -25,38 +23,6 @@ export function compatiblePeclArchive(name: string, profile: PhpExtensionProfile
     match[5].toLowerCase() === build[2] &&
     match[6].toLowerCase().replace('x86_64', 'x64') === architecture
   )
-}
-
-export async function findPeclArchive(
-  extension: string,
-  profile: PhpExtensionProfile
-): Promise<string | undefined> {
-  if (!/^[a-z][a-z0-9_]*$/.test(extension)) return undefined
-  let html: string
-  try {
-    html = (await extensionHttpGet(repository + extension + '/', { timeout: 30000 })).data
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 404) return undefined
-    throw error
-  }
-  const versions = links(html)
-    .filter((link) => /^\d+\.\d+\.\d+\/$/.test(link))
-    .sort((a, b) => {
-      const left = a.slice(0, -1).split('.').map(Number),
-        right = b.slice(0, -1).split('.').map(Number)
-      for (let i = 0; i < 3; i++) if (left[i] !== right[i]) return right[i] - left[i]
-      return 0
-    })
-  for (const version of versions) {
-    const listing = await extensionHttpGet(repository + extension + '/' + version, {
-      timeout: 30000
-    })
-    const archive = links(listing.data).find(
-      (file) => file.startsWith(`php_${extension}-`) && compatiblePeclArchive(file, profile)
-    )
-    if (archive) return repository + extension + '/' + version + archive
-  }
-  return undefined
 }
 
 // Extract only flat, named DLLs into memory. Archive names never become paths.
@@ -167,7 +133,8 @@ export async function installPeclArchive(options: {
     const updated = await options.verify()
     if (!extensionIsLoaded(updated.loaded, extension, updated.loadWarnings))
       throw new Error(
-        'The extension did not load correctly in the selected PHP; check for duplicate directives'
+        'The extension did not load correctly in the selected PHP; check its runtime dependencies and php.ini directives.' +
+          (updated.loadWarnings ? `\n${updated.loadWarnings.slice(-4000)}` : '')
       )
     progress(`Installed ${moduleName} for PHP ${profile.version}.\n`)
     return { profile: updated, backup }

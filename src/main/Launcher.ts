@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import { app, Menu, session } from 'electron'
+import { app, dialog, Menu, session } from 'electron'
 import ExceptionHandler from './core/ExceptionHandler'
 import logger from './core/Logger'
 import Application from './Application'
@@ -80,15 +80,21 @@ export default class Launcher extends EventEmitter {
 
   handelAppReady() {
     app.on('ready', async () => {
-      console.log('app on ready !!!!!!')
-      await this.loadDebugExtension()
-      const application = new Application()
-      await application.init()
-      global.application = application
-      application.start('index')
-      application.on('ready', () => {})
-      if (isWindows() || isLinux()) {
-        Menu.setApplicationMenu(null)
+      try {
+        console.log('app on ready !!!!!!')
+        await this.loadDebugExtension()
+        const application = new Application()
+        await application.init()
+        global.application = application
+        application.start('index')
+        application.on('ready', () => {})
+        if (isWindows() || isLinux()) {
+          Menu.setApplicationMenu(null)
+        }
+      } catch (error) {
+        logger.error('[FlyEnv] Startup failed:', error)
+        dialog.showErrorBox('FlyEnv', error instanceof Error ? error.message : String(error))
+        app.quit()
       }
     })
 

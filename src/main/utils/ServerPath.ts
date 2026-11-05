@@ -104,7 +104,20 @@ export const MakeServerDir = async (dataDirectory: string): Promise<boolean> => 
  */
 export const SetupGlobalPaths = (runpath: string): Promise<boolean> => {
   global.Server.UserHome = app.getPath('home')
-  global.Server.UserDocuments = app.getPath('documents')
+  // Documents is optional for startup. PowerShell integration derives profile
+  // write targets and its privileged write scope from this known-folder path.
+  // Preserve redirects; never guess a replacement path or broaden that scope.
+  global.Server.UserDocuments = undefined
+  try {
+    const documents = app.getPath('documents')
+    if (!documents.trim()) throw new Error('The Documents known-folder path is empty')
+    global.Server.UserDocuments = documents
+  } catch (error) {
+    console.warn(
+      '[ServerPath] Documents is unavailable; PowerShell profile discovery is disabled.',
+      error
+    )
+  }
   // hosts 路径与 UAC 白名单使用同一个系统目录规则；环境变量无效时明确失败，
   // 不在非 C 盘设备上误读/误写另一份 C:\Windows\System32\drivers\etc\hosts。
   if (isWindows()) {

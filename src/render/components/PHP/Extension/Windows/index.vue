@@ -42,6 +42,12 @@
       <el-button :loading="entry.fetching" :disabled="entry.installing" @click="search">{{
         I18nT('php.windowsSearch')
       }}</el-button>
+      <el-button
+        :loading="entry.fetching"
+        :disabled="entry.installing || entry.preparing"
+        @click="refreshCatalog"
+        >{{ I18nT('php.windowsRefresh') }}</el-button
+      >
     </div>
     <div class="flex shrink-0 flex-wrap items-center justify-between gap-2">
       <el-radio-group v-model="filter" size="small">
@@ -104,7 +110,9 @@
         <template #default="{ row }">
           <div class="flex flex-col items-start gap-1 text-xs">
             <span v-if="row.configuredName">php.ini</span>
-            <span v-if="row.packageName">Packagist</span>
+            <span v-if="row.packageName">{{
+              I18nT(row.source === 'pecl' ? 'php.windowsSourcePecl' : 'php.windowsSourcePie')
+            }}</span>
           </div>
         </template>
       </el-table-column>
@@ -135,9 +143,9 @@
               v-if="row.packageName && row.status !== 'loaded'"
               type="primary"
               size="small"
-              :loading="isOperating(row.packageName, 'install')"
+              :loading="entry.preparing && entry.preparation?.name !== row.packageName"
               :disabled="!!windowsExtensions.installingBin || entry.fetching"
-              @click="windowsExtensions.install(version, row.packageName)"
+              @click="prepareInstall(row.packageName)"
               >{{
                 I18nT(row.status === 'unloaded' ? 'php.windowsRepair' : 'base.install')
               }}</el-button
@@ -164,6 +172,110 @@
     </el-table>
 
     <el-dialog
+      v-model="showPreparation"
+      :title="I18nT('php.windowsChooseVersion')"
+      class="php-extension-version-dialog"
+      width="min(640px, calc(100vw - 32px))"
+      top="10vh"
+      append-to-body
+    >
+      <div v-if="entry.preparation" class="extension-preparation">
+        <div class="extension-preparation__summary">
+          <div class="extension-preparation__heading">
+            <strong>{{ entry.preparation.name.replace(/^pecl:/, '') }}</strong>
+            <el-tag size="small" type="info" disable-transitions>{{
+              I18nT(
+                entry.preparation.source === 'pecl'
+                  ? 'php.windowsSourcePecl'
+                  : 'php.windowsSourcePie'
+              )
+            }}</el-tag>
+          </div>
+          <p class="extension-preparation__target">
+            PHP {{ entry.preparation.profile.version }} · {{ entry.preparation.profile.build }} ·
+            {{ entry.preparation.profile.architecture }}
+          </p>
+          <a
+            class="extension-preparation__link"
+            :href="entry.preparation.homepage"
+            @click.prevent="openExternal(entry.preparation.homepage)"
+            >{{ entry.preparation.homepage }}</a
+          >
+        </div>
+        <div class="extension-preparation__field">
+          <label for="php-extension-release">{{ I18nT('base.version') }}</label>
+          <el-select
+            id="php-extension-release"
+            v-model="selectedRelease"
+            :loading="entry.preparing"
+            :disabled="entry.preparing"
+            @change="checkRelease"
+          >
+            <el-option
+              v-for="release in entry.preparation.releases"
+              :key="release.version"
+              :value="release.version"
+              :label="release.version"
+            />
+          </el-select>
+        </div>
+        <el-alert
+          v-if="selectedStatus === false"
+          type="error"
+          :title="I18nT('php.windowsIncompatibleRelease')"
+        />
+        <el-alert v-if="selectedError" type="error" :title="selectedError"
+          ><el-button @click="checkRelease(selectedRelease)">{{
+            I18nT('php.windowsRetry')
+          }}</el-button></el-alert
+        >
+        <el-alert
+          v-else-if="selectedStatus === null && entry.preparation.source === 'pie'"
+          type="info"
+          :title="I18nT('php.windowsPieWillVerify')"
+        />
+        <div v-if="selectedUrl" class="extension-preparation__resource">
+          <div class="extension-preparation__resource-heading">
+            <span>{{ I18nT('php.windowsDownloadLink') }}</span>
+            <el-button link type="primary" @click="copy(selectedUrl)">{{
+              I18nT('common.action.copy')
+            }}</el-button>
+          </div>
+          <a
+            class="extension-preparation__link"
+            :href="selectedUrl"
+            @click.prevent="openExternal(selectedUrl)"
+            >{{ selectedUrl }}</a
+          >
+        </div>
+        <div v-if="entry.preparation.command" class="extension-preparation__resource">
+          <div class="extension-preparation__resource-heading">
+            <span>{{ I18nT('php.windowsInstallCommand') }}</span>
+            <el-button link type="primary" @click="copy(entry.preparation.command)">{{
+              I18nT('php.windowsCopyCommand')
+            }}</el-button>
+          </div>
+          <pre class="extension-preparation__command">{{ entry.preparation.command }}</pre>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showPreparation = false">{{ I18nT('common.action.close') }}</el-button>
+        <el-button
+          type="primary"
+          :loading="entry.installing"
+          :disabled="
+            !selectedRelease ||
+            selectedStatus === false ||
+            (entry.preparation?.source === 'pecl' && selectedStatus !== true) ||
+            entry.preparing
+          "
+          @click="installPrepared"
+          >{{ I18nT('base.install') }}</el-button
+        >
+      </template>
+    </el-dialog>
+
+    <el-dialog
       v-model="showOperation"
       :title="I18nT('php.windowsLastOperation')"
       width="min(760px, 90vw)"
@@ -177,6 +289,56 @@
             I18nT(entry.operation.type === 'install' ? 'base.install' : 'common.action.disable')
           }}</span>
           <span class="font-medium break-all">{{ entry.operation.name }}</span>
+        </div>
+        <div
+          v-if="entry.operationPreparation"
+          class="flex flex-col items-start gap-1 rounded border p-3"
+        >
+          <span
+            >{{
+              I18nT(
+                entry.operationPreparation.source === 'pecl'
+                  ? 'php.windowsSourcePecl'
+                  : 'php.windowsSourcePie'
+              )
+            }}
+            · {{ entry.operationRelease }}</span
+          >
+          <el-button
+            v-if="entry.operationPreparation.homepage"
+            link
+            type="primary"
+            @click="openExternal(entry.operationPreparation.homepage)"
+            >{{ entry.operationPreparation.homepage }}</el-button
+          >
+          <el-button
+            v-if="entry.operationPreparation.command"
+            link
+            @click="copy(entry.operationPreparation.command)"
+            >{{ I18nT('php.windowsCopyCommand') }}</el-button
+          >
+          <pre v-if="entry.operationPreparation.command" class="select-text break-all">{{
+            entry.operationPreparation.command
+          }}</pre>
+          <el-button
+            v-if="
+              entry.operationPreparation.releases.find((r) => r.version === entry.operationRelease)
+                ?.url
+            "
+            link
+            type="primary"
+            @click="
+              openExternal(
+                entry.operationPreparation.releases.find(
+                  (r) => r.version === entry.operationRelease
+                )!.url!
+              )
+            "
+            >{{
+              entry.operationPreparation.releases.find((r) => r.version === entry.operationRelease)
+                ?.url
+            }}</el-button
+          >
         </div>
         <el-alert
           v-if="entry.operation.status === 'error'"
@@ -208,19 +370,62 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, ref, watch } from 'vue'
+  import { computed, onBeforeUnmount, ref, watch } from 'vue'
   import { Loading, QuestionFilled } from '@element-plus/icons-vue'
   import type { SoftInstalled } from '@shared/app'
   import { I18nT } from '@lang/index'
   import windowsExtensions from './controller'
   import { extensionRows } from './Catalog'
   import type { ExtensionOperation } from './Operation'
+  import { shell, clipboard } from '@/util/NodeFn'
 
   const props = defineProps<{ version: SoftInstalled }>()
   const entry = computed(() => windowsExtensions.entry(props.version))
   const query = ref(entry.value.lastQuery)
   const filter = ref<'all' | 'loaded' | 'notLoaded'>('all')
   const showOperation = ref(false)
+  const showPreparation = ref(false)
+  const selectedRelease = ref('')
+  const selectedItem = computed(() =>
+    entry.value.preparation?.releases.find((r) => r.version === selectedRelease.value)
+  )
+  const selectedStatus = computed(() => selectedItem.value?.compatible ?? null)
+  const selectedError = computed(() => selectedItem.value?.error)
+  const selectedUrl = computed(() => selectedItem.value?.url)
+  let viewGeneration = 0
+  let active = true
+  onBeforeUnmount(() => {
+    active = false
+    viewGeneration += 1
+  })
+  const openExternal = (url: string) => shell.openExternal(url).catch(() => {})
+  const copy = (text: string) => clipboard.writeText(text).catch(() => {})
+  const prepareInstall = async (name: string) => {
+    const generation = ++viewGeneration
+    const version = JSON.parse(JSON.stringify(props.version)) as SoftInstalled
+    const result = await windowsExtensions.prepare(version, name)
+    if (!active || generation !== viewGeneration || props.version.bin !== version.bin || !result)
+      return
+    selectedRelease.value = result.releases[0]?.version ?? ''
+    showPreparation.value = true
+  }
+  const checkRelease = async (release: string) => {
+    const prep = entry.value.preparation
+    if (!prep) return
+    const generation = viewGeneration
+    const version = JSON.parse(JSON.stringify(props.version)) as SoftInstalled
+    await windowsExtensions.prepare(version, prep.name, release)
+    if (!active || generation !== viewGeneration || props.version.bin !== version.bin) return
+  }
+  const installPrepared = async () => {
+    const name = entry.value.preparation?.name
+    if (!name || !selectedRelease.value) return
+    const version = JSON.parse(JSON.stringify(props.version)) as SoftInstalled
+    const release = selectedRelease.value
+    showPreparation.value = false
+    showOperation.value = true
+    await windowsExtensions.install(version, name, release)
+  }
   const rows = computed(() =>
     extensionRows(entry.value.profile, entry.value.packages, entry.value.lastQuery)
   )
@@ -241,12 +446,16 @@
     entry.value.operation?.name === name &&
     entry.value.operation.type === type
   const search = () => windowsExtensions.search(props.version, query.value)
+  const refreshCatalog = () => windowsExtensions.search(props.version, query.value, true)
   watch(
     () => props.version.bin,
     () => {
+      viewGeneration += 1
       query.value = entry.value.lastQuery
       filter.value = 'all'
       showOperation.value = false
+      showPreparation.value = false
+      selectedRelease.value = ''
       windowsExtensions.load(props.version)
     },
     { immediate: true }
@@ -254,6 +463,118 @@
 </script>
 
 <style scoped lang="scss">
+  .extension-preparation {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 18px;
+    max-height: 60vh;
+    overflow-y: auto;
+    overflow-wrap: anywhere;
+
+    > * {
+      min-width: 0;
+      flex-shrink: 0;
+    }
+
+    &__summary {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    &__heading,
+    &__resource-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    &__heading {
+      justify-content: flex-start;
+
+      strong {
+        min-width: 0;
+        color: var(--el-text-color-primary);
+        font-size: 16px;
+      }
+
+      .el-tag {
+        flex-shrink: 0;
+      }
+    }
+
+    &__target {
+      margin: 0;
+      color: var(--el-text-color-secondary);
+      font-size: 12px;
+    }
+
+    &__field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      label {
+        color: var(--el-text-color-primary);
+        font-weight: 500;
+      }
+
+      .el-select {
+        width: 100%;
+      }
+    }
+
+    &__resource {
+      min-width: 0;
+      padding: 12px 14px;
+      border: 1px solid var(--el-border-color-lighter);
+      border-radius: 8px;
+      background: var(--el-fill-color-light);
+    }
+
+    &__resource-heading {
+      margin-bottom: 8px;
+      color: var(--el-text-color-secondary);
+      font-size: 12px;
+
+      .el-button {
+        flex-shrink: 0;
+      }
+    }
+
+    &__link {
+      display: block;
+      max-width: 100%;
+      color: var(--el-color-primary);
+      font-size: 13px;
+      line-height: 1.65;
+      white-space: normal;
+      overflow-wrap: anywhere;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    &__command {
+      max-width: 100%;
+      margin: 0;
+      color: var(--el-text-color-regular);
+      font-size: 12px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      user-select: text;
+    }
+
+    :deep(.el-alert__content) {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+  }
+
   .windows-extensions > .el-card.php-extension-profile {
     height: auto;
     flex-shrink: 0;

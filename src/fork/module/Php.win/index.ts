@@ -66,12 +66,16 @@ class Php extends Base {
     })
   }
 
-  windowsExtensionCatalog(version: SoftInstalled, query: string) {
-    return windowsExtensions.catalog(version, query)
+  windowsExtensionCatalog(version: SoftInstalled, query: string, refresh = false) {
+    return windowsExtensions.catalog(version, query, refresh)
   }
 
-  windowsExtensionInstall(version: SoftInstalled, name: string) {
-    return windowsExtensions.install(version, name)
+  windowsExtensionPrepare(version: SoftInstalled, name: string, selected?: string) {
+    return windowsExtensions.prepare(version, name, selected)
+  }
+
+  windowsExtensionInstall(version: SoftInstalled, name: string, selected?: string) {
+    return windowsExtensions.install(version, name, selected)
   }
 
   windowsExtensionDisable(version: SoftInstalled, name: string) {

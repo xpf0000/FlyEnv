@@ -50,7 +50,8 @@ const phpWindowsController = readFileSync(
   'utf-8'
 )
 assert.doesNotMatch(phpWindowsPage, /from\s+['"]@\/util\/IPC['"]|IPC\.send/)
-assert.match(phpWindowsPage, /windowsExtensions\.install\(version,/)
+assert.match(phpWindowsPage, /windowsExtensions\.prepare\(/)
+assert.match(phpWindowsPage, /windowsExtensions\.install\(/)
 assert.match(phpWindowsPage, /windowsExtensions\.disable\(version,/)
 assert.match(phpWindowsController, /reactiveBind\(\s*new WindowsExtensionController/)
 assert.doesNotMatch(
