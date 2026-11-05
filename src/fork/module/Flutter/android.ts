@@ -6,9 +6,16 @@ import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import { appDebugLog } from '@shared/utils'
 import { userInfo } from 'os'
 import { notifyWindowsEnvironmentChanged } from '@shared/WindowsEnvironmentBroadcast'
+import { updateShellProfiles } from '../Tool/shellProfiles'
 
 // Linux users may run bash or zsh; macOS defaults to zsh.
-const shellProfiles = () => (isMacOS() ? ['$HOME/.zshrc'] : ['$HOME/.bashrc', '$HOME/.zshrc'])
+const shellProfiles = () => (isMacOS() ? ['.zshrc'] : ['.bashrc', '.zshrc'])
+
+const appendShellLine = (content: string, line: string, marker: string) => {
+  if (content.includes(marker)) return content
+  const separator = content && !content.endsWith('\n') ? '\n' : ''
+  return `${content}${separator}${line}\n`
+}
 
 export const androidMethods = {
   _androidSdkCandidates(this: any) {
@@ -165,14 +172,10 @@ export const androidMethods = {
             } else {
               const exportHome = `export ANDROID_HOME=\"${sdkDir}\"`
               const exportRoot = `export ANDROID_SDK_ROOT=\"${sdkDir}\"`
-              for (const profile of shellProfiles()) {
-                await execPromiseWithEnv(
-                  `grep -q 'ANDROID_HOME=' ${profile} || echo '${exportHome}' >> ${profile}`
-                )
-                await execPromiseWithEnv(
-                  `grep -q 'ANDROID_SDK_ROOT=' ${profile} || echo '${exportRoot}' >> ${profile}`
-                )
-              }
+              await updateShellProfiles((content) => {
+                const withHome = appendShellLine(content, exportHome, 'ANDROID_HOME=')
+                return appendShellLine(withHome, exportRoot, 'ANDROID_SDK_ROOT=')
+              }, shellProfiles())
             }
 
             process.env.ANDROID_HOME = sdkDir
@@ -202,11 +205,10 @@ export const androidMethods = {
                 environmentWritten = (await addPath(platformToolsDir)) === true
               } else {
                 const exportPath = `export PATH=\"${platformToolsDir}:$PATH\"`
-                for (const profile of shellProfiles()) {
-                  await execPromiseWithEnv(
-                    `grep -q '${platformToolsDir.replace(/\\/g, '\\\\')}' ${profile} || echo '${exportPath}' >> ${profile}`
-                  )
-                }
+                await updateShellProfiles(
+                  (content) => appendShellLine(content, exportPath, platformToolsDir),
+                  shellProfiles()
+                )
               }
 
               const sep = isWindows() ? ';' : ':'

@@ -18,6 +18,7 @@
     "test:renderer-operation-boundaries": "tsx scripts/renderer-operation-boundaries-test.ts",
     "test:language-project-ports": "tsx scripts/language-project-ports-test.ts",
     "test:shell-init": "tsx scripts/shell-init-test.ts",
+    "test:flutter-android": "tsx scripts/flutter-android-test.ts",
     "test:windows-git-bash": "tsx scripts/windows-git-bash-test.ts",
     "test:php-windows-extensions": "tsx scripts/php-windows-extensions-test.ts",
     "test:php-loaded-extensions": "tsx scripts/php-loaded-extensions-test.ts",
