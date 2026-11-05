@@ -88,6 +88,10 @@ export default class WindowManager extends EventEmitter {
     const pageOptions = this.getPageOptions(page)
     trayBrowserOptions.webPreferences!.preload = join(global.Server.Static!, 'preload/preload.js')
     window = new BrowserWindow(trayBrowserOptions)
+    if (isMacOS()) {
+      // otherwise opening the popup switches to the Space of the main window
+      window.setVisibleOnAllWorkspaces(true, { skipTransformProcessType: true })
+    }
     this.trayManager!.attachWindow(window)
     window.webContents.on('before-input-event', (event, input) => {
       if ((input.control || input.meta) && input.key.toLowerCase() === 'r') {
@@ -288,19 +292,28 @@ export default class WindowManager extends EventEmitter {
     }
     window.setVisibleOnAllWorkspaces(true, { skipTransformProcessType: true })
     window.show()
-    window.setVisibleOnAllWorkspaces(false, { skipTransformProcessType: true })
+    // restoring right away lets the pending app activation pull the window back to its old Space
+    setTimeout(() => {
+      if (!window.isDestroyed()) {
+        window.setVisibleOnAllWorkspaces(false, { skipTransformProcessType: true })
+      }
+    }, 300)
   }
 
-  showWindow(page: string) {
+  async showWindow(page: string) {
     const window = this.getWindow(page)
     if (!window || window.isDestroyed()) {
       return
     }
+    // dock.show() activates the app; doing it after show() pulls the window back to its original Space
+    if (isMacOS()) {
+      await app.dock?.show?.()?.catch(() => {})
+      if (window.isDestroyed()) {
+        return
+      }
+    }
     this.showOnCurrentSpace(window)
     console.log('showWindow !!!')
-    if (isMacOS()) {
-      app.dock?.show?.()?.catch()
-    }
   }
 
   hideWindow(page: string) {
