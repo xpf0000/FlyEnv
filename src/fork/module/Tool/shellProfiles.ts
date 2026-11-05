@@ -1,10 +1,13 @@
 import { join } from 'path'
 import { existsSync, readFileByRoot, writeFileByRoot } from '../../Fn'
 
-export async function updateShellProfiles(update: (content: string) => string) {
+export async function updateShellProfiles(
+  update: (content: string) => string,
+  names = ['.bashrc', '.zshrc']
+) {
   const completed: string[] = []
   const failures: Array<{ file: string; error: unknown }> = []
-  for (const name of ['.bashrc', '.zshrc']) {
+  for (const name of names) {
     const file = join(global.Server.UserHome!, name)
     try {
       const exists = existsSync(file)

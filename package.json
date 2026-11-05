@@ -17,6 +17,7 @@
     "build-dev-runner": "npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/dev-runner.ts --outfile=electron/dev-runner.mjs",
     "test:renderer-operation-boundaries": "tsx scripts/renderer-operation-boundaries-test.ts",
     "test:language-project-ports": "tsx scripts/language-project-ports-test.ts",
+    "test:shell-init": "tsx scripts/shell-init-test.ts",
     "test:windows-git-bash": "tsx scripts/windows-git-bash-test.ts",
     "test:php-windows-extensions": "tsx scripts/php-windows-extensions-test.ts",
     "test:php-loaded-extensions": "tsx scripts/php-loaded-extensions-test.ts",
