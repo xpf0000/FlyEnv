@@ -1,0 +1,19 @@
+{
+  "notInstalled": "Codex CLI nie je nainštalovaný. Kliknutím na tlačidlo nižšie ho nainštalujete oficiálnym inštalátorom.",
+  "officialWebsite": "Codex na GitHub",
+  "officialDocs": "Dokumentácia Codex CLI",
+  "reasoningEffort": "Úsilie o uvažovanie",
+  "approvalPolicy": "Pravidlá schvaľovania",
+  "sandboxMode": "Režim sandboxu",
+  "pluginEnabled": "Plugin nainštalovaný",
+  "uninstallConfirm": "Naozaj chcete odstrániť plugin \"{name}\"?",
+  "cmd": {
+    "update": "Aktualizovať Codex na najnovšiu verziu",
+    "continue": "Pokračovať v najnovšej relácii",
+    "resume": "Obnoviť predchádzajúcu reláciu (výber)",
+    "exec": "Spustiť Codex neinteraktívne",
+    "review": "Spustiť kontrolu kódu neinteraktívne",
+    "pluginList": "Zobraziť dostupné pluginy",
+    "login": "Spravovať prihlásenie / overenie"
+  }
+}

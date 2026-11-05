@@ -1,0 +1,21 @@
+{
+  "console": "Konzola",
+  "webServer": "Webový server",
+  "dataBaseServer": "Databázový server",
+  "emailServer": "E-mailový server",
+  "language": "Jazyky a runtime",
+  "searchEngine": "Vyhľadávací nástroj",
+  "dnsServer": "DNS server",
+  "ftpServer": "FTP server",
+  "containerRuntime": "Runtime kontajnerov",
+  "appLog": "Protokol aplikácie",
+  "aiCoding": "AI kódovanie",
+  "ai": "AI",
+  "objectStorage": "Objektové úložisko",
+  "appExit": "Zastaviť všetky spustené služby a ukončiť FlyEnv",
+  "groupStart": "Jedným kliknutím spustiť všetky dostupné služby zobrazené na paneli",
+  "networkTunnel": "Sieťový tunel",
+  "cacheAndQueue": "Cache a fronta správ",
+  "serviceGovernance": "Správa služieb",
+  "other": "Ostatné"
+}

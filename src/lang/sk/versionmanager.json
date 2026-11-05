@@ -1,0 +1,8 @@
+{
+  "noBrewFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://brew.sh/')\">Homebrew</a> sa nenašiel\nAk chcete nainštalovať Homebrew, kliknite na tlačidlo inštalácie a pokračujte\nAlebo môžete kliknúť na tento odkaz\n<a href=\"javascript:void();\" onclick=\"openUrl('https://flyenv.com/guide/getting-started.html#macos-1')\">https://flyenv.com/guide/getting-started.html#macos-1</a>\nInštaláciu urobte podľa dokumentácie.",
+  "noPortFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/')\">Macports</a> sa nenašiel.\nNainštalujte Macports, môžete kliknúť na tento odkaz\n<a href=\"javascript:void();\" onclick=\"openUrl('https://www.macports.org/install.php')\">https://www.macports.org/install.php</a>\nInštaláciu urobte podľa dokumentácie.",
+  "brewErrorTips": "Na tomto mieste {bin} boli zistené spustiteľné súbory Homebrew.\nFlyEnv ich však nemôže volať. Chybové hlásenie:\n{error}",
+  "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> sa nenašiel\nAk chcete nainštalovať SDKMAN, kliknite na tlačidlo inštalácie a pokračujte",
+  "brewFormulaConflict": "Aktuálny zdroj: {source}\nPred prepnutím zdroja odinštalujte aktuálnu verziu PHP.",
+  "brewFormulaUnavailable": "Nedostupné"
+}

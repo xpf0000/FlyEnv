@@ -1,0 +1,23 @@
+{
+  "about": "O aplikácii",
+  "app": "FlyEnv",
+  "checkForUpdates": "Skontrolovať aktualizácie...",
+  "hide": "Skryť FlyEnv",
+  "hideOthers": "Skryť ostatné",
+  "unhide": "Zobraziť všetko",
+  "quit": "Ukončiť FlyEnv",
+  "cut": "Vystrihnúť",
+  "paste": "Vložiť",
+  "window": "Okno",
+  "minimize": "Minimalizovať",
+  "zoom": "Priblížiť",
+  "fullscreen": "Prejsť na celú obrazovku",
+  "front": "Preniesť FlyEnv do popredia",
+  "dev": "Otvoriť okno ladenia",
+  "needInstallHelper": "FlyEnv potrebuje nainštalovať pomocný program",
+  "helperInstalling": "Pomocný program sa inštaluje, počkajte prosím",
+  "waitHelper": "Pomocný program sa spúšťa, počkajte prosím",
+  "helperInstallFailTips": "Inštalácia pomocného programu zlyhala.",
+  "helperInstallSuccessTips": "Pomocný program bol úspešne nainštalovaný",
+  "helperInstallTitle": "Inštalácia pomocného programu FlyEnv"
+}

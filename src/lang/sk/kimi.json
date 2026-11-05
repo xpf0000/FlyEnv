@@ -1,0 +1,21 @@
+{
+  "notInstalled": "Kimi Code CLI nie je nainštalovaný. Kliknutím na tlačidlo nižšie spustite oficiálny inštalátor.",
+  "officialWebsite": "Kimi Code CLI na GitHub",
+  "officialDocs": "Dokumentácia Kimi Code CLI",
+  "permissionMode": "Režim oprávnení",
+  "defaultThinking": "Režim uvažovania",
+  "defaultPlanMode": "Režim plánovania",
+  "telemetry": "Telemetria",
+  "cmd": {
+    "upgrade": "Aktualizovať Kimi Code CLI",
+    "continue": "Pokračovať v najnovšej relácii v aktuálnom adresári",
+    "sessionSelect": "Vybrať a obnoviť reláciu",
+    "plan": "Spustiť v režime plánovania",
+    "yolo": "Automaticky schvaľovať bežné volania nástrojov",
+    "export": "Exportovať reláciu do ZIP",
+    "vis": "Otvoriť vizualizér relácií v prehliadači",
+    "providerList": "Zobraziť nakonfigurovaných poskytovateľov",
+    "providerAdd": "Pridať poskytovateľov z URL registra",
+    "providerRemove": "Odstrániť poskytovateľa"
+  }
+}
