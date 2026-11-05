@@ -280,12 +280,23 @@ export default class WindowManager extends EventEmitter {
     })
   }
 
+  // macOS: show() pulls the window back to the Space it was created on; briefly making it visible on all Spaces shows it on the current one
+  private showOnCurrentSpace(window: BrowserWindow) {
+    if (!isMacOS()) {
+      window.show()
+      return
+    }
+    window.setVisibleOnAllWorkspaces(true, { skipTransformProcessType: true })
+    window.show()
+    window.setVisibleOnAllWorkspaces(false, { skipTransformProcessType: true })
+  }
+
   showWindow(page: string) {
     const window = this.getWindow(page)
     if (!window || window.isDestroyed()) {
       return
     }
-    window.show()
+    this.showOnCurrentSpace(window)
     console.log('showWindow !!!')
     if (isMacOS()) {
       app.dock?.show?.()?.catch()
@@ -316,7 +327,7 @@ export default class WindowManager extends EventEmitter {
     if (window.isVisible()) {
       window.hide()
     } else {
-      window.show()
+      this.showOnCurrentSpace(window)
       console.log('toggleWindow !!!')
     }
   }
