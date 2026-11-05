@@ -1,4 +1,10 @@
-export const FLYENV_PLUGIN_API_VERSION = 1
+import { validatePluginMCP, type PluginMCPDeclaration } from './PluginMCP'
+import type { PluginRuntimeDeclaration } from './PluginRuntime'
+
+export const FLYENV_PLUGIN_API_VERSION = 2
+export const FLYENV_SUPPORTED_PLUGIN_API_VERSIONS = [1, 2] as const
+export const isPluginApiSupported = (version: number = 1) =>
+  (FLYENV_SUPPORTED_PLUGIN_API_VERSIONS as readonly number[]).includes(version)
 
 export const FLYENV_PLUGIN_PLATFORMS = ['macOS', 'Windows', 'Linux'] as const
 export const FLYENV_PLUGIN_ARCHITECTURES = ['x64', 'arm64', 'arm', 'ia32'] as const
@@ -49,6 +55,8 @@ export type FlyEnvPluginManifest = {
   homepage?: string
   icon?: string
   architecture?: PluginArchitecture[]
+  runtime?: PluginRuntimeDeclaration
+  mcp?: PluginMCPDeclaration
   module: {
     typeFlag: string
     moduleType?: string
@@ -70,6 +78,7 @@ export type FlyEnvPluginArtifact = {
 }
 
 export type FlyEnvPluginCatalogItem = {
+  apiVersion?: number
   id: string
   name: string
   version: string
@@ -110,7 +119,7 @@ export function validatePluginManifest(value: unknown): FlyEnvPluginManifest {
     throw new Error('plugin.json must contain an object')
   }
   const manifest = value as FlyEnvPluginManifest
-  if (manifest.apiVersion !== FLYENV_PLUGIN_API_VERSION) {
+  if (!isPluginApiSupported(manifest.apiVersion) || manifest.apiVersion === undefined) {
     throw new Error(`Unsupported plugin apiVersion: ${manifest.apiVersion}`)
   }
   if (!manifest.id || !safeId.test(manifest.id)) {
@@ -151,6 +160,16 @@ export function validatePluginManifest(value: unknown): FlyEnvPluginManifest {
   for (const entry of [manifest.entry.render, manifest.entry.fork]) {
     if (entry) validateRelativeEntry(entry)
   }
+  if (manifest.runtime !== undefined || manifest.mcp !== undefined) {
+    if (manifest.apiVersion !== 2) throw new Error('Plugin capabilities require API 2')
+    if (
+      !manifest.entry.fork ||
+      manifest.runtime?.mode !== 'dedicated' ||
+      manifest.runtime?.dataAccess !== 'exclusive'
+    )
+      throw new Error('Plugin capabilities require a dedicated exclusive fork runtime')
+    if (manifest.mcp !== undefined) validatePluginMCP(manifest.mcp)
+  }
   return manifest
 }
 
@@ -181,6 +200,11 @@ export function validatePluginCatalog(value: unknown): FlyEnvPluginCatalog {
     if (plugin.description !== undefined && !isValidI18nText(plugin.description)) {
       throw new Error(`Plugin registry description is invalid: ${plugin.id}`)
     }
+    if (
+      plugin.apiVersion !== undefined &&
+      (!Number.isSafeInteger(plugin.apiVersion) || plugin.apiVersion < 1)
+    )
+      throw new Error(`Plugin registry apiVersion is invalid: ${plugin.id}`)
     const candidate = plugin as FlyEnvPluginCatalog['plugins'][number] & {
       url?: string
       downloadUrl?: string

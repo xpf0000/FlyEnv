@@ -5,6 +5,7 @@ import {
   performanceDiagnosticNow
 } from '@shared/PerformanceDiagnostics'
 import type { UtilityProcess } from 'electron'
+import type { PluginRuntimeDescriptor } from '@shared/plugin/PluginRuntime'
 import { appendFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -31,6 +32,8 @@ import {
 type Callback = (...args: any) => void
 
 export type ForkItemOptions = {
+  dedicated?: boolean
+  closeTimeoutMs?: number
   idleTimeoutMs: number
   primary: boolean
   idleScheduler?: ForkIdleScheduler
@@ -80,6 +83,80 @@ export class ForkItem {
   private readonly retiredChildren = new WeakSet<UtilityProcess>()
   // 整个 ForkItem 销毁后不允许终态 hook 重新创建进程；正常 worker 退休仍允许后续重试。
   private disposed = false
+  private readonly dedicated: boolean
+  private readonly closeTimeoutMs: number
+  private readonly childExits = new WeakMap<
+    UtilityProcess,
+    { promise: Promise<void>; resolve: () => void }
+  >()
+  private closing?: Promise<void>
+  private pluginInitialization?: {
+    generation: string
+    resolve: () => void
+    reject: (error: Error) => void
+    timer: NodeJS.Timeout
+  }
+
+  get actualExit(): Promise<void> {
+    return this.childExits.get(this.child)!.promise
+  }
+
+  initializePlugin(descriptor: PluginRuntimeDescriptor) {
+    if (!this.dedicated || this.disposed)
+      return Promise.reject(new Error('plugin_initialization_failed'))
+    return new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pluginInitialization = undefined
+        reject(new Error('plugin_initialization_timeout'))
+      }, 30_000)
+      this.pluginInitialization = {
+        generation: descriptor.workerGeneration,
+        resolve,
+        reject,
+        timer
+      }
+      try {
+        this.child.postMessage({ type: 'plugin-worker-initialize', descriptor })
+      } catch {
+        this.rejectPluginInitialization()
+      }
+    })
+  }
+
+  closeAndWait(): Promise<void> {
+    if (this.closing) return this.closing
+    this.disposed = true
+    this.lifecycle.dispose()
+    const child = this.child
+    const exited = this.childExits.get(child)!.promise
+    this.closing = new Promise<void>((resolve, reject) => {
+      let forceTimer: NodeJS.Timeout | undefined
+      const timer = setTimeout(() => {
+        this.destroyChild({ code: 1, msg: 'plugin_result_unknown' })
+        forceTimer = setTimeout(() => reject(new Error('plugin_exit_timeout')), this.closeTimeoutMs)
+      }, this.closeTimeoutMs)
+      void exited.then(() => {
+        clearTimeout(timer)
+        if (forceTimer) clearTimeout(forceTimer)
+        resolve()
+      })
+      try {
+        if (!this.childExited) child.postMessage({ type: 'plugin-worker-shutdown' })
+      } catch {
+        this.destroyChild({ code: 1, msg: 'plugin_result_unknown' })
+      }
+    })
+    return this.closing
+  }
+
+  private rejectPluginInitialization() {
+    const pending = this.pluginInitialization
+    this.pluginInitialization = undefined
+    if (pending) {
+      clearTimeout(pending.timer)
+      pending.reject(new Error('plugin_initialization_failed'))
+    }
+  }
 
   constructor(
     file: string,
@@ -91,6 +168,8 @@ export class ForkItem {
     // owner 使用真实 UtilityProcess 对象，重启 worker 后不能复用旧租约/请求缓存。
     private readonly windowsPrivilegeBridge?: WindowsPrivilegeBridge
   ) {
+    this.dedicated = options.dedicated === true
+    this.closeTimeoutMs = options.closeTimeoutMs ?? 10_000
     this.forkFile = file
     this.isPrimary = options.primary
     this.callback = {}
@@ -109,8 +188,9 @@ export class ForkItem {
       workerPid: child.pid,
       primary: this.isPrimary
     })
-    this.postInitialization(child)
     this.attachChild(child)
+    this.postInitialization(child)
+    if (this.dedicated) this.pin()
   }
 
   get activeTaskCount() {
@@ -148,6 +228,16 @@ export class ForkItem {
     } catch (error) {
       // 认证桥同步异常必须结算此 worker 的等待请求并回收租约，不能从 message 回调逃逸。
       this.destroyChild({ code: 1, msg: `Fork authorization failed: ${String(error)}` })
+      return
+    }
+    if (message?.type === 'plugin-worker-ready' || message?.type === 'plugin-worker-failed') {
+      const pending = this.pluginInitialization
+      if (pending && pending.generation === message.workerGeneration) {
+        this.pluginInitialization = undefined
+        clearTimeout(pending.timer)
+        if (message.type === 'plugin-worker-ready') pending.resolve()
+        else pending.reject(new Error('plugin_initialization_failed'))
+      }
       return
     }
     if (isLanguageChangedAck(message)) {
@@ -303,6 +393,7 @@ export class ForkItem {
       let started = false
       try {
         let child = this.child
+        if (this.dedicated && this.isChildDisabled()) throw new Error('plugin_worker_exited')
         if (this.isChildDisabled()) {
           // 先结束旧 worker 和其任务，再登记新任务；旧清理不得清空新任务计数。
           this.destroyChild()
@@ -394,6 +485,11 @@ export class ForkItem {
   }
 
   private attachChild(child: UtilityProcess) {
+    let resolve!: () => void
+    const promise = new Promise<void>((done) => {
+      resolve = done
+    })
+    this.childExits.set(child, { promise, resolve })
     child.on('message', (message) => this.onMessage(child, message))
     child.on('error', (type, location, report) => this.onError(child, type, location, report))
     child.on('exit', () => this.onExit(child))
@@ -402,15 +498,24 @@ export class ForkItem {
 
   private onError(child: UtilityProcess, type: string, location: string, report: string) {
     if (child !== this.child) return
-    logServiceStopBoundary('fork.main-worker-error', { workerPid: child.pid, type, location })
+    logServiceStopBoundary('fork.main-worker-error', {
+      workerPid: child.pid,
+      ...(this.dedicated ? { type: 'plugin_worker_error' } : { type, location })
+    })
     this.loading = false
-    const error = JSON.stringify({ type, location, report })
-    appendFile(join(global.Server.BaseDir!, 'fork.error.txt'), `\n${error}`).catch(() => {})
+    const error = this.dedicated
+      ? 'plugin_worker_error'
+      : JSON.stringify({ type, location, report })
+    if (!this.dedicated)
+      appendFile(join(global.Server.BaseDir!, 'fork.error.txt'), `\n${error}`).catch(() => {})
     // error 不保证随后会有 exit；主动退休并终止 worker，立即归还全部权限 owner 资源。
     this.destroyChild({ code: 1, msg: error })
   }
 
   private onExit(child: UtilityProcess) {
+    // Even retired children must fulfill the real-exit contract before owner replacement.
+    this.childExits.get(child)?.resolve()
+    if (child === this.child) this.rejectPluginInitialization()
     logServiceStopBoundary('fork.main-worker-exited', { workerPid: child.pid })
     // 即使是已经被替换的旧 worker，仍需清理其权限请求和排队租约。
     this.windowsPrivilegeBridge?.detach(child)
@@ -423,7 +528,11 @@ export class ForkItem {
     this.loading = false
     this.lifecycle.childExited()
     this.resolveLanguageAcks()
-    this.settleCallbacks({ code: 1, msg: 'Fork process exited' })
+    this.settleCallbacks({
+      code: 1,
+      msg: this.dedicated ? 'plugin_result_unknown' : 'Fork process exited',
+      ...(this.dedicated ? { outcome: 'unknown' } : {})
+    })
   }
 
   private onSpawn(child: UtilityProcess) {
@@ -491,7 +600,10 @@ export class ForkItem {
     this.lifecycle.childExited()
     // 主动销毁与自然退出共用 owner 清理，防止后台权限请求阻塞全局队列。
     this.resolveLanguageAcks()
-    this.settleCallbacks(info)
+    this.rejectPluginInitialization()
+    this.settleCallbacks(
+      this.dedicated ? { code: 1, msg: 'plugin_result_unknown', outcome: 'unknown' } : info
+    )
     try {
       child?.kill()
     } catch {}

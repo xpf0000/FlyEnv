@@ -5,9 +5,11 @@ import { promises as fs, type Dirent } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { Readable } from 'node:stream'
 import axios from 'axios'
+import { AjvJsonSchemaValidator } from '@modelcontextprotocol/sdk/validation/ajv-provider.js'
 import { getAxiosProxy } from '../../fork/util/Axios'
 import {
   FLYENV_PLUGIN_ARCHITECTURES,
+  isPluginApiSupported,
   validatePluginCatalog,
   validatePluginManifest,
   type FlyEnvPluginCatalog,
@@ -50,19 +52,14 @@ export type FlyEnvPluginRecord = {
   renderEntry?: string
   forkEntry?: string
   development: boolean
+  installGeneration?: string
   enabled: boolean
   source?: string
 }
 
-export type ForkPluginSnapshot = Record<
-  string,
-  {
-    id: string
-    version: string
-    module: string
-    entry: string
-  }
->
+export type { ForkPluginSnapshot } from '@shared/plugin/PluginRuntime'
+import type { ForkPluginSnapshot } from '@shared/plugin/PluginRuntime'
+import type { PluginMCPRegistration } from '@shared/mcpRuntimeCatalog'
 
 export type InstalledPlugin = {
   id: string
@@ -86,6 +83,7 @@ export type PluginManagerOptions = {
   statePath?: string
   fetchImpl?: typeof fetch
   stopPluginServices?: (moduleId: string) => Promise<{ stopped: true }>
+  recoverPluginRuntime?: (moduleId: string) => Promise<void>
   licenseCheck?: () => Promise<boolean>
   secretProtect?: PluginSecretProtection | (() => PluginSecretProtection | undefined)
 }
@@ -155,6 +153,7 @@ export class PluginManager {
   private readonly stateOverride?: string
   private readonly fetchImpl: typeof fetch
   private readonly stopPluginServices?: (moduleId: string) => Promise<{ stopped: true }>
+  private readonly recoverPluginRuntime?: PluginManagerOptions['recoverPluginRuntime']
   private readonly licenseCheck: () => Promise<boolean>
   private readonly secretProtect?: PluginManagerOptions['secretProtect']
   private readonly operations = new Map<string, Promise<unknown>>()
@@ -167,12 +166,17 @@ export class PluginManager {
   private hasRefreshed = false
   private legacyState = false
   private stateDirty = false
+  private readonly runtimeGenerations = new Map<
+    string,
+    { fingerprint: string; generation: string }
+  >()
 
   constructor(options: PluginManagerOptions = {}) {
     this.rootOverride = options.pluginsRoot
     this.stateOverride = options.statePath
     this.fetchImpl = options.fetchImpl ?? proxiedFetch
     this.stopPluginServices = options.stopPluginServices
+    this.recoverPluginRuntime = options.recoverPluginRuntime
     this.licenseCheck = options.licenseCheck ?? (() => verifyLicenseCode(global.Server.Licenses))
     this.secretProtect = options.secretProtect
   }
@@ -476,6 +480,30 @@ export class PluginManager {
         )
         continue
       }
+      try {
+        this.assertToolNamesAvailable(record.manifest)
+        if (record.manifest.runtime && record.forkEntry) {
+          const stat = await fs.stat(record.forkEntry)
+          const fingerprint = JSON.stringify([
+            record.rootPath,
+            record.manifest,
+            record.enabled,
+            stat.dev,
+            stat.ino,
+            stat.mtimeMs,
+            stat.size
+          ])
+          let identity = this.runtimeGenerations.get(record.manifest.id)
+          if (identity?.fingerprint !== fingerprint) {
+            identity = { fingerprint, generation: randomUUID() }
+            this.runtimeGenerations.set(record.manifest.id, identity)
+          }
+          record.installGeneration = identity.generation
+        }
+      } catch (error) {
+        this.recordDiagnostic(record.rootPath, error, record.manifest.id)
+        continue
+      }
       this.plugins.set(record.manifest.id, record)
       this.moduleToPlugin.set(moduleId, record)
     }
@@ -626,10 +654,33 @@ export class PluginManager {
         id: record.manifest.id,
         version: record.manifest.version,
         module: record.manifest.module.typeFlag,
-        entry: record.forkEntry
+        entry: record.forkEntry,
+        ...(record.manifest.runtime
+          ? {
+              runtime: record.manifest.runtime,
+              dataRoot: join(dirname(this.pluginsRoot), 'plugin-data', record.manifest.id),
+              installGeneration: record.installGeneration,
+              audit: record.manifest.mcp?.audit
+            }
+          : {})
       }
     }
     return result
+  }
+
+  getMCPRegistrations(): PluginMCPRegistration[] {
+    return [...this.plugins.values()].flatMap((record) =>
+      record.enabled && record.manifest.mcp && record.installGeneration
+        ? [
+            {
+              pluginId: record.manifest.id,
+              moduleId: record.manifest.module.typeFlag,
+              installGeneration: record.installGeneration,
+              declaration: structuredClone(record.manifest.mcp)
+            }
+          ]
+        : []
+    )
   }
 
   async getRendererPlugins() {
@@ -663,16 +714,39 @@ export class PluginManager {
     return this.runSerialized(id, async () => {
       await this.ensureStateLoaded()
       if (!this.plugins.has(id)) throw new Error(`Plugin not installed: ${id}`)
+      const installed = this.plugins.get(id)!
       if (!enabled) {
         await this.stopPluginServices?.(this.plugins.get(id)!.manifest.module.typeFlag)
       }
       const state = this.state.plugins[id] ?? { enabled: true }
       state.enabled = enabled
       this.state.plugins[id] = state
-      await this.writeState()
+      try {
+        await this.writeState()
+      } catch (error) {
+        if (!enabled) return await this.failAfterRuntimeRecovery(installed, error)
+        throw error
+      }
       await this.refreshLoaded()
       return this.plugins.get(id)
     })
+  }
+
+  private async failAfterRuntimeRecovery(
+    installed: FlyEnvPluginRecord,
+    error: unknown
+  ): Promise<never> {
+    // The caller has confirmed exit and restored the previous durable state/files.
+    // Reopening is lazy and never changes the failed operation into a success.
+    try {
+      if (installed.enabled) await this.recoverPluginRuntime?.(installed.manifest.module.typeFlag)
+    } catch (recoveryError) {
+      throw new AggregateError(
+        [error, recoveryError],
+        'Plugin change failed; runtime recovery also failed'
+      )
+    }
+    throw error
   }
 
   async listSources() {
@@ -729,6 +803,7 @@ export class PluginManager {
         return [
           {
             ...item,
+            compatible: isPluginApiSupported(item.apiVersion),
             source,
             official,
             installed: current?.version ?? null,
@@ -739,17 +814,27 @@ export class PluginManager {
     )
   }
 
-  install(input: { id?: string; version?: string; url: string; sha256?: string; source?: string }) {
+  install(input: {
+    id?: string
+    version?: string
+    apiVersion?: number
+    url: string
+    sha256?: string
+    source?: string
+  }) {
     return this.runSerialized(input.id ?? input.url, () => this.installInternal(input))
   }
 
   private async installInternal(input: {
+    apiVersion?: number
     id?: string
     version?: string
     url: string
     sha256?: string
     source?: string
   }) {
+    if (!isPluginApiSupported(input.apiVersion))
+      throw new Error('Update FlyEnv to install this plugin')
     this.assertSourceUrl(input.url)
     if (!(await this.licenseCheck())) {
       throw new Error('An active license is required to install or update plugins')
@@ -854,8 +939,8 @@ export class PluginManager {
       if (input.version && input.version !== manifest.version)
         throw new Error('Plugin version does not match the registry entry')
       await this.validatePackageRoot(packageRoot, manifest)
+      this.assertToolNamesAvailable(manifest)
       const installed = this.plugins.get(manifest.id)
-      if (installed) await this.stopPluginServices?.(manifest.module.typeFlag)
       const targetRoot = join(this.pluginsRoot, manifest.id, manifest.version)
       await fs.mkdir(dirname(targetRoot), { recursive: true })
       const previousState = this.state.plugins[manifest.id]
@@ -868,6 +953,7 @@ export class PluginManager {
         .catch(() => false)
       let backedUp = false
       let packageMoved = false
+      if (installed) await this.stopPluginServices?.(manifest.module.typeFlag)
       try {
         if (targetExists) {
           await fs.rename(targetRoot, backupRoot)
@@ -898,6 +984,7 @@ export class PluginManager {
             `Plugin installation failed; original files were preserved at ${backupRoot}`
           )
         }
+        if (installed) return await this.failAfterRuntimeRecovery(installed, error)
         throw error
       }
 
@@ -937,6 +1024,7 @@ export class PluginManager {
       return this.installInternal({
         id: item.id,
         version: item.version,
+        apiVersion: item.apiVersion,
         url: item.artifact.url,
         sha256: item.artifact.sha256,
         source: item.official ? 'official' : item.source
@@ -1071,7 +1159,19 @@ export class PluginManager {
     return 'x64'
   }
 
+  private assertToolNamesAvailable(manifest: FlyEnvPluginManifest) {
+    const names = new Set((manifest.mcp?.tools ?? []).map((tool) => tool.name))
+    for (const record of this.plugins.values()) {
+      if (record.manifest.id === manifest.id) continue
+      if (record.manifest.mcp?.tools.some((tool) => names.has(tool.name)))
+        throw new Error('Duplicate plugin MCP tool name')
+    }
+  }
+
   private assertManifestCompatibility(manifest: FlyEnvPluginManifest) {
+    // Resolve schema references before installation/activation, not at application startup.
+    for (const tool of manifest.mcp?.tools ?? [])
+      new AjvJsonSchemaValidator().getValidator(tool.inputSchema)
     const platform = this.currentPlatform()
     if (manifest.module.platform?.length && !manifest.module.platform.includes(platform)) {
       throw new Error(`Plugin ${manifest.id} is not compatible with ${platform}`)

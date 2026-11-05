@@ -35,6 +35,7 @@ import ConfigManager from './core/ConfigManager'
 import MCPConfigManager from './core/MCPConfigManager'
 import MCPBridgeManager from './core/MCPBridgeManager'
 import { MCPRuntime } from './core/MCPRuntime'
+import { PluginMCPRegistry } from './core/PluginMCPRegistry'
 import ServerManager from './core/ServerManager'
 import IPCHandler from './core/IPCHandler'
 import { CheckBrewOrPort } from './utils/CheckBrew'
@@ -147,6 +148,8 @@ export default class Application extends EventEmitter {
     this.serverManager = new ServerManager(this.configManager)
     this.pluginManager = new PluginManager({
       stopPluginServices: (moduleId) => this.stopPluginServices(moduleId),
+      recoverPluginRuntime: (moduleId) =>
+        this.forkManager?.reopenPluginWorker(moduleId) ?? Promise.resolve(),
       licenseCheck: process.env.FLYENV_PLUGIN_SMOKE === '1' ? async () => true : undefined,
       // OS account keychain (Keychain / DPAPI / system keyring) encryption for
       // the plugin install secret, so copying the secret file to another
@@ -315,7 +318,11 @@ export default class Application extends EventEmitter {
     const registered = [...(ServiceProcessManager.servicePID[moduleId] ?? [])].filter(
       ({ pid }) => !!pid
     )
-    if (!registered.length) return { stopped: true }
+    if (!registered.length) {
+      // Dedicated data runtimes have no service PID, but still own their data directory.
+      await this.forkManager?.closePluginWorker(moduleId)
+      return { stopped: true }
+    }
     if (!this.forkManager) throw new Error(`Fork manager is not ready for ${moduleId}`)
 
     // 模块屏障已等待所有旧生命周期请求；与退出/MCP 共用并行停止及派发代次保护。
@@ -328,6 +335,7 @@ export default class Application extends EventEmitter {
     if (failures.length || ServiceProcessManager.servicePID[moduleId]?.some(({ pid }) => !!pid)) {
       throw new Error(`Service or companion ${moduleId} is still running: ${failures.join('\n')}`)
     }
+    await this.forkManager.closePluginWorker(moduleId)
     return { stopped: true }
   }
 
@@ -853,10 +861,23 @@ export default class Application extends EventEmitter {
     })
 
     // MCP Server 需要 forkManager 句柄；仅在自动启动或首次手动启动时加载实现。
-    this.mcpRuntime = new MCPRuntime(this.mcpConfigManager, async () => {
-      const { default: MCPServer } = await import('./core/MCPServer')
-      return new MCPServer(this.forkManager!, this.mcpConfigManager, this.configManager)
-    })
+    const pluginMCP = new PluginMCPRegistry(this.forkManager.pluginWorkers, (key, fallback) =>
+      this.mcpConfigManager.getConfig(key, fallback)
+    )
+    pluginMCP.replace(this.pluginManager.getMCPRegistrations())
+    this.mcpRuntime = new MCPRuntime(
+      this.mcpConfigManager,
+      async () => {
+        const { default: MCPServer } = await import('./core/MCPServer')
+        return new MCPServer(
+          this.forkManager!,
+          this.mcpConfigManager,
+          this.configManager,
+          pluginMCP
+        )
+      },
+      pluginMCP
+    )
     this.ipcHandler.updateDependencies({
       forkManager: this.forkManager,
       mcpRuntime: this.mcpRuntime
@@ -1028,6 +1049,7 @@ export default class Application extends EventEmitter {
   private async syncPlugins() {
     await this.pluginManager.refresh()
     ;(global.Server as any).Plugins = this.pluginManager.getForkSnapshot()
+    this.mcpRuntime?.plugins?.replace(this.pluginManager.getMCPRegistrations())
     if (this.forkManager) {
       this.forkManager.broadcastServer(this.serverManager.getGlobalServer())
     }

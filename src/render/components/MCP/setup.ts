@@ -1,4 +1,6 @@
+import { configureMCPClient } from './clientConfig'
 import IPC from '@/util/IPC'
+import { MCP_BUILTIN_RUNTIME_TOOLS, type MCPRuntimeTool } from '@shared/mcpRuntimeCatalog'
 import { reactiveBind } from '@/util/Index'
 import { clipboard } from '@/util/NodeFn'
 import { MessageError, MessageSuccess } from '@/util/Element'
@@ -44,6 +46,8 @@ export const ALL_TOOLS: string[] = [...MCP_ALL_TOOLS]
 export const RISKY_TOOLS: string[] = [...MCP_RISKY_TOOLS]
 
 class MCP {
+  tools: MCPRuntimeTool[] = [...MCP_BUILTIN_RUNTIME_TOOLS]
+  private toolsSequence = 0
   loading = false
   starting = false
   running = false
@@ -62,9 +66,23 @@ class MCP {
   }
 
   init() {
+    this.fetchTools()
     this.fetchConfig()
     this.fetchStatus()
     this.fetchBridgePath()
+  }
+
+  fetchTools() {
+    const sequence = ++this.toolsSequence
+    const call = IPC.send('mcp:listTools')
+    const timer = setTimeout(() => IPC.off(call.key), 30_000)
+    call.then((key: string, res: any) => {
+      if (res?.code === 200) return
+      clearTimeout(timer)
+      IPC.off(key)
+      if (sequence === this.toolsSequence && res?.code === 0 && Array.isArray(res.data))
+        this.tools = res.data
+    })
   }
 
   fetchConfig() {
@@ -197,37 +215,15 @@ class MCP {
     })
   }
 
-  /** 一键把 FlyEnv 注册进某个 AI CLI 的 MCP 列表（复用现有 addMcp） */
-  addToClient(
-    clientFlag: 'claudeCode' | 'codex' | 'openCode' | 'kimi' | 'antigravity' | 'copilotCli'
-  ) {
-    // 各 CLI 对 HTTP/SSE 型 MCP 的 type 标识不同
-    const typeMap: Record<typeof clientFlag, string> = {
-      claudeCode: 'http',
-      codex: 'http',
-      openCode: 'remote',
-      kimi: 'http',
-      antigravity: 'http',
-      copilotCli: 'http'
-    }
-    return new Promise((resolve) => {
-      IPC.send(
-        `app-fork:${clientFlag}`,
-        'addMcp',
-        'flyenv',
-        typeMap[clientFlag],
-        this.serverUrl,
-        this.config.token
-      ).then((key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0) {
-          MessageSuccess(I18nT('base.success'))
-        } else {
-          MessageError(res?.msg ?? I18nT('base.fail'))
-        }
-        resolve(res?.code === 0)
-      })
+  /** Register FlyEnv through the shared client-config operation. */
+  async addToClient(clientFlag: MCPHttpClientFlag) {
+    const result = await configureMCPClient(clientFlag, {
+      serverUrl: this.serverUrl,
+      token: this.config.token
     })
+    if (result.success) MessageSuccess(I18nT('base.success'))
+    else MessageError(I18nT('base.fail'))
+    return result.success
   }
 }
 

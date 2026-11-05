@@ -31,6 +31,25 @@ try {
     }
   }
 
+  const sourceAssets = path.join(root, 'plugins', name, 'assets')
+  if (await fs.pathExists(sourceAssets)) {
+    const verifyAssets = async (relative: string) => {
+      for (const entry of await fs.readdir(path.join(sourceAssets, relative), {
+        withFileTypes: true
+      })) {
+        const child = path.join(relative, entry.name)
+        if (entry.isDirectory()) await verifyAssets(child)
+        else
+          assert.deepEqual(
+            await fs.readFile(path.join(outputRoot, 'assets', child)),
+            await fs.readFile(path.join(sourceAssets, child)),
+            `asset must be packaged: ${child}`
+          )
+      }
+    }
+    await verifyAssets('')
+  }
+
   if (manifest.entry.fork) {
     ;(globalThis as any).Server = {
       BaseDir: tempRoot,
@@ -44,6 +63,20 @@ try {
     assert.equal(typeof module?.exec, 'function', 'fork default export must expose exec()')
     assert.equal(typeof module?._startServer, 'function', 'fork must expose _startServer()')
     assert.equal(typeof module?.stopService, 'function', 'fork must expose stopService()')
+    if (manifest.runtime?.mode === 'dedicated') {
+      assert.equal(typeof module.initialize, 'function', 'dedicated fork must initialize')
+      assert.equal(typeof module.close, 'function', 'dedicated fork must close')
+      const dataRoot = path.join(tempRoot, 'data')
+      await fs.ensureDir(dataRoot)
+      await module.initialize({
+        pluginId: manifest.id,
+        moduleId: manifest.module.typeFlag,
+        dataRoot,
+        installGeneration: 'contract-install',
+        workerGeneration: 'contract-worker'
+      })
+      await module.close()
+    }
   }
 
   console.log(`plugin contract passed: ${manifest.id}@${manifest.version}`)

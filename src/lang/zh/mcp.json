@@ -1,4 +1,5 @@
 {
+  "pluginToolsRefresh": "插件工具变更后，请刷新或重新连接 MCP 客户端以更新工具列表。",
   "title": "MCP 服务",
   "description": "让 FlyEnv 作为 MCP Server 运行，使 AI 编码工具（Claude Code、Cursor、Cline 等）能够读取本地环境并控制服务。",
   "service": "服务",

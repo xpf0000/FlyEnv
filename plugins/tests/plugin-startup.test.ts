@@ -9,7 +9,7 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { build } from 'esbuild'
 import ts from 'typescript'
-import PluginManager from '../../src/main/plugins/PluginManager'
+import PluginManager, { type PluginManagerOptions } from '../../src/main/plugins/PluginManager'
 
 const root = path.resolve(import.meta.dirname, '../..')
 
@@ -486,7 +486,10 @@ test('market list IPC requests recover a transient registry error together and p
   }
 })
 
-async function replacementInstaller(f: Awaited<ReturnType<typeof fixture>>) {
+async function replacementInstaller(
+  f: Awaited<ReturnType<typeof fixture>>,
+  options: Partial<PluginManagerOptions> = {}
+) {
   const incoming = path.join(f.dir, 'incoming')
   await mkdir(path.join(incoming, 'render'), { recursive: true })
   await mkdir(path.join(incoming, 'fork'), { recursive: true })
@@ -507,7 +510,61 @@ async function replacementInstaller(f: Awaited<ReturnType<typeof fixture>>) {
     pluginsRoot: path.join(f.dir, 'plugins'),
     statePath: f.statePath,
     licenseCheck: async () => true,
-    fetchImpl: async () => new Response(bytes)
+    fetchImpl: async () => new Response(bytes),
+    ...options
+  })
+}
+
+for (const failure of ['package move', 'registry write', 'disable write']) {
+  test(`failed ${failure} reopens the unchanged plugin only after confirmed stop and successful rollback`, async () => {
+    const f = await fixture(2)
+    const previousServer = global.Server
+    const originalRename = filesystem.rename
+    let stopped = false,
+      recovered = false
+    try {
+      ;(global as any).Server = { DataDirectoryReady: true }
+      const manager = await replacementInstaller(f, {
+        stopPluginServices: async () => {
+          stopped = true
+          return { stopped: true }
+        },
+        recoverPluginRuntime: async () => {
+          assert.equal(stopped, true)
+          assert.equal(
+            JSON.parse(
+              await readFile(path.join(f.dir, 'plugins/startup-fixture/1.0.0/plugin.json'), 'utf8')
+            ).name,
+            'Startup fixture'
+          )
+          assert.equal(
+            JSON.parse(await readFile(f.statePath, 'utf8')).plugins['startup-fixture'].enabled,
+            true
+          )
+          recovered = true
+        }
+      } as any)
+      await manager.refresh()
+      filesystem.rename = (async (...args: any[]) => {
+        if (
+          (failure !== 'package move' && args[1] === f.statePath) ||
+          (failure === 'package move' && String(args[0]).includes('.staging-'))
+        )
+          throw new Error('fixture commit denied')
+        return (originalRename as any)(...args)
+      }) as typeof originalRename
+      await assert.rejects(
+        failure === 'disable write'
+          ? manager.setEnabled('startup-fixture', false)
+          : manager.install({ id: 'startup-fixture', url: 'http://fixture.invalid/update' })
+      )
+      assert.equal(recovered, true)
+      assert.equal(manager.listInstalled()[0].enabled, true)
+    } finally {
+      filesystem.rename = originalRename
+      global.Server = previousServer
+      await rm(f.dir, { recursive: true, force: true })
+    }
   })
 }
 
@@ -565,9 +622,15 @@ test('a failed reinstall rollback preserves the original backup when restoring i
   const f = await fixture(2)
   const previousServer = global.Server
   const originalRename = filesystem.rename
+  let reopened = false
   try {
     ;(global as any).Server = { DataDirectoryReady: true }
-    const manager = await replacementInstaller(f)
+    const manager = await replacementInstaller(f, {
+      stopPluginServices: async () => ({ stopped: true }),
+      recoverPluginRuntime: async () => {
+        reopened = true
+      }
+    })
     await manager.refresh()
     const originalState = await readFile(f.statePath, 'utf8')
     filesystem.rename = (async (...args: any[]) => {
@@ -588,6 +651,7 @@ test('a failed reinstall rollback preserves the original backup when restoring i
       'Startup fixture'
     )
     assert.equal(await readFile(f.statePath, 'utf8'), originalState)
+    assert.equal(reopened, false, 'uncertain rollback must retain the closed dispatch gate')
   } finally {
     filesystem.rename = originalRename
     global.Server = previousServer

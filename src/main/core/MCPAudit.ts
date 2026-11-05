@@ -1,5 +1,7 @@
 import { appendFileSync, existsSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { MCP_ALL_TOOLS } from '@shared/mcpToolCatalog'
+import { pluginMCPAudit } from './PluginMCPAudit'
 
 export interface MCPAuditEntry {
   time: string
@@ -29,6 +31,13 @@ class MCPAudit {
 
   log(tool: string, args: Record<string, any>, success: boolean, error?: string) {
     try {
+      if (
+        pluginMCPAudit.has(tool) ||
+        (!(MCP_ALL_TOOLS as readonly string[]).includes(tool) && tool !== 'read_resource')
+      ) {
+        pluginMCPAudit.log(tool, { args, result: { outcome: success ? 'success' : 'failed' } })
+        return
+      }
       this.ensureDir()
       const entry: MCPAuditEntry = {
         time: new Date().toISOString(),

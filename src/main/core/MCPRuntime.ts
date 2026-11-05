@@ -1,4 +1,6 @@
 import { LazyRuntime } from './lazy/LazyRuntime'
+import type { PluginMCPRegistry } from './PluginMCPRegistry'
+import { MCP_BUILTIN_RUNTIME_TOOLS } from '@shared/mcpRuntimeCatalog'
 
 type MCPConfigReader = {
   getConfig: (key?: string, defaultValue?: any) => any
@@ -15,9 +17,14 @@ export class MCPRuntime {
 
   constructor(
     private readonly config: MCPConfigReader,
-    factory: () => Promise<MCPServerController>
+    factory: () => Promise<MCPServerController>,
+    readonly plugins?: PluginMCPRegistry
   ) {
     this.runtime = new LazyRuntime(factory)
+  }
+
+  listTools() {
+    return [...MCP_BUILTIN_RUNTIME_TOOLS, ...(this.plugins?.listTools() ?? [])]
   }
 
   load() {

@@ -284,3 +284,21 @@ requires re-uploading the asset; the next `plugin:build` updates the checksum au
 Renderer plugin bundles share FlyEnv's Vue, Pinia, and Vue Router runtime instances instead of bundling isolated copies. This is required for real FlyEnv components/stores to behave correctly.
 
 The current MVP intentionally keeps built-in modules unchanged. Fork dispatch falls back to a plugin only when no built-in module matches the requested module id.
+
+## Plugin API compatibility
+
+The host supports API 1 and API 2. Existing plugins keep `apiVersion: 1`.
+Declare `apiVersion: 2` to request a dedicated worker with
+`runtime: { "mode": "dedicated", "dataAccess": "exclusive" }`. This requires a fork entry.
+A dedicated runtime owns its data directory across UI and MCP calls; it is not a service.
+
+API 2 may declare `mcp: { "audit": "metadata-volatile", "tools": [...] }`.
+Each tool declares `name`, `description`, JSON-object `inputSchema`, `method`,
+boolean `readOnly` and boolean `risky`. Tool names must be unique across the host;
+prototype and runtime lifecycle methods are not callable tools. Remote schema references
+are prohibited. New plugin tools are disabled until the user enables them in MCP settings;
+mutating calls follow the host approval policy. Metadata-only audit records are volatile.
+
+Catalog entries include `apiVersion` so incompatible packages show an upgrade hint.
+Missing catalog versions mean API 1 for compatibility; installation always validates the
+package manifest too. Older API 1 hosts reject API 2 packages instead of ignoring capabilities.

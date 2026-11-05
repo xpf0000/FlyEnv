@@ -2,9 +2,15 @@ import IPC from '@/util/IPC'
 import { reactiveBind } from '@/util/Index'
 import { syncRendererPluginModules } from '@/core/AppModules'
 import { AppI18n } from '@lang/index'
-import { resolvePluginI18nText, type FlyEnvPluginI18nText } from '@shared/plugin/PluginManifest'
+import {
+  isPluginApiSupported,
+  resolvePluginI18nText,
+  type FlyEnvPluginI18nText
+} from '@shared/plugin/PluginManifest'
 
 export type PluginCatalogItem = {
+  apiVersion?: number
+  compatible?: boolean
   id: string
   name: string
   version: string
@@ -145,6 +151,8 @@ class PluginMarketControllerState {
   }
 
   async install(item: PluginCatalogItem, acknowledged = false) {
+    if (!isPluginApiSupported(item.apiVersion))
+      throw new Error('Update FlyEnv to install this plugin')
     if (
       this.isThirdParty(item) &&
       !acknowledged &&
@@ -157,6 +165,7 @@ class PluginMarketControllerState {
       const result = await this.request('application:plugin-install', {
         id: item.id,
         version: item.version,
+        apiVersion: item.apiVersion,
         url: item.artifact.url,
         sha256: item.artifact.sha256,
         source: item.official ? 'official' : item.source
