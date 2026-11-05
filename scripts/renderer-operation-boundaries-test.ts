@@ -705,4 +705,8 @@ assert.match(memoryManager, /reactiveBind\(/)
 assert.match(memoryManager, /StorageGetAsync/)
 assert.match(memoryManager, /StorageSetAsync/)
 assert.doesNotMatch(memoryManager, /defineStore\(|config\.setup/)
+
+// Include the LanguageProjects entry-page guards and its existing PID lifecycle contract.
+await import('./language-project-ports-test')
+
 console.log('renderer operation boundary tests passed')

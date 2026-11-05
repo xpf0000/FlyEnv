@@ -55,32 +55,77 @@
             >
           </template>
         </el-table-column>
-        <el-table-column :label="I18nT('base.links')" width="200px">
+        <el-table-column :label="I18nT('base.links')" width="300px">
           <template #default="scope">
             <template v-if="scope.row.isService">
               <template
                 v-if="!scope?.row?.deling && quickEdit?.id && scope.row.id === quickEdit?.id"
               >
-                <span>{{ `http://127.0.0.1:${quickEdit.projectPort}` }}</span>
+                <span>{{ projectPortUrl(parseProjectPort(quickEditPortInput)) || '-' }}</span>
               </template>
               <template v-else>
-                <div
-                  class="flex items-center gap-2 cursor-pointer"
-                  :class="{
-                    'hover:text-yellow-500': !scope.row?.state?.isRun,
-                    'text-green-500': scope.row?.state?.isRun
-                  }"
-                  @click.stop="openSite(scope.row)"
-                >
-                  <yb-icon
-                    :class="{ active: scope.row?.state?.isRun }"
-                    :svg="import('@/svg/link.svg?raw')"
-                    width="18"
-                    height="18"
-                  />
-                  <span>
-                    {{ `http://127.0.0.1:${scope.row.projectPort}` }}
+                <div class="flex items-center gap-2">
+                  <div
+                    v-if="projectPorts.get(scope.row.id)?.primaryUrl"
+                    class="flex items-center gap-2 cursor-pointer"
+                    :class="{
+                      'hover:text-yellow-500': !scope.row?.state?.isRun,
+                      'text-green-500': scope.row?.state?.isRun
+                    }"
+                    @click.stop="openSite(scope.row)"
+                  >
+                    <yb-icon
+                      :class="{ active: scope.row?.state?.isRun }"
+                      :svg="import('@/svg/link.svg?raw')"
+                      width="18"
+                      height="18"
+                    />
+                    <span>{{ projectPorts.get(scope.row.id)?.primaryUrl }}</span>
+                  </div>
+                  <span v-else class="text-xs opacity-70">
+                    {{ I18nT('host.projectPortUnavailable') }}
                   </span>
+                  <el-dropdown
+                    v-if="projectPorts.get(scope.row.id)?.additionalPorts.length"
+                    trigger="click"
+                    @command="openSite(scope.row, $event)"
+                  >
+                    <el-button
+                      link
+                      type="primary"
+                      :aria-label="I18nT('host.additionalProjectPorts')"
+                      @click.stop
+                      @dblclick.stop
+                    >
+                      +{{ projectPorts.get(scope.row.id)?.additionalPorts.length }}
+                    </el-button>
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item
+                          v-for="port in projectPorts.get(scope.row.id)?.additionalPorts"
+                          :key="port"
+                          :command="port"
+                        >
+                          {{ projectPortUrl(port) }}
+                        </el-dropdown-item>
+                        <el-dropdown-item disabled class="max-w-xs whitespace-normal">
+                          {{ I18nT('host.projectPortsHint') }}
+                        </el-dropdown-item>
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+                  <el-tooltip
+                    v-if="projectPorts.get(scope.row.id)?.hasInvalidPorts"
+                    :content="I18nT('host.projectPortsStoredInvalid')"
+                  >
+                    <el-tag
+                      type="warning"
+                      size="small"
+                      tabindex="0"
+                      :aria-label="I18nT('host.projectPortsStoredInvalid')"
+                      >!</el-tag
+                    >
+                  </el-tooltip>
                 </div>
               </template>
             </template>
@@ -91,9 +136,13 @@
             <template v-if="scope.row.isService">
               <template v-if="scope.row.id === quickEdit?.id">
                 <el-input
-                  v-model.number="quickEdit!.projectPort"
-                  type="number"
+                  v-model="quickEditPortInput"
+                  type="text"
+                  inputmode="numeric"
+                  :class="{ error: quickEditPortsInvalid }"
+                  @input="onQuickEditPortInput"
                   @change="docClick(undefined)"
+                  @keydown.esc.stop="cancelQuickEdit"
                 ></el-input>
               </template>
               <template v-else>
@@ -338,6 +387,13 @@
   import { join } from '@/util/path-browserify'
   import { shell } from '@/util/NodeFn'
   import { ProjectItem } from '@/components/LanguageProjects/ProjectItem'
+  import { MessageError } from '@/util/Element'
+  import {
+    inspectProjectPorts,
+    parseProjectPort,
+    projectPortUrl,
+    validateProjectPorts
+  } from './ports'
 
   const props = defineProps<{
     typeFlag: AllAppModule
@@ -353,6 +409,9 @@
   let quickEditBack: ProjectItem | undefined = undefined
   const quickEdit: Ref<ProjectItem | undefined> = ref(undefined)
   const quickEditTr: Ref<HTMLElement | undefined> = ref(undefined)
+  const quickEditPortInput = ref('')
+  const quickEditPortEdited = ref(false)
+  const quickEditPortsInvalid = ref(false)
 
   const nodeProjectList = ref()
   const brewStore = BrewStore()
@@ -369,12 +428,19 @@
       .filter((p) => p.version && p.bin && p.enable !== false)
   })
 
-  const openSite = (item: ProjectItem) => {
-    const url = `http://127.0.0.1:${item.projectPort}`
-    shell.openExternal(url).catch()
+  const openSite = (item: ProjectItem, port?: unknown) => {
+    const ports = inspectProjectPorts(item)
+    if (port !== undefined && (typeof port !== 'number' || !ports.additionalPorts.includes(port))) {
+      return
+    }
+    const url = port === undefined ? ports.primaryUrl : projectPortUrl(port)
+    if (url) shell.openExternal(url).catch()
   }
 
   const project = ProjectSetup(props.typeFlag)
+  const projectPorts = computed(
+    () => new Map(project.project.map((item) => [item.id, inspectProjectPorts(item)]))
+  )
 
   const appStore = AppStore()
   const setupStore = SetupStore()
@@ -456,18 +522,59 @@
       return
     }
     quickEdit.value = JSON.parse(JSON.stringify(item))
+    quickEditPortInput.value = String(item?.projectPort ?? '')
+    quickEditPortEdited.value = false
+    quickEditPortsInvalid.value = false
     quickEditTr.value = node as any
     quickEditBack = JSON.parse(JSON.stringify(item))
+  }
+
+  const onQuickEditPortInput = () => {
+    quickEditPortEdited.value = true
+    quickEditPortsInvalid.value = false
+  }
+
+  const cancelQuickEdit = () => {
+    quickEdit.value = undefined
+    quickEditTr.value = undefined
+    quickEditBack = undefined
+    quickEditPortInput.value = ''
+    quickEditPortEdited.value = false
+    quickEditPortsInvalid.value = false
   }
 
   const docClick = (e?: MouseEvent) => {
     const dom: HTMLElement = e?.target as any
     if (quickEdit?.value && !quickEditTr?.value?.contains(dom)) {
+      const portChanged =
+        quickEditPortEdited.value &&
+        parseProjectPort(quickEditPortInput.value) !== quickEditBack?.projectPort
+      if (isEqual(quickEdit.value, quickEditBack) && !portChanged) {
+        cancelQuickEdit()
+        return
+      }
+      if (quickEdit.value.isService) {
+        const projectPort = quickEditPortEdited.value
+          ? parseProjectPort(quickEditPortInput.value)
+          : quickEdit.value.projectPort
+        const ports = validateProjectPorts(projectPort, quickEdit.value.additionalProjectPorts)
+        const invalid =
+          !ports.valid ||
+          inspectProjectPorts({
+            projectPort,
+            additionalProjectPorts: quickEdit.value.additionalProjectPorts
+          }).hasInvalidPorts
+        if (invalid) {
+          if (!quickEditPortsInvalid.value) MessageError(I18nT('host.projectPortsInvalid'))
+          quickEditPortsInvalid.value = true
+          return
+        }
+        quickEditPortsInvalid.value = false
+        quickEdit.value.projectPort = ports.projectPort!
+      }
       if (!isEqual(quickEdit.value, quickEditBack)) {
         const item = JSON.parse(JSON.stringify(quickEdit.value))
-        quickEdit.value = undefined
-        quickEditTr.value = undefined
-        quickEditBack = undefined
+        cancelQuickEdit()
         nextTick().then(() => {
           const findNode = binVersions.value.find((n) => n.bin === item.binBin)
           const find = project.project.find((p) => p.path === item.path)
@@ -502,9 +609,7 @@
           }
         })
       } else {
-        quickEdit.value = undefined
-        quickEditTr.value = undefined
-        quickEditBack = undefined
+        cancelQuickEdit()
       }
     }
   }

@@ -125,14 +125,57 @@
             <div class="plant-title">{{ I18nT('host.portSetting') }}</div>
             <div class="main p-5">
               <div class="port-set mb-4">
-                <div class="port-type">{{ I18nT('host.tcpPort') }}</div>
+                <div class="port-type">{{ I18nT('host.primaryProjectPort') }}</div>
                 <input
-                  v-model.number="item.projectPort"
-                  type="number"
+                  v-model="projectPortInput"
+                  type="text"
+                  inputmode="numeric"
                   :class="'input' + (errs['projectPort'] ? ' error' : '')"
                   :placeholder="I18nT('host.tcpPort')"
                 />
               </div>
+              <el-alert
+                v-if="storedPortsInvalid"
+                :title="I18nT('host.projectPortsStoredInvalid')"
+                type="warning"
+                :closable="false"
+                class="mb-4"
+              />
+              <div class="mb-2">{{ I18nT('host.additionalProjectPorts') }}</div>
+              <div v-if="additionalPortInputs === undefined" class="mb-2">
+                <el-button @click="additionalPortInputs = []">
+                  {{ I18nT('host.removeProjectPort') }}
+                </el-button>
+              </div>
+              <div
+                v-for="(_port, index) in additionalPortInputs"
+                :key="index"
+                class="flex items-center gap-2 mb-2"
+              >
+                <input
+                  v-model="additionalPortInputs![index]"
+                  type="text"
+                  inputmode="numeric"
+                  :class="'input' + (errs.additionalProjectPorts ? ' error' : '')"
+                  :aria-label="I18nT('host.additionalProjectPorts')"
+                />
+                <el-button
+                  :icon="Delete"
+                  :aria-label="I18nT('host.removeProjectPort')"
+                  @click="additionalPortInputs!.splice(index, 1)"
+                />
+              </div>
+              <el-button
+                :icon="Plus"
+                :disabled="additionalPortInputs === undefined"
+                @click="additionalPortInputs!.push('')"
+              >
+                {{ I18nT('host.addProjectPort') }}
+              </el-button>
+              <p class="text-xs opacity-70 mt-3">{{ I18nT('host.projectPortsHint') }}</p>
+              <p v-if="errs.projectPort || errs.additionalProjectPorts" class="text-red-500 mt-2">
+                {{ I18nT('host.projectPortsInvalid') }}
+              </p>
             </div>
 
             <!-- 环境变量 -->
@@ -315,6 +358,7 @@
   import type { AllAppModule } from '@/core/type'
   import type { ProjectItemType } from '@/components/LanguageProjects/ProjectItem'
   import { BrewStore } from '@/store/brew'
+  import { inspectProjectPorts, validateProjectPorts } from './ports'
 
   const { show, onClosed, onSubmit, closedFn, callback } = AsyncComponentSetup()
 
@@ -356,11 +400,38 @@
     runCommand: false,
     runFile: false,
     projectPort: false,
+    additionalProjectPorts: false,
     ssl_cert: false,
     ssl_key: false
   })
 
   merge(item.value, props.edit)
+  const storedPortsInvalid = props.isEdit && inspectProjectPorts(item.value).hasInvalidPorts
+  const portInput = (value: unknown): string =>
+    typeof value === 'number' ? String(value) : (JSON.stringify(value) ?? '')
+  const projectPortInput = ref(portInput(item.value.projectPort))
+  const storedAdditionalPorts = item.value.additionalProjectPorts
+  const additionalPortInputs = ref<string[] | undefined>(
+    storedAdditionalPorts === undefined
+      ? []
+      : Array.isArray(storedAdditionalPorts)
+        ? storedAdditionalPorts.map(portInput)
+        : undefined
+  )
+  const portsValidation = computed(() =>
+    validateProjectPorts(
+      projectPortInput.value,
+      additionalPortInputs.value ?? storedAdditionalPorts
+    )
+  )
+  watch(
+    [projectPortInput, additionalPortInputs],
+    () => {
+      errs.value.projectPort = false
+      errs.value.additionalProjectPorts = false
+    },
+    { deep: true }
+  )
   const brewStore = BrewStore()
   const binVersions = computed(() => {
     return brewStore
@@ -503,8 +574,8 @@
       errs.value['runCommand'] =
         item.value.commandType === 'command' && item.value.runCommand.length === 0
       errs.value['runFile'] = item.value.commandType === 'file' && item.value.runFile.length === 0
-      errs.value['projectPort'] =
-        !Number.isInteger(item.value.projectPort) || item.value.projectPort <= 0
+      errs.value.projectPort = portsValidation.value.invalidPrimary
+      errs.value.additionalProjectPorts = portsValidation.value.invalidAdditional
     }
 
     let k: keyof typeof errs.value
@@ -519,6 +590,15 @@
   const doSave = () => {
     if (!checkItem()) {
       return
+    }
+    if (item.value.isService) {
+      item.value.projectPort = portsValidation.value.projectPort!
+      if (
+        portsValidation.value.additionalProjectPorts.length ||
+        item.value.additionalProjectPorts !== undefined
+      ) {
+        item.value.additionalProjectPorts = [...portsValidation.value.additionalProjectPorts]
+      }
     }
     running.value = true
     callback(JSON.parse(JSON.stringify(item.value)))

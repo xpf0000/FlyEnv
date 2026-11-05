@@ -28,6 +28,7 @@ export type ProjectItemType = RoadRunnerProjectExtra &
     runFile: string
     commandType: 'command' | 'file'
     projectPort: number
+    additionalProjectPorts?: number[]
     configPath: Array<{ name: string; path: string }>
     logPath: Array<{ name: string; path: string }>
     pidPath: string
@@ -70,6 +71,7 @@ export class ProjectItem implements ProjectItemType {
   runFile: string = ''
   commandType: 'command' | 'file' = 'command'
   projectPort: number = 3000
+  additionalProjectPorts?: number[]
   configPath: Array<{ name: string; path: string }> = []
   logPath: Array<{ name: string; path: string }> = []
   pidPath: string = ''
