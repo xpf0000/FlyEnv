@@ -350,7 +350,15 @@ export default class TrayManager extends EventEmitter {
   }
 
   private resolvePlacement(): TrayPopupPlacement {
-    const trayBounds = this.tray.getBounds()
+    let trayBounds = this.tray.getBounds()
+    // Linux 托盘(AppIndicator/StatusNotifier)的 getBounds() 恒为 0,点击时光标就在图标上,用光标位置代替
+    if (trayBounds.width <= 0 || trayBounds.height <= 0) {
+      const cursor = screen.getCursorScreenPoint()
+      const { workArea } = screen.getDisplayNearestPoint(cursor)
+      // 底部面板以面板上沿为锚点,否则向上展开的弹窗会压住面板
+      const y = Math.min(cursor.y, workArea.y + workArea.height)
+      trayBounds = { x: cursor.x, y, width: 1, height: 1 }
+    }
     // 尺寸不能用 getBounds() 现读:系统取整后的实际值会随位置/DPI 抖动,
     // 用它定位会自我放大误差;统一用设计尺寸,与实际渲染最多差 1px,不可感知
     const size = this.popupSize
