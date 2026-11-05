@@ -25,6 +25,7 @@ import {
   parsePhpExtensionProfile,
   phpExtensionTarget,
   pieInstallArguments,
+  pieInstallFailureMessage,
   phpExtensionProfileScript,
   verifyPieDownload
 } from '../src/fork/module/Php.win/WindowsExtensions'
@@ -41,6 +42,15 @@ const profile = parsePhpExtensionProfile(info, target)
 assert.equal(profile.version, '8.3.36')
 assert.equal(profile.build, 'API20230831,NTS,VS16')
 assert.equal(profile.extensionDir, 'C:\\PHP 8.3\\ext')
+// Output copied from issue #945; PIE wraps the box mid-word ("pecl/pdo_o  \n  ci").
+const pieNoWindowsBinary = `Found package: pecl/pdo_oci:v1.2.0 which provides ext-pdo_oci
+
+In CouldNotDetermineDownloadUrlMethod.php line 31:
+
+  Could not download pecl/pdo_oci using windows-binary method: Windows archive with prebuilt extension for pecl/pdo_o
+  ci was not attached on release v1.2.0 - looked for one of "php_pdo_oci-v1.2.0-8.4-ts-vs17-x86_64.zip"`
+assert.match(pieInstallFailureMessage(1, pieNoWindowsBinary), /no prebuilt Windows build/)
+assert.match(pieInstallFailureMessage(1, 'some other failure'), /See the installer output/)
 const catalogProfile = {
   ...profile,
   loaded: ['Core', 'redis', 'curl', 'Zend OPcache'],

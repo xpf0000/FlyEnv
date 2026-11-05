@@ -59,6 +59,15 @@ type PieRelease = {
 const powershellCommand = (bin: string, args: string[]) =>
   '& ' + [bin, ...args].map((argument) => `'${argument.replaceAll("'", "''")}'`).join(' ')
 
+// PIE wraps its error box at a fixed width, which can split words, so match with whitespace removed.
+export function pieInstallFailureMessage(code: number | null, output: string): string {
+  const base = `Extension installation failed (exit code ${code}).`
+  if (output.replace(/\s+/g, '').includes('Windowsarchivewithprebuiltextensionfor')) {
+    return `${base} This release has no prebuilt Windows build, so it cannot be installed automatically. Try another release, or build the extension manually.`
+  }
+  return `${base} See the installer output for details.`
+}
+
 export function validateExtensionPackage(name: string): string {
   if (!/^[a-z0-9][a-z0-9_.-]*\/[a-z0-9][a-z0-9_.-]*$/.test(name)) {
     throw new Error('Choose a valid vendor/package extension from the catalog')
@@ -191,7 +200,7 @@ export class WindowsExtensionInstaller {
           reject(
             new Error(
               progress
-                ? `Extension installation failed (exit code ${code}). See the installer output for details.`
+                ? pieInstallFailureMessage(code, output + diagnostics)
                 : diagnostics.trim() ||
                     output.trim() ||
                     `PHP extension command exited with code ${code}`
