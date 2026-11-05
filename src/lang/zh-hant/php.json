@@ -2,7 +2,7 @@
   "editPhpIni": "編輯 php.ini",
   "phpExtensions": "PHP 擴充",
   "windowsHelp": "安裝說明",
-  "windowsCatalogHelp": "清單合併目前 PHP 的 php.ini 設定和 Packagist 線上搜尋結果。描述由擴充套件發佈者提供，本機設定不包含描述。線上結果不保證有相容的 Windows 安裝套件。完整載入清單請查看「已載入」頁；已有 DLL 請在「本機」頁啟用。",
+  "windowsCatalogHelp": "清單合併目前 PHP 的 php.ini 設定、官方 PECL 目錄和獨立的 Packagist 發布者。線上結果不保證有相容的 Windows 安裝套件，選擇擴充套件版本後查詢相容性，不會自動降級到舊版。完整載入清單請查看「已載入」頁；已有 DLL 請在「本機」頁啟用。",
   "windowsAll": "全部",
   "windowsUnloaded": "未載入",
   "windowsNotConfigured": "未設定",
@@ -48,5 +48,15 @@
   "fastcgiWorkers": "FastCGI 工作程序",
   "fastcgiWorkerCount": "工作程序數量",
   "fastcgiWorkerInvalid": "請輸入 {min} 到 {max} 之間的整數。",
-  "fastcgiWorkerRestart": "立即重新啟動此 PHP 服務以套用新的 FastCGI 工作程序數量？"
+  "fastcgiWorkerRestart": "立即重新啟動此 PHP 服務以套用新的 FastCGI 工作程序數量？",
+  "windowsSourcePecl": "PECL",
+  "windowsSourcePie": "PIE",
+  "windowsChooseVersion": "Choose extension version",
+  "windowsIncompatibleRelease": "No compatible Windows binary for this PHP build. Choose another version.",
+  "windowsPieWillVerify": "PIE will verify this package against the selected PHP build.",
+  "windowsRefresh": "重新整理目錄",
+  "windowsRetry": "重試",
+  "windowsCopyCommand": "複製命令",
+  "windowsDownloadLink": "下載連結",
+  "windowsInstallCommand": "安裝命令"
 }

@@ -8,7 +8,7 @@
   "windowsPartialCatalog": "部分扩展目录无法访问。当前结果不完整，可再次搜索重试。",
   "windowsDescription": "描述",
   "windowsHelp": "安装说明",
-  "windowsCatalogHelp": "列表合并当前 PHP 的 php.ini 配置和 Packagist 在线搜索结果。描述由扩展包发布者提供，本地配置不包含描述。在线结果不保证有兼容的 Windows 安装包。完整加载列表请查看“已加载”页；已有 DLL 请在“本地”页启用。",
+  "windowsCatalogHelp": "列表合并当前 PHP 的 php.ini 配置、官方 PECL 目录和独立的 Packagist 发布者。在线结果不保证有兼容的 Windows 安装包，选择扩展版本后查询兼容性，不会自动降级到旧版。完整加载列表请查看“已加载”页；已有 DLL 请在“本地”页启用。",
   "windowsAll": "全部",
   "windowsUnloaded": "未加载",
   "windowsNotConfigured": "未配置",
@@ -60,5 +60,15 @@
     "emptyFunction": "请输入函数名称",
     "sameName": "函数已存在",
     "invalidName": "无效的函数名称.函数名称只能包含字母、数字、下划线"
-  }
+  },
+  "windowsChooseVersion": "选择扩展版本",
+  "windowsIncompatibleRelease": "此版本没有适用于当前 PHP 构建的 Windows 二进制文件，请选择其他版本。",
+  "windowsPieWillVerify": "PIE 将验证此扩展包是否兼容当前 PHP 构建。",
+  "windowsSourcePecl": "PECL",
+  "windowsSourcePie": "PIE",
+  "windowsRefresh": "刷新目录",
+  "windowsRetry": "重试",
+  "windowsCopyCommand": "复制命令",
+  "windowsDownloadLink": "下载链接",
+  "windowsInstallCommand": "安装命令"
 }

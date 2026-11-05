@@ -37,5 +37,15 @@
   "fastcgiWorkers": "Робочі процеси FastCGI",
   "fastcgiWorkerCount": "Кількість процесів",
   "fastcgiWorkerInvalid": "Введіть ціле число від {min} до {max}.",
-  "fastcgiWorkerRestart": "Перезапустити службу PHP зараз, щоб застосувати нову кількість процесів FastCGI?"
+  "fastcgiWorkerRestart": "Перезапустити службу PHP зараз, щоб застосувати нову кількість процесів FastCGI?",
+  "windowsSourcePecl": "PECL",
+  "windowsSourcePie": "PIE",
+  "windowsChooseVersion": "Choose extension version",
+  "windowsIncompatibleRelease": "No compatible Windows binary for this PHP build. Choose another version.",
+  "windowsPieWillVerify": "PIE will verify this package against the selected PHP build.",
+  "windowsRefresh": "Refresh catalog",
+  "windowsRetry": "Retry",
+  "windowsCopyCommand": "Copy command",
+  "windowsDownloadLink": "Download link",
+  "windowsInstallCommand": "Install command"
 }

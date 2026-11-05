@@ -8,7 +8,7 @@
   "windowsPartialCatalog": "Part of the extension catalog could not be reached. These are partial results; search again to retry.",
   "windowsDescription": "Description",
   "windowsHelp": "Installation help",
-  "windowsCatalogHelp": "This list combines this PHP's php.ini configuration with Packagist search results. Publishers supply online descriptions; local configuration has no description. Online results do not guarantee a compatible Windows binary. See Loaded Extensions for the complete loaded list, or Local to enable an existing DLL.",
+  "windowsCatalogHelp": "This list combines this PHP's php.ini configuration, the official PECL catalog and independent Packagist publishers. Online results do not guarantee a compatible Windows binary. Choose an extension version to check availability; older versions are never selected automatically. See Loaded Extensions for the complete loaded list, or Local to enable an existing DLL.",
   "windowsAll": "All",
   "windowsUnloaded": "Not loaded",
   "windowsNotConfigured": "Not configured",
@@ -60,5 +60,15 @@
     "emptyFunction": "Please enter function name",
     "sameName": "Function already exists",
     "invalidName": "Invalid function name. Function name can only contain letters, numbers, and underscores"
-  }
+  },
+  "windowsSourcePecl": "PECL",
+  "windowsSourcePie": "PIE",
+  "windowsChooseVersion": "Choose extension version",
+  "windowsIncompatibleRelease": "No compatible Windows binary for this PHP build. Choose another version.",
+  "windowsPieWillVerify": "PIE will verify this package against the selected PHP build.",
+  "windowsRefresh": "Refresh catalog",
+  "windowsRetry": "Retry",
+  "windowsCopyCommand": "Copy command",
+  "windowsDownloadLink": "Download link",
+  "windowsInstallCommand": "Install command"
 }

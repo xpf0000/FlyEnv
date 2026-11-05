@@ -6,8 +6,11 @@ import { dirname, join, win32 } from 'node:path'
 import { StringDecoder } from 'node:string_decoder'
 import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
-import { findPeclArchive, installPeclArchive } from './PeclWindows'
-import { extensionHttpGet, isPeclPublisher, packageExtensionName } from './ExtensionHttp'
+import { installPeclArchive } from './PeclWindows'
+import { extensionHttpGet, packageExtensionName, peclPublisherExtension } from './ExtensionHttp'
+import peclRepository from './PeclRepository'
+import { stableExtensionVersion } from './ExtensionSources'
+import type { ExtensionPreparation } from './ExtensionSources'
 import {
   configuredExtensions,
   extensionIsLoaded,
@@ -16,7 +19,12 @@ import {
 } from './ExtensionConfig'
 import { replaceIniIfUnchanged, withPhpIniMutation } from './IniMutation'
 
-export type ExtensionPackage = { name: string; description: string; extension?: string }
+export type ExtensionPackage = {
+  name: string
+  description: string
+  extension?: string
+  source?: 'pecl' | 'pie'
+}
 export type PhpExtensionProfile = {
   bin: string
   ini: string
@@ -42,6 +50,15 @@ export type ExtensionInstallResult = {
   backup: string
 }
 
+type PieRelease = {
+  version: string
+  type: string
+  'php-ext'?: { 'extension-name'?: string }
+}
+
+const powershellCommand = (bin: string, args: string[]) =>
+  '& ' + [bin, ...args].map((argument) => `'${argument.replaceAll("'", "''")}'`).join(' ')
+
 export function validateExtensionPackage(name: string): string {
   if (!/^[a-z0-9][a-z0-9_.-]*\/[a-z0-9][a-z0-9_.-]*$/.test(name)) {
     throw new Error('Choose a valid vendor/package extension from the catalog')
@@ -54,13 +71,14 @@ export function phpExtensionTarget(version: SoftInstalled) {
   return { bin, ini: win32.join(win32.dirname(bin), 'php.ini') }
 }
 
-export function pieInstallArguments(bin: string, name: string): string[] {
+export function pieInstallArguments(bin: string, name: string, version?: string): string[] {
+  if (version && !stableExtensionVersion(version)) throw new Error('Invalid extension release')
   return [
     '--no-interaction',
     '--no-ansi',
     'install',
     `--with-php-path=${bin}`,
-    validateExtensionPackage(name)
+    validateExtensionPackage(name) + (version ? `:${version}` : '')
   ]
 }
 
@@ -202,36 +220,92 @@ export class WindowsExtensionInstaller {
     return profile
   }
 
-  catalog(version: SoftInstalled, query: string) {
+  catalog(version: SoftInstalled, query: string, refresh = false) {
     return new ForkPromise<ExtensionCatalog>(async (done) => {
       const profile = await this.profile(version)
-      const results = await Promise.allSettled(
-        ['php-ext', 'php-ext-zend'].map(async (type) => {
+      const results = await Promise.allSettled([
+        ...['php-ext', 'php-ext-zend'].map(async (type) => {
           const response = await extensionHttpGet('https://packagist.org/search.json', {
             params: { type, q: query.slice(0, 100), per_page: 30 },
             timeout: 30000
           })
-          return (response.data.results ?? []) as ExtensionPackage[]
-        })
-      )
+          return (response.data.results ?? []).map((item: ExtensionPackage) => ({
+            ...item,
+            source: 'pie'
+          })) as ExtensionPackage[]
+        }),
+        peclRepository.catalog(query, refresh)
+      ])
       const successful = results.filter((result) => result.status === 'fulfilled')
       if (!successful.length) throw new Error('Could not search the PHP extension catalog')
       const packages = new Map<string, ExtensionPackage>()
       for (const result of results) {
         if (result.status !== 'fulfilled') continue
         for (const item of result.value) {
-          if (!/^[a-z0-9][a-z0-9_.-]*\/[a-z0-9][a-z0-9_.-]*$/.test(item.name)) continue
+          if (
+            !/^pecl:[a-z][a-z0-9_]*$/.test(item.name) &&
+            !/^[a-z0-9][a-z0-9_.-]*\/[a-z0-9][a-z0-9_.-]*$/.test(item.name)
+          )
+            continue
           packages.set(item.name, {
             name: item.name,
             description: item.description,
-            extension: packageExtensionName(item.name)
+            extension: item.extension ?? packageExtensionName(item.name),
+            source: item.source
           })
         }
       }
       done({
         profile,
-        packages: [...packages.values()],
+        packages: [...packages.values()].filter((item) => {
+          const known = peclPublisherExtension(item.name)
+          return !known || !packages.has(`pecl:${known}`)
+        }),
         partial: successful.length < results.length
+      })
+    })
+  }
+
+  private async pieReleases(name: string): Promise<PieRelease[]> {
+    validateExtensionPackage(name)
+    const metadata = await extensionHttpGet(`https://repo.packagist.org/p2/${name}.json`, {
+      timeout: 30000,
+      maxContentLength: 4_000_000
+    })
+    // Packagist's minified p2 records inherit omitted fields from the previous release.
+    let inherited: Partial<PieRelease> = {}
+    return (metadata.data.packages?.[name] ?? [])
+      .map((item: Partial<PieRelease>) => {
+        inherited = { ...inherited, ...item }
+        return inherited as PieRelease
+      })
+      .filter(
+        (item: PieRelease) =>
+          ['php-ext', 'php-ext-zend'].includes(item.type) && stableExtensionVersion(item.version)
+      )
+  }
+
+  prepare(version: SoftInstalled, name: string, selected?: string) {
+    return new ForkPromise<ExtensionPreparation>(async (done) => {
+      const profile = await this.profile(version)
+      if (name.startsWith('pecl:')) {
+        done(await peclRepository.prepare(name, profile, selected))
+        return
+      }
+      const releases = await this.pieReleases(name)
+      if (!releases.length) throw new Error('No stable PHP extension releases were found')
+      if (selected && !releases.some((item) => item.version === selected))
+        throw new Error('The selected extension release is unavailable')
+      done({
+        name,
+        source: 'pie',
+        homepage: `https://packagist.org/packages/${name}`,
+        profile,
+        releases: releases.map((item) => ({ version: item.version, compatible: null })),
+        command: powershellCommand(
+          'pie.exe',
+          pieInstallArguments(profile.bin, name, selected ?? releases[0].version)
+        )
       })
     })
   }
@@ -277,44 +351,32 @@ export class WindowsExtensionInstaller {
     return binary
   }
 
-  install(version: SoftInstalled, name: string) {
+  install(version: SoftInstalled, name: string, selected?: string) {
     return new ForkPromise<ExtensionInstallResult>(async (done, _reject, progress) => {
       if (this.installing) throw new Error('A PHP extension installation is already running')
-      validateExtensionPackage(name)
+      if (!name.startsWith('pecl:')) validateExtensionPackage(name)
       this.installing = true
       let backup = ''
       let started = false
       try {
         const result = await withPhpIniMutation(phpExtensionTarget(version).ini, async () => {
           const profile = await this.profile(version)
-          const metadata = await extensionHttpGet(`https://repo.packagist.org/p2/${name}.json`, {
-            timeout: 30000
-          })
-          const releases = metadata.data.packages?.[name] ?? []
-          const release = releases.find((item: { type?: string }) =>
-            ['php-ext', 'php-ext-zend'].includes(item.type ?? '')
-          )
-          if (!release) throw new Error('This package is not a PHP extension')
-          const extension = extensionName(
-            release['php-ext']?.['extension-name'] ?? packageExtensionName(name)
-          )
-          if (!/^[a-z][a-z0-9_]*$/.test(extension)) throw new Error('Invalid PHP extension name')
           const operationDir = join(global.Server.Cache!, 'php-extensions', `install-${Date.now()}`)
-          let archive: string | undefined
-          try {
-            if (isPeclPublisher(name, extension))
-              archive = await findPeclArchive(extension, profile)
-          } catch {
-            // Discovery has no side effects; PIE is an independent package source.
+          const official = name.startsWith('pecl:')
+            ? name
+            : !selected && peclPublisherExtension(name)
+              ? `pecl:${peclPublisherExtension(name)}`
+              : undefined
+          if (official) {
+            const preparation = await peclRepository.prepare(official, profile, selected)
+            const release = selected ?? preparation.releases[0]?.version
+            if (!release) throw new Error(`No stable releases found. ${preparation.homepage}`)
             progress(
-              'The official Windows archive could not be queried. Checking the package publisher with PIE.\n'
+              `Source: PECL\n${preparation.homepage}\nPHP ${profile.version} | ${profile.build} | ${profile.architecture}\n${profile.bin}\nExtension: ${official} ${release}\n`
             )
-          }
-          if (archive) {
+            const archive = await peclRepository.resolve(official, profile, release)
             const installed = await installPeclArchive({
-              url: archive,
-              extension,
-              zend: release.type === 'php-ext-zend',
+              ...archive,
               profile,
               directory: operationDir,
               progress,
@@ -322,17 +384,26 @@ export class WindowsExtensionInstaller {
             })
             return { ...installed, package: name, verified: true, warning: '' }
           }
+          const releases = await this.pieReleases(name)
+          const release = selected
+            ? releases.find((item) => item.version === selected)
+            : releases[0]
+          if (!release) throw new Error('This package is not a PHP extension')
+          const extension = extensionName(
+            release['php-ext']?.['extension-name'] ?? packageExtensionName(name)
+          )
+          if (!/^[a-z][a-z0-9_]*$/.test(extension)) throw new Error('Invalid PHP extension name')
           const pie = await this.pie(progress)
           await mkdir(operationDir, { recursive: true })
           backup = join(operationDir, 'php.ini.before')
           await copyFile(profile.ini, backup)
           progress(
-            `PHP ${profile.version} | ${profile.build} | ${profile.architecture}\n${profile.bin}\n`
+            `Source: PIE\nhttps://packagist.org/packages/${name}\nPHP ${profile.version} | ${profile.build} | ${profile.architecture}\n${profile.bin}\n${powershellCommand(pie, pieInstallArguments(profile.bin, name, release.version))}\n`
           )
           started = true
           await this.run(
             pie,
-            pieInstallArguments(profile.bin, name),
+            pieInstallArguments(profile.bin, name, release.version),
             dirname(profile.bin),
             profile.ini,
             progress
@@ -358,15 +429,17 @@ export class WindowsExtensionInstaller {
             verified = extensionIsLoaded(updated.loaded, extension, updated.loadWarnings)
             if (!verified)
               warning =
-                'The extension was installed but is not loaded. Check php.ini and the installer output.'
+                'The extension was installed but is not loaded. Check its runtime dependencies and php.ini.' +
+                (updated.loadWarnings ? `\n${updated.loadWarnings.slice(-4000)}` : '')
             return { profile: updated, package: name, verified, warning, backup }
-          } catch {
+          } catch (error) {
             return {
               profile,
               package: name,
               verified: false,
               warning:
-                'Installation completed, but PHP validation failed. Check the installer output before retrying.',
+                'Installation completed, but PHP validation failed. Check the installer output before retrying.\n' +
+                (error instanceof Error ? error.message : String(error)),
               backup
             }
           }

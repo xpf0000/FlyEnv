@@ -8,7 +8,7 @@
   "windowsPartialCatalog": "Časť katalógu rozšírení nebola dostupná. Výsledky sú neúplné; pre opakovanie hľadajte znova.",
   "windowsDescription": "Popis",
   "windowsHelp": "Pomoc s inštaláciou",
-  "windowsCatalogHelp": "Tento zoznam spája konfiguráciu php.ini tejto verzie PHP s výsledkami vyhľadávania na Packagist. Online popisy dodávajú vydavatelia; lokálna konfigurácia popis nemá. Online výsledky nezaručujú kompatibilný binárny súbor pre Windows. Úplný zoznam načítaných rozšírení nájdete v časti Načítané rozšírenia, existujúcu DLL môžete povoliť v časti Lokálne.",
+  "windowsCatalogHelp": "Tento zoznam spája konfiguráciu php.ini tejto verzie PHP s výsledkami vyhľadávania na PECL / Packagist. Online popisy dodávajú vydavatelia; lokálna konfigurácia popis nemá. Online výsledky nezaručujú kompatibilný binárny súbor pre Windows. Úplný zoznam načítaných rozšírení nájdete v časti Načítané rozšírenia, existujúcu DLL môžete povoliť v časti Lokálne.",
   "windowsAll": "Všetky",
   "windowsUnloaded": "Nenačítané",
   "windowsNotConfigured": "Nenakonfigurované",
@@ -60,5 +60,15 @@
     "emptyFunction": "Zadajte názov funkcie",
     "sameName": "Funkcia už existuje",
     "invalidName": "Neplatný názov funkcie. Názov funkcie môže obsahovať iba písmená, čísla a podčiarkovníky"
-  }
+  },
+  "windowsSourcePecl": "PECL",
+  "windowsSourcePie": "PIE",
+  "windowsChooseVersion": "Choose extension version",
+  "windowsIncompatibleRelease": "No compatible Windows binary for this PHP build. Choose another version.",
+  "windowsPieWillVerify": "PIE will verify this package against the selected PHP build.",
+  "windowsRefresh": "Refresh catalog",
+  "windowsRetry": "Retry",
+  "windowsCopyCommand": "Copy command",
+  "windowsDownloadLink": "Download link",
+  "windowsInstallCommand": "Install command"
 }

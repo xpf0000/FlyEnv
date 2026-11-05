@@ -34,3 +34,8 @@ export function isPeclPublisher(name: string, extension: string): boolean {
 export function packageExtensionName(name: string): string {
   return peclPackages[name] ?? name.split('/').at(-1)!.replace(/^ext-/, '')
 }
+
+// Identity is established by this audited map, never by a matching package suffix.
+export function peclPublisherExtension(name: string): string | undefined {
+  return peclPackages[name]
+}
