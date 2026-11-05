@@ -63,7 +63,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "445f2579d01e84e4f148a22d25b5a3068e7c5670cdad80367471d7bfe3061a74"
+        "sha256": "6c089743f029d81d17f7c6de6fcc9d90fc244b8a861da0083d52f8e1713952bf"
       },
       "official": true
     },
@@ -96,7 +96,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "f3f0613a57c1609658254615b419760dedf58080400072da2ce154907d49f4bb"
+        "sha256": "9292b909e493349c38f2bd2b31a94db78b75cae198430324275c9084910990af"
       },
       "official": true
     },
@@ -129,7 +129,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "6984bca614c0ec41c8f676cd6a543174942f109484242f0b0fa37178b3b5b9ac"
+        "sha256": "1e9f16137b1626877969478105b6693d62fff4afba59e38470940f3523616663"
       },
       "official": true
     },
@@ -160,7 +160,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "b683ec6e658274f1623892d6df6caf8cb940cdc0e1ec825ae166a820ff4333a1"
+        "sha256": "082cbfe11af3adf7707a8cee76d4ec95675aed3fef23e77168eea1e34d7db3ea"
       },
       "official": true
     },
@@ -191,7 +191,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "51ae078b451e2774c15d08c9cbba0b5f42cd22b55eeeb9cb4447cf929dcf39d5"
+        "sha256": "143df57b368aabbef3a24736db6bea80c540816241e1736f1f10aa1eb741ca9b"
       },
       "official": true
     },
@@ -224,7 +224,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "f21cb4f056a360cd59ea5b7ef914882c09283d04fb68cc08a10c3f27c7841f30"
+        "sha256": "39425a59d45794959ba3720eb49fd8e6e7b87c6966f5099bd3579c9afb1300e0"
       },
       "official": true
     },
@@ -257,7 +257,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "0b55403939d8af886aa26701b9a9d54a20b40e1ab2b2f3094b47ef6a78dbfab6"
+        "sha256": "4485cca0c5cf77f2ad1163a93640495193a4b087e798e4ff8637c35a22c5231f"
       },
       "official": true
     },
@@ -290,14 +290,14 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "5997ad5aebfba359789633e57967f95a314c32da7a23dcf0ae7d2de59e5b8ff6"
+        "sha256": "755260a0d377adab6249534e016dd6c5e8a9a91bbf3688923711cc48e680b8ae"
       },
       "official": true
     },
     {
       "id": "samwaf",
       "name": "SamWaf",
-      "version": "0.1.1",
+      "version": "0.1.0",
       "description": {
         "en": "Open-source lightweight WAF. Sits in front of your local sites as a reverse proxy to block attacks, with a built-in web admin panel.",
         "zh": "开源轻量级网站防火墙。以反向代理方式前置保护本地站点、拦截攻击，内置 Web 管理面板。"
@@ -323,7 +323,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "8264ea145f1b080f3a998f684828f1860d455cd0fe29e9ac05c0803239e1fa97"
+        "sha256": "93f60be9e9cfe9afebede5191969baf39ff2d1f2f3f1ce3b53e7fc25448ac1d6"
       },
       "official": true
     }
