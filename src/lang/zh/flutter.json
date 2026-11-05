@@ -1,6 +1,11 @@
 {
   "sdkDetails": "SDK 详情",
   "sdkNotFound": "未找到 Flutter SDK。请在版本标签页中添加版本。",
+  "androidSdkNotDetected": "未检测到 Android SDK",
+  "androidSdkInstallHint": "FlyEnv 不会自动安装 Android SDK。请通过 Android Studio 或 Android 官方命令行工具安装 SDK。",
+  "installAndroidStudio": "安装 Android Studio",
+  "androidCommandLineTools": "Android 命令行工具",
+  "androidSdkAfterInstall": "安装 SDK 后，请返回 FlyEnv，点击刷新（Refresh），然后使用 Auto-fix 配置环境。",
   "searchDirs": "搜索目录",
   "scanned": "已扫描 {0} 个",
   "show": "显示",
