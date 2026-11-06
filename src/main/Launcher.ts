@@ -4,7 +4,7 @@ import ExceptionHandler from './core/ExceptionHandler'
 import logger from './core/Logger'
 import Application from './Application'
 import type { CallbackFn } from '@shared/app.d'
-import { appDebugLog, isLinux, isMacOS, isWindows } from '@shared/utils'
+import { appDebugLog, isLinux, isWindows } from '@shared/utils'
 import { AppStartFlagChech } from './app'
 
 export default class Launcher extends EventEmitter {
@@ -28,9 +28,6 @@ export default class Launcher extends EventEmitter {
       app.on('second-instance', (event, argv, workingDirectory) => {
         logger.warn('second-instance====>', argv, workingDirectory)
         global.application.showPage('index')
-        if (isMacOS()) {
-          app.dock?.show()?.catch()
-        }
       })
       callback()
     }
@@ -103,9 +100,6 @@ export default class Launcher extends EventEmitter {
       if (global.application) {
         logger.info('[FlyEnv] activate')
         global.application.showPage('index')
-        if (isMacOS()) {
-          app.dock?.show()?.catch()
-        }
       }
     })
   }

@@ -88,6 +88,10 @@ export default class WindowManager extends EventEmitter {
     const pageOptions = this.getPageOptions(page)
     trayBrowserOptions.webPreferences!.preload = join(global.Server.Static!, 'preload/preload.js')
     window = new BrowserWindow(trayBrowserOptions)
+    if (isMacOS()) {
+      // otherwise opening the popup switches to the Space of the main window
+      window.setVisibleOnAllWorkspaces(true, { skipTransformProcessType: true })
+    }
     this.trayManager!.attachWindow(window)
     window.webContents.on('before-input-event', (event, input) => {
       if ((input.control || input.meta) && input.key.toLowerCase() === 'r') {
@@ -118,7 +122,7 @@ export default class WindowManager extends EventEmitter {
     const { hidden } = options
     let window = this.windows[page]
     if (window) {
-      window.show()
+      this.showOnCurrentSpace(window)
       window.focus()
       console.log('openWindow !!!')
       return window
@@ -280,16 +284,43 @@ export default class WindowManager extends EventEmitter {
     })
   }
 
-  showWindow(page: string) {
+  private spaceRestoreTimers = new WeakMap<BrowserWindow, NodeJS.Timeout>()
+
+  // macOS: show() pulls the window back to the Space it was created on; briefly making it visible on all Spaces shows it on the current one
+  private showOnCurrentSpace(window: BrowserWindow) {
+    if (!isMacOS() || window.isVisibleOnAllWorkspaces()) {
+      window.show()
+      return
+    }
+    // a pending restore from an earlier call must not fire inside this call's window
+    clearTimeout(this.spaceRestoreTimers.get(window))
+    window.setVisibleOnAllWorkspaces(true, { skipTransformProcessType: true })
+    window.show()
+    // restoring right away lets the pending app activation pull the window back to its old Space
+    this.spaceRestoreTimers.set(
+      window,
+      setTimeout(() => {
+        if (!window.isDestroyed()) {
+          window.setVisibleOnAllWorkspaces(false, { skipTransformProcessType: true })
+        }
+      }, 300)
+    )
+  }
+
+  async showWindow(page: string) {
     const window = this.getWindow(page)
     if (!window || window.isDestroyed()) {
       return
     }
-    window.show()
-    console.log('showWindow !!!')
+    // dock.show() activates the app; doing it after show() pulls the window back to its original Space
     if (isMacOS()) {
-      app.dock?.show?.()?.catch()
+      await app.dock?.show?.()?.catch(() => {})
+      if (window.isDestroyed()) {
+        return
+      }
     }
+    this.showOnCurrentSpace(window)
+    console.log('showWindow !!!')
   }
 
   hideWindow(page: string) {
@@ -316,7 +347,7 @@ export default class WindowManager extends EventEmitter {
     if (window.isVisible()) {
       window.hide()
     } else {
-      window.show()
+      this.showOnCurrentSpace(window)
       console.log('toggleWindow !!!')
     }
   }
