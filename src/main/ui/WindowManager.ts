@@ -11,6 +11,7 @@ import { AppStartErrorCallback } from '../app'
 import TrayManager from './TrayManager'
 import logger from '../core/Logger'
 import { createScaledPageOptions } from './PageOptions'
+import WindowPresentation from './WindowPresentation'
 
 const defaultBrowserOptions: BrowserWindowConstructorOptions = {
   titleBarStyle: 'hiddenInset',
@@ -53,6 +54,7 @@ export default class WindowManager extends EventEmitter {
   userConfig: any
   windows: { [key: string]: BrowserWindow }
   willQuit: boolean
+  private presentation = new WindowPresentation()
   trayManager?: TrayManager | undefined
 
   constructor(options: { [key: string]: any } = {}) {
@@ -67,6 +69,7 @@ export default class WindowManager extends EventEmitter {
 
   setWillQuit(flag: boolean) {
     this.willQuit = flag
+    if (flag) this.getWindowList().forEach((window) => this.presentation.cancel(window))
   }
 
   getPageOptions(page: string) {
@@ -122,8 +125,7 @@ export default class WindowManager extends EventEmitter {
     const { hidden } = options
     let window = this.windows[page]
     if (window) {
-      this.showOnCurrentSpace(window)
-      window.focus()
+      void this.showWindow(page)
       console.log('openWindow !!!')
       return window
     }
@@ -195,6 +197,7 @@ export default class WindowManager extends EventEmitter {
     const win = this.getWindow(page)
     this.removeWindow(page)
     if (win) {
+      this.presentation.dispose(win)
       win.removeAllListeners()
       if (!win.isDestroyed()) {
         win.destroy()
@@ -284,43 +287,12 @@ export default class WindowManager extends EventEmitter {
     })
   }
 
-  private spaceRestoreTimers = new WeakMap<BrowserWindow, NodeJS.Timeout>()
-
-  // macOS: show() pulls the window back to the Space it was created on; briefly making it visible on all Spaces shows it on the current one
-  private showOnCurrentSpace(window: BrowserWindow) {
-    if (!isMacOS() || window.isVisibleOnAllWorkspaces()) {
-      window.show()
-      return
-    }
-    // a pending restore from an earlier call must not fire inside this call's window
-    clearTimeout(this.spaceRestoreTimers.get(window))
-    window.setVisibleOnAllWorkspaces(true, { skipTransformProcessType: true })
-    window.show()
-    // restoring right away lets the pending app activation pull the window back to its old Space
-    this.spaceRestoreTimers.set(
-      window,
-      setTimeout(() => {
-        if (!window.isDestroyed()) {
-          window.setVisibleOnAllWorkspaces(false, { skipTransformProcessType: true })
-        }
-      }, 300)
-    )
-  }
-
-  async showWindow(page: string) {
+  showWindow(page: string) {
     const window = this.getWindow(page)
-    if (!window || window.isDestroyed()) {
+    if (this.willQuit || !window || window.isDestroyed()) {
       return
     }
-    // dock.show() activates the app; doing it after show() pulls the window back to its original Space
-    if (isMacOS()) {
-      await app.dock?.show?.()?.catch(() => {})
-      if (window.isDestroyed()) {
-        return
-      }
-    }
-    this.showOnCurrentSpace(window)
-    console.log('showWindow !!!')
+    return this.presentation.show(window, page === 'index')
   }
 
   hideWindow(page: string) {
@@ -328,12 +300,14 @@ export default class WindowManager extends EventEmitter {
     if (!window || window.isDestroyed()) {
       return
     }
+    this.presentation.cancel(window)
     window.hide()
   }
 
   hideAllWindow() {
     this.getWindowList().forEach((window) => {
       if (window && !window.isDestroyed()) {
+        this.presentation.cancel(window)
         window.hide()
       }
     })
@@ -341,13 +315,13 @@ export default class WindowManager extends EventEmitter {
 
   toggleWindow(page: string) {
     const window = this.getWindow(page)
-    if (!window || window.isDestroyed()) {
+    if (this.willQuit || !window || window.isDestroyed()) {
       return
     }
-    if (window.isVisible()) {
-      window.hide()
+    if (window.isVisible() || this.presentation.isPending(window)) {
+      this.hideWindow(page)
     } else {
-      this.showOnCurrentSpace(window)
+      void this.showWindow(page)
       console.log('toggleWindow !!!')
     }
   }

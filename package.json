@@ -17,6 +17,7 @@
     "build-dev-runner": "npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/dev-runner.ts --outfile=electron/dev-runner.mjs",
     "test:renderer-operation-boundaries": "tsx scripts/renderer-operation-boundaries-test.ts",
     "test:language-project-ports": "tsx scripts/language-project-ports-test.ts",
+    "test:window-presentation": "tsx scripts/window-presentation-test.ts",
     "test:shell-init": "tsx scripts/shell-init-test.ts",
     "test:startup-documents": "tsx scripts/startup-documents-test.ts",
     "test:flutter-android": "tsx scripts/flutter-android-test.ts",
