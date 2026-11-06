@@ -542,9 +542,17 @@ export async function serviceStartSpawn(
       let timer: NodeJS.Timeout | undefined = undefined
 
       // 关键：检测启动后的早期崩溃（例如 Token 错误导致 1-2 秒内退出）
-      const startupExitHandler = () => {
+      const startupExitHandler = async (code: number | null, signal: NodeJS.Signals | null) => {
         clearTimeout(timer)
-        reject(new Error(I18nT('fork.startFail')))
+        // the generic message is misleading when the log is empty; report how the process ended
+        let msg = `${I18nT('fork.startFail')}\nexit code: ${code ?? 'null'}, signal: ${signal ?? 'none'}`
+        try {
+          const stderr = (await readFile(errFile, 'utf-8')).trim()
+          if (stderr) {
+            msg += `\n${stderr.slice(-2000)}`
+          }
+        } catch {}
+        reject(new Error(msg))
       }
       cp.on('exit', startupExitHandler)
 
