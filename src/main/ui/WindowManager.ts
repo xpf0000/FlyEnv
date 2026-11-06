@@ -122,7 +122,7 @@ export default class WindowManager extends EventEmitter {
     const { hidden } = options
     let window = this.windows[page]
     if (window) {
-      window.show()
+      this.showOnCurrentSpace(window)
       window.focus()
       console.log('openWindow !!!')
       return window
@@ -284,20 +284,27 @@ export default class WindowManager extends EventEmitter {
     })
   }
 
+  private spaceRestoreTimers = new WeakMap<BrowserWindow, NodeJS.Timeout>()
+
   // macOS: show() pulls the window back to the Space it was created on; briefly making it visible on all Spaces shows it on the current one
   private showOnCurrentSpace(window: BrowserWindow) {
-    if (!isMacOS()) {
+    if (!isMacOS() || window.isVisibleOnAllWorkspaces()) {
       window.show()
       return
     }
+    // a pending restore from an earlier call must not fire inside this call's window
+    clearTimeout(this.spaceRestoreTimers.get(window))
     window.setVisibleOnAllWorkspaces(true, { skipTransformProcessType: true })
     window.show()
     // restoring right away lets the pending app activation pull the window back to its old Space
-    setTimeout(() => {
-      if (!window.isDestroyed()) {
-        window.setVisibleOnAllWorkspaces(false, { skipTransformProcessType: true })
-      }
-    }, 300)
+    this.spaceRestoreTimers.set(
+      window,
+      setTimeout(() => {
+        if (!window.isDestroyed()) {
+          window.setVisibleOnAllWorkspaces(false, { skipTransformProcessType: true })
+        }
+      }, 300)
+    )
   }
 
   async showWindow(page: string) {

@@ -122,7 +122,7 @@ export default class Application extends EventEmitter {
       },
       prompt: (choice) => {
         if (!this.rendererReady || !this.mainWindow || this.mainWindow.isDestroyed()) return false
-        this.mainWindow.show()
+        void this.windowManager.showWindow('index')
         const command = 'APP-Windows-Privilege-Choice'
         this.windowManager.sendCommandTo(this.mainWindow, command, command, choice)
         return true
@@ -995,7 +995,7 @@ export default class Application extends EventEmitter {
 
   showPage(page: string) {
     if (this.mainWindow) {
-      this.mainWindow.show()
+      void this.windowManager.showWindow(page)
       return
     }
 
