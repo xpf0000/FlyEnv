@@ -63,7 +63,7 @@ const powershellCommand = (bin: string, args: string[]) =>
 export function pieInstallFailureMessage(code: number | null, output: string): string {
   const base = `Extension installation failed (exit code ${code}).`
   if (output.replace(/\s+/g, '').includes('Windowsarchivewithprebuiltextensionfor')) {
-    return `${base} This release has no prebuilt Windows build, so it cannot be installed automatically. Try another release, or build the extension manually.`
+    return `${base} This release has no prebuilt Windows build matching the selected PHP build, so it cannot be installed automatically. Try another release, or build the extension manually.`
   }
   return `${base} See the installer output for details.`
 }

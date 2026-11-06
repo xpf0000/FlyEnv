@@ -49,7 +49,10 @@ In CouldNotDetermineDownloadUrlMethod.php line 31:
 
   Could not download pecl/pdo_oci using windows-binary method: Windows archive with prebuilt extension for pecl/pdo_o
   ci was not attached on release v1.2.0 - looked for one of "php_pdo_oci-v1.2.0-8.4-ts-vs17-x86_64.zip"`
-assert.match(pieInstallFailureMessage(1, pieNoWindowsBinary), /no prebuilt Windows build/)
+assert.match(
+  pieInstallFailureMessage(1, pieNoWindowsBinary),
+  /no prebuilt Windows build matching the selected PHP build/
+)
 assert.match(pieInstallFailureMessage(1, 'some other failure'), /See the installer output/)
 const catalogProfile = {
   ...profile,

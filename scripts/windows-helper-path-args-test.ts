@@ -17,6 +17,10 @@ async function main() {
   assert.equal(await helper.send('tools', 'setSystemPath', entries, {}, 'C:\\SDK\\bin;'), true)
   assert.deepEqual(fallbackArgs, [entries, {}, 'C:\\SDK\\bin;'])
 
+  const path = 'C:\\SDK\\..\\SDK\\bin;'
+  assert.equal(await helper.send('tools', 'setSystemPath', ['C:\\SDK\\bin'], {}, path), true)
+  assert.deepEqual(fallbackArgs, [['C:\\SDK\\bin'], {}, path])
+
   await assert.rejects(
     helper.send('tools', 'writeFileByRoot', 'C:\\FlyEnv\\..\\outside.txt', 'x'),
     /Path traversal detected/
