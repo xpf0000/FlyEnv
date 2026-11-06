@@ -87,7 +87,7 @@ class MCP {
 
   fetchConfig() {
     this.loading = true
-    IPC.send('mcp:getConfig').then((key: string, res: any) => {
+    IPC.sendSensitive('mcp:getConfig').then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0 && res?.data) {
         this.config = { ...this.config, ...res.data }
@@ -97,7 +97,7 @@ class MCP {
   }
 
   fetchStatus() {
-    IPC.send('mcp:status').then((key: string, res: any) => {
+    IPC.sendSensitive('mcp:status').then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0 && res?.data) {
         this.running = !!res.data.running
@@ -116,13 +116,15 @@ class MCP {
 
   saveConfig(patch: Partial<MCPConfig>) {
     return new Promise((resolve) => {
-      IPC.send('mcp:setConfig', JSON.parse(JSON.stringify(patch))).then((key: string, res: any) => {
-        IPC.off(key)
-        if (res?.code === 0 && res?.data) {
-          this.config = { ...this.config, ...res.data }
+      IPC.sendSensitive('mcp:setConfig', JSON.parse(JSON.stringify(patch))).then(
+        (key: string, res: any) => {
+          IPC.off(key)
+          if (res?.code === 0 && res?.data) {
+            this.config = { ...this.config, ...res.data }
+          }
+          resolve(true)
         }
-        resolve(true)
-      })
+      )
     })
   }
 
@@ -133,7 +135,16 @@ class MCP {
         return
       }
       this.starting = true
-      IPC.send('mcp:start').then((key: string, res: any) => {
+      const call = IPC.sendSensitive('mcp:start')
+      const timer = setTimeout(() => {
+        IPC.off(call.key)
+        this.starting = false
+        MessageError(I18nT('base.fail'))
+        resolve(false)
+      }, 90_000)
+      call.then((key: string, res: any) => {
+        if (res?.code === 200) return
+        clearTimeout(timer)
         IPC.off(key)
         this.starting = false
         if (res?.code === 0) {
@@ -144,6 +155,24 @@ class MCP {
           MessageError(res?.msg ?? I18nT('base.fail'))
           resolve(false)
         }
+      })
+    })
+  }
+  setToolsEnabled(names: string[], enabled: boolean): Promise<boolean> {
+    return new Promise((resolve) => {
+      const call = IPC.sendSensitive('mcp:setToolsEnabled', names, enabled)
+      const timer = setTimeout(() => {
+        IPC.off(call.key)
+        resolve(false)
+      }, 30_000)
+      call.then((key: string, response: any) => {
+        if (response?.code === 200) return
+        clearTimeout(timer)
+        IPC.off(key)
+        if (response?.code === 0 && Array.isArray(response.data?.enabledTools)) {
+          this.config.enabledTools = response.data.enabledTools
+          resolve(true)
+        } else resolve(false)
       })
     })
   }
@@ -171,13 +200,10 @@ class MCP {
   }
 
   toggleTool(tool: string, on: boolean) {
-    const set = new Set(this.config.enabledTools)
-    if (on) {
-      set.add(tool)
-    } else {
-      set.delete(tool)
-    }
-    this.saveConfig({ enabledTools: Array.from(set) })
+    return this.setToolsEnabled([tool], on).then((success) => {
+      if (!success) MessageError(I18nT('base.fail'))
+      return success
+    })
   }
 
   setApproval(tool: string, policy: MCPApprovalPolicy) {

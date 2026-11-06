@@ -212,5 +212,13 @@ export default {
   previousRestoreMissing:
     'Restoring the previous mapping would leave these newer projects unlinked. Keep their data folders.',
   mappingMissing: 'Not found',
-  tagList: 'Tags'
+  tagList: 'Tags',
+  memoryMcpSwitch: 'Memory MCP',
+  mcpSwitchHelp: 'Enable or disable memory tools. Other MCP tools remain available.',
+  upgradeHost: 'Restart with an updated FlyEnv host to use this switch.',
+  mcpHttpRequired: 'Enable HTTP in MCP settings before starting memory MCP.',
+  mcpStartFailed: 'The MCP service could not start. Check MCP settings and its port.',
+  mcpToolsFailed: 'Memory tool permissions could not be updated. Check status and retry.',
+  mcpStatusUnknown:
+    'Tool permissions were updated, but status could not be refreshed. Check MCP status.'
 }

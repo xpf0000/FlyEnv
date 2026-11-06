@@ -41,6 +41,7 @@ export async function createHostRuntimePlugin(): Promise<VitePlugin> {
   }
   const bridgeModules: Record<string, string> = {
     '@/util/IPC': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.ipc`,
+    '@/components/MCP/setup': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport const MCPSetup = host?.mcp`,
     '@/router': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.router`,
     '@/router/index': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport default host?.router`,
     '@/store/app': `const host = globalThis.__FLYENV_PLUGIN_HOST__\nexport const AppStore = (...args) => host?.stores?.AppStore?.(...args)`,

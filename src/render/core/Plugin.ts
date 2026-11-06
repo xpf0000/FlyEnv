@@ -4,6 +4,7 @@ import * as VueRouter from 'vue-router'
 import * as ElementPlus from 'element-plus'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import IPC from '@/util/IPC'
+import { MCPSetup } from '@/components/MCP/setup'
 import { syncPluginStyles } from './PluginStyles'
 import type { AppModuleItem } from '@/core/type'
 import { defineAsyncComponent } from 'vue'
@@ -43,6 +44,7 @@ const pluginHost: Record<string, any> = {
   'element-plus': ElementPlus,
   '@element-plus/icons-vue': ElementPlusIconsVue,
   ipc: IPC,
+  mcp: MCPSetup,
   router: lazyRouter,
   aside: {
     AsideSetup,

@@ -5,7 +5,7 @@ export default {
   moduleType: 'ai',
   typeFlag: 'ai-memory',
   label: () => MemoryT('title'),
-  icon: import('@/svg/tool.svg?raw'),
+  icon: import('@/svg/ai.svg?raw'),
   index: defineAsyncComponent(() => import('./Index.vue')),
   aside: defineAsyncComponent(() => import('./aside.vue')),
   asideIndex: 6,

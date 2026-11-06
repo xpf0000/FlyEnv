@@ -6,6 +6,7 @@ import { ElMessage } from 'element-plus'
 import { AppI18n } from '@lang/index'
 import { getMcpServerUrl } from '@shared/mcpClientConfig'
 import { configureMCPClient } from '@/components/MCP/clientConfig'
+import { MCPSetup } from '@/components/MCP/setup'
 import rulesEn from '../assets/memory-rules.md?raw'
 import rulesZh from '../assets/memory-rules.zh.md?raw'
 import { MemoryController } from './controller'
@@ -13,6 +14,9 @@ import { MemoryT } from './lang'
 
 export const memoryRules = () =>
   `${AppI18n().global.locale ?? 'en'}`.startsWith('zh') ? rulesZh : rulesEn
+const memoryTools = ['search', 'get', 'store', 'update', 'forget'].map(
+  (name) => `flyenv_memory_${name}`
+)
 function readMCP(command = 'mcp:getConfig'): Promise<any> {
   return new Promise((resolve, reject) => {
     const call = IPC.sendSensitive(command)
@@ -35,15 +39,20 @@ export const MemoryManager = reactiveBind(
     id: () => crypto.randomUUID(),
     readPreferences: () => StorageGetAsync('flyenv-plugin-ai-memory-v1'),
     writePreferences: (value) => StorageSetAsync('flyenv-plugin-ai-memory-v1', value),
+    startGateway: () => MCPSetup?.start() ?? Promise.resolve(false),
+    setMemoryTools: (enabled) =>
+      MCPSetup?.setToolsEnabled?.(memoryTools, enabled) ?? Promise.resolve(false),
     readConnection: async () => {
       const [config, status] = await Promise.all([readMCP(), readMCP('mcp:status')])
-      const tools = ['search', 'get', 'store', 'update', 'forget']
+      if (MCPSetup) {
+        MCPSetup.running = status?.running === true
+        MCPSetup.config.enabledTools = config.enabledTools
+        MCPSetup.config.transport = config.transport
+      }
       return {
         running: status?.running === true,
         http: config?.transport?.http === true,
-        enabledCount: tools.filter((method) =>
-          config?.enabledTools?.includes(`flyenv_memory_${method}`)
-        ).length
+        enabledCount: memoryTools.filter((name) => config?.enabledTools?.includes(name)).length
       }
     },
     chooseProject: async () => {

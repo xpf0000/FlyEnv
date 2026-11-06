@@ -196,5 +196,12 @@ export default {
   project_directories_unavailable: '无法检查项目目录，当前无法确定是否存在未映射数据。',
   previousRestoreMissing: '恢复上一版映射后，以下新增项目将失去关联，请保留其数据目录。',
   mappingMissing: '不存在',
-  tagList: '标签'
+  tagList: '标签',
+  memoryMcpSwitch: '记忆 MCP',
+  mcpSwitchHelp: '开启或关闭记忆工具，不影响其他 MCP 工具。',
+  upgradeHost: '请使用新版 FlyEnv 宿主重新启动，以使用此开关。',
+  mcpHttpRequired: '请先在 MCP 设置中启用 HTTP，再开启记忆 MCP。',
+  mcpStartFailed: 'MCP 服务启动失败，请检查 MCP 设置和端口。',
+  mcpToolsFailed: '记忆工具权限更新未能确认，请检查状态后重试。',
+  mcpStatusUnknown: '工具权限已更新，但状态刷新失败，请检查 MCP 状态。'
 }

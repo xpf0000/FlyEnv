@@ -745,6 +745,35 @@ export default class IPCHandler extends EventEmitter {
       case 'mcp:setConfig':
         this.handleMcpSetConfig(command, key, args)
         break
+      case 'mcp:setToolsEnabled': {
+        const names = args[0]
+        const enabled = args[1]
+        const config = this.deps.mcpConfigManager
+        const available = new Set(this.deps.mcpRuntime?.listTools().map((tool) => tool.name) ?? [])
+        if (
+          !config ||
+          !Array.isArray(names) ||
+          !names.length ||
+          typeof enabled !== 'boolean' ||
+          names.some((name) => typeof name !== 'string' || !available.has(name))
+        ) {
+          this.sendToMainWindow(command, key, { code: 1, msg: 'Invalid MCP tools' })
+          break
+        }
+        try {
+          const tools = new Set<string>(config.getConfig('enabledTools', []))
+          for (const name of names) {
+            if (enabled) tools.add(name)
+            else tools.delete(name)
+          }
+          const enabledTools = [...tools]
+          config.setConfig('enabledTools', enabledTools)
+          this.sendToMainWindow(command, key, { code: 0, data: { enabledTools } })
+        } catch {
+          this.sendToMainWindow(command, key, { code: 1, msg: 'Unable to update MCP tools' })
+        }
+        break
+      }
       case 'mcp:getBridgePath':
         this.handleMcpGetBridgePath(command, key)
         break

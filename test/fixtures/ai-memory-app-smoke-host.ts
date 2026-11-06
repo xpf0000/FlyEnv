@@ -41,6 +41,13 @@ async function run() {
     application.configManager.setConfig('setup.autoCheck', false)
     application.configManager.setConfig('setup.hosts', { write: false })
     await application.init()
+    const { createServer: createPortProbe } = await import('node:net')
+    const sidebarPortProbe = createPortProbe()
+    await new Promise<void>((resolve) => sidebarPortProbe.listen(0, '127.0.0.1', resolve))
+    const sidebarPort = (sidebarPortProbe.address() as any).port
+    await new Promise<void>((resolve) => sidebarPortProbe.close(() => resolve()))
+    const siblingTool = application.mcpRuntime.listTools().find((tool: any) => !tool.pluginId).name
+    application.mcpConfigManager.setConfig({ port: sidebarPort, enabledTools: [siblingTool] })
     application.start('index')
     const window = application.mainWindow
     window.webContents.setBackgroundThrottling(false)
@@ -78,12 +85,121 @@ async function run() {
       `!!window.__FLYENV_PLUGIN_ROUTER__?.getRoutes().find(r => r.path === '/ai-memory')`,
       120_000
     )
+    window.webContents.closeDevTools()
+    await waitFor(`window.innerWidth >= 960`)
     await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/mcp')`)
     const memoryAside = `Array.from(document.querySelectorAll('.aside .menu li')).find(item => item.textContent.includes('AI Memory'))`
     await waitFor(`!!(${memoryAside})`, 10_000)
     await js(`(${memoryAside}).click()`)
     await waitFor(`!!document.querySelector('#memory-search')`)
     await waitFor(`!!document.querySelector('.aside .active .icon-block svg')`)
+    await waitFor(
+      `(() => { const use=document.querySelector('[data-module="ai-memory"] .icon-block use'); const ref=use?.getAttribute('xlink:href') || use?.getAttribute('href'); return ref && !!document.querySelector(ref + ' path'); })()`
+    )
+    const memorySwitch = `document.querySelector('[data-module="ai-memory"] .el-switch')`
+    await waitFor(`!(${memorySwitch}).classList.contains('is-disabled')`)
+    await js(
+      `if (document.querySelector('.aside').classList.contains('fold')) document.querySelector('.top-tool > li:last-child').click()`
+    )
+    await waitFor(
+      `document.querySelector('.aside').classList.contains('expanded') && (${memorySwitch}).getBoundingClientRect().width > 0`
+    )
+    await js(`(${memorySwitch}).click()`)
+    await waitFor(
+      `(${memorySwitch}).classList.contains('is-checked') && !(${memorySwitch}).classList.contains('is-disabled')`
+    )
+    assert.equal(application.mcpRuntime.status().running, true)
+    const enabled = application.mcpConfigManager.getConfig('enabledTools')
+    assert.ok(enabled.includes(siblingTool))
+    assert.equal(enabled.filter((name: string) => name.startsWith('flyenv_memory_')).length, 5)
+    async function toolCatalog() {
+      const config = application.mcpConfigManager.getConfig()
+      const response = await fetch(`http://127.0.0.1:${config.port}/mcp`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${config.token}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json, text/event-stream'
+        },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list', params: {} })
+      })
+      assert.equal(response.status, 200)
+      const body = await response.text()
+      const payload = body.trim().startsWith('{')
+        ? JSON.parse(body)
+        : JSON.parse(
+            body
+              .split('\n')
+              .find((line) => line.startsWith('data:'))!
+              .slice(5)
+          )
+      return payload.result.tools.map((tool: any) => tool.name) as string[]
+    }
+    assert.equal(
+      (await toolCatalog()).filter((name) => name.startsWith('flyenv_memory_')).length,
+      5
+    )
+    await capture('ui-sidebar-mcp-on.png')
+    await js(`(${memorySwitch}).click()`)
+    await waitFor(
+      `!(${memorySwitch}).classList.contains('is-checked') && !(${memorySwitch}).classList.contains('is-disabled')`
+    )
+    assert.equal(
+      application.mcpRuntime.status().running,
+      true,
+      'memory off must not stop the shared gateway'
+    )
+    assert.deepEqual(application.mcpConfigManager.getConfig('enabledTools'), [siblingTool])
+    assert.equal(
+      (await toolCatalog()).some((name) => name.startsWith('flyenv_memory_')),
+      false
+    )
+    assert.ok((await toolCatalog()).includes(siblingTool))
+    // Existing read-only permissions are still an active MCP; one off click revokes them.
+    await js(
+      `window.__FLYENV_PLUGIN_HOST__.mcp.setToolsEnabled(['flyenv_memory_search','flyenv_memory_get'],true)`
+    )
+    await waitFor(`(${memorySwitch}).classList.contains('is-checked')`)
+    await js(`(${memorySwitch}).click()`)
+    await waitFor(
+      `!(${memorySwitch}).classList.contains('is-checked') && !(${memorySwitch}).classList.contains('is-disabled')`
+    )
+    assert.deepEqual(application.mcpConfigManager.getConfig('enabledTools'), [siblingTool])
+    // Both the generic tool page and plugin use atomic updates; neither revives a stale array.
+    await js(
+      `Promise.all([window.__FLYENV_PLUGIN_HOST__.mcp.toggleTool(${JSON.stringify(siblingTool)},false),window.__FLYENV_PLUGIN_HOST__.mcp.setToolsEnabled(['flyenv_memory_search'],true)])`
+    )
+    assert.deepEqual(application.mcpConfigManager.getConfig('enabledTools'), [
+      'flyenv_memory_search'
+    ])
+    await js(
+      `Promise.all([window.__FLYENV_PLUGIN_HOST__.mcp.toggleTool(${JSON.stringify(siblingTool)},true),window.__FLYENV_PLUGIN_HOST__.mcp.setToolsEnabled(['flyenv_memory_search'],false)])`
+    )
+    assert.deepEqual(application.mcpConfigManager.getConfig('enabledTools'), [siblingTool])
+    const configSet = application.mcpConfigManager.setConfig.bind(application.mcpConfigManager)
+    try {
+      application.mcpConfigManager.setConfig = () => {
+        throw new Error('fixture storage failure')
+      }
+      assert.equal(
+        await js(
+          `window.__FLYENV_PLUGIN_HOST__.mcp.toggleTool(${JSON.stringify(siblingTool)},false)`
+        ),
+        false
+      )
+      assert.deepEqual(application.mcpConfigManager.getConfig('enabledTools'), [siblingTool])
+    } finally {
+      application.mcpConfigManager.setConfig = configSet
+    }
+    assert.equal(
+      await js(`window.__FLYENV_PLUGIN_HOST__.mcp.setToolsEnabled(['unknown_fixture_tool'],true)`),
+      false
+    )
+    assert.deepEqual(application.mcpConfigManager.getConfig('enabledTools'), [siblingTool])
+    checkpoints.push('partial-permissions-concurrent-tool-updates-and-write-failure')
+    await application.mcpRuntime.stopLoaded()
+    await js(`document.querySelector('.top-tool > li:last-child').click()`)
+    checkpoints.push('sidebar-rendered-icon-memory-toggle-isolated-http-catalog')
     checkpoints.push('sidebar-plugin-entry-navigation')
     window.webContents.closeDevTools()
     await js(

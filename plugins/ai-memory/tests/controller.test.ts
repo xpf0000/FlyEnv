@@ -32,6 +32,8 @@ function fixture(overrides: Partial<MemoryControllerDeps> = {}) {
     writePreferences: async () => {},
     configure: async () => ({ success: true }),
     readConnection: async () => ({ running: false, http: false, enabledCount: 0 }),
+    startGateway: async () => false,
+    setMemoryTools: async () => false,
     chooseProject: async () => undefined,
     copyVerification: async () => {},
     copyRules: async () => {},
@@ -297,4 +299,68 @@ test('committed deletion removes the visible body and search row while keeping i
   assert.equal(f.manager.searchResult?.data?.results.length, 0)
   assert.equal(f.manager.searchResult?.data?.next_cursor, undefined)
   assert.equal(f.manager.mutation?.result?.data.cleanup_state, 'pending')
+})
+
+test('memory MCP toggle is serialized and disabling tools does not stop the shared gateway', async () => {
+  const state = { running: false, http: true, enabledCount: 0 }
+  let starts = 0
+  const permissions: boolean[] = []
+  const f = fixture({
+    readConnection: async () => ({ ...state }),
+    startGateway: async () => {
+      starts++
+      state.running = true
+      return true
+    },
+    setMemoryTools: async (enabled) => {
+      permissions.push(enabled)
+      state.enabledCount = enabled ? 5 : 0
+      return true
+    }
+  })
+  const first = f.manager.setMcpEnabled(true)
+  assert.equal(first, f.manager.setMcpEnabled(true))
+  assert.equal((await first).success, true)
+  assert.equal(f.manager.connection?.enabledCount, 5)
+  assert.equal(starts, 1)
+  await f.manager.setMcpEnabled(false)
+  assert.equal(state.running, true)
+  assert.equal(starts, 1)
+  assert.deepEqual(permissions, [true, false])
+})
+
+test('a failed gateway start or disabled HTTP does not grant memory tool permissions', async () => {
+  let grants = 0
+  for (const http of [true, false]) {
+    const f = fixture({
+      readConnection: async () => ({ running: false, http, enabledCount: 0 }),
+      startGateway: async () => false,
+      setMemoryTools: async () => {
+        grants++
+        return true
+      }
+    })
+    assert.equal((await f.manager.setMcpEnabled(true)).success, false)
+  }
+  assert.equal(grants, 0)
+})
+
+test('starting an already authorized read-only subset does not grant additional tools', async () => {
+  const state = { running: false, http: true, enabledCount: 2 }
+  let grants = 0
+  const f = fixture({
+    readConnection: async () => ({ ...state }),
+    startGateway: async () => {
+      state.running = true
+      return true
+    },
+    setMemoryTools: async () => {
+      grants++
+      state.enabledCount = 5
+      return true
+    }
+  })
+  assert.equal((await f.manager.setMcpEnabled(true)).success, true)
+  assert.equal(grants, 0)
+  assert.equal(f.manager.connection?.enabledCount, 2)
 })

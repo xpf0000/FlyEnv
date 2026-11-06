@@ -38,6 +38,8 @@ export interface MemoryControllerDeps {
   writePreferences(value: MemoryTarget): Promise<void>
   configure(client: MCPHttpClientFlag): Promise<ActionResult>
   readConnection(): Promise<MemoryConnection>
+  startGateway(): Promise<boolean>
+  setMemoryTools(enabled: boolean): Promise<boolean>
   chooseProject(): Promise<string | undefined>
   copyVerification(): Promise<void>
   copyRules(): Promise<void>
@@ -317,6 +319,34 @@ export class MemoryController {
       this.connection = undefined
       this.connection = await this.deps.readConnection()
       return { success: true }
+    })
+  }
+  setMcpEnabled(enabled: boolean) {
+    return this.action('mcp:switch', async () => {
+      const fail = (errorCode: string) => {
+        this.notice('error', errorCode)
+        return { success: false, errorCode }
+      }
+      try {
+        const before = await this.deps.readConnection()
+        this.connection = before
+        if (enabled && !before.http) return fail('mcpHttpRequired')
+        if (enabled && !before.running && !(await this.deps.startGateway()))
+          return fail('mcpStartFailed')
+        if ((!enabled || before.enabledCount === 0) && !(await this.deps.setMemoryTools(enabled)))
+          return fail('mcpToolsFailed')
+        // Permission changes have completed. A status refresh cannot undo them.
+        try {
+          this.connection = await this.deps.readConnection()
+        } catch {
+          this.connection = undefined
+          this.notice('error', 'mcpStatusUnknown')
+        }
+        return { success: true }
+      } catch {
+        this.connection = undefined
+        return fail('connectionFailed')
+      }
     })
   }
   chooseProject() {
