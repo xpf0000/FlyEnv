@@ -23,6 +23,8 @@ export interface StartupGroupData {
   name: string
   description?: string
   color?: string
+  // 默认 false：成员启动失败后，其余成员记为 not-run，保持依赖顺序。
+  continueOnFailure?: boolean
   items: StartupGroupItem[]
   createdAt: number
   updatedAt: number
@@ -33,7 +35,10 @@ export interface StartupGroupConfigData {
   defaultStartupGroupId?: string
 }
 
-export type StartupGroupDraft = Pick<StartupGroupData, 'name' | 'description' | 'color' | 'items'>
+export type StartupGroupDraft = Pick<
+  StartupGroupData,
+  'name' | 'description' | 'color' | 'continueOnFailure' | 'items'
+>
 export type StartupGroupMemberState = 'stopped' | 'running' | 'executing' | 'invalid'
 export type StartupGroupCardState =
   'stopped' | 'running' | 'partial-running' | 'executing' | 'invalid'

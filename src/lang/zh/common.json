@@ -152,6 +152,7 @@
     "previous": "上一步",
     "next": "下一步",
     "color": "颜色",
+    "continueOnFailure": "某个成员启动失败后，继续启动其余成员",
     "nameRequired": "请输入启动组名称。",
     "noGroups": "创建启动组后，可以按顺序启动相关服务。",
     "noCandidates": "未找到已安装且支持独立启停的服务或项目。",

@@ -93,6 +93,7 @@ export class StartupGroupStore {
       name: draft.name,
       description: draft.description,
       color: draft.color,
+      continueOnFailure: draft.continueOnFailure,
       items: draft.items,
       createdAt: this.dependencies.now(),
       updatedAt: this.dependencies.now()

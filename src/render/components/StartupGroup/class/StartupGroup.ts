@@ -10,6 +10,7 @@ export class StartupGroup implements StartupGroupData {
   name: string
   description?: string
   color?: string
+  continueOnFailure?: boolean
   items: StartupGroupItem[]
   createdAt: number
   updatedAt: number
@@ -22,6 +23,7 @@ export class StartupGroup implements StartupGroupData {
     this.name = data.name
     this.description = data.description
     this.color = data.color
+    this.continueOnFailure = data.continueOnFailure
     this.items = data.items.map((item) => ({ ...item }))
     this.createdAt = data.createdAt
     this.updatedAt = data.updatedAt
@@ -53,6 +55,7 @@ export class StartupGroup implements StartupGroupData {
     this.name = draft.name
     this.description = draft.description
     this.color = draft.color
+    this.continueOnFailure = draft.continueOnFailure
     this.replaceItems(draft.items)
     this.updatedAt = now
     return this
@@ -88,6 +91,7 @@ export class StartupGroup implements StartupGroupData {
       name: this.name,
       description: this.description,
       color: this.color,
+      continueOnFailure: this.continueOnFailure,
       items: this.items.map((item) => ({ ...item })),
       createdAt: this.createdAt,
       updatedAt: this.updatedAt
