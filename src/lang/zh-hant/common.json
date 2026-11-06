@@ -152,6 +152,7 @@
     "previous": "上一步",
     "next": "下一步",
     "color": "顏色",
+    "continueOnFailure": "某個成員啟動失敗後，繼續啟動其餘成員",
     "nameRequired": "請輸入啟動群組名稱。",
     "noGroups": "建立啟動群組後，即可依序啟動相關服務。",
     "noCandidates": "找不到已安裝且可獨立啟停的服務或專案。",

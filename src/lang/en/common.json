@@ -152,6 +152,7 @@
     "previous": "Previous",
     "next": "Next",
     "color": "Color",
+    "continueOnFailure": "Continue starting remaining members if one fails",
     "nameRequired": "Enter a startup group name.",
     "noGroups": "Create a startup group to start related services in order.",
     "noCandidates": "No independently runnable installed services or projects were found.",

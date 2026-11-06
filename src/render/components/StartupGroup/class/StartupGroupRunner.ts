@@ -155,7 +155,7 @@ export class StartupGroupRunner implements StartupGroupRunnerContract {
           }
         } catch (error) {
           members.push({ item, outcome: 'failed', error: errorMessage(error) })
-          if (action === 'start') startFailed = true
+          if (action === 'start' && !group.continueOnFailure) startFailed = true
         } finally {
           if (active) {
             this.activeItems.delete(StartupGroup.itemKey(item))

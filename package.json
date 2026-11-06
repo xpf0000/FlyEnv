@@ -24,6 +24,7 @@
     "test:windows-git-bash": "tsx scripts/windows-git-bash-test.ts",
     "test:php-windows-extensions": "tsx scripts/php-windows-extensions-test.ts",
     "test:windows-helper-path-args": "tsx scripts/windows-helper-path-args-test.ts",
+    "test:startup-group-runner": "tsx scripts/startup-group-runner-test.ts",
     "test:php-extension-sources": "tsx scripts/php-extension-sources-test.ts && tsx scripts/php-extension-sources-controller-test.ts",
     "test:php-loaded-extensions": "tsx scripts/php-loaded-extensions-test.ts",
     "dev": "yarn run clean:dev && yarn run build-dev-runner && cross-env NODE_ENV=development node electron/dev-runner.mjs",
