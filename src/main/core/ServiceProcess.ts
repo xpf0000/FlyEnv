@@ -287,6 +287,7 @@ class ServiceProcess {
         })
       )
       if (!hasServiceLifecyclePermit()) throw new Error('Service lifecycle request has expired')
+      if (action === 'start') this.installationStartGuard?.(type, selected)
       return task(selected)
     })
     let tracked!: Promise<T>
@@ -304,6 +305,12 @@ class ServiceProcess {
     // 已由 IPC/MCP 消费者写入登记表，再由退出代码取得最终快照。
     this.lifecycleOperations.add(tracked)
     return tracked
+  }
+
+  installationStartGuard?: (module: string, target: unknown) => void
+
+  async waitForAcceptedLifecycles() {
+    await Promise.allSettled([...this.lifecycleOperations])
   }
 
   beginLifecycleShutdown() {

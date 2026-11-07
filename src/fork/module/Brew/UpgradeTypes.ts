@@ -15,11 +15,12 @@ export type BrewFormulaSnapshot = {
   reason?: string
   fingerprint: string
 }
+export type BrewServiceTarget = { module: string; item: SoftInstalled }
 export type BrewUpgradePreview = {
   previewId: string
   module: 'php'
   snapshot: BrewFormulaSnapshot
-  targets: SoftInstalled[]
+  targets: BrewServiceTarget[]
 }
 export type BrewPackageAction = 'install' | 'uninstall' | 'upgrade'
 export type BrewPackageResult = {

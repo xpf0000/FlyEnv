@@ -7,6 +7,9 @@ import { utilityProcess } from 'electron'
 import { PluginWorkerRegistry } from './PluginWorkerRegistry'
 import type { ForkPluginSnapshot } from '@shared/plugin/PluginRuntime'
 import { cpus } from 'os'
+import ServiceProcessManager from './ServiceProcess'
+import { HomebrewOperationCoordinator } from './HomebrewOperationCoordinator'
+import type { BrewFormulaSnapshot, BrewPackageResult } from '../../fork/module/Brew/UpgradeTypes'
 import { fetchStopProcessListLocal } from '@shared/StopProcessList'
 import { appDebugLog } from '@shared/utils'
 import EnvSync from '@shared/EnvSync'
@@ -107,6 +110,77 @@ export class ForkManager {
   private languageSnapshotProvider?: () => LanguageRuntimePayload
   // 注入主进程唯一协调器；独立服务 fork 与普通池共享授权队列。
   windowsPrivilegeBridge?: WindowsPrivilegeBridge
+  private homebrewCoordinator?: HomebrewOperationCoordinator
+  private get homebrew() {
+    if (!this.homebrewCoordinator) {
+      this.homebrewCoordinator = new HomebrewOperationCoordinator({
+        inspect: (formula) => this.brewQuery('inspectUpgrade', formula),
+        idle: () => ServiceProcessManager.waitForAcceptedLifecycles(),
+        running: () =>
+          Object.entries(ServiceProcessManager.servicePID).flatMap(([module, entries]) =>
+            entries
+              .filter((entry) => !entry.companion)
+              .map((entry) => ({ module, item: { ...entry.item, pid: entry.pid } }))
+          ),
+        run: (id, action, snapshot, progress) => this.runBrewPackage(id, action, snapshot, progress)
+      })
+      ServiceProcessManager.installationStartGuard = (module, target) =>
+        this.homebrew.assertStart(module, target)
+    }
+    return this.homebrewCoordinator
+  }
+
+  private async brewQuery(command: string, ...args: unknown[]) {
+    const result: any = await this.send('brew', command, ...args)
+    if (result?.code !== 0) throw new Error(result?.msg || 'Homebrew inspection failed')
+    return result.data
+  }
+
+  private runBrewPackage(
+    id: string,
+    action: string,
+    snapshot: BrewFormulaSnapshot,
+    progress: (data: string) => void
+  ): Promise<BrewPackageResult> {
+    const worker = this.createForkItem(TRANSIENT_FORK_IDLE_TIMEOUT_MS)
+    worker.pin()
+    this.forks.push(worker)
+    return Promise.resolve(
+      worker.send('brew', 'runPackage', action, snapshot, id).on((info: any) => {
+        if (info.code === 200) progress(String(info.msg ?? info.data ?? ''))
+      })
+    )
+      .then((info: any) =>
+        info.code === 0
+          ? info.data
+          : { operationId: id, action, outcome: 'unknown', error: info.msg, logs: '' }
+      )
+      .finally(() => worker.unpin())
+  }
+
+  private homebrewRequest(action: string, param: any[]) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        let data: unknown
+        if (action === 'prepareUpgrade')
+          data = await this.homebrew.prepareUpgrade(param[0], param[1])
+        else if (action === 'beginUpgrade') data = await this.homebrew.beginUpgrade(param[0])
+        else if (action === 'executeUpgrade')
+          data = await this.homebrew.execute(param[0], (msg) => on({ code: 200, msg }))
+        else if (action === 'cancelPendingUpgrade') data = this.homebrew.cancelPending(param[0])
+        else if (action === 'packageOperation') {
+          if (!['install', 'uninstall'].includes(param[0]))
+            throw new Error('Invalid Homebrew action')
+          const snapshot = await this.brewQuery('packageSnapshot', param[1])
+          data = await this.homebrew.mutate(param[0], snapshot, (msg) => on({ code: 200, msg }))
+        }
+        resolve({ code: 0, data })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
   private serviceLifecycleClosing = false
   private readonly serviceLifecycleRequests = new Set<Promise<void>>()
 
@@ -216,6 +290,29 @@ export class ForkManager {
       return new ForkPromise((_resolve, reject) =>
         reject(new Error('Application is shutting down'))
       )
+    }
+    if (serviceLifecycleAction(module, param[0]) === 'start') {
+      try {
+        this.homebrewCoordinator?.assertStart(module, param[1])
+      } catch (error) {
+        return new ForkPromise((_resolve, reject) => reject(error))
+      }
+    }
+    if (module === 'brew') {
+      if (['runPackage', 'cancelPackage'].includes(param[0]))
+        return new ForkPromise((_resolve, reject) =>
+          reject(new Error('Homebrew package commands require main admission'))
+        )
+      if (
+        [
+          'prepareUpgrade',
+          'beginUpgrade',
+          'executeUpgrade',
+          'cancelPendingUpgrade',
+          'packageOperation'
+        ].includes(param[0])
+      )
+        return this.homebrewRequest(param[0], param.slice(1))
     }
     // 启动（含伴随服务 open*）可能增加进程：受理前和终态都撤销旧列表。
     // stop 不在此清表，才能让同一轮并行停止共享首次发现；退出确认仍使用新查询。
