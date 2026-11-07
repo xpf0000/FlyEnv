@@ -1,6 +1,8 @@
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from '../Base'
+import { getUpgradeCatalog, inspectUpgrade } from './UpgradeCatalog'
+import EnvSync from '@shared/EnvSync'
 import { execPromiseWithEnv, spawnPromiseWithEnv, copyFile, unlink, chmod } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { SoftInstalled } from '@shared/app'
@@ -8,6 +10,26 @@ import type { SoftInstalled } from '@shared/app'
 class Brew extends Base {
   constructor() {
     super()
+  }
+
+  getUpgradeCatalog(formulas: string[]) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        resolve(await getUpgradeCatalog(global.Server.BrewBin!, formulas, await EnvSync.sync()))
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  inspectUpgrade(name: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        resolve(await inspectUpgrade(global.Server.BrewBin!, name, await EnvSync.sync()))
+      } catch (error) {
+        reject(error)
+      }
+    })
   }
 
   addTap(name: string) {
