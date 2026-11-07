@@ -35,16 +35,6 @@ export const Setup = (typeFlag: AllAppModule) => {
   const appStore = AppStore()
   const brewStore = BrewStore()
 
-  const proxy = computed(() => {
-    return appStore.config.setup.proxy
-  })
-  const proxyStr = computed(() => {
-    if (!proxy?.value.on) {
-      return undefined
-    }
-    return proxy?.value?.proxy
-  })
-
   const checkBrew = computed(() => {
     if (!appStore.envIndex) {
       return false

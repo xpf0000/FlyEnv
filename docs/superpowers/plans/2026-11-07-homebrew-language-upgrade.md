@@ -134,8 +134,12 @@ Lifetime：确认准备可取消；确认后依次 checking→stopping→upgradi
 
 ## Plan Self-Review / current state
 
-- 用户已批准设计；本轮只生成计划，所有实现任务均未开始。
+- 用户已授权当前会话内联实施；Tasks 1–6 的实现与隔离验证完成，待最后独立审查。
 - 从元数据 → main 许可 → fork 执行 → renderer 控制器 → UI → 真实验收的接口已按依赖顺序定义。
 - Review Focus 1 在 Task 4/6；2 在 Task 1/2/6；3 在 Task 2/6；4 在 Task 3/4/6；5 在 Task 4/5/6 中验收。
 - 只刷新安装清单；不增加服务页字段、不自动设置关联/配置、不自动恢复服务；无新模块约束例外。
-- 方案和计划尚未提交或推送。建议后续采用内联执行，以共享同一套生命周期与 IPC 上下文，完成后做一次独立审查。
+- 已按任务提交在隔离工作区，未合并/推送；详细证据和取舍见 docs/superpowers/reports/2026-11-07-homebrew-language-upgrade.md。真实 Homebrew 升级验收尚未完成。
+
+## Implementation evidence
+
+详见 `docs/superpowers/reports/2026-11-07-homebrew-language-upgrade.md`；单任务 RED→GREEN 和决策记录在本计划工作区 progress.md，最终交付时归入报告。

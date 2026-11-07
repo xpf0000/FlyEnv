@@ -9,7 +9,7 @@ try {
   const bin = join(root, 'fake brew')
   await writeFile(
     bin,
-    `#!/usr/bin/env node\nconst f=process.argv.at(-1);console.log(JSON.stringify(process.argv.slice(2)));console.log(process.env.HOMEBREW_NO_AUTO_UPDATE);if(f.includes('slow')){setInterval(()=>console.log('working'),20);process.on('SIGTERM',()=>setTimeout(()=>process.exit(3),100))}else if(f.includes('fail')){console.error('failure');process.exitCode=7}else if(f.includes('large')){console.log('x'.repeat(200000))}`
+    `#!/usr/bin/env node\nconst f=process.argv.at(-1);console.log(JSON.stringify(process.argv.slice(2)));console.log(process.env.HOMEBREW_NO_AUTO_UPDATE);if(f.includes('slow')){setInterval(()=>console.log('working'),20);process.on('SIGTERM',()=>setTimeout(()=>process.exit(3),100))}else if(f.includes('fail')){console.error('failure');process.exitCode=7}else if(f.includes('signal')){process.kill(process.pid,'SIGTERM')}else if(f.includes('large')){console.log('x'.repeat(200000))}`
   )
   await chmod(bin, 0o755)
   const runner = new BrewPackageRunner()
@@ -29,6 +29,14 @@ try {
     (await runner.runPackage('upgrade', snapshot('homebrew/core/php-fail'), 'fail')).code,
     7
   )
+  const signaled = await runner.runPackage(
+    'upgrade',
+    snapshot('homebrew/core/php-signal'),
+    'signal'
+  )
+  assert.equal(signaled.code, null)
+  assert.equal(signaled.signal, 'SIGTERM')
+  assert.equal(signaled.outcome, 'failed')
   const large = await runner.runPackage('install', snapshot('homebrew/core/php-large'), 'large')
   assert(large.logs.length <= 65536)
   await assert.rejects(

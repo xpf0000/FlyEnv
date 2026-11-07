@@ -26,6 +26,7 @@ for (const failStop of [false, true]) {
         })
         return { operationId: 'op', action: 'upgrade', outcome: 'succeeded', logs: 'done' }
       }
+      return undefined
     },
     stop: async (target) => {
       events.push(`stop${target.item.pid}`)

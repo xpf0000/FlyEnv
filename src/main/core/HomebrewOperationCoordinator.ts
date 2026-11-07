@@ -27,13 +27,6 @@ type Operation = {
   flight?: Promise<BrewPackageResult>
 }
 const digest = (v: unknown) => createHash('sha256').update(JSON.stringify(v)).digest('hex')
-const actualPath = (value: string) => {
-  try {
-    return realpathSync(value)
-  } catch {
-    return resolve(value)
-  }
-}
 const inside = (bin: string, rack: string) => bin === rack || bin.startsWith(rack + sep)
 
 /** Main owns admission and trusted snapshots; no renderer-provided path can grant execution. */
@@ -43,13 +36,22 @@ export class HomebrewOperationCoordinator {
   private active?: Operation
   constructor(private readonly deps: Dependencies) {}
 
-  private related(snapshot: BrewFormulaSnapshot, target: unknown) {
+  private related(snapshot: BrewFormulaSnapshot, target: unknown): boolean | undefined {
     const bin = (target as { bin?: unknown })?.bin
-    if (typeof bin !== 'string' || !isAbsolute(bin)) return true
-    return snapshot.affectedRacks.some((rack) => inside(actualPath(bin), rack))
+    if (typeof bin !== 'string' || !isAbsolute(bin)) return undefined
+    let actual: string
+    try {
+      actual = realpathSync(bin)
+    } catch {
+      actual = resolve(bin)
+      // Missing aliases under this prefix cannot prove an independent installation.
+      if (inside(actual, snapshot.identity.prefix) && !inside(actual, snapshot.identity.cellar))
+        return undefined
+    }
+    return snapshot.affectedRacks.some((rack) => inside(actual, rack))
   }
   assertStart(_module: string, target: unknown) {
-    if (this.active && this.related(this.active.snapshot, target))
+    if (this.active && this.related(this.active.snapshot, target) !== false)
       throw new Error(
         'Homebrew is changing this installation; start is blocked until the package operation finishes'
       )
@@ -57,7 +59,12 @@ export class HomebrewOperationCoordinator {
   private targets(snapshot: BrewFormulaSnapshot) {
     return this.deps
       .running()
-      .filter((target) => this.related(snapshot, target.item))
+      .filter((target) => {
+        const related = this.related(snapshot, target.item)
+        if (related === undefined)
+          throw new Error(`Cannot verify running service installation: ${target.module}`)
+        return related
+      })
       .sort((a, b) =>
         `${a.module}:${a.item.bin}:${a.item.pid}`.localeCompare(
           `${b.module}:${b.item.bin}:${b.item.pid}`
@@ -111,7 +118,7 @@ export class HomebrewOperationCoordinator {
   cancelPending(id: string) {
     const operation = this.operations.get(id)
     if (!operation) throw new Error('Invalid Homebrew operation')
-    if (operation.phase !== 'pending')
+    if (operation.phase !== 'pending' || (operation.flight && this.active === operation))
       throw new Error('Homebrew command is running or its result is unknown')
     if (this.active === operation) this.active = undefined
     this.operations.delete(id)

@@ -8,11 +8,16 @@ let running = [
       bin: '/opt/homebrew/Cellar/php/8.5.7/bin/php',
       path: '/opt/homebrew/Cellar/php/8.5.7',
       version: '8.5.7',
+      enable: true,
+      run: true,
+      running: false,
+      num: 85,
+      typeFlag: 'php' as const,
       pid: '123'
     }
   }
 ]
-let snapshot = {
+const snapshot = {
   identity: {
     bin: '/opt/homebrew/bin/brew',
     prefix: '/opt/homebrew',
@@ -70,4 +75,67 @@ assert.equal(await c.execute(op.operationId), await result)
 assert.equal(executed, 1)
 console.log(
   'PASS admission: opaque tokens, stale confirmation, stops required, start gate, single execution, terminal replay'
+)
+// Execute owns admission even while awaiting its last read-only revalidation.
+let inspectBarrier: Promise<void> = Promise.resolve()
+let releaseInspect!: () => void
+const guarded = new HomebrewOperationCoordinator({
+  inspect: async () => {
+    await inspectBarrier
+    return structuredClone(snapshot)
+  },
+  running: () => [],
+  idle: async () => {},
+  run: async (id, action) => ({
+    operationId: id,
+    action,
+    outcome: 'unknown',
+    error: 'worker exited',
+    logs: ''
+  })
+})
+const gp = await guarded.prepareUpgrade('php', 'php')
+const go = await guarded.beginUpgrade(gp.previewId)
+inspectBarrier = new Promise<void>((resolve) => {
+  releaseInspect = resolve
+})
+const gf = guarded.execute(go.operationId)
+await new Promise((r) => setTimeout(r, 0))
+assert.throws(() => guarded.cancelPending(go.operationId), /running|executing/)
+releaseInspect()
+assert.equal((await gf).outcome, 'unknown')
+assert.throws(() => guarded.assertStart('php', {}), /Homebrew/)
+await assert.rejects(guarded.beginUpgrade(gp.previewId))
+console.log(
+  'PASS admission: cancellation cannot release execute preflight, worker loss retains gate'
+)
+const uncertain = new HomebrewOperationCoordinator({
+  inspect: async () => snapshot,
+  idle: async () => {},
+  running: () => [
+    {
+      module: 'php',
+      item: { ...previewItem(), bin: '/opt/homebrew/opt/nonexistent-flyenv-fixture/sbin/php-fpm' }
+    }
+  ],
+  run: async () => {
+    throw new Error('must not run')
+  }
+})
+function previewItem() {
+  return {
+    bin: '',
+    path: '',
+    version: '8.5.7',
+    enable: true,
+    run: true,
+    running: false,
+    num: 85,
+    typeFlag: 'php' as const,
+    pid: '123'
+  }
+}
+await assert.rejects(uncertain.prepareUpgrade('php', 'php'), /verify.*service/i)
+console.log(
+  'PASS admission: unverifiable running alias blocks preparation rather than becoming a stop target'
 )

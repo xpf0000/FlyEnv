@@ -290,8 +290,7 @@ class ServiceProcess {
       if (action === 'start') this.installationStartGuard?.(type, selected)
       return task(selected)
     })
-    let tracked!: Promise<T>
-    tracked = operation.finally(() => {
+    const tracked = operation.finally(() => {
       // 目标解析失败或请求在排队中超时也必须结算范围/终态。后来请求的前驱集合
       // 已冻结，取消第二项不会让第三项越过仍存活的第一项。
       resolveScope('')

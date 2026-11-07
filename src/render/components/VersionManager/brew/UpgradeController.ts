@@ -3,7 +3,7 @@ import type {
   BrewPackageResult,
   BrewServiceTarget,
   BrewUpgradePreview
-} from '../../../../../fork/module/Brew/UpgradeTypes'
+} from '@fork/module/Brew/UpgradeTypes'
 
 type Dependencies = {
   call: (action: string, args: unknown[], progress?: (data: string) => void) => Promise<any>

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFile, writeFile, readdir } from 'node:fs/promises'
+import { readFile, writeFile, readdir, mkdir } from 'node:fs/promises'
 import { parse, compileScript } from '@vue/compiler-sfc'
 import { createRenderer, defineComponent, h, provide, inject, nextTick, reactive } from 'vue'
 import { loadIsolated } from './helpers/load-isolated'
@@ -9,6 +9,7 @@ const compiled = compileScript(parse(source).descriptor, {
   inlineTemplate: true
 }).content
 const entry = '.superpowers/sdd/2026-11-07-homebrew-language-upgrade/ui-component.ts'
+await mkdir('.superpowers/sdd/2026-11-07-homebrew-language-upgrade', { recursive: true })
 await writeFile(entry, compiled)
 const old = { name: 'php', installed: true, version: '8.5.12' }
 let begins = 0

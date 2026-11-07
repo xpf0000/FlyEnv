@@ -6,7 +6,7 @@ import { BrewStore } from '@/store/brew'
 import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 import type { AllAppModule } from '@/core/type'
 import { HomebrewUpgradeController } from './UpgradeController'
-import type { BrewPackageResult } from '../../../../../fork/module/Brew/UpgradeTypes'
+import type { BrewPackageResult } from '@fork/module/Brew/UpgradeTypes'
 
 export const brewRequest = (
   action: string,

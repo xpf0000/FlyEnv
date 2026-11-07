@@ -36,6 +36,8 @@ try {
   assert.deepEqual(old.installedVersions, ['8.4.1', '8.5.7'])
   assert.equal(old.kegs.length, 2)
   assert.equal((await inspect({ pinned: true })).reason, 'pinned')
+  assert.equal((await inspect({ tap: 'shivammathur/php' })).eligible, false)
+  assert.equal((await inspect({ versions: { stable: '' } })).eligible, false)
   assert.equal((await inspect({ outdated: false })).eligible, false)
   assert.equal(
     (await inspect({ versions: { stable: '8.5.7' }, revision: 1 })).availableVersion,
@@ -63,3 +65,50 @@ try {
 } finally {
   await rm(root, { recursive: true, force: true })
 }
+// A current shared library is not itself upgraded; unrelated database services remain independent.
+const { dependencyImpact } = await import('../src/fork/module/Brew/UpgradeCatalog')
+const graph = [
+  { name: 'php', dependencies: ['openssl'], installed: [{ version: '8.5.7' }], outdated: true },
+  { name: 'openssl', dependencies: [], installed: [{ version: '3.5' }], outdated: false },
+  { name: 'mysql', dependencies: ['openssl'], installed: [{ version: '9' }], outdated: false }
+] as any
+assert.deepEqual(dependencyImpact(graph, 'php'), ['php'])
+graph[1].outdated = true
+assert.deepEqual(dependencyImpact(graph, 'php'), ['mysql', 'openssl', 'php'])
+console.log(
+  'PASS dependency impact: current shared libraries do not connect unrelated databases; changing libraries include dependents'
+)
+
+const missing = new Set<string>()
+assert.deepEqual(
+  dependencyImpact(
+    [
+      {
+        name: 'php',
+        dependencies: [],
+        build_dependencies: ['pkg-config'],
+        installed: [{ version: '8.5.7' }]
+      }
+    ] as any,
+    'php',
+    missing
+  ),
+  ['php', 'pkg-config']
+)
+assert.deepEqual([...missing], ['pkg-config'])
+assert.deepEqual(
+  dependencyImpact(
+    [
+      {
+        name: 'php',
+        dependencies: [],
+        build_dependencies: ['pkg-config'],
+        installed: [{ version: '8.5.7' }]
+      },
+      { name: 'pkgconf', aliases: ['pkg-config'], installed: [], dependencies: [] }
+    ] as any,
+    'php'
+  ),
+  ['php', 'pkgconf']
+)
+console.log('PASS dependency impact: missing build metadata requested and aliases canonicalized')

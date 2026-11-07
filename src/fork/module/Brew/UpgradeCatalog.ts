@@ -37,6 +37,8 @@ export function queryBrew(bin: string, args: string[], env = process.env): Promi
 }
 type Info = {
   name: string
+  aliases?: string[]
+  oldnames?: string[]
   full_name: string
   tap: string
   versions: { stable: string }
@@ -60,7 +62,11 @@ export async function inspectFormula(
   const versions = item.installed.map((i) => i.version).sort()
   const kegs: string[] = []
   const receipts: unknown[] = []
-  let verified = versions.length > 0
+  let verified =
+    versions.length > 0 &&
+    versions.every((version) => /^\d/.test(version)) &&
+    !!item.versions?.stable &&
+    formula === `${item.tap}/${item.name}`
   for (const version of versions) {
     if (!/^[a-zA-Z0-9_.+-]+$/.test(version) || version === '..') {
       verified = false
@@ -148,33 +154,69 @@ export async function getUpgradeCatalog(bin: string, formulas: string[], env = p
   }
   return rows
 }
-/** Conservative dependency component includes dependencies and installed dependents, including broken linkage rebuilds. */
-export async function inspectUpgrade(bin: string, name: string, env = process.env) {
-  const [row] = await getUpgradeCatalog(bin, [name], env)
-  if (!row) throw new Error('Cannot verify Homebrew formula')
-  const all: Info[] = JSON.parse(
-    await queryBrew(row.identity.bin, ['info', '--json=v2', '--installed', '--formula'], env)
-  ).formulae
-  const byName = new Map(all.map((i) => [i.name, i]))
-  const connected = new Set([name.split('/').at(-1)!])
-  let changed = true
-  while (changed) {
-    changed = false
-    for (const item of all) {
-      const deps = [
-        ...(item.dependencies ?? []),
-        ...(item.build_dependencies ?? []),
-        ...(item.recommended_dependencies ?? [])
-      ].map((d) => d.split('/').at(-1)!)
-      if (connected.has(item.name) || deps.some((d) => connected.has(d))) {
-        for (const n of [item.name, ...deps])
-          if (!connected.has(n)) {
-            connected.add(n)
-            changed = true
-          }
+/** Include possible dependency upgrades and dependent linkage rebuilds, not unchanged shared libraries. */
+export function dependencyImpact(items: Info[], selected: string, missing?: Set<string>): string[] {
+  const byName = new Map(
+    items.flatMap((item) =>
+      [item.name, ...(item.aliases ?? []), ...(item.oldnames ?? [])].map(
+        (name) => [name, item] as const
+      )
+    )
+  )
+  const dependencies = (item: Info) =>
+    [
+      ...(item.dependencies ?? []),
+      ...(item.build_dependencies ?? []),
+      ...(item.recommended_dependencies ?? [])
+    ].map((name) => {
+      const short = name.split('/').at(-1)!
+      return byName.get(short)?.name ?? short
+    })
+  const changed = new Set([selected])
+  let size = -1
+  while (size !== changed.size) {
+    size = changed.size
+    for (const item of items) {
+      if (item.installed.length && dependencies(item).some((name) => changed.has(name)))
+        changed.add(item.name)
+      if (!changed.has(item.name)) continue
+      for (const name of dependencies(item)) {
+        const dependency = byName.get(name)
+        if (!dependency) {
+          if (!missing) throw new Error(`Cannot verify Homebrew dependency impact: ${name}`)
+          missing.add(name)
+          changed.add(name)
+          continue
+        }
+        if (dependency.outdated || !dependency.installed.length) changed.add(name)
       }
     }
   }
+  return [...changed].sort()
+}
+
+export async function inspectUpgrade(bin: string, name: string, env = process.env) {
+  const [row] = await getUpgradeCatalog(bin, [name], env)
+  if (!row) throw new Error('Cannot verify Homebrew formula')
+  let all: Info[] = JSON.parse(
+    await queryBrew(row.identity.bin, ['info', '--json=v2', '--installed', '--formula'], env)
+  ).formulae
+  // Bottled installs normally omit build dependencies. Read their metadata before
+  // deciding whether a source build could touch an installed dependency/dependent.
+  for (let depth = 0; ; depth++) {
+    const missing = new Set<string>()
+    dependencyImpact(all, name.split('/').at(-1)!, missing)
+    if (!missing.size) break
+    if (depth >= 12 || all.length > 1000)
+      throw new Error('Cannot verify Homebrew dependency impact')
+    const extra: Info[] = JSON.parse(
+      await queryBrew(row.identity.bin, ['info', '--json=v2', '--formula', ...missing], env)
+    ).formulae
+    if (!extra.length) throw new Error('Cannot verify Homebrew dependency impact')
+    all = [...all, ...extra.filter((item) => !all.some((old) => old.full_name === item.full_name))]
+  }
+  const byName = new Map(all.map((i) => [i.name, i]))
+  const connected = new Set(dependencyImpact(all, name.split('/').at(-1)!))
   row.affectedRacks = [...connected].sort().map((n) => join(row.identity.cellar, n))
   if (
     [...connected].some((n) =>

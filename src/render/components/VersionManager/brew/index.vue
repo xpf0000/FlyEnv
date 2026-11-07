@@ -190,7 +190,7 @@ ${homebrewUpgrade.error}`
 <script lang="ts" setup>
   import { computed, ref } from 'vue'
   import { homebrewUpgrade } from './Controller'
-  import type { BrewUpgradePreview } from '../../../../../fork/module/Brew/UpgradeTypes'
+  import type { BrewUpgradePreview } from '@fork/module/Brew/UpgradeTypes'
   import { I18nT } from '@lang/index'
   import type { AllAppModule } from '@/core/type'
   import { BrewSetup, Setup } from './setup'
