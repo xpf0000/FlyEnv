@@ -110,6 +110,8 @@ export class ForkManager {
   private languageSnapshotProvider?: () => LanguageRuntimePayload
   // 注入主进程唯一协调器；独立服务 fork 与普通池共享授权队列。
   windowsPrivilegeBridge?: WindowsPrivilegeBridge
+  private brewFork?: ForkItem
+  private readonly brewFlights = new Set<Promise<unknown>>()
   private homebrewCoordinator?: HomebrewOperationCoordinator
   private get homebrew() {
     if (!this.homebrewCoordinator) {
@@ -142,26 +144,41 @@ export class ForkManager {
     snapshot: BrewFormulaSnapshot,
     progress: (data: string) => void
   ): Promise<BrewPackageResult> {
-    const worker = this.createForkItem(TRANSIENT_FORK_IDLE_TIMEOUT_MS)
+    if (!this.brewFork || this.brewFork.childExited) {
+      this.brewFork = this.createForkItem(TRANSIENT_FORK_IDLE_TIMEOUT_MS)
+      this.brewFork._on = this._on
+    }
+    const worker = this.brewFork
     worker.pin()
-    this.forks.push(worker)
-    return Promise.resolve(
-      worker.send('brew', 'runPackage', action, snapshot, id).on((info: any) => {
-        if (info.code === 200) progress(String(info.msg ?? info.data ?? ''))
-      })
+    const flight = Promise.resolve(
+      worker
+        .sendWithTerminalHook(() => {}, 'brew', 'runPackage', action, snapshot, id)
+        .on((info: any) => {
+          if (info.code === 200) progress(String(info.msg ?? info.data ?? ''))
+        })
     )
       .then((info: any) =>
         info.code === 0
           ? info.data
           : { operationId: id, action, outcome: 'unknown', error: info.msg, logs: '' }
       )
-      .finally(() => worker.unpin())
+      .finally(() => {
+        worker.unpin()
+        this.brewFlights.delete(flight)
+      })
+    this.brewFlights.add(flight)
+    return flight
   }
 
   private homebrewRequest(action: string, param: any[]) {
     return new ForkPromise(async (resolve, reject, on) => {
       try {
         let data: unknown
+        if (
+          ['prepareUpgrade', 'beginUpgrade', 'executeUpgrade'].includes(action) &&
+          process.platform !== 'darwin'
+        )
+          throw new Error('Homebrew upgrades currently require macOS')
         if (action === 'prepareUpgrade')
           data = await this.homebrew.prepareUpgrade(param[0], param[1])
         else if (action === 'beginUpgrade') data = await this.homebrew.beginUpgrade(param[0])
@@ -239,6 +256,7 @@ export class ForkManager {
     const message: EnvSyncInvalidated = { type: 'env-sync-invalidated', revision }
     const forks = new Set(
       [
+        this.brewFork,
         this.ftpsrvFork,
         this.dnsFork,
         this.ollamaChatFork,
@@ -421,6 +439,8 @@ export class ForkManager {
   }
 
   async drainServiceLifecycleRequests() {
+    // Package commands may build from source: observation timeout must not kill the worker.
+    await Promise.allSettled([...this.brewFlights])
     try {
       await waitForServiceDrain(
         (async () => {
@@ -455,6 +475,7 @@ export class ForkManager {
   async broadcastLanguage(message: LanguageChanged) {
     const forks = new Set(
       [
+        this.brewFork,
         this.ftpsrvFork,
         this.dnsFork,
         this.ollamaChatFork,
@@ -469,6 +490,7 @@ export class ForkManager {
   broadcastServer(server: unknown) {
     const forks = new Set(
       [
+        this.brewFork,
         this.ftpsrvFork,
         this.dnsFork,
         this.ollamaChatFork,
@@ -485,6 +507,8 @@ export class ForkManager {
   }
 
   async destroy() {
+    await Promise.allSettled([...this.brewFlights])
+    this.brewFork?.destroy()
     // Independent workers still close when another worker or cache flush fails.
     const cleanup = await Promise.allSettled([
       this.pluginWorkers.closeAll(),

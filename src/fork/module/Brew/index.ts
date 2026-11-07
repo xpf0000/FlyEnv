@@ -1,13 +1,16 @@
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { Base } from '../Base'
-import { getUpgradeCatalog, inspectUpgrade } from './UpgradeCatalog'
+import { getUpgradeCatalog, inspectUpgrade, getBrewIdentity, formulaName } from './UpgradeCatalog'
+import { BrewPackageRunner } from './BrewPackageRunner'
+import type { BrewFormulaSnapshot, BrewPackageAction } from './UpgradeTypes'
 import EnvSync from '@shared/EnvSync'
 import { execPromiseWithEnv, spawnPromiseWithEnv, copyFile, unlink, chmod } from '../../Fn'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { SoftInstalled } from '@shared/app'
 
 class Brew extends Base {
+  private packageRunner = new BrewPackageRunner()
   constructor() {
     super()
   }
@@ -28,6 +31,38 @@ class Brew extends Base {
         resolve(await inspectUpgrade(global.Server.BrewBin!, name, await EnvSync.sync()))
       } catch (error) {
         reject(error)
+      }
+    })
+  }
+
+  packageSnapshot(name: string) {
+    return new ForkPromise(async (resolve, reject) => {
+      try {
+        const identity = await getBrewIdentity(global.Server.BrewBin!, await EnvSync.sync())
+        resolve({ identity, formula: formulaName(name), affectedRacks: [identity.cellar] })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
+  runPackage(action: BrewPackageAction, snapshot: BrewFormulaSnapshot, id: string) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        const identity = await getBrewIdentity(global.Server.BrewBin!, await EnvSync.sync())
+        if (JSON.stringify(identity) !== JSON.stringify(snapshot.identity))
+          throw new Error('Homebrew identity changed')
+        resolve(
+          await this.packageRunner.runPackage(
+            action,
+            snapshot,
+            id,
+            (msg) => on(msg),
+            await EnvSync.sync()
+          )
+        )
+      } catch (error) {
+        resolve({ operationId: id, action, outcome: 'failed', error: String(error), logs: '' })
       }
     })
   }
