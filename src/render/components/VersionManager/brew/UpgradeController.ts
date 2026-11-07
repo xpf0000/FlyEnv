@@ -46,6 +46,14 @@ export class HomebrewUpgradeController {
         this.preview = preview
         return preview
       })
+      .catch((error) => {
+        this.error = String(error)
+        this.deps.notify(
+          { operationId: '', action: 'upgrade', outcome: 'failed', error: this.error, logs: '' },
+          false
+        )
+        throw error
+      })
       .finally(() => {
         this.phase = 'idle'
         this.prepareFlight = undefined
