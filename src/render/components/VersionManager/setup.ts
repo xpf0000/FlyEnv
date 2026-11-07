@@ -1,3 +1,4 @@
+import { homebrewUpgrade } from './brew/Controller'
 import { computed } from 'vue'
 import { AppStore } from '@/store/app'
 import { BrewStore } from '@/store/brew'
@@ -143,7 +144,7 @@ export const Setup = (typeFlag: AllAppModule, hasStatic?: boolean) => {
   const loading = computed(() => {
     const module = brewStore.module(typeFlag)
     if (libSrc.value === 'brew') {
-      return module.brewFetching || BrewSetup.installing
+      return module.brewFetching || BrewSetup.installing || homebrewUpgrade.busy
     }
     if (libSrc.value === 'port') {
       return module.portFetching || MacPortsSetup.installing

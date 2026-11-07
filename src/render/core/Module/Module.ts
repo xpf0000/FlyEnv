@@ -9,10 +9,16 @@ import { ModuleMacportsItem } from '@/core/Module/ModuleMacportsItem'
 import { ModuleStaticItem } from '@/core/Module/ModuleStaticItem'
 import { ModuleSdkmanItem } from '@/core/Module/ModuleSdkmanItem'
 import { brewInfo, fetchVerion, portInfo, sdkmanInfo } from '@/util/Brew'
-import { installedVersionNote, syncInstalledVersionNotes } from '@/util/InstalledVersionNote'
+import {
+  installedVersionNote,
+  syncInstalledVersionNotes,
+  loadInstalledVersionNotes
+} from '@/util/InstalledVersionNote'
 import { syncStaticInstalledFlags } from './syncStaticInstalledFlags'
 import { ensureDataDirectoryReady } from '@/core/DataDirectoryStartup'
 import { fs } from '@/util/NodeFn'
+
+export type InstalledRefreshOptions = { updateCurrent?: boolean; pruneNotes?: boolean }
 
 type ExtParamFn = (item: ModuleInstalledItem) => Promise<any>
 
@@ -97,6 +103,7 @@ export class Module {
     return this
   }
 
+  private _installedRefreshOptions: InstalledRefreshOptions = {}
   private _fetchInstalledResolves: CallbackFn[] = []
   private _fetchInstalledTimer?: ReturnType<typeof setTimeout>
 
@@ -107,9 +114,9 @@ export class Module {
     }
     this.installedFetched = fetched
     this.fetchInstalleding = false
-    this._fetchInstalledResolves.forEach((f) => f(true))
+    this._fetchInstalledResolves.forEach((f) => f(fetched))
     this._fetchInstalledResolves.splice(0)
-    resolve(true)
+    resolve(fetched)
   }
 
   resetCurrentVersion(autoSave: boolean = false) {
@@ -142,7 +149,7 @@ export class Module {
     return false
   }
 
-  async applyInstalledVersions(installed: SoftInstalled[]) {
+  async applyInstalledVersions(installed: SoftInstalled[], options: InstalledRefreshOptions = {}) {
     const appStore = AppStore()
     const setup = JSON.parse(JSON.stringify(appStore.config.setup))
     const excludeLocalVersion = setup?.excludeLocalVersion ?? []
@@ -177,9 +184,11 @@ export class Module {
     this.installed.push(...installItems)
     await syncStaticInstalledFlags(this.static, fs.existsSync)
 
-    const needSaveConfig = this.resetCurrentVersion(false)
+    const needSaveConfig = options.updateCurrent !== false && this.resetCurrentVersion(false)
     try {
-      await syncInstalledVersionNotes(this.typeFlag, this.installed)
+      if (options.pruneNotes !== false)
+        await syncInstalledVersionNotes(this.typeFlag, this.installed)
+      else await loadInstalledVersionNotes()
       this.installed.forEach((item) => {
         item.note = installedVersionNote(item, this.typeFlag)
       })
@@ -194,17 +203,29 @@ export class Module {
     this.fetchInstalleding = false
   }
 
-  fetchInstalled(retryDataDirectory = false): Promise<boolean> {
+  fetchInstalled(
+    retryDataDirectory = false,
+    options: InstalledRefreshOptions = {}
+  ): Promise<boolean> {
     if (!window.Server.DataDirectoryReady) {
       if (!retryDataDirectory) {
         return Promise.resolve(false)
       }
       return ensureDataDirectoryReady().then((ready) => {
-        return ready ? this.fetchInstalled(retryDataDirectory) : false
+        return ready ? this.fetchInstalled(retryDataDirectory, options) : false
       })
     }
     const appStore = AppStore()
     return new Promise((resolve) => {
+      if (this.fetchInstalleding) {
+        this._installedRefreshOptions.updateCurrent =
+          this._installedRefreshOptions.updateCurrent !== false && options.updateCurrent !== false
+        this._installedRefreshOptions.pruneNotes =
+          this._installedRefreshOptions.pruneNotes !== false && options.pruneNotes !== false
+        this._fetchInstalledResolves.push(resolve)
+        return
+      }
+      this._installedRefreshOptions = { ...options }
       if (this.installedFetched) {
         this._fetchInstalledResolves.forEach((f) => f(true))
         this._fetchInstalledResolves.splice(0)
@@ -250,12 +271,15 @@ export class Module {
               console.error('fetchInstalled plugin response error: ', this.typeFlag, res?.msg)
               return
             }
-            await this.applyInstalledVersions(res.data)
+            await this.applyInstalledVersions(res.data, this._installedRefreshOptions)
             fetched = true
           } else {
             const versions: Record<string, Array<SoftInstalled>> = res?.data ?? {}
             if (Object.prototype.hasOwnProperty.call(versions, this.typeFlag)) {
-              await this.applyInstalledVersions(versions[this.typeFlag] ?? [])
+              await this.applyInstalledVersions(
+                versions[this.typeFlag] ?? [],
+                this._installedRefreshOptions
+              )
               fetched = true
             }
           }
@@ -271,12 +295,12 @@ export class Module {
     })
   }
 
-  fetchBrew() {
-    if (this.brewFetching) {
-      return
-    }
+  private brewFlight?: Promise<boolean>
+
+  fetchBrew(): Promise<boolean> {
+    if (this.brewFlight) return this.brewFlight
     this.brewFetching = true
-    brewInfo(this.typeFlag)
+    this.brewFlight = brewInfo(this.typeFlag)
       .then((res: any) => {
         const newItems: any[] = []
         for (const item of res) {
@@ -295,11 +319,14 @@ export class Module {
         if (newItems.length > 0) {
           this.brew.push(...newItems)
         }
-        this.brewFetching = false
+        return true
       })
-      .catch(() => {
+      .catch(() => false)
+      .finally(() => {
         this.brewFetching = false
+        this.brewFlight = undefined
       })
+    return this.brewFlight
   }
 
   fetchPort() {

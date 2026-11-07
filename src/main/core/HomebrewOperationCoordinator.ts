@@ -143,7 +143,20 @@ export class HomebrewOperationCoordinator {
       if (result.outcome === 'unknown') operation.phase = 'unknown'
       else if (this.active === operation) this.active = undefined
       return result
-    })()
+    })().catch((error) => {
+      // No child was submitted on these required precondition failures.
+      if (operation.phase === 'pending') {
+        if (this.active === operation) this.active = undefined
+        return {
+          operationId: id,
+          action: 'upgrade',
+          outcome: 'failed',
+          error: String(error),
+          logs: ''
+        } as BrewPackageResult
+      }
+      throw error
+    })
     return operation.flight
   }
 
