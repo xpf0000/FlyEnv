@@ -15,7 +15,7 @@ export type BrewFormulaSnapshot = {
   reason?: string
   fingerprint: string
 }
-export type BrewServiceTarget = { module: string; item: SoftInstalled }
+export type BrewServiceTarget = { module: string; item: SoftInstalled; generation?: number }
 export type BrewUpgradePreview = {
   previewId: string
   module: 'php'
@@ -25,6 +25,8 @@ export type BrewUpgradePreview = {
 export type BrewPackageAction = 'install' | 'uninstall' | 'upgrade'
 export type BrewPackageResult = {
   operationId: string
+  identity?: BrewIdentity
+  postprocessError?: string
   action: BrewPackageAction
   outcome: 'succeeded' | 'failed' | 'unknown'
   code?: number | null

@@ -212,6 +212,7 @@ ${homebrewUpgrade.error}`
     )
   )
   const operationStatus = computed(() => {
+    if (homebrewUpgrade.result?.postprocessError) return I18nT('versionmanager.brewPackagePartial')
     const phase = homebrewUpgrade.phase
     if (phase === 'succeeded')
       return I18nT(

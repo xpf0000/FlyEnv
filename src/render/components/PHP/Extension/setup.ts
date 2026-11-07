@@ -1,6 +1,7 @@
 import { computed, reactive, ref, Ref } from 'vue'
 import { type SoftInstalled } from '@/store/brew'
 import { BrewSetup } from '@/components/PHP/Extension/Homebrew/setup'
+import { homebrewUpgrade } from '@/components/VersionManager/brew/Controller'
 import { LoadedSetup } from '@/components/PHP/Extension/Loaded/setup'
 import { MacPortsSetup } from '@/components/PHP/Extension/Macports/setup'
 import { join } from '@/util/path-browserify'
@@ -25,7 +26,7 @@ export const Setup = (version: SoftInstalled) => {
 
   const showFooter = computed(() => {
     if (lib.value === 'homebrew') {
-      return BrewSetup.installing
+      return false
     }
     if (lib.value === 'macports') {
       return MacPortsSetup.installing
@@ -35,7 +36,7 @@ export const Setup = (version: SoftInstalled) => {
 
   const taskEnd = computed(() => {
     if (lib.value === 'homebrew') {
-      return BrewSetup.installEnd
+      return !homebrewUpgrade.busy
     }
     if (lib.value === 'macports') {
       return MacPortsSetup.installEnd
@@ -44,13 +45,7 @@ export const Setup = (version: SoftInstalled) => {
   })
 
   const taskConfirm = () => {
-    if (lib.value === 'homebrew') {
-      BrewSetup.installing = false
-      BrewSetup.installEnd = false
-      BrewSetup.xterm?.destroy()
-      delete BrewSetup.xterm
-      return
-    }
+    if (lib.value === 'homebrew') return
 
     if (lib.value === 'macports') {
       MacPortsSetup.installing = false
@@ -62,15 +57,7 @@ export const Setup = (version: SoftInstalled) => {
   }
 
   const taskCancel = () => {
-    if (lib.value === 'homebrew') {
-      BrewSetup.installing = false
-      BrewSetup.installEnd = false
-      BrewSetup.xterm?.stop()?.then(() => {
-        BrewSetup.xterm?.destroy()
-        delete BrewSetup.xterm
-      })
-      return
-    }
+    if (lib.value === 'homebrew') return
 
     if (lib.value === 'macports') {
       MacPortsSetup.installing = false
@@ -85,7 +72,7 @@ export const Setup = (version: SoftInstalled) => {
 
   const loading = computed(() => {
     if (lib.value === 'homebrew') {
-      return BrewSetup.fetching[version.bin] || BrewSetup.installing
+      return BrewSetup.fetching[version.bin] || homebrewUpgrade.busy
     }
     if (lib.value === 'loaded') {
       return LoadedSetup.fetching[version.bin]

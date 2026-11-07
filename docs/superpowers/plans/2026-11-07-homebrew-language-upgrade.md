@@ -134,7 +134,7 @@ Lifetime：确认准备可取消；确认后依次 checking→stopping→upgradi
 
 ## Plan Self-Review / current state
 
-- 用户已授权当前会话内联实施；Tasks 1–6 的实现与隔离验证完成，待最后独立审查。
+- 用户已授权当前会话内联实施；Tasks 1–6 的实现与隔离验证完成，独立审查发现的五项问题已在同一轮补回归并修复。
 - 从元数据 → main 许可 → fork 执行 → renderer 控制器 → UI → 真实验收的接口已按依赖顺序定义。
 - Review Focus 1 在 Task 4/6；2 在 Task 1/2/6；3 在 Task 2/6；4 在 Task 3/4/6；5 在 Task 4/5/6 中验收。
 - 只刷新安装清单；不增加服务页字段、不自动设置关联/配置、不自动恢复服务；无新模块约束例外。

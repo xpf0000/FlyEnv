@@ -18,7 +18,11 @@ import { syncStaticInstalledFlags } from './syncStaticInstalledFlags'
 import { ensureDataDirectoryReady } from '@/core/DataDirectoryStartup'
 import { fs } from '@/util/NodeFn'
 
-export type InstalledRefreshOptions = { updateCurrent?: boolean; pruneNotes?: boolean }
+export type InstalledRefreshOptions = {
+  updateCurrent?: boolean
+  pruneNotes?: boolean
+  fresh?: boolean
+}
 
 type ExtParamFn = (item: ModuleInstalledItem) => Promise<any>
 
@@ -215,6 +219,16 @@ export class Module {
         return ready ? this.fetchInstalled(retryDataDirectory, options) : false
       })
     }
+    if (options.fresh) {
+      const preserved = { ...options, fresh: false }
+      const previous = this.fetchInstalleding
+        ? this.fetchInstalled(retryDataDirectory, preserved)
+        : Promise.resolve(true)
+      return previous.then(() => {
+        this.installedFetched = false
+        return this.fetchInstalled(retryDataDirectory, preserved)
+      })
+    }
     const appStore = AppStore()
     return new Promise((resolve) => {
       if (this.fetchInstalleding) {
@@ -297,7 +311,8 @@ export class Module {
 
   private brewFlight?: Promise<boolean>
 
-  fetchBrew(): Promise<boolean> {
+  fetchBrew(fresh = false): Promise<boolean> {
+    if (fresh && this.brewFlight) return this.brewFlight.then(() => this.fetchBrew())
     if (this.brewFlight) return this.brewFlight
     this.brewFetching = true
     this.brewFlight = brewInfo(this.typeFlag)

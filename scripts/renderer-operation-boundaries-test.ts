@@ -727,3 +727,15 @@ assert.doesNotMatch(homebrewPage, /IPC\.send|new XTerm|Message(?:Error|Success|W
 assert.doesNotMatch(homebrewSetup + homebrewItem, /brew-cmd\.sh/)
 assert.doesNotMatch(homebrewItem, /new XTerm|IPC\.send/)
 assert.match(homebrewController, /reactiveBind\(\s*new HomebrewUpgradeController/)
+
+const extensionBrewSetup = readFileSync(
+  join(componentsDir, 'PHP/Extension/Homebrew/setup.ts'),
+  'utf8'
+)
+const extensionBrewPage = readFileSync(
+  join(componentsDir, 'PHP/Extension/Homebrew/index.vue'),
+  'utf8'
+)
+assert.doesNotMatch(extensionBrewSetup + extensionBrewPage, /brew-cmd\.sh|new XTerm|xterm\?\.stop/)
+assert.match(extensionBrewSetup, /homebrewUpgrade\s*\.package/)
+assert.match(extensionBrewPage, /homebrewUpgrade\.busy/)

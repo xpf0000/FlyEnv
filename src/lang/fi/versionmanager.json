@@ -34,5 +34,6 @@
     "succeeded": "Update succeeded",
     "failed": "Update failed. Check logs.",
     "unknown": "Result unknown. Do not repeat the operation."
-  }
+  },
+  "brewPackagePartial": "Homebrew completed, but a follow-up step failed. Check the logs."
 }

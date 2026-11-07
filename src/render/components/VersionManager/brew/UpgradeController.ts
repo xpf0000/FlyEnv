@@ -19,6 +19,8 @@ export class HomebrewUpgradeController {
   result?: BrewPackageResult
   preview?: BrewUpgradePreview
   catalog: Record<string, BrewFormulaSnapshot> = {}
+  private catalogSequence = 0
+  private requestKey?: string
   private flight?: Promise<BrewPackageResult>
   private prepareFlight?: Promise<BrewUpgradePreview>
   constructor(private readonly deps: Dependencies) {}
@@ -29,7 +31,9 @@ export class HomebrewUpgradeController {
     this.logs = (this.logs + text).slice(-65536)
   }
   async loadCatalog(formulas: string[]) {
+    const sequence = ++this.catalogSequence
     const rows: BrewFormulaSnapshot[] = await this.deps.call('getUpgradeCatalog', [formulas])
+    if (sequence !== this.catalogSequence) return
     const next: Record<string, BrewFormulaSnapshot> = {}
     for (const row of rows) next[row.formula] = row
     this.catalog = next
@@ -40,6 +44,7 @@ export class HomebrewUpgradeController {
     this.phase = 'checking'
     this.error = ''
     this.flight = undefined
+    this.requestKey = undefined
     this.prepareFlight = this.deps
       .call('prepareUpgrade', ['php', formula])
       .then((preview) => {
@@ -61,12 +66,14 @@ export class HomebrewUpgradeController {
     return this.prepareFlight!
   }
   confirm(preview: BrewUpgradePreview): Promise<BrewPackageResult> {
-    if (this.flight) return this.flight
+    if (this.flight && this.requestKey === preview.previewId) return this.flight
     if (this.busy) return Promise.reject(new Error('Homebrew operation is busy'))
+    this.result = undefined
     this.phase = 'checking'
     this.logs = ''
     this.error = ''
     this.refreshFailed = false
+    this.requestKey = preview.previewId
     let id: string | undefined
     let executing = false
     this.flight = (async () => {
@@ -106,8 +113,17 @@ export class HomebrewUpgradeController {
     })()
     return this.flight
   }
-  package(row: { name: string; installed: boolean; typeFlag: string }): Promise<BrewPackageResult> {
-    if (this.busy) return this.flight ?? Promise.reject(new Error('Homebrew operation is busy'))
+  package(
+    row: { name: string; installed: boolean; typeFlag: string },
+    options: { afterPackage?: (result: BrewPackageResult) => Promise<void> } = {}
+  ): Promise<BrewPackageResult> {
+    const key = JSON.stringify([row.typeFlag, row.name, row.installed])
+    if (this.busy)
+      return this.requestKey === key && this.flight
+        ? this.flight
+        : Promise.reject(new Error('Homebrew operation is busy'))
+    this.requestKey = key
+    this.result = undefined
     this.phase = 'upgrading'
     this.logs = ''
     this.error = ''
@@ -119,6 +135,13 @@ export class HomebrewUpgradeController {
         result = await this.deps.call('packageOperation', [action, row.name], (data) =>
           this.append(data)
         )
+        if (result.outcome === 'succeeded' && options.afterPackage) {
+          try {
+            await options.afterPackage(result)
+          } catch (error) {
+            result = { ...result, postprocessError: String(error) }
+          }
+        }
       } catch (error) {
         result = {
           operationId: '',
@@ -135,7 +158,7 @@ export class HomebrewUpgradeController {
   private async finish(result: BrewPackageResult, module: string) {
     this.result = result
     this.logs = result.logs || this.logs
-    this.error = result.error ?? ''
+    this.error = result.postprocessError ?? result.error ?? ''
     if (result.outcome === 'succeeded') {
       this.phase = 'refreshing'
       try {

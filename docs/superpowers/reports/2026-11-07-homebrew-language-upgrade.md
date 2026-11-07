@@ -12,7 +12,7 @@
 
 ## 已执行验证
 
-- `npm run test:homebrew-upgrade`：catalog、受理/并发、真实临时包进程、controller、刷新和真实 Vue 组件行为全部通过。
+- `npm run test:homebrew-upgrade`：9 个功能测试脚本通过：catalog、受理/并发、真实临时包进程、controller、刷新、真实 Vue 组件、raw 生命周期、PHP 精确停止及扩展包入口。
 - `npm run test:homebrew-upgrade:app-smoke`：真实 Application、renderer、IPC、ForkManager 和包子进程；PHP 服务使用测试专用适配器，真实启动/停止临时 Node 进程。验证取消无副作用、停止失败零升级、先停后升级、非零失败不重启、成功刷新、离页重入、当前选择与 IndexedDB 旧备注及配置文件保留、raw/共用生命周期启动门禁，以及 quit drain 等到包进程 close。中英文、浅色警告和深色窄窗口已查看截图。
 - 既有 StartupGroup、服务启动诊断（8/8）、renderer operation boundaries 回归通过。
 - 定向 ESLint：0 errors，10 warnings（测试 stub 组件及原有 v-html）。
@@ -32,6 +32,22 @@
 
 ## 验收边界
 
-真实 Homebrew PHP 旧版→新版、真实 PHP-FPM 停止，以及真实依赖变化后的兼容行为尚未在隔离 Homebrew 环境验收。模拟包/服务通过不能代替该项。未修改日常 PHP、用户关联/配置，未推送远端。
+真实 Homebrew PHP 旧版→新版、依赖变化后的兼容行为，以及正式 Helper 传输与升级组合尚未在隔离 Homebrew 环境验收。额外使用现有 FPM 二进制和其另一前缀副本、临时配置与私有 socket，验证实际进程标题/可执行文件查询、仅终止确认进程树、旧 PID 不误停另一前缀 FPM。此原生检查的信号使用严格限制到测试进程树的适配器；不能替代真实包升级或正式 Helper 组合验收。未修改日常 PHP 安装、用户关联/配置，未推送远端。
 
-整体验证后的独立审查及其修复记录在实施计划和后续提交中。
+## 独立审查和修复
+
+独立审查发现 4 项 Important 和 1 项 Minor；按用户要求“成功刷新列表”的实际影响，将旧查询复用问题也按 Important 处理。五项均在同一修复轮完成 RED→GREEN 回归，没有遗留本次审查的问题；按内联执行流程不追加第二次审查，修复以测试、联调和构建验证。
+
+1. **停止越界**：main 把确认的 root/bin 与登记 generation 绑定，透过通用 ServiceStopContext 传递精确停止范围。升级触发的 PHP 停止只操作该根及已证明的后代；不查共享系列配置或其他 PID 文件。macOS proctitle 不含二进制时读取真实 executable，身份未知则停止更新。根已不存在时仅注销该旧代次。普通停止流程保留原行为。
+2. **较早 raw 启动**：升级前等待已受理的原始生命周期请求及其登记消费者；raw 启动终态按 fork 的 stop contract 登记。worker 退休明确为 unknown，相关启动结果未知时阻止包变更。
+3. **扩展旁路**：PHP Homebrew 扩展安装/卸载接入同一 main/fork 包 owner，UI 只展示持续日志。扩展特有复制在其模块保留，使用实际 prefix 的 active opt/keg，并由控制器等待。命令成功而复制失败明确为部分完成，不重放命令；首次 Homebrew bootstrap 例外不扩张到扩展。
+4. **DNS/FTP**：已知运行于 FlyEnv 自身 worker 的独立服务不归入 Homebrew 安装；未知安装类服务仍保守阻止执行。
+5. **刷新旧数据**：安装清单和 Homebrew 列表显式要求包结束后的新查询；等待旧 flight 时继续保留禁止改当前选择/备注的策略。迟到旧 catalog 回包不能覆盖新结果。
+
+追加回归命令仍为 `npm run test:homebrew-upgrade`。另运行：
+
+`FLYENV_TEST_PHP_FPM=/opt/homebrew/opt/php/sbin/php-fpm npx tsx scripts/homebrew-upgrade-php-stop-test.ts`
+
+它只启动临时私有 FPM 实例，不重启/停止日常服务或升级安装。全部测试进程已退出。修复后 Application smoke 五个检查点、既有 StartupGroup/启动诊断/renderer 边界/窗口展示（36/36）、main/fork/renderer 构建通过；定向 lint 0 errors / 10 warnings，全量类型仍为 61 个既有诊断，0 新增。
+
+审查中暂未判断的事项：真实包升级/正式 Helper 组合按上述验收边界保留；保守依赖阻挡和英文兜底维持既定取舍；跨重启持久恢复不在批准范围。本轮不会据 unknown 自动重试。

@@ -34,5 +34,6 @@
     "succeeded": "更新成功",
     "failed": "更新失败，请查看日志。",
     "unknown": "操作结果未知，请勿重复执行。"
-  }
+  },
+  "brewPackagePartial": "Homebrew 操作已完成，但后续步骤失败，请查看日志。"
 }

@@ -12,7 +12,7 @@ import type {
 type Dependencies = {
   inspect: (formula: string) => Promise<BrewFormulaSnapshot>
   running: () => BrewServiceTarget[]
-  idle: () => Promise<void>
+  idle: (snapshot: BrewFormulaSnapshot) => Promise<void>
   run: (
     id: string,
     action: BrewPackageAction,
@@ -36,7 +36,12 @@ export class HomebrewOperationCoordinator {
   private active?: Operation
   constructor(private readonly deps: Dependencies) {}
 
-  private related(snapshot: BrewFormulaSnapshot, target: unknown): boolean | undefined {
+  private related(
+    snapshot: BrewFormulaSnapshot,
+    target: unknown,
+    module: string
+  ): boolean | undefined {
+    if (module === 'dns' || module === 'ftp-srv') return false
     const bin = (target as { bin?: unknown })?.bin
     if (typeof bin !== 'string' || !isAbsolute(bin)) return undefined
     let actual: string
@@ -50,8 +55,8 @@ export class HomebrewOperationCoordinator {
     }
     return snapshot.affectedRacks.some((rack) => inside(actual, rack))
   }
-  assertStart(_module: string, target: unknown) {
-    if (this.active && this.related(this.active.snapshot, target) !== false)
+  assertStart(module: string, target: unknown) {
+    if (this.active && this.related(this.active.snapshot, target, module) !== false)
       throw new Error(
         'Homebrew is changing this installation; start is blocked until the package operation finishes'
       )
@@ -60,7 +65,7 @@ export class HomebrewOperationCoordinator {
     return this.deps
       .running()
       .filter((target) => {
-        const related = this.related(snapshot, target.item)
+        const related = this.related(snapshot, target.item, target.module)
         if (related === undefined)
           throw new Error(`Cannot verify running service installation: ${target.module}`)
         return related
@@ -71,11 +76,31 @@ export class HomebrewOperationCoordinator {
         )
       )
   }
+  assertKnownStarts(snapshot: BrewFormulaSnapshot, starts: { module: string; item: unknown }[]) {
+    if (starts.some((start) => this.related(snapshot, start.item, start.module) !== false))
+      throw new Error(
+        'An earlier service start has an unknown result; verify services before another Homebrew operation'
+      )
+  }
+  stopTarget(module: string, target: { pid?: string; bin?: string }) {
+    if (!this.active) return undefined
+    const accepted = this.active.targets.find(
+      (entry) =>
+        entry.module === module && entry.item.pid === target?.pid && entry.item.bin === target?.bin
+    )
+    if (!accepted) return undefined
+    const current = this.deps
+      .running()
+      .find((entry) => entry.module === module && entry.item.pid === target.pid)
+    if (current && current.generation !== accepted.generation)
+      throw new Error('Registered service changed; please confirm again')
+    return { pid: accepted.item.pid!, bin: accepted.item.bin }
+  }
   async prepareUpgrade(module: string, formula: string): Promise<BrewUpgradePreview> {
     if (module !== 'php') throw new Error('Only PHP Homebrew upgrades are supported')
     const snapshot = await this.deps.inspect(formula)
     if (!snapshot.eligible) throw new Error(`Homebrew upgrade unavailable: ${snapshot.reason}`)
-    await this.deps.idle()
+    await this.deps.idle(snapshot)
     const preview: BrewUpgradePreview = {
       previewId: randomUUID(),
       module,
@@ -97,7 +122,7 @@ export class HomebrewOperationCoordinator {
     }
     this.active = operation // synchronous barrier, before any await
     try {
-      await this.deps.idle()
+      await this.deps.idle(preview.snapshot)
       const current = await this.deps.inspect(preview.snapshot.formula)
       const targets = this.targets(current)
       if (
@@ -128,7 +153,7 @@ export class HomebrewOperationCoordinator {
     if (!operation) return Promise.reject(new Error('Invalid Homebrew operation'))
     if (operation.flight) return operation.flight
     operation.flight = (async () => {
-      await this.deps.idle()
+      await this.deps.idle(operation.snapshot)
       if (this.targets(operation.snapshot).length)
         throw new Error('Related Homebrew services are still running')
       const current = await this.deps.inspect(operation.snapshot.formula)
@@ -178,7 +203,7 @@ export class HomebrewOperationCoordinator {
     this.active = operation
     const id = randomUUID()
     try {
-      await this.deps.idle()
+      await this.deps.idle(snapshot)
       const result = await this.deps.run(id, action, snapshot, progress)
       if (result.outcome === 'unknown') operation.phase = 'unknown'
       else this.active = undefined

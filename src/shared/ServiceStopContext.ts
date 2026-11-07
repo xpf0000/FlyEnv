@@ -6,7 +6,12 @@ import type { PItem } from './Process'
  * 不再登记 batchId 或通过 IPC 二次取表；列表只属于这轮调用，不写版本/全局配置。
  * processList 即使为空也表示有效采样结果，不能据此重新查询。
  */
-export type ServiceStopContext = { processList: PItem[]; reason: 'stop' | 'quit' }
+export type ServiceStopTarget = { pid: string; bin: string }
+export type ServiceStopContext = {
+  processList: PItem[]
+  reason: 'stop' | 'quit'
+  target?: ServiceStopTarget
+}
 
 /**
  * 插件 bundle:true 会内联自己的 Base/公共工具，模块局部的 AsyncLocalStorage

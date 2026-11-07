@@ -1,4 +1,5 @@
 // Test-only process adapter. Package execution, main admission, IPC and renderer remain real.
+import { currentServiceStopContext } from '../../src/shared/ServiceStopContext'
 import { Base } from '../../src/fork/module/Base'
 import { ForkPromise } from '../../src/shared/ForkPromise'
 import { existsSync, readFileSync, appendFileSync } from 'node:fs'
@@ -35,6 +36,9 @@ class SmokePhp extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         const root = process.env.BREW_SMOKE_ROOT!
+        const target = currentServiceStopContext()?.target
+        if (target?.pid !== version.pid || target?.bin !== version.bin)
+          throw new Error('Trusted stop root missing from IPC')
         if (existsSync(join(root, 'fail-stop'))) throw new Error('fixture stop failure')
         const allowed = JSON.parse(readFileSync(join(root, 'service-pids.json'), 'utf8'))
         if (!allowed.includes(Number(version.pid))) throw new Error('Not an isolated fixture PID')

@@ -7,6 +7,7 @@ import { utilityProcess } from 'electron'
 import { PluginWorkerRegistry } from './PluginWorkerRegistry'
 import type { ForkPluginSnapshot } from '@shared/plugin/PluginRuntime'
 import { cpus } from 'os'
+import { currentServiceStopContext, withServiceStopContext } from '@shared/ServiceStopContext'
 import ServiceProcessManager from './ServiceProcess'
 import { HomebrewOperationCoordinator } from './HomebrewOperationCoordinator'
 import type { BrewFormulaSnapshot, BrewPackageResult } from '../../fork/module/Brew/UpgradeTypes'
@@ -117,12 +118,22 @@ export class ForkManager {
     if (!this.homebrewCoordinator) {
       this.homebrewCoordinator = new HomebrewOperationCoordinator({
         inspect: (formula) => this.brewQuery('inspectUpgrade', formula),
-        idle: () => ServiceProcessManager.waitForAcceptedLifecycles(),
+        idle: async (snapshot) => {
+          await Promise.all([
+            ServiceProcessManager.waitForAcceptedLifecycles(),
+            Promise.allSettled([...this.rawLifecycleRequests])
+          ])
+          this.homebrew.assertKnownStarts(snapshot, [...this.unknownServiceStarts.values()])
+        },
         running: () =>
           Object.entries(ServiceProcessManager.servicePID).flatMap(([module, entries]) =>
             entries
               .filter((entry) => !entry.companion)
-              .map((entry) => ({ module, item: { ...entry.item, pid: entry.pid } }))
+              .map((entry) => ({
+                module,
+                generation: entry.generation,
+                item: { ...entry.item, pid: entry.pid }
+              }))
           ),
         run: (id, action, snapshot, progress) => this.runBrewPackage(id, action, snapshot, progress)
       })
@@ -159,7 +170,7 @@ export class ForkManager {
     )
       .then((info: any) =>
         info.code === 0
-          ? info.data
+          ? { ...info.data, identity: snapshot.identity }
           : { operationId: id, action, outcome: 'unknown', error: info.msg, logs: '' }
       )
       .finally(() => {
@@ -199,6 +210,11 @@ export class ForkManager {
   }
 
   private serviceLifecycleClosing = false
+  private readonly unknownServiceStarts = new Map<
+    string,
+    { module: string; item: { bin?: string } }
+  >()
+  private readonly rawLifecycleRequests = new Set<Promise<void>>()
   private readonly serviceLifecycleRequests = new Set<Promise<void>>()
 
   constructor(file: string) {
@@ -332,25 +348,79 @@ export class ForkManager {
       )
         return this.homebrewRequest(param[0], param.slice(1))
     }
+    if (param[0] === 'stopService' && !currentServiceStopContext()?.target) {
+      let target
+      try {
+        target = this.homebrewCoordinator?.stopTarget(module, param[1])
+      } catch (error) {
+        return new ForkPromise((_resolve, reject) => reject(error))
+      }
+      if (target)
+        return new ForkPromise(async (resolve, reject, on) => {
+          try {
+            const context = currentServiceStopContext()
+            const processList = context?.processList ?? (await this.fetchStopProcessListSnapshot())
+            const result = await withServiceStopContext(
+              { processList, reason: context?.reason ?? 'stop', target },
+              () => this.send(...args).on(on)
+            )
+            resolve(result)
+          } catch (error) {
+            reject(error)
+          }
+        })
+    }
     // 启动（含伴随服务 open*）可能增加进程：受理前和终态都撤销旧列表。
     // stop 不在此清表，才能让同一轮并行停止共享首次发现；退出确认仍使用新查询。
-    const invalidatesProcessList = serviceLifecycleAction(module, param[0]) === 'start'
+    const lifecycleAction = serviceLifecycleAction(module, param[0])
+    const lifecycleTarget = param[1]
+    const rawStart = lifecycleAction === 'start' && !hasServiceLifecyclePermit()
+    const invalidatesProcessList = lifecycleAction === 'start'
     if (invalidatesProcessList) this.invalidateStopProcessList('service-start-request')
+    const rememberUnknownStart = () => {
+      const bin = typeof lifecycleTarget?.bin === 'string' ? lifecycleTarget.bin : undefined
+      this.unknownServiceStarts.set(JSON.stringify([module, bin]), { module, item: { bin } })
+    }
     const track = (request: any) => {
       // 退出也等待已受理 hosts/配置等非生命周期请求，避免直接销毁 worker 截断写入。
       // then 回调在微任务中执行，届时 settled 已完成初始化，可安全引用自身做清理。
       const settled: Promise<void> = Promise.resolve(request).then(
-        () => {
+        (info: any) => {
+          // Raw starts have no IPC/MCP registration consumer. Consume the fork's
+          // declared stop contract before releasing the admission drain.
+          if (invalidatesProcessList && info?.outcome === 'unknown') rememberUnknownStart()
+          try {
+            if (
+              rawStart &&
+              info?.code === 0 &&
+              info.data?.['APP-Service-Start-PID'] &&
+              Array.isArray(info.data['APP-Service-Stop-Args'])
+            ) {
+              ServiceProcessManager.addPid(
+                module,
+                String(info.data['APP-Service-Start-PID']),
+                info.data['APP-Service-Start-Item'] ?? lifecycleTarget,
+                info.data['APP-Service-Stop-Args'],
+                info.data['APP-Service-Stop-Companion'] === true
+              )
+            }
+          } catch {
+            rememberUnknownStart()
+          }
           if (invalidatesProcessList) this.invalidateStopProcessList('service-start-settled')
           this.serviceLifecycleRequests.delete(settled)
+          this.rawLifecycleRequests.delete(settled)
         },
         () => {
-          // 启动失败也可能留下短暂子进程，不能只在成功分支撤销旧查询。
+          // A rejected transport cannot establish whether the external start occurred.
+          if (invalidatesProcessList) rememberUnknownStart()
           if (invalidatesProcessList) this.invalidateStopProcessList('service-start-settled')
           this.serviceLifecycleRequests.delete(settled)
+          this.rawLifecycleRequests.delete(settled)
         }
       )
       this.serviceLifecycleRequests.add(settled)
+      if (lifecycleAction) this.rawLifecycleRequests.add(settled)
       return request
     }
     if (this.pluginWorkers.isDedicated(module)) {
