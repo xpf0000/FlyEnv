@@ -79,7 +79,7 @@ export async function inspectFormula(
       verified = false
     }
   }
-  const isOutdated = outdated.includes(formula)
+  const isOutdated = item.outdated !== false && outdated.includes(formula)
   const reason = !verified
     ? 'identity'
     : item.pinned
