@@ -161,6 +161,15 @@ try {
   const saved = await call('store', request)
   assert.equal(saved.outcome, 'success')
   assert.equal(saved.mcpIsError, false)
+  await control({ kind: 'fileAuditFailure', enabled: true })
+  try {
+    const auditFailure = await call('store', draft('Committed before file audit failure'))
+    assert.equal(auditFailure.outcome, 'success')
+    assert.equal(auditFailure.mcpIsError, false)
+  } finally {
+    await control({ kind: 'fileAuditFailure', enabled: false })
+  }
+  checkpoints.push('file-audit-failure-preserves-committed-result')
   const fromUI = await ui('get', { scope: 'global', id: saved.data.id })
   assert.equal(fromUI.data.content, request.content)
   const writtenUI = await ui('store', draft('Saved through renderer IPC'))

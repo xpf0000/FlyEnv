@@ -226,7 +226,7 @@ test('new search/detail selection wins against older replies; filters and admin 
   await detail
   assert.equal(f.manager.detail, undefined)
 })
-test('client configurations, copied rules and diagnostics have independent terminal outcomes', async () => {
+test('client configurations, copied rules and call records have independent terminal outcomes', async () => {
   const f = fixture({
     configure: async (client) => ({
       success: client === 'kimi',
@@ -246,13 +246,13 @@ test('client configurations, copied rules and diagnostics have independent termi
   assert.equal(copied.success, false)
   assert.equal(f.manager.actions['configure:kimi'].result?.success, true)
   assert.equal('installed' in f.manager.actions['rules:copy'], false)
-  const diagnostics = f.manager.loadDiagnostics()
+  const calls = f.manager.loadCalls()
   const mutation = f.manager.mutate({ scope: 'global' }, 'update', {} as any)
   f.reply(0, { code: 1 })
   f.reply(1, success())
-  await diagnostics
+  await calls
   assert.equal((await mutation).outcome, 'success')
-  assert.equal(f.manager.diagnosticsResult?.outcome, 'failed')
+  assert.equal(f.manager.callsResult?.outcome, 'failed')
 })
 test('ordinary failure can be retried with exact input; preference failure is independent of search', async () => {
   const f = fixture({

@@ -1,5 +1,5 @@
 import { app } from 'electron'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
@@ -585,7 +585,50 @@ async function run() {
       true
     )
     checkpoints.push('connection-stopped-disabled-then-real-service-ready')
+    const noHitQuery = `NO_HIT_${randomUUID()}`
+    const { Client } = await import('@modelcontextprotocol/sdk/client/index.js')
+    const { StreamableHTTPClientTransport } =
+      await import('@modelcontextprotocol/sdk/client/streamableHttp.js')
+    const mcpClient = new Client({ name: 'flyenv', version: '1.0.0' })
+    const mcpConfig = application.mcpConfigManager.getConfig()
+    await mcpClient.connect(
+      new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${memoryPort}/mcp`), {
+        requestInit: { headers: { Authorization: `Bearer ${mcpConfig.token}` } }
+      })
+    )
+    const searchEnvelope: any = await mcpClient.callTool({
+      name: 'flyenv_memory_search',
+      arguments: { scope: 'global', queries: [noHitQuery], topic: 'missing-topic', limit: 8 }
+    })
+    await mcpClient.close()
+    const searchResult = JSON.parse(searchEnvelope.content[0].text)
+    assert.equal(searchResult.outcome, 'success')
+    assert.equal(searchResult.data.results.length, 0)
+    const auditFile = (await import('../../src/main/core/MCPAudit')).default.getLogFile()
+    const fileRows = (await readFile(auditFile, 'utf8'))
+      .trim()
+      .split('\n')
+      .map((row) => JSON.parse(row))
+    const fileRow = fileRows.find((row) => row.tool === 'flyenv_memory_search')
+    assert.equal(fileRow.outcome, 'success')
+    assert.equal(JSON.stringify(fileRow).includes(noHitQuery), false)
+    const callRows = application.mcpRuntime.plugins.diagnostics('ai-memory')
+    const callRow = callRows.find((row: any) => row.request?.queries?.includes(noHitQuery))
+    assert.equal(callRow.hit_count, 0)
+    assert.equal(callRow.request.topic, 'missing-topic')
+    assert.equal(JSON.stringify(callRow).includes('"content"'), false)
+    await js(
+      `Array.from(document.querySelectorAll('.memory-page > .el-radio-group .el-radio-button')).find(el => el.textContent.includes('调用记录')).click()`
+    )
+    await waitFor(`!!document.querySelector('.memory-calls-table')`)
+    await js(`document.querySelector('.memory-calls-table .el-table__expand-icon').click()`)
+    await waitFor(`document.body.textContent.includes(${JSON.stringify(noHitQuery)})`)
+    await capture('ui-zh-call-records.png')
+    checkpoints.push('real-mcp-dual-audit-and-no-hit-call-details')
     await new Promise((resolve) => setTimeout(resolve, 400))
+    await js(
+      `Array.from(document.querySelectorAll('.memory-page > .el-radio-group .el-radio-button')).find(el => el.textContent.includes('接入')).click()`
+    )
     await capture('ui-zh-setup.png')
     await js(
       `Array.from(document.querySelectorAll('.memory-page > .el-radio-group .el-radio-button')).find(el => el.textContent.includes('维护')).click()`

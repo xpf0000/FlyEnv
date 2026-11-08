@@ -111,42 +111,6 @@
           T('directory_unavailable')
         }}</p>
       </section>
-      <section class="memory-setting-section">
-        <h3>{{ T('diagnostics') }}</h3
-        ><p class="memory-setting-help">{{ T('diagnosticsHelp') }}</p>
-        <el-button class="mb-3" @click="manager.loadDiagnostics()">{{ T('refresh') }}</el-button>
-        <el-alert
-          v-if="manager.diagnosticsResult?.error_code"
-          :title="T(manager.diagnosticsResult.error_code)"
-          type="error"
-          :closable="false"
-        />
-        <el-table
-          v-if="manager.diagnosticsResult"
-          :data="[...(manager.diagnosticsResult.data ?? [])].reverse()"
-          :empty-text="T('noCalls')"
-        >
-          <el-table-column :label="T('time')" min-width="165"
-            ><template #default="{ row }">{{ displayDate(row.time) }}</template></el-table-column
-          >
-          <el-table-column :label="T('operation')" min-width="120"
-            ><template #default="{ row }">{{
-              T(row.tool?.replace('flyenv_memory_', '') ?? 'unknown')
-            }}</template></el-table-column
-          >
-          <el-table-column :label="T('client')" width="100"
-            ><template #default="{ row }">{{ row.client?.name ?? '—' }}</template></el-table-column
-          >
-          <el-table-column :label="T('result')" min-width="140"
-            ><template #default="{ row }"
-              >{{ T(row.outcome) }}<p v-if="row.error_code">{{ T(row.error_code) }}</p></template
-            ></el-table-column
-          >
-          <el-table-column :label="T('hits')" width="90"
-            ><template #default="{ row }">{{ row.hit_count ?? '—' }}</template></el-table-column
-          >
-        </el-table>
-      </section>
       <el-collapse>
         <el-collapse-item :title="T('backup')" name="backup"
           ><ol class="memory-instructions"
@@ -220,7 +184,7 @@
   import { useRouter } from 'vue-router'
   import { MemoryManager as manager, memoryRules } from './manager'
   import { MemoryT as T } from './lang'
-  import { displayDate, recoverySummary } from './presentation'
+  import { recoverySummary } from './presentation'
   const props = defineProps<{ section: 'connect' | 'maintenance' }>()
   const clients = ['codex', 'kimi'] as const
   const router = useRouter()
@@ -232,10 +196,7 @@
   )
   function load() {
     if (props.section === 'connect') void manager.loadConnection()
-    else {
-      void manager.loadRuntime()
-      void manager.loadDiagnostics()
-    }
+    else void manager.loadRuntime()
   }
   onMounted(load)
   watch(() => props.section, load)

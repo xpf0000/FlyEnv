@@ -8,6 +8,7 @@ app.setPath('logs', join(root, 'logs'))
 app.on('window-all-closed', () => {})
 void app.whenReady().then(async () => {
   let forks: any, mcp: any
+  let fileAuditLog: any
   let interval: ReturnType<typeof setInterval> | undefined
   try {
     const options = JSON.parse(await readFile(join(root, 'options.json'), 'utf8'))
@@ -111,7 +112,18 @@ void app.whenReady().then(async () => {
             `new Promise(resolve => { const key = crypto.randomUUID(); window.FlyEnvNodeAPI.receive((command, responseKey, response) => { if (key === responseKey && response?.code !== 200) resolve(response); }); window.FlyEnvNodeAPI.send('app-fork:ai-memory', key, ...${JSON.stringify(request.args)}); })`
           )
         } else if (request.kind === 'audit') result = registry.diagnostics('ai-memory')
-        else if (request.kind === 'tools') {
+        else if (request.kind === 'fileAuditFailure') {
+          const audit = (await import('../../src/main/core/MCPAudit')).default
+          if (request.enabled) {
+            fileAuditLog = audit.logPlugin
+            audit.logPlugin = () => {
+              throw new Error('file audit unavailable')
+            }
+          } else {
+            audit.logPlugin = fileAuditLog
+          }
+          result = true
+        } else if (request.kind === 'tools') {
           config.setConfig({ enabledTools: request.names })
           result = true
         } else if (request.kind === 'approvalRace') {

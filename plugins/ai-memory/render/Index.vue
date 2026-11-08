@@ -4,9 +4,11 @@
       <el-radio-button value="memories">{{ T('memories') }}</el-radio-button>
       <el-radio-button value="connect">{{ T('connectAgent') }}</el-radio-button>
       <el-radio-button value="maintenance">{{ T('maintenance') }}</el-radio-button>
+      <el-radio-button value="calls">{{ T('calls') }}</el-radio-button>
     </el-radio-group>
     <div class="main-block">
-      <MemorySetup v-if="tab !== 'memories'" :section="tab" />
+      <MemoryCalls v-if="tab === 'calls'" />
+      <MemorySetup v-else-if="tab !== 'memories'" :section="tab" />
       <div v-else class="memory-manager">
         <div class="memory-toolbar">
           <el-select
@@ -361,8 +363,9 @@
   import MemorySetup from './MemorySetup.vue'
   import MemoryOperation from './MemoryOperation.vue'
   import MemoryUniverse from './MemoryUniverse.vue'
+  import MemoryCalls from './MemoryCalls.vue'
   import { displayDate } from './presentation'
-  const tab = ref<'memories' | 'connect' | 'maintenance'>('memories')
+  const tab = ref<'memories' | 'connect' | 'maintenance' | 'calls'>('memories')
   const view = ref<'universe' | 'list'>('universe')
   const advanced = ref(false),
     detailOpen = ref(false)

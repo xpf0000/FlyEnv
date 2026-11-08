@@ -75,9 +75,12 @@ export default {
   copied: '规则已复制。',
   downloaded: '规则已下载。',
   actionFailed: '此操作失败，其他已完成操作不受影响。',
-  diagnostics: '最近诊断',
-  diagnosticsHelp:
-    '仅显示 FlyEnv 收到的最近记忆调用，不记录正文。客户端名称为自报信息，退出 FlyEnv 后清空。',
+  calls: '调用记录',
+  callsHelp:
+    '详细记录记忆工具调用、搜索词、过滤条件和命中摘要，用于调试与验证。完整正文不会记录；日志仅保留在内存中，退出 FlyEnv 后清空。',
+  duration: '耗时',
+  request: '请求参数',
+  response: '返回结果',
   dataDirectory: '数据目录',
   openDirectory: '打开数据目录',
   recovery: '检查项目映射',

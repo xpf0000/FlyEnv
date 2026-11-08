@@ -48,6 +48,9 @@ export class PluginMCPRegistry {
   has(name: string) {
     return this.entries.has(name) || this.audit.has(name)
   }
+  pluginId(name: string) {
+    return this.entries.get(name)?.pluginId ?? this.audit.owner(name)
+  }
   diagnostics(pluginId: string) {
     return this.audit.list(pluginId)
   }

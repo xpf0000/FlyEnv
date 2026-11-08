@@ -20,7 +20,7 @@ Search returns current summaries; oversized result metadata is explicitly marked
 
 Measured preview limits: 16 KiB UTF-8 body; 256 KiB record JSON including history; 8 MiB total JSON per searched scope; 4 MiB serialized current-metadata cache; four concurrent reads; eight results by default, at most 20; full search response budget 8 KiB (hard cap 32 KiB). History is never silently trimmed. Oversized/corrupt individual records produce warnings; aggregate overflow returns `capacity_exceeded`. Direct-ID get/forget and streaming pending cleanup do not depend on search capacity. Search cursors expire after relevant mutations/reloads; restart search on `cursor_invalid`.
 
-Markdown viewing disables raw HTML, active links and image loading. Source labels are self-reported. Recent diagnostics keep only bounded metadata in memory (up to 200 entries), never queries, summaries or bodies; they clear on FlyEnv exit.
+Markdown viewing disables raw HTML, active links and image loading. Source labels are self-reported. The Call Records tab keeps up to 200 detailed in-memory entries, including search queries, filters and hit summaries, but recursively excludes full memory bodies; records clear on FlyEnv exit. Simplified plugin calls also use FlyEnv's shared MCP audit log without queries, summaries or bodies.
 
 ## Offline backup and explicit recovery
 
@@ -46,6 +46,6 @@ See the [acceptance report](../../docs/superpowers/reports/2026-11-03-flyenv-ai-
 
 ## Management and client setup
 
-The FlyEnv panel separates Memories, Connect an agent and Maintenance. Start with the connection guide for a new library. Project and global results are identified separately; technical metadata and advanced fields are collapsed. Unknown writes are confirmed by replaying the original request, including after leaving the page.
+The FlyEnv panel separates Memories, Connect an agent, Maintenance and Call Records. Start with the connection guide for a new library. Project and global results are identified separately; technical metadata and advanced fields are collapsed. Unknown writes are confirmed by replaying the original request, including after leaving the page.
 
 Rules remain a manual step: append the supplied rules to your project AGENTS.md without replacing existing instructions, then open a new client session and run the provided save/read test. Supported instruction behavior is documented by [OpenAI](https://learn.chatgpt.com/docs/agent-configuration/agents-md) and [Kimi](https://moonshotai.github.io/kimi-cli/en/customization/agents.html). Service readiness and configuration writes do not prove that a client loaded its rules.

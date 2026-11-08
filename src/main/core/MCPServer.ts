@@ -631,12 +631,24 @@ export default class MCPServer {
       const name = request?.params?.name
       const args = request?.params?.arguments ?? {}
       if (this.plugins?.has(name)) {
+        const started = performance.now()
+        const client = server.getClientVersion()
         const result = await this.plugins.invoke(
           name,
           args,
           () => this.confirmTool(name, args, true),
-          server.getClientVersion()
+          client
         )
+        try {
+          MCPAudit.logPlugin(name, this.plugins.pluginId(name) ?? 'unknown', {
+            args,
+            result,
+            durationMs: performance.now() - started,
+            client
+          })
+        } catch (e) {
+          console.log('MCP audit log error: ', e)
+        }
         return textResult(result, pluginToolIsError(result))
       }
       const def = this.enabledToolDefs().find((t) => t.name === name)

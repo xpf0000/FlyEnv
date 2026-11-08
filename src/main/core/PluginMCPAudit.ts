@@ -28,6 +28,7 @@ export const PLUGIN_ERROR_CODES = new Set([
   'operation_failed'
 ])
 export type PluginAuditEntry = {
+  call_id: number
   time: string
   tool: string
   pluginId?: string
@@ -40,6 +41,8 @@ export type PluginAuditEntry = {
   truncated?: boolean
   error_code?: string
   client?: { name: string; version?: string; source: 'self-reported' }
+  request?: Record<string, any>
+  response?: Record<string, any>
 }
 type AuditInput = {
   args?: any
@@ -48,24 +51,117 @@ type AuditInput = {
   client?: { name?: string; version?: string }
 }
 
-/** Only this projection may retain plugin diagnostics; never args, raw errors or worker reports. */
+const withoutContent = (value: any): any => {
+  if (Array.isArray(value)) return value.map(withoutContent)
+  if (!value || typeof value !== 'object') return value
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => key !== 'content')
+      .map(([key, item]) => [key, withoutContent(item)])
+  )
+}
+
+const requestFields: Record<string, string[]> = {
+  flyenv_memory_search: [
+    'scope',
+    'project_path',
+    'queries',
+    'type',
+    'topic',
+    'tags',
+    'include_global',
+    'status',
+    'include_expired',
+    'limit',
+    'cursor'
+  ],
+  flyenv_memory_get: ['scope', 'project_path', 'id', 'revision'],
+  flyenv_memory_store: [
+    'scope',
+    'project_path',
+    'type',
+    'topic',
+    'title',
+    'summary',
+    'tags',
+    'source',
+    'status',
+    'pinned',
+    'expires_at',
+    'occurred_at',
+    'request_id',
+    'create_project'
+  ],
+  flyenv_memory_update: [
+    'scope',
+    'project_path',
+    'id',
+    'expected_revision',
+    'request_id',
+    'reason',
+    'changes'
+  ],
+  flyenv_memory_forget: ['scope', 'project_path', 'id', 'expected_revision', 'request_id']
+}
+
+const requestSnapshot = (tool: string, args: any) => {
+  const snapshot = Object.fromEntries(
+    (requestFields[tool] ?? [])
+      .filter((key) => key !== 'cursor' && args?.[key] !== undefined)
+      .map((key) => [key, withoutContent(args[key])])
+  )
+  if (tool === 'flyenv_memory_search' && args?.cursor !== undefined) snapshot.cursor_provided = true
+  return snapshot
+}
+
+const responseSnapshot = (tool: string, result: any) => {
+  const outcome = outcomes.has(result?.outcome) ? result.outcome : 'failed'
+  const detailed = requestFields[tool] !== undefined
+  const snapshot = withoutContent({
+    outcome,
+    ...(result?.error_code !== undefined
+      ? {
+          error_code: PLUGIN_ERROR_CODES.has(result.error_code)
+            ? result.error_code
+            : 'operation_failed'
+        }
+      : {}),
+    ...(detailed && result?.data !== undefined ? { data: result.data } : {}),
+    ...(detailed && result?.warnings !== undefined ? { warnings: result.warnings } : {}),
+    ...(result?.isError !== undefined ? { isError: result.isError === true } : {})
+  })
+  if (tool === 'flyenv_memory_search' && snapshot.data?.next_cursor !== undefined) {
+    snapshot.data.has_next_cursor = true
+    delete snapshot.data.next_cursor
+  }
+  return snapshot
+}
+
+/** Only this projection may retain plugin call details; content and raw errors are excluded. */
 export class PluginMCPAudit {
   private readonly tools = new Map<string, string>()
   private readonly entries: PluginAuditEntry[] = []
+  private sequence = 0
   register(pluginId: string, names: string[]) {
     for (const name of names) this.tools.set(name, pluginId)
   }
   has(tool: string) {
     return this.tools.has(tool)
   }
+  owner(tool: string) {
+    return this.tools.get(tool)
+  }
   log(tool: string, input: AuditInput = {}) {
     const pluginId = this.tools.get(tool)
     const result = input.result
     const row: PluginAuditEntry = {
+      call_id: ++this.sequence,
       time: new Date().toISOString(),
       tool: pluginId ? tool : 'unknown_tool',
       ...(pluginId ? { pluginId } : {}),
-      outcome: outcomes.has(result?.outcome) ? result.outcome : 'failed'
+      outcome: outcomes.has(result?.outcome) ? result.outcome : 'failed',
+      request: requestSnapshot(tool, input.args),
+      response: responseSnapshot(tool, result)
     }
     for (const key of ['id', 'request_id'] as const) {
       const value = result?.[key] ?? result?.data?.[key] ?? input.args?.[key]

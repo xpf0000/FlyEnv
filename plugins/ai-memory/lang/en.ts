@@ -79,9 +79,12 @@ export default {
   copied: 'Rules copied.',
   downloaded: 'Rules downloaded.',
   actionFailed: 'Action failed; other completed actions are unchanged.',
-  diagnostics: 'Recent diagnostics',
-  diagnosticsHelp:
-    'Recent memory calls received by FlyEnv. Content is never logged. Client names are self-reported; records clear when FlyEnv exits.',
+  calls: 'Call Records',
+  callsHelp:
+    'Detailed memory calls, search queries, filters and hit summaries for debugging and verification. Full content is excluded. Records are memory-only and clear when FlyEnv exits.',
+  duration: 'Duration',
+  request: 'Request',
+  response: 'Response',
   dataDirectory: 'Data directory',
   openDirectory: 'Open data directory',
   recovery: 'Inspect project mapping',

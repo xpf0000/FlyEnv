@@ -56,7 +56,7 @@ export class MemoryController {
   projectsResult?: MemoryResult<MemoryProjectInfo[]>
   searchResult?: MemoryResult<SearchPage>
   detail?: MemoryResult<MemoryView>
-  diagnosticsResult?: MemoryResult<any[]>
+  callsResult?: MemoryResult<any[]>
   recoveryResult?: MemoryResult<ProjectRecoveryReport>
   runtimeResult?: MemoryResult<{ dataRoot: string }>
   searchBusy = false
@@ -343,9 +343,9 @@ export class MemoryController {
       return { success: saved, cancelled: !saved }
     })
   }
-  loadDiagnostics() {
+  loadCalls() {
     return this.request<any[]>('plugin:diagnostics', ['ai-memory']).then((result) => {
-      this.diagnosticsResult = result
+      this.callsResult = result
       return result
     })
   }
