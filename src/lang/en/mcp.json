@@ -16,6 +16,7 @@
   "allowRemoteTip": "When off, the server only listens on 127.0.0.1. Turning this on exposes FlyEnv control to your network — use with caution.",
   "allowRemoteWarning": "This will allow non-loopback clients on your network to control FlyEnv via MCP. Only enable it if you understand the risk.",
   "enabledTools": "Enabled Tools",
+  "builtinTools": "Built-in",
   "copyConfig": "Copy Config",
   "copied": "Copied",
   "addToClient": "Add to {client}",

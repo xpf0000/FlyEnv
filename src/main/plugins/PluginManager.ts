@@ -674,6 +674,7 @@ export class PluginManager {
         ? [
             {
               pluginId: record.manifest.id,
+              pluginName: record.manifest.name,
               moduleId: record.manifest.module.typeFlag,
               installGeneration: record.installGeneration,
               declaration: structuredClone(record.manifest.mcp)

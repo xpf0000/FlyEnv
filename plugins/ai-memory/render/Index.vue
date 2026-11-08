@@ -50,6 +50,10 @@
             @click="create"
             >{{ T('newMemory') }}</el-button
           >
+          <el-radio-group v-model="view" class="memory-view-switch">
+            <el-radio-button value="universe">{{ T('universe') }}</el-radio-button>
+            <el-radio-button value="list">{{ T('list') }}</el-radio-button>
+          </el-radio-group>
         </div>
         <div v-if="scopeKey === 'path'" class="memory-project-picker">
           <el-input
@@ -146,55 +150,78 @@
           }}</p></el-alert
         >
         <MemoryOperation v-if="!editorOpen && !archiveOpen" global @resolved="refresh" />
-        <div v-loading="manager.searchBusy" class="memory-table-wrap">
-          <el-table
-            :data="manager.searchResult?.data?.results ?? []"
-            row-key="id"
-            class="memory-table"
-            @row-click="select"
+        <div class="memory-content">
+          <MemoryUniverse
+            v-if="view === 'universe' && manager.searchResult?.data?.results.length"
+            :memories="manager.searchResult.data.results"
+            :busy="manager.searchBusy"
+            @select="select"
+          />
+          <div
+            v-else-if="view === 'universe'"
+            v-loading="manager.searchBusy"
+            class="memory-universe-empty"
           >
-            <el-table-column :label="T('memoryTitle')" min-width="240"
-              ><template #default="{ row }"
-                ><div class="memory-row"
-                  ><strong>{{ row.title }}</strong
-                  ><span>{{ row.summary }}</span></div
-                ></template
-              ></el-table-column
+            <el-empty :description="T(manager.searchResult?.error_code ? 'loadFailed' : 'empty')">
+              <p class="memory-empty-help">{{ T('emptyHelp') }}</p>
+              <el-button type="primary" @click="tab = 'connect'">{{ T('connectAgent') }}</el-button>
+              <el-button :disabled="!validTarget || writeBlocked" @click="create">{{
+                T('newMemory')
+              }}</el-button>
+            </el-empty>
+          </div>
+          <div v-else v-loading="manager.searchBusy" class="memory-table-wrap">
+            <el-table
+              :data="manager.searchResult?.data?.results ?? []"
+              row-key="id"
+              class="memory-table"
+              @row-click="select"
             >
-            <el-table-column :label="T('type')" width="130"
-              ><template #default="{ row }">{{ T(row.type) }}</template></el-table-column
-            >
-            <el-table-column :label="T('tagList')" min-width="150"
-              ><template #default="{ row }"
-                ><el-tag v-for="tag in row.tags" :key="tag" size="small" class="mr-1">{{
-                  tag
-                }}</el-tag></template
-              ></el-table-column
-            >
-            <el-table-column :label="T('updated')" width="170"
-              ><template #default="{ row }">{{
-                displayDate(row.updated_at)
-              }}</template></el-table-column
-            >
-            <el-table-column width="80"
-              ><template #default="{ row }"
-                ><el-button link type="primary" @click.stop="select(row)">{{
-                  T('view')
-                }}</el-button></template
-              ></el-table-column
-            >
-            <template #empty>
-              <el-empty :description="T(manager.searchResult?.error_code ? 'loadFailed' : 'empty')">
-                <p class="memory-empty-help">{{ T('emptyHelp') }}</p>
-                <el-button type="primary" @click="tab = 'connect'">{{
-                  T('connectAgent')
-                }}</el-button>
-                <el-button :disabled="!validTarget || writeBlocked" @click="create">{{
-                  T('newMemory')
-                }}</el-button>
-              </el-empty>
-            </template>
-          </el-table>
+              <el-table-column :label="T('memoryTitle')" min-width="240"
+                ><template #default="{ row }"
+                  ><div class="memory-row"
+                    ><strong>{{ row.title }}</strong
+                    ><span>{{ row.summary }}</span></div
+                  ></template
+                ></el-table-column
+              >
+              <el-table-column :label="T('type')" width="130"
+                ><template #default="{ row }">{{ T(row.type) }}</template></el-table-column
+              >
+              <el-table-column :label="T('tagList')" min-width="150"
+                ><template #default="{ row }"
+                  ><el-tag v-for="tag in row.tags" :key="tag" size="small" class="mr-1">{{
+                    tag
+                  }}</el-tag></template
+                ></el-table-column
+              >
+              <el-table-column :label="T('updated')" width="170"
+                ><template #default="{ row }">{{
+                  displayDate(row.updated_at)
+                }}</template></el-table-column
+              >
+              <el-table-column width="80"
+                ><template #default="{ row }"
+                  ><el-button link type="primary" @click.stop="select(row)">{{
+                    T('view')
+                  }}</el-button></template
+                ></el-table-column
+              >
+              <template #empty>
+                <el-empty
+                  :description="T(manager.searchResult?.error_code ? 'loadFailed' : 'empty')"
+                >
+                  <p class="memory-empty-help">{{ T('emptyHelp') }}</p>
+                  <el-button type="primary" @click="tab = 'connect'">{{
+                    T('connectAgent')
+                  }}</el-button>
+                  <el-button :disabled="!validTarget || writeBlocked" @click="create">{{
+                    T('newMemory')
+                  }}</el-button>
+                </el-empty>
+              </template>
+            </el-table>
+          </div>
         </div>
         <div
           v-if="cursors.length || manager.searchResult?.data?.next_cursor"
@@ -333,8 +360,10 @@
   import MemoryEditor from './MemoryEditor.vue'
   import MemorySetup from './MemorySetup.vue'
   import MemoryOperation from './MemoryOperation.vue'
+  import MemoryUniverse from './MemoryUniverse.vue'
   import { displayDate } from './presentation'
   const tab = ref<'memories' | 'connect' | 'maintenance'>('memories')
+  const view = ref<'universe' | 'list'>('universe')
   const advanced = ref(false),
     detailOpen = ref(false)
   const scopeKey = ref('global'),
@@ -576,9 +605,31 @@
   .memory-project-notice {
     line-height: 1.8;
   }
+  .memory-view-switch {
+    margin-left: auto;
+  }
+  .memory-content {
+    display: flex;
+    flex: 1;
+    min-height: 320px;
+  }
   .memory-table-wrap {
+    width: 100%;
     min-height: 220px;
     flex: 1;
+  }
+  .memory-universe-empty {
+    display: grid;
+    flex: 1;
+    min-height: 390px;
+    place-items: center;
+    background:
+      radial-gradient(circle at 50% 40%, rgba(79, 70, 229, 0.18), transparent 46%), #050816;
+    border: 1px solid rgba(129, 140, 248, 0.2);
+    border-radius: 18px;
+  }
+  .memory-universe-empty :deep(.el-empty__description p) {
+    color: #94a3b8;
   }
   .memory-row {
     display: flex;

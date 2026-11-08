@@ -3,6 +3,11 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
+import {
+  buildUniverse,
+  pickUniverseNode,
+  projectNode
+} from '../../plugins/ai-memory/render/universe'
 
 async function run() {
   app.commandLine.appendSwitch('disable-backgrounding-occluded-windows')
@@ -96,18 +101,40 @@ async function run() {
     await waitFor(
       `(() => { const use=document.querySelector('[data-module="ai-memory"] .icon-block use'); const ref=use?.getAttribute('xlink:href') || use?.getAttribute('href'); return ref && !!document.querySelector(ref + ' path'); })()`
     )
-    const memorySwitch = `document.querySelector('[data-module="ai-memory"] .el-switch')`
-    await waitFor(`!(${memorySwitch}).classList.contains('is-disabled')`)
+    assert.equal(
+      await js(`!!document.querySelector('[data-module="ai-memory"] .el-switch')`),
+      false
+    )
+    assert.equal(
+      await js(
+        `document.querySelector('[data-module="ai-memory"] .icon-block').classList.contains('run')`
+      ),
+      true
+    )
+    await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/mcp')`)
     await js(
-      `if (document.querySelector('.aside').classList.contains('fold')) document.querySelector('.top-tool > li:last-child').click()`
+      `Array.from(document.querySelectorAll('.main-right-panel > .el-radio-group .el-radio-button')).find(el => el.textContent.trim()==='Tools').click()`
+    )
+    await waitFor(`!!document.querySelector('.mcp-tool-tabs')`)
+    const tabLabels = await js(
+      `Array.from(document.querySelectorAll('.mcp-tool-tabs .el-tabs__item')).map(el => el.textContent.trim())`
+    )
+    assert.ok(tabLabels.some((label: string) => label.includes('Built-in')))
+    assert.ok(tabLabels.some((label: string) => label.includes('AI Memory')))
+    await js(
+      `Array.from(document.querySelectorAll('.mcp-tool-tabs .el-tabs__item')).find(el => el.textContent.includes('AI Memory')).click()`
     )
     await waitFor(
-      `document.querySelector('.aside').classList.contains('expanded') && (${memorySwitch}).getBoundingClientRect().width > 0`
+      `Array.from(document.querySelectorAll('.mcp-tool-tabs .el-tab-pane')).some(el => el.offsetParent !== null && el.textContent.includes('flyenv_memory_search'))`
     )
-    await js(`(${memorySwitch}).click()`)
-    await waitFor(
-      `(${memorySwitch}).classList.contains('is-checked') && !(${memorySwitch}).classList.contains('is-disabled')`
+    await capture('ui-mcp-plugin-tab.png')
+    const memoryToolNames = ['search', 'get', 'store', 'update', 'forget'].map(
+      (name) => 'flyenv_memory_' + name
     )
+    await js(
+      `window.__FLYENV_PLUGIN_HOST__.mcp.setToolsEnabled(${JSON.stringify(memoryToolNames)},true)`
+    )
+    await application.mcpRuntime.start()
     assert.equal(application.mcpRuntime.status().running, true)
     const enabled = application.mcpConfigManager.getConfig('enabledTools')
     assert.ok(enabled.includes(siblingTool))
@@ -139,32 +166,16 @@ async function run() {
       (await toolCatalog()).filter((name) => name.startsWith('flyenv_memory_')).length,
       5
     )
-    await capture('ui-sidebar-mcp-on.png')
-    await js(`(${memorySwitch}).click()`)
-    await waitFor(
-      `!(${memorySwitch}).classList.contains('is-checked') && !(${memorySwitch}).classList.contains('is-disabled')`
+    await js(
+      `window.__FLYENV_PLUGIN_HOST__.mcp.setToolsEnabled(${JSON.stringify(memoryToolNames)},false)`
     )
-    assert.equal(
-      application.mcpRuntime.status().running,
-      true,
-      'memory off must not stop the shared gateway'
-    )
+    assert.equal(application.mcpRuntime.status().running, true)
     assert.deepEqual(application.mcpConfigManager.getConfig('enabledTools'), [siblingTool])
     assert.equal(
       (await toolCatalog()).some((name) => name.startsWith('flyenv_memory_')),
       false
     )
     assert.ok((await toolCatalog()).includes(siblingTool))
-    // Existing read-only permissions are still an active MCP; one off click revokes them.
-    await js(
-      `window.__FLYENV_PLUGIN_HOST__.mcp.setToolsEnabled(['flyenv_memory_search','flyenv_memory_get'],true)`
-    )
-    await waitFor(`(${memorySwitch}).classList.contains('is-checked')`)
-    await js(`(${memorySwitch}).click()`)
-    await waitFor(
-      `!(${memorySwitch}).classList.contains('is-checked') && !(${memorySwitch}).classList.contains('is-disabled')`
-    )
-    assert.deepEqual(application.mcpConfigManager.getConfig('enabledTools'), [siblingTool])
     // Both the generic tool page and plugin use atomic updates; neither revives a stale array.
     await js(
       `Promise.all([window.__FLYENV_PLUGIN_HOST__.mcp.toggleTool(${JSON.stringify(siblingTool)},false),window.__FLYENV_PLUGIN_HOST__.mcp.setToolsEnabled(['flyenv_memory_search'],true)])`
@@ -198,9 +209,8 @@ async function run() {
     assert.deepEqual(application.mcpConfigManager.getConfig('enabledTools'), [siblingTool])
     checkpoints.push('partial-permissions-concurrent-tool-updates-and-write-failure')
     await application.mcpRuntime.stopLoaded()
-    await js(`document.querySelector('.top-tool > li:last-child').click()`)
-    checkpoints.push('sidebar-rendered-icon-memory-toggle-isolated-http-catalog')
-    checkpoints.push('sidebar-plugin-entry-navigation')
+    checkpoints.push('mcp-plugin-tabs-isolated-http-catalog')
+    checkpoints.push('sidebar-plugin-entry-without-independent-switch')
     window.webContents.closeDevTools()
     await js(
       `document.querySelectorAll('.el-message-box').forEach(box => { if (box.textContent.includes('FlyEnv Helper')) box.querySelector('.el-message-box__headerbtn')?.click(); })`
@@ -210,9 +220,17 @@ async function run() {
       js(
         `new Promise(resolve => { const ipc = window.__FLYENV_PLUGIN_HOST__.ipc; ipc.sendSensitive('app-fork:ai-memory', ${JSON.stringify(method)}, ${JSON.stringify(input)}).then((key,res) => { if (res?.code === 200) return; ipc.off(key); resolve(res); }); })`
       )
+    const showList = async () => {
+      await js(
+        `Array.from(document.querySelectorAll('.memory-view-switch .el-radio-button')).find(el => el.textContent.trim()==='List').click()`
+      )
+      await waitFor(`!!document.querySelector('.memory-table')`)
+    }
     // A real user starts in an empty library, validates a form, creates and deletes a record.
-    await waitFor(`!!document.querySelector('.memory-table .el-empty')`)
+    await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/ai-memory')`)
+    await waitFor(`!!document.querySelector('.memory-universe-empty .el-empty')`)
     await capture('ui-empty.png')
+    await showList()
     await js(`document.querySelector('#memory-new').click()`)
     await waitFor(`!!document.querySelector('#memory-save')`)
     await js(`document.querySelector('#memory-save').click()`)
@@ -314,6 +332,72 @@ async function run() {
     }
     await js(`document.querySelector('#memory-search').click()`)
     await waitFor(`document.querySelectorAll('.memory-row').length === 8`)
+    await js(
+      `Array.from(document.querySelectorAll('.memory-view-switch .el-radio-button')).find(el => el.textContent.trim()==='Memory universe').click()`
+    )
+    await waitFor(`!!document.querySelector('.memory-universe canvas')`)
+    assert.equal(
+      await js(
+        `Array.from(document.querySelectorAll('.universe-controls button')).some(el => el.textContent.trim()==='Auto orbit')`
+      ),
+      true
+    )
+    const staticUniverse = await js(`document.querySelector('.memory-universe canvas').toDataURL()`)
+    await js(`document.querySelector('[aria-label="Zoom in"]').click()`)
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    assert.notEqual(
+      await js(`document.querySelector('.memory-universe canvas').toDataURL()`),
+      staticUniverse
+    )
+    await js(
+      `Array.from(document.querySelectorAll('.universe-controls button')).find(el => el.textContent.trim()==='Reset view').click()`
+    )
+    await new Promise((resolve) => setTimeout(resolve, 250))
+    const universePage = await call('search', { scope: 'global' })
+    const universeGraph = buildUniverse(universePage.data.data.results)
+    const universeNode = universeGraph.nodes[0]
+    const canvasRect = await js(
+      `(() => { const rect=document.querySelector('.memory-universe canvas').getBoundingClientRect(); return { left:rect.left, top:rect.top, width:rect.width, height:rect.height }; })()`
+    )
+    const universeCamera = { yaw: 0.35, pitch: -0.18, zoom: 1 }
+    const universePoint = projectNode(
+      universeNode,
+      universeCamera,
+      canvasRect.width,
+      canvasRect.height
+    )
+    const expectedUniverseNode = pickUniverseNode(
+      universeGraph.nodes.map((node) =>
+        projectNode(node, universeCamera, canvasRect.width, canvasRect.height)
+      ),
+      universePoint.x,
+      universePoint.y
+    )!
+    await capture('ui-universe.png')
+    window.webContents.sendInputEvent({
+      type: 'mouseDown',
+      x: Math.round(canvasRect.left + universePoint.x),
+      y: Math.round(canvasRect.top + universePoint.y),
+      button: 'left',
+      clickCount: 1
+    })
+    window.webContents.sendInputEvent({
+      type: 'mouseUp',
+      x: Math.round(canvasRect.left + universePoint.x),
+      y: Math.round(canvasRect.top + universePoint.y),
+      button: 'left',
+      clickCount: 1
+    })
+    await waitFor(
+      `document.querySelector('.memory-detail h3')?.textContent.trim()===${JSON.stringify(expectedUniverseNode.hit.title)}`
+    )
+    await js(
+      `document.querySelector('.memory-detail').closest('.el-drawer').querySelector('.el-drawer__close-btn').click()`
+    )
+    await new Promise((resolve) => setTimeout(resolve, 350))
+    await showList()
+    await waitFor(`document.querySelectorAll('.memory-row').length === 8`)
+    checkpoints.push('universe-render-and-real-pointer-detail')
     await js(`document.querySelectorAll('.memory-row')[0].click()`)
     await waitFor(`!!document.querySelector('#memory-delete')`)
     await js(
@@ -370,6 +454,7 @@ async function run() {
     )
     await new Promise((resolve) => setTimeout(resolve, 400))
     await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/ai-memory')`)
+    await showList()
     await waitFor(
       `Array.from(document.querySelectorAll('.memory-row')).some(el => el.textContent.includes('Edited in full FlyEnv UI'))`
     )
@@ -417,6 +502,7 @@ async function run() {
     await waitFor(`!document.querySelector('#memory-search')`)
     await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/ai-memory')`)
     await waitFor(`!!document.querySelector('#memory-search')`)
+    await showList()
     assert.equal(
       await js(`!!document.querySelector('#memory-edit')`),
       false,
@@ -443,6 +529,7 @@ async function run() {
     await waitFor(`!document.querySelector('#memory-search')`)
     await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/ai-memory')`)
     await waitFor(`!!document.querySelector('#memory-search')`)
+    await showList()
     assert.equal(await js(`!!document.querySelector('#memory-edit')`), false)
     checkpoints.push('global-hit-in-project-view-cleared-on-remount')
     await js(`document.querySelector('.memory-row').click()`)

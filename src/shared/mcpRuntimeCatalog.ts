@@ -7,10 +7,12 @@ export type MCPRuntimeTool = {
   risky: boolean
   readOnly: boolean
   pluginId?: string
+  pluginName?: string
   inputSchema?: Record<string, unknown>
 }
 export type PluginMCPRegistration = {
   pluginId: string
+  pluginName?: string
   moduleId: string
   installGeneration: string
   declaration: PluginMCPDeclaration

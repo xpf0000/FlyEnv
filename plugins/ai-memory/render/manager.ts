@@ -39,9 +39,6 @@ export const MemoryManager = reactiveBind(
     id: () => crypto.randomUUID(),
     readPreferences: () => StorageGetAsync('flyenv-plugin-ai-memory-v1'),
     writePreferences: (value) => StorageSetAsync('flyenv-plugin-ai-memory-v1', value),
-    startGateway: () => MCPSetup?.start() ?? Promise.resolve(false),
-    setMemoryTools: (enabled) =>
-      MCPSetup?.setToolsEnabled?.(memoryTools, enabled) ?? Promise.resolve(false),
     readConnection: async () => {
       const [config, status] = await Promise.all([readMCP(), readMCP('mcp:status')])
       if (MCPSetup) {

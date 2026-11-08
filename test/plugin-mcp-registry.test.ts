@@ -6,6 +6,7 @@ import { MCPRuntime } from '../src/main/core/MCPRuntime'
 
 const registration = (generation = 'i1') => ({
   pluginId: 'fixture',
+  pluginName: 'Fixture',
   moduleId: 'fixture',
   installGeneration: generation,
   declaration: {
@@ -75,6 +76,10 @@ test('installed tools can be listed without starting HTTP or granting permission
     f.registry
   )
   assert.ok(runtime.listTools().some((tool) => tool.name === 'fixture_write'))
+  assert.equal(
+    runtime.listTools().find((tool) => tool.name === 'fixture_write')?.pluginName,
+    'Fixture'
+  )
   assert.equal(loads, 0)
   assert.equal(
     (await f.registry.invoke('fixture_write', { increment: 1 }, async () => true)).error_code,

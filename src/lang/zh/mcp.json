@@ -16,6 +16,7 @@
   "allowRemoteTip": "关闭时仅监听 127.0.0.1。开启会把 FlyEnv 控制能力暴露到网络，请谨慎使用。",
   "allowRemoteWarning": "开启后，局域网内非回环客户端也能通过 MCP 控制 FlyEnv。请确认你了解相关风险后再开启。",
   "enabledTools": "启用的工具",
+  "builtinTools": "内置工具",
   "copyConfig": "复制配置",
   "copied": "已复制",
   "addToClient": "添加到 {client}",

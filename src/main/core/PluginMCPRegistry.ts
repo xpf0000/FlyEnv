@@ -39,9 +39,10 @@ export class PluginMCPRegistry {
     // Audit policy is intentionally retained when a tool disappears or is disabled.
   }
   listTools(): MCPRuntimeTool[] {
-    return [...this.entries.values()].map(({ pluginId, tool }) => ({
+    return [...this.entries.values()].map(({ pluginId, pluginName, tool }) => ({
       ...structuredClone(tool),
-      pluginId
+      pluginId,
+      pluginName
     }))
   }
   has(name: string) {
