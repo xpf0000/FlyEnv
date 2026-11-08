@@ -16,6 +16,7 @@
   "brewUpgradeSuccess": "更新成功，请手动完成相关配置并启动服务。",
   "brewPackageSuccess": "Homebrew 操作成功。",
   "brewUpgradeRefreshFailed": "更新成功，但列表刷新失败，请手动刷新。",
+  "brewUpgradeCatalogFailed": "部分 Homebrew 更新信息加载失败，请刷新列表后重试。",
   "brewUpgradeFailed": "更新失败，请查看错误和日志；已停止的服务不会自动启动。",
   "brewUpgradeUnknown": "操作结果未知；Homebrew 可能仍在运行，请勿重复操作。",
   "brewUpgradeReason": {

@@ -204,6 +204,12 @@ export class HomebrewOperationCoordinator {
     const id = randomUUID()
     try {
       await this.deps.idle(snapshot)
+      // Ordinary installs may also upgrade dependencies or rebuild installed dependents.
+      // Their trusted snapshot covers this prefix's entire Cellar; require manual stops.
+      if (this.targets(snapshot).length)
+        throw new Error(
+          'Please stop running services in this Homebrew installation before changing packages'
+        )
       operation.phase = 'running'
       const result = await this.deps.run(id, action, snapshot, progress)
       if (result.outcome === 'unknown') operation.phase = 'unknown'

@@ -2,7 +2,8 @@ import type {
   BrewFormulaSnapshot,
   BrewPackageResult,
   BrewServiceTarget,
-  BrewUpgradePreview
+  BrewUpgradePreview,
+  BrewUpgradeCatalog
 } from '@fork/module/Brew/UpgradeTypes'
 
 type Dependencies = {
@@ -19,6 +20,7 @@ export class HomebrewUpgradeController {
   result?: BrewPackageResult
   preview?: BrewUpgradePreview
   catalog: Record<string, BrewFormulaSnapshot> = {}
+  catalogError = ''
   private catalogSequence = 0
   private requestKey?: string
   private flight?: Promise<BrewPackageResult>
@@ -32,11 +34,25 @@ export class HomebrewUpgradeController {
   }
   async loadCatalog(formulas: string[]) {
     const sequence = ++this.catalogSequence
-    const rows: BrewFormulaSnapshot[] = await this.deps.call('getUpgradeCatalog', [formulas])
-    if (sequence !== this.catalogSequence) return
-    const next: Record<string, BrewFormulaSnapshot> = {}
-    for (const row of rows) next[row.formula] = row
-    this.catalog = next
+    let result: BrewUpgradeCatalog
+    try {
+      result = await this.deps.call('getUpgradeCatalog', [formulas])
+    } catch (error) {
+      if (sequence === this.catalogSequence) {
+        this.catalog = {}
+        this.catalogError = String(error)
+      }
+      throw error
+    }
+    const error = result.failures.map(({ formula, error }) => `${formula}: ${error}`).join('\n')
+    if (sequence === this.catalogSequence) {
+      const next: Record<string, BrewFormulaSnapshot> = {}
+      for (const row of result.rows) next[row.formula] = row
+      this.catalog = next
+      this.catalogError = error
+    }
+    // Superseded requests cannot change current state, but still report their own failure.
+    if (error) throw new Error(error)
   }
   prepare(formula: string): Promise<BrewUpgradePreview> {
     if (this.prepareFlight) return this.prepareFlight

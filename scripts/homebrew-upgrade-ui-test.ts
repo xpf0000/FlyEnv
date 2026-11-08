@@ -168,6 +168,14 @@ vm.$forceUpdate()
 await nextTick()
 assert.equal(button('versionmanager.brewUpgrade').props.disabled, true)
 assert.match(text(root), /brewUpgradeReason.pinned/)
+controller.catalogError = 'php metadata query timed out'
+vm.$forceUpdate()
+await nextTick()
+const catalogAlert = all(root).find(
+  (n) => n.props.title === 'versionmanager.brewUpgradeCatalogFailed'
+)
+assert(catalogAlert)
+assert.equal(catalogAlert.props.description, 'php metadata query timed out')
 controller.catalog['homebrew/core/php'].outdated = false
 vm.$forceUpdate()
 await nextTick()

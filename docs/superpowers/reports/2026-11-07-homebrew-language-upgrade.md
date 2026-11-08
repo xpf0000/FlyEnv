@@ -62,3 +62,13 @@
 两项先复现失败再修复；回归覆盖安装和卸载、连续前置失败与后续受理、提交后的异常/未知，以及 renderer 实际 IPC 适配层和控制器的未知状态。
 
 本轮验证：`npm run test:homebrew-upgrade`（扩为 10 个脚本）、renderer 操作边界、服务启动诊断和 StartupGroup 均通过；应用 smoke 五个检查点通过；main/fork/renderer 完整生产源码构建通过。本地 Monaco worker 文件可用，本轮没有修改 Monaco 配置或依赖。定向 ESLint 通过；全量类型检查仍为 61 个既有诊断，0 新增。未执行真实 Homebrew 升级，未合并 PR。
+
+## PR #960 第二轮反馈实施约定（2026-11-08）
+
+- 普通安装/卸载继续由 main 单一 owner 持有 pending→running→terminal/unknown 生命周期。同一 prefix 的整个 Cellar 是其保守影响范围：Homebrew 安装会升级已过期配方、依赖，并可能重装链接损坏的依赖方，不能仅凭目标配方名称证明其他服务独立。因此等待既有生命周期后，检查该范围内运行服务；存在服务或身份不明时提交前失败、释放 gate，提示用户先停止服务。不会自动停服务，也不增加第二套确认/迁移流程。另一 prefix 和独立 DNS/FTP 服务不受影响；范围比实际安装计划更宽是明确取舍。
+- fork 的 catalog 返回成功 rows 和逐项 failures；身份查询是共享必要前置，失败整体抛出；单配方查询/解析失败不阻止其他配方。renderer singleton 保存成功结果、目录错误和请求顺序，失败项删除旧可升级数据，页面显示目录错误；调用者仍收到失败，升级后的刷新据此设置 refreshFailed。全失败时不再表现为正常空目录。
+- 刷新是包命令之后的补充步骤：失败不覆盖包命令成功、不重放、不重启。重复调用和页面销毁归属保持不变。回归覆盖运行服务及等待中启动、提交次数、失败后重试、部分/全部查询失败、超时携带 JSON、迟到结果、升级成功加目录失败以及后续刷新恢复。
+
+第二轮修复验证完成：两个问题均先用回归复现，再修改实现。`npm run test:homebrew-upgrade` 扩为 11 个脚本全部通过；renderer 操作边界、服务启动诊断、StartupGroup 通过。应用级 smoke 扩为 7 个 checkpoint，新增真实 Application/renderer/IPC 链路的运行中服务拦截，以及升级成功后目录查询失败、可见警告、无重放和后续刷新恢复。main/fork/renderer 生产源码构建通过；定向 ESLint 为 0 errors / 10 处既有 warnings。全量类型检查与原基线逐项比较仍为 61 个既有诊断，0 新增。迟到目录查询不能覆盖新目录或错误状态，其失败仍传回该请求自身的调用者。
+
+未执行真实 macOS Homebrew 包升级；正式 Helper 与真实包升级组合仍需隔离环境验收。普通包操作采用整个 prefix Cellar 的保守范围，并未声称获得 Homebrew 的精确实际变更计划。未修改日常服务和用户配置，未合并 PR。

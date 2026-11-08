@@ -16,6 +16,10 @@ export type BrewFormulaSnapshot = {
   fingerprint: string
 }
 export type BrewServiceTarget = { module: string; item: SoftInstalled; generation?: number }
+export type BrewUpgradeCatalog = {
+  rows: BrewFormulaSnapshot[]
+  failures: { formula: string; error: string }[]
+}
 export type BrewUpgradePreview = {
   previewId: string
   module: 'php'

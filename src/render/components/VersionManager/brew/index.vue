@@ -58,6 +58,14 @@ ${homebrewUpgrade.error}`
             : ''
         }}</pre>
     </div>
+    <el-alert
+      v-if="typeFlag === 'php' && homebrewUpgrade.catalogError"
+      :title="I18nT('versionmanager.brewUpgradeCatalogFailed')"
+      :description="homebrewUpgrade.catalogError"
+      type="warning"
+      :closable="false"
+      show-icon
+    />
     <template v-if="BrewSetup.installing">
       <div class="w-full h-full overflow-hidden p-5">
         <div ref="xtermDom" class="w-full h-full overflow-hidden"></div>

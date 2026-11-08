@@ -110,11 +110,18 @@ const catalogOwner = new HomebrewUpgradeController({
 })
 const oldCatalog = catalogOwner.loadCatalog(['php'])
 const newCatalog = catalogOwner.loadCatalog(['php'])
-catalogReplies[1]([{ formula: 'homebrew/core/php', installedVersions: ['8.5.12'] }])
+catalogReplies[1]({
+  rows: [{ formula: 'homebrew/core/php', installedVersions: ['8.5.12'] }],
+  failures: []
+})
 await newCatalog
-catalogReplies[0]([{ formula: 'homebrew/core/php', installedVersions: ['8.5.7'] }])
-await oldCatalog
+catalogReplies[0]({
+  rows: [],
+  failures: [{ formula: 'homebrew/core/php', error: 'stale failure' }]
+})
+await assert.rejects(oldCatalog, /stale failure/)
 assert.deepEqual(catalogOwner.catalog['homebrew/core/php'].installedVersions, ['8.5.12'])
+assert.equal(catalogOwner.catalogError, '')
 console.log('PASS catalog: late older reply cannot replace successful post-upgrade catalog')
 
 const partial = await extensionOwner.package(
@@ -130,4 +137,68 @@ assert.match(partial.postprocessError!, /copy failed/)
 assert.match(extensionOwner.error, /copy failed/)
 console.log(
   'PASS package postprocessing failure preserves completed command and reports partial completion'
+)
+
+let catalogResponse: any = {
+  rows: [{ formula: 'homebrew/core/php', installedVersions: ['8.5.12'], eligible: true }],
+  failures: []
+}
+let catalogTransportError = false
+let packageCalls = 0
+let notices = 0
+const queryOwner = new HomebrewUpgradeController({
+  call: async (action) => {
+    if (action === 'getUpgradeCatalog') {
+      if (catalogTransportError) throw new Error('catalog worker exited')
+      return catalogResponse
+    }
+    if (action === 'beginUpgrade') return { operationId: 'query-check', targets: [] }
+    if (action === 'executeUpgrade') {
+      packageCalls++
+      return { operationId: 'query-check', action: 'upgrade', outcome: 'succeeded', logs: '' }
+    }
+    throw new Error('Unexpected action: ' + action)
+  },
+  stop: async () => true,
+  refresh: async () => {
+    await queryOwner.loadCatalog(['php', 'php@8.4'])
+  },
+  notify: () => {
+    notices++
+  }
+})
+await queryOwner.loadCatalog(['php'])
+catalogResponse = {
+  rows: [{ formula: 'homebrew/core/php@8.4', installedVersions: ['8.4.15'] }],
+  failures: [{ formula: 'homebrew/core/php', error: 'info query timed out' }]
+}
+await assert.rejects(queryOwner.loadCatalog(['php', 'php@8.4']), /php.*timed out/)
+assert.equal(Object.hasOwn(queryOwner.catalog, 'homebrew/core/php'), false)
+assert.deepEqual(queryOwner.catalog['homebrew/core/php@8.4'].installedVersions, ['8.4.15'])
+assert.match(queryOwner.catalogError, /timed out/)
+const completed = await queryOwner.confirm({ previewId: 'query-preview', module: 'php' } as any)
+assert.equal(completed.outcome, 'succeeded')
+assert.equal(queryOwner.refreshFailed, true)
+assert.equal(queryOwner.busy, false)
+assert.match(queryOwner.logs, /timed out/)
+assert.equal(packageCalls, 1)
+assert.equal(notices, 1)
+catalogResponse = { rows: [], failures: [{ formula: 'homebrew/core/php', error: 'invalid JSON' }] }
+await assert.rejects(queryOwner.loadCatalog(['php']), /invalid JSON/)
+assert.match(queryOwner.catalogError, /invalid JSON/)
+catalogTransportError = true
+await assert.rejects(queryOwner.loadCatalog(['php']), /worker exited/)
+assert.match(queryOwner.catalogError, /worker exited/)
+catalogTransportError = false
+catalogResponse = {
+  rows: [{ formula: 'homebrew/core/php', installedVersions: ['8.5.12'] }],
+  failures: []
+}
+await queryOwner.loadCatalog(['php'])
+assert.equal(queryOwner.catalogError, '')
+assert.equal(queryOwner.catalog['homebrew/core/php'].installedVersions[0], '8.5.12')
+assert.equal(packageCalls, 1)
+assert.equal(notices, 1)
+console.log(
+  'PASS catalog/controller: partial success retained, stale failed rows removed, all/transport failures visible, completed upgrade preserved with refresh warning and no replay, later recovery'
 )

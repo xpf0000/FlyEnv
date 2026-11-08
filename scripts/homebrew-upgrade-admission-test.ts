@@ -196,3 +196,53 @@ for (const failure of ['throw', 'unknown'] as const) {
   assert.equal(runs, 1)
 }
 console.log('PASS admission: submitted package exceptions/unknown retain the gate without replay')
+
+// An ordinary extension install can upgrade/reinstall other formulae in this prefix.
+for (const action of ['install', 'uninstall'] as const) {
+  let runs = 0
+  let services: any[] = []
+  let finishIdle!: () => void
+  let wait = true
+  const broad = { ...snapshot, affectedRacks: [snapshot.identity.cellar] }
+  const owner = new HomebrewOperationCoordinator({
+    inspect: async () => broad,
+    running: () => services,
+    idle: async () => {
+      if (wait)
+        await new Promise<void>((resolve) => {
+          finishIdle = resolve
+        })
+    },
+    run: async (id, action) => {
+      runs++
+      return { operationId: id, action, outcome: 'succeeded', logs: '' }
+    }
+  })
+  const attempt = owner.mutate(action, broad, () => {})
+  assert.throws(() => owner.assertStart('php', { bin: broad.kegs[0] + '/bin/php' }))
+  // A previously accepted start registers while admission waits for it.
+  services = [{ module: 'php', item: { bin: broad.kegs[0] + '/bin/php', pid: '123' } }]
+  finishIdle()
+  const denied = await attempt
+  assert.equal(denied.outcome, 'failed')
+  assert.match(denied.error!, /stop.*service/i)
+  assert.equal(runs, 0)
+  assert.doesNotThrow(() => owner.assertStart('php', services[0].item))
+  wait = false
+  services = [
+    { module: 'php', item: { bin: '/another/Cellar/php/8.5/bin/php', pid: '456' } },
+    { module: 'dns', item: {} },
+    { module: 'ftp-srv', item: {} }
+  ]
+  assert.equal((await owner.mutate(action, broad, () => {})).outcome, 'succeeded')
+  assert.equal(runs, 1)
+  services = [{ module: 'php', item: {} }]
+  assert.equal((await owner.mutate(action, broad, () => {})).outcome, 'failed')
+  assert.equal(runs, 1)
+  services = []
+  assert.equal((await owner.mutate(action, broad, () => {})).outcome, 'succeeded')
+  assert.equal(runs, 2)
+}
+console.log(
+  'PASS ordinary packages: running/unknown installations block before submission; drained starts included, independent services allowed, retry admitted'
+)

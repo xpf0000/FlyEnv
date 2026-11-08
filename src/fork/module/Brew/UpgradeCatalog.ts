@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { execFile } from 'node:child_process'
 import { readFile, realpath } from 'node:fs/promises'
 import { isAbsolute, join, dirname } from 'node:path'
-import type { BrewFormulaSnapshot, BrewIdentity } from './UpgradeTypes'
+import type { BrewFormulaSnapshot, BrewIdentity, BrewUpgradeCatalog } from './UpgradeTypes'
 
 export const formulaName = (value: string) => {
   if (!/^(?:[a-zA-Z0-9_.+-]+\/){0,2}[a-zA-Z0-9_+.-]+(?:@[a-zA-Z0-9_.+-]+)?$/.test(value))
@@ -29,7 +29,17 @@ export function queryBrew(bin: string, args: string[], env = process.env): Promi
       { env: brewEnvironment(env), maxBuffer: 16 * 1024 * 1024, timeout: 120_000 },
       (error, stdout) => {
         // Some brew versions return 1 when named formulae are outdated; JSON remains authoritative.
-        if (error && !(args[0] === 'outdated' && stdout.trim().startsWith('{'))) reject(error)
+        if (
+          error &&
+          !(
+            args[0] === 'outdated' &&
+            error.code === 1 &&
+            !error.killed &&
+            !error.signal &&
+            stdout.trim().startsWith('{')
+          )
+        )
+          reject(error)
         else resolve(stdout.trim())
       }
     )
@@ -130,29 +140,38 @@ export async function getBrewIdentity(bin: string, env = process.env): Promise<B
   const arch = prefix === '/usr/local' ? 'x86_64' : process.arch === 'arm64' ? 'arm64' : 'x86_64'
   return { bin: resolved, prefix: await realpath(prefix), cellar: await realpath(cellar), arch }
 }
-export async function getUpgradeCatalog(bin: string, formulas: string[], env = process.env) {
+export async function getUpgradeCatalog(
+  bin: string,
+  formulas: string[],
+  env = process.env
+): Promise<BrewUpgradeCatalog> {
   const identity = await getBrewIdentity(bin, env)
-  const rows: BrewFormulaSnapshot[] = []
+  const result: BrewUpgradeCatalog = { rows: [], failures: [] }
   for (const name of formulas) {
+    let formula = name
     try {
-      const formula = formulaName(name)
+      formula = formulaName(name)
       if (!/^php(?:@\d+(?:\.\d+)*)?$/.test(formula.split('/').at(-1)!)) continue
       const [info, outdated] = await Promise.all([
         queryBrew(identity.bin, ['info', '--json=v2', '--formula', formula], env),
         queryBrew(identity.bin, ['outdated', '--json=v2', '--formula', formula], env)
       ])
-      rows.push(
-        ...(await catalogFromInfo(
+      const items: Info[] = JSON.parse(info).formulae
+      const outdatedItems: { name: string }[] = JSON.parse(outdated).formulae
+      if (!Array.isArray(items) || items.length !== 1 || !Array.isArray(outdatedItems))
+        throw new Error('Cannot verify Homebrew formula metadata')
+      result.rows.push(
+        await inspectFormula(
           identity,
-          JSON.parse(info).formulae,
-          JSON.parse(outdated).formulae.map((i: { name: string }) => formulaName(i.name))
-        ))
+          items[0],
+          outdatedItems.map((i) => formulaName(i.name))
+        )
       )
     } catch (error) {
-      console.warn('Cannot inspect Homebrew formula:', name, String(error))
+      result.failures.push({ formula, error: String(error) })
     }
   }
-  return rows
+  return result
 }
 /** Include possible dependency upgrades and dependent linkage rebuilds, not unchanged shared libraries. */
 export function dependencyImpact(items: Info[], selected: string, missing?: Set<string>): string[] {
@@ -196,7 +215,9 @@ export function dependencyImpact(items: Info[], selected: string, missing?: Set<
 }
 
 export async function inspectUpgrade(bin: string, name: string, env = process.env) {
-  const [row] = await getUpgradeCatalog(bin, [name], env)
+  const { rows, failures } = await getUpgradeCatalog(bin, [name], env)
+  if (failures.length) throw new Error(failures.map((failure) => failure.error).join('\n'))
+  const [row] = rows
   if (!row) throw new Error('Cannot verify Homebrew formula')
   let all: Info[] = JSON.parse(
     await queryBrew(row.identity.bin, ['info', '--json=v2', '--installed', '--formula'], env)

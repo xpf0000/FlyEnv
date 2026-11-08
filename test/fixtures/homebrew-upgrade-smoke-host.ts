@@ -125,6 +125,14 @@ async function run() {
     assert.equal(existsSync(join(root, 'events')), false)
     assert.equal(ServiceProcess.statusOf('php').instances.length, 1)
     checkpoints.push('cancel-has-no-stop-or-upgrade')
+    const installResult = await js(
+      `window.brewSmoke.package({name:'shivammathur/extensions/imagick@8.5',installed:false,typeFlag:'php'})`
+    )
+    assert.equal(installResult.outcome, 'failed')
+    assert.match(installResult.error, /stop.*service/i)
+    assert.equal(ServiceProcess.statusOf('php').instances.length, 1)
+    assert.equal(existsSync(join(root, 'events')), false)
+    checkpoints.push('ordinary-extension-install-blocked-with-running-service-no-stop-or-package')
     const confirm = async () => {
       await js(`(${update}).click()`)
       await wait(
@@ -186,6 +194,7 @@ async function run() {
     assert.deepEqual(events, ['stopped', 'upgrade', 'stopped', 'upgrade'])
     checkpoints.push('success-refresh-page-reentry-settings-preserved-no-restart')
     await rm(join(root, 'upgraded'))
+    await writeFile(join(root, 'fail-catalog'), 'yes')
     await js(`window.brewSmoke.loadCatalog(['homebrew/core/php'])`)
     await wait(`!!(${update}) && !(${update}).disabled`)
     await confirm()
@@ -207,6 +216,18 @@ async function run() {
     assert(Date.now() - drainStart > 1000, 'drain must wait for real package close')
     await wait(`window.brewSmoke.phase==='succeeded'`)
     checkpoints.push('shared-lifecycle-start-gated-and-quit-drain-waits-package-close')
+    assert.equal(await js('window.brewSmoke.result.outcome'), 'succeeded')
+    assert.equal(await js('window.brewSmoke.refreshFailed'), true)
+    assert.match(await js('window.brewSmoke.catalogError'), /fixture catalog query failure/)
+    assert.equal(await js('Object.keys(window.brewSmoke.catalog).length'), 0)
+    await wait(
+      `document.querySelector('.el-alert')?.textContent.includes('Some Homebrew update information')`
+    )
+    assert.equal((await readFile(join(root, 'events'), 'utf8')).match(/upgrade/g)?.length, 3)
+    await rm(join(root, 'fail-catalog'))
+    await js(`window.brewSmoke.loadCatalog(['homebrew/core/php'])`)
+    assert.equal(await js('window.brewSmoke.catalogError'), '')
+    checkpoints.push('catalog-query-failure-visible-success-preserved-no-replay-refresh-recovers')
 
     await js(
       `(async()=>{await (await import('/core/LanguageService.ts')).RendererLanguage.switchLocale('zh');window.__FLYENV_PLUGIN_HOST__['element-plus'].ElMessage.closeAll();window.__FLYENV_PLUGIN_HOST__['element-plus'].ElMessageBox.close();document.documentElement.classList.remove('light');document.documentElement.classList.add('dark')})()`

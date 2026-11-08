@@ -16,6 +16,7 @@
   "brewUpgradeSuccess": "Update succeeded. Complete related configuration and start services manually.",
   "brewPackageSuccess": "Homebrew operation succeeded.",
   "brewUpgradeRefreshFailed": "Update succeeded, but refreshing the lists failed. Refresh manually.",
+  "brewUpgradeCatalogFailed": "Some Homebrew update information could not be loaded. Refresh the list and try again.",
   "brewUpgradeFailed": "Update failed. Review the error and logs; stopped services remain stopped.",
   "brewUpgradeUnknown": "The result is unknown. Do not repeat the operation while Homebrew may still be running.",
   "brewUpgradeReason": {
