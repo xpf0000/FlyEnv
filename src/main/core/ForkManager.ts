@@ -7,6 +7,10 @@ import { utilityProcess } from 'electron'
 import { PluginWorkerRegistry } from './PluginWorkerRegistry'
 import type { ForkPluginSnapshot } from '@shared/plugin/PluginRuntime'
 import { cpus } from 'os'
+import { currentServiceStopContext, withServiceStopContext } from '@shared/ServiceStopContext'
+import ServiceProcessManager from './ServiceProcess'
+import { HomebrewOperationCoordinator } from './HomebrewOperationCoordinator'
+import type { BrewFormulaSnapshot, BrewPackageResult } from '../../fork/module/Brew/UpgradeTypes'
 import { fetchStopProcessListLocal } from '@shared/StopProcessList'
 import { appDebugLog } from '@shared/utils'
 import EnvSync from '@shared/EnvSync'
@@ -107,7 +111,110 @@ export class ForkManager {
   private languageSnapshotProvider?: () => LanguageRuntimePayload
   // 注入主进程唯一协调器；独立服务 fork 与普通池共享授权队列。
   windowsPrivilegeBridge?: WindowsPrivilegeBridge
+  private brewFork?: ForkItem
+  private readonly brewFlights = new Set<Promise<unknown>>()
+  private homebrewCoordinator?: HomebrewOperationCoordinator
+  private get homebrew() {
+    if (!this.homebrewCoordinator) {
+      this.homebrewCoordinator = new HomebrewOperationCoordinator({
+        inspect: (formula) => this.brewQuery('inspectUpgrade', formula),
+        idle: async (snapshot) => {
+          await Promise.all([
+            ServiceProcessManager.waitForAcceptedLifecycles(),
+            Promise.allSettled([...this.rawLifecycleRequests])
+          ])
+          this.homebrew.assertKnownStarts(snapshot, [...this.unknownServiceStarts.values()])
+        },
+        running: () =>
+          Object.entries(ServiceProcessManager.servicePID).flatMap(([module, entries]) =>
+            entries
+              .filter((entry) => !entry.companion)
+              .map((entry) => ({
+                module,
+                generation: entry.generation,
+                item: { ...entry.item, pid: entry.pid }
+              }))
+          ),
+        run: (id, action, snapshot, progress) => this.runBrewPackage(id, action, snapshot, progress)
+      })
+      ServiceProcessManager.installationStartGuard = (module, target) =>
+        this.homebrew.assertStart(module, target)
+    }
+    return this.homebrewCoordinator
+  }
+
+  private async brewQuery(command: string, ...args: unknown[]) {
+    const result: any = await this.send('brew', command, ...args)
+    if (result?.code !== 0) throw new Error(result?.msg || 'Homebrew inspection failed')
+    return result.data
+  }
+
+  private runBrewPackage(
+    id: string,
+    action: string,
+    snapshot: BrewFormulaSnapshot,
+    progress: (data: string) => void
+  ): Promise<BrewPackageResult> {
+    if (!this.brewFork || this.brewFork.childExited) {
+      this.brewFork = this.createForkItem(TRANSIENT_FORK_IDLE_TIMEOUT_MS)
+      this.brewFork._on = this._on
+    }
+    const worker = this.brewFork
+    worker.pin()
+    const flight = Promise.resolve(
+      worker
+        .sendWithTerminalHook(() => {}, 'brew', 'runPackage', action, snapshot, id)
+        .on((info: any) => {
+          if (info.code === 200) progress(String(info.msg ?? info.data ?? ''))
+        })
+    )
+      .then((info: any) =>
+        info.code === 0
+          ? { ...info.data, identity: snapshot.identity }
+          : { operationId: id, action, outcome: 'unknown', error: info.msg, logs: '' }
+      )
+      .finally(() => {
+        worker.unpin()
+        this.brewFlights.delete(flight)
+      })
+    this.brewFlights.add(flight)
+    return flight
+  }
+
+  private homebrewRequest(action: string, param: any[]) {
+    return new ForkPromise(async (resolve, reject, on) => {
+      try {
+        let data: unknown
+        if (
+          ['prepareUpgrade', 'beginUpgrade', 'executeUpgrade'].includes(action) &&
+          process.platform !== 'darwin'
+        )
+          throw new Error('Homebrew upgrades currently require macOS')
+        if (action === 'prepareUpgrade')
+          data = await this.homebrew.prepareUpgrade(param[0], param[1])
+        else if (action === 'beginUpgrade') data = await this.homebrew.beginUpgrade(param[0])
+        else if (action === 'executeUpgrade')
+          data = await this.homebrew.execute(param[0], (msg) => on({ code: 200, msg }))
+        else if (action === 'cancelPendingUpgrade') data = this.homebrew.cancelPending(param[0])
+        else if (action === 'packageOperation') {
+          if (!['install', 'uninstall'].includes(param[0]))
+            throw new Error('Invalid Homebrew action')
+          const snapshot = await this.brewQuery('packageSnapshot', param[1])
+          data = await this.homebrew.mutate(param[0], snapshot, (msg) => on({ code: 200, msg }))
+        }
+        resolve({ code: 0, data })
+      } catch (error) {
+        reject(error)
+      }
+    })
+  }
+
   private serviceLifecycleClosing = false
+  private readonly unknownServiceStarts = new Map<
+    string,
+    { module: string; item: { bin?: string } }
+  >()
+  private readonly rawLifecycleRequests = new Set<Promise<void>>()
   private readonly serviceLifecycleRequests = new Set<Promise<void>>()
 
   constructor(file: string) {
@@ -165,6 +272,7 @@ export class ForkManager {
     const message: EnvSyncInvalidated = { type: 'env-sync-invalidated', revision }
     const forks = new Set(
       [
+        this.brewFork,
         this.ftpsrvFork,
         this.dnsFork,
         this.ollamaChatFork,
@@ -217,25 +325,102 @@ export class ForkManager {
         reject(new Error('Application is shutting down'))
       )
     }
+    if (serviceLifecycleAction(module, param[0]) === 'start') {
+      try {
+        this.homebrewCoordinator?.assertStart(module, param[1])
+      } catch (error) {
+        return new ForkPromise((_resolve, reject) => reject(error))
+      }
+    }
+    if (module === 'brew') {
+      if (['runPackage', 'cancelPackage'].includes(param[0]))
+        return new ForkPromise((_resolve, reject) =>
+          reject(new Error('Homebrew package commands require main admission'))
+        )
+      if (
+        [
+          'prepareUpgrade',
+          'beginUpgrade',
+          'executeUpgrade',
+          'cancelPendingUpgrade',
+          'packageOperation'
+        ].includes(param[0])
+      )
+        return this.homebrewRequest(param[0], param.slice(1))
+    }
+    if (param[0] === 'stopService' && !currentServiceStopContext()?.target) {
+      let target
+      try {
+        target = this.homebrewCoordinator?.stopTarget(module, param[1])
+      } catch (error) {
+        return new ForkPromise((_resolve, reject) => reject(error))
+      }
+      if (target)
+        return new ForkPromise(async (resolve, reject, on) => {
+          try {
+            const context = currentServiceStopContext()
+            const processList = context?.processList ?? (await this.fetchStopProcessListSnapshot())
+            const result = await withServiceStopContext(
+              { processList, reason: context?.reason ?? 'stop', target },
+              () => this.send(...args).on(on)
+            )
+            resolve(result)
+          } catch (error) {
+            reject(error)
+          }
+        })
+    }
     // 启动（含伴随服务 open*）可能增加进程：受理前和终态都撤销旧列表。
     // stop 不在此清表，才能让同一轮并行停止共享首次发现；退出确认仍使用新查询。
-    const invalidatesProcessList = serviceLifecycleAction(module, param[0]) === 'start'
+    const lifecycleAction = serviceLifecycleAction(module, param[0])
+    const lifecycleTarget = param[1]
+    const rawStart = lifecycleAction === 'start' && !hasServiceLifecyclePermit()
+    const invalidatesProcessList = lifecycleAction === 'start'
     if (invalidatesProcessList) this.invalidateStopProcessList('service-start-request')
+    const rememberUnknownStart = () => {
+      const bin = typeof lifecycleTarget?.bin === 'string' ? lifecycleTarget.bin : undefined
+      this.unknownServiceStarts.set(JSON.stringify([module, bin]), { module, item: { bin } })
+    }
     const track = (request: any) => {
       // 退出也等待已受理 hosts/配置等非生命周期请求，避免直接销毁 worker 截断写入。
       // then 回调在微任务中执行，届时 settled 已完成初始化，可安全引用自身做清理。
       const settled: Promise<void> = Promise.resolve(request).then(
-        () => {
+        (info: any) => {
+          // Raw starts have no IPC/MCP registration consumer. Consume the fork's
+          // declared stop contract before releasing the admission drain.
+          if (invalidatesProcessList && info?.outcome === 'unknown') rememberUnknownStart()
+          try {
+            if (
+              rawStart &&
+              info?.code === 0 &&
+              info.data?.['APP-Service-Start-PID'] &&
+              Array.isArray(info.data['APP-Service-Stop-Args'])
+            ) {
+              ServiceProcessManager.addPid(
+                module,
+                String(info.data['APP-Service-Start-PID']),
+                info.data['APP-Service-Start-Item'] ?? lifecycleTarget,
+                info.data['APP-Service-Stop-Args'],
+                info.data['APP-Service-Stop-Companion'] === true
+              )
+            }
+          } catch {
+            rememberUnknownStart()
+          }
           if (invalidatesProcessList) this.invalidateStopProcessList('service-start-settled')
           this.serviceLifecycleRequests.delete(settled)
+          this.rawLifecycleRequests.delete(settled)
         },
         () => {
-          // 启动失败也可能留下短暂子进程，不能只在成功分支撤销旧查询。
+          // A rejected transport cannot establish whether the external start occurred.
+          if (invalidatesProcessList) rememberUnknownStart()
           if (invalidatesProcessList) this.invalidateStopProcessList('service-start-settled')
           this.serviceLifecycleRequests.delete(settled)
+          this.rawLifecycleRequests.delete(settled)
         }
       )
       this.serviceLifecycleRequests.add(settled)
+      if (lifecycleAction) this.rawLifecycleRequests.add(settled)
       return request
     }
     if (this.pluginWorkers.isDedicated(module)) {
@@ -324,6 +509,8 @@ export class ForkManager {
   }
 
   async drainServiceLifecycleRequests() {
+    // Package commands may build from source: observation timeout must not kill the worker.
+    await Promise.allSettled([...this.brewFlights])
     try {
       await waitForServiceDrain(
         (async () => {
@@ -358,6 +545,7 @@ export class ForkManager {
   async broadcastLanguage(message: LanguageChanged) {
     const forks = new Set(
       [
+        this.brewFork,
         this.ftpsrvFork,
         this.dnsFork,
         this.ollamaChatFork,
@@ -372,6 +560,7 @@ export class ForkManager {
   broadcastServer(server: unknown) {
     const forks = new Set(
       [
+        this.brewFork,
         this.ftpsrvFork,
         this.dnsFork,
         this.ollamaChatFork,
@@ -388,6 +577,8 @@ export class ForkManager {
   }
 
   async destroy() {
+    await Promise.allSettled([...this.brewFlights])
+    this.brewFork?.destroy()
     // Independent workers still close when another worker or cache flush fails.
     const cleanup = await Promise.allSettled([
       this.pluginWorkers.closeAll(),

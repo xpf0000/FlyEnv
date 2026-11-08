@@ -1,127 +1,43 @@
-import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
-import { AppStore } from '@/store/app'
-import { SoftInstalled } from '@/store/brew'
-import XTerm from '@/util/XTerm'
+import { computed, ref } from 'vue'
+import type { SoftInstalled } from '@/store/brew'
 import IPC from '@/util/IPC'
 import { MessageError, MessageSuccess } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import Base from '@/core/Base'
 import { ExtensionSetup } from '@/components/PHP/Extension/setup'
-import { join, basename } from '@/util/path-browserify'
+import { join } from '@/util/path-browserify'
 import { clipboard, fs } from '@/util/NodeFn'
 
-export const BrewSetup = reactive<{
-  installEnd: boolean
-  installing: boolean
-  list: { [k: string]: any }
-  fetching: Partial<Record<string, boolean>>
-  xterm: XTerm | undefined
-  reFetch: () => void
-}>({
-  installEnd: false,
-  installing: false,
-  fetching: {},
-  list: {},
-  xterm: undefined,
-  reFetch: () => 0
-})
+import { BrewExtensionCatalog as BrewSetup, fetchHomebrewExtensions } from './Catalog'
+import { copyHomebrewExtension } from './ExtensionPackage'
+import { homebrewUpgrade } from '@/components/VersionManager/brew/Controller'
+export { BrewSetup }
 
 export const Setup = (version: SoftInstalled) => {
-  const appStore = AppStore()
   const search = ref('')
-
-  const proxy = computed(() => {
-    return appStore.config.setup.proxy
-  })
-  const proxyStr = computed(() => {
-    if (!proxy?.value.on) {
-      return undefined
-    }
-    return proxy?.value?.proxy
-  })
 
   const fetching = computed(() => {
     return BrewSetup.fetching?.[version.bin] ?? false
   })
 
-  const versionNumber = computed(() => {
-    if (version?.version) {
-      const versionNums: any = version?.version.split('.')
-      versionNums.splice(2)
-      return versionNums.join('.')
-    }
-    return 0
-  })
-
-  const fetchData = () => {
-    if (fetching.value || BrewSetup?.list?.[version.bin]) {
-      return
-    }
-    BrewSetup.fetching[version.bin] = true
-    IPC.send('app-fork:brew', 'fetchAllPhpExtensions', versionNumber.value).then(
-      (key: string, res: any) => {
-        IPC.off(key)
-        if (res?.data) {
-          BrewSetup.list[version.bin] = res.data
-        }
-        BrewSetup.fetching[version.bin] = false
-      }
-    )
-  }
-
-  const reGetData = () => {
-    console.log('reGetData !!!')
-    delete BrewSetup?.list?.[version.bin]
-    delete BrewSetup.fetching?.[version.bin]
-    fetchData()
-  }
-
+  const fetchData = () => fetchHomebrewExtensions(version).catch(() => {})
+  const reGetData = () => fetchHomebrewExtensions(version, true).catch(() => {})
   BrewSetup.reFetch = reGetData
 
-  const handleEdit = async (row: any) => {
-    if (BrewSetup.installing) {
-      return
-    }
-    BrewSetup.installing = true
-    BrewSetup.installEnd = false
-    const fn = row?.status ? 'uninstall' : 'install'
-    const arch = window.Server.isArmArch ? '-arm64' : '-x86_64'
-    const name = row.libName
-    let params = []
-    const sh = join(window.Server.Static!, 'sh/brew-cmd.sh')
-    const copyfile = join(window.Server.Cache!, 'brew-cmd.sh')
-    const exists = await fs.existsSync(copyfile)
-    if (exists) {
-      await fs.remove(copyfile)
-    }
-    await fs.copyFile(sh, copyfile)
-    await fs.chmod(copyfile, '0777')
-    params = [`${copyfile} ${arch} ${fn} ${name};`]
-    if (proxyStr?.value) {
-      params.unshift(proxyStr?.value)
-    }
-    await nextTick()
-    const execXTerm = new XTerm()
-    BrewSetup.xterm = execXTerm
-    await execXTerm.mount(xtermDom.value!)
-    await execXTerm.send(params)
-
-    const extensionDir = ExtensionSetup.dir?.[version.bin] ?? ''
-    console.log('extensionDir: ', extensionDir)
-    const baseDir = row.libName.split('/').pop()
-    const dir = join(window.Server.BrewCellar!, baseDir)
-    console.log('dir: ', dir)
-    const allFile = await fs.readdir(dir, true)
-    console.log('allFile: ', allFile)
-    const so = allFile.filter((f) => f.endsWith('.so')).pop()
-    if (so) {
-      const destSo = join(extensionDir, basename(so))
-      await fs.mkdirp(extensionDir)
-      await fs.copyFile(so, destSo)
-    }
-    ExtensionSetup.reFetch()
-    reGetData()
-    BrewSetup.installEnd = true
+  const handleEdit = (row: any) => {
+    const request = { name: String(row.libName), installed: !!row.status, typeFlag: 'php' }
+    const selected = { bin: version.bin, version: version.version }
+    const extensionDir = ExtensionSetup.dir[version.bin] ?? ''
+    return homebrewUpgrade
+      .package(request, {
+        afterPackage: async (result) => {
+          if (!request.installed)
+            await copyHomebrewExtension(result, request.name, extensionDir, fs)
+          ExtensionSetup.dirFile[selected.bin] = await fs.readdir(extensionDir)
+          await fetchHomebrewExtensions(selected, true)
+        }
+      })
+      .catch(() => {})
   }
 
   const tableData = computed(() => {
@@ -218,31 +134,13 @@ xdebug.output_dir = "${output_dir}"
       .catch(() => {})
   }
 
-  const xtermDom = ref<HTMLElement>()
-
   fetchData()
-
-  onMounted(() => {
-    if (BrewSetup.installing) {
-      nextTick().then(() => {
-        const execXTerm: XTerm = BrewSetup.xterm as any
-        if (execXTerm && xtermDom.value) {
-          execXTerm.mount(xtermDom.value).then().catch()
-        }
-      })
-    }
-  })
-
-  onUnmounted(() => {
-    BrewSetup.xterm?.unmounted()
-  })
 
   return {
     handleEdit,
     tableData,
     reGetData,
     fetching,
-    xtermDom,
     copyLink,
     copyXDebugTmpl,
     search,

@@ -39,6 +39,8 @@ import { unpack } from '../../util/Zip'
 import { parse as iniParse } from 'ini'
 import { IniParse } from '../../../render/util/IniParse'
 import { isWindows, uuid } from '@shared/utils'
+import { currentServiceStopContext } from '@shared/ServiceStopContext'
+import { selectScopedPhpStop } from './ScopedStop'
 import { createHash } from 'node:crypto'
 import { qualifyHomebrewCoreFormula } from '../../util/BrewFormula'
 import {
@@ -278,6 +280,26 @@ xdebug.output_dir = "${output_dir}"
         'APP-On-Log': AppLog('info', I18nT('appLog.stopServiceBegin', { service: this.type }))
       })
       try {
+        const target = currentServiceStopContext()?.target
+        if (target) {
+          if (version.pid !== target.pid || version.bin !== target.bin)
+            throw new Error('PHP stop target changed')
+          const list = await StopProcessListFetch()
+          const pids = await selectScopedPhpStop(target, list)
+          if (pids.length) await this.stopUnixServicePids('-INT', pids, pids, 10_000, list)
+          const remaining = await fetchStopProcessListLocal()
+          if (
+            remaining.some(
+              (item) =>
+                item.PID === target.pid || item.PPID === target.pid || pids.includes(item.PID)
+            )
+          )
+            throw new Error('Cannot confirm registered PHP root and descendants stopped')
+          await this.removeStoppedAppPid([...pids, target.pid])
+          // Include an already absent root so main can retire that exact stale generation.
+          resolve({ 'APP-Service-Stop-PID': [...new Set([...pids, target.pid])] })
+          return
+        }
         const v = version?.version?.split('.')?.slice(0, 2)?.join('') ?? ''
         const confPath = join(global.Server.PhpDir!, v, 'conf')
         // PHP 在 macOS 可把进程标题显示为 php-fpm master，不强制要求完整 exe 路径；

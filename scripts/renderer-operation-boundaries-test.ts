@@ -711,3 +711,31 @@ assert.doesNotMatch(memoryManager, /defineStore\(|config\.setup/)
 await import('./language-project-ports-test')
 
 console.log('renderer operation boundary tests passed')
+
+// Homebrew formula mutations are controller/fork owned; only bootstrap retains XTerm.
+const homebrewPage = readFileSync(join(componentsDir, 'VersionManager/brew/index.vue'), 'utf8')
+const homebrewSetup = readFileSync(join(componentsDir, 'VersionManager/brew/setup.ts'), 'utf8')
+const homebrewItem = readFileSync(
+  join(root, 'src/render/core/Module/ModuleHomebrewItem.ts'),
+  'utf8'
+)
+const homebrewController = readFileSync(
+  join(componentsDir, 'VersionManager/brew/Controller.ts'),
+  'utf8'
+)
+assert.doesNotMatch(homebrewPage, /IPC\.send|new XTerm|Message(?:Error|Success|Warning)/)
+assert.doesNotMatch(homebrewSetup + homebrewItem, /brew-cmd\.sh/)
+assert.doesNotMatch(homebrewItem, /new XTerm|IPC\.send/)
+assert.match(homebrewController, /reactiveBind\(\s*new HomebrewUpgradeController/)
+
+const extensionBrewSetup = readFileSync(
+  join(componentsDir, 'PHP/Extension/Homebrew/setup.ts'),
+  'utf8'
+)
+const extensionBrewPage = readFileSync(
+  join(componentsDir, 'PHP/Extension/Homebrew/index.vue'),
+  'utf8'
+)
+assert.doesNotMatch(extensionBrewSetup + extensionBrewPage, /brew-cmd\.sh|new XTerm|xterm\?\.stop/)
+assert.match(extensionBrewSetup, /homebrewUpgrade\s*\.package/)
+assert.match(extensionBrewPage, /homebrewUpgrade\.busy/)

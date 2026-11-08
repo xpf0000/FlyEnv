@@ -558,6 +558,7 @@ export class ForkItem {
   }
 
   private settleCallbacks(info: any) {
+    info = { ...info, outcome: 'unknown' }
     // 生命周期已在退休前重置。先摘除整批旧回调，再调用可重入的 terminal hook；
     // hook 新建的任务使用新 map，不能被旧清理删除或扣减 activeTaskCount。
     const callbacks = this.callback

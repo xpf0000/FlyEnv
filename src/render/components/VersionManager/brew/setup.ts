@@ -8,6 +8,7 @@ import { MessageSuccess, MessageWarning } from '@/util/Element'
 import { I18nT } from '@lang/index'
 import { join, basename, dirname } from '@/util/path-browserify'
 import { clipboard, fs } from '@/util/NodeFn'
+import { homebrewUpgrade } from './Controller'
 import { brewFormulaSourceName, findInstalledFormulaConflict } from './FormulaConflict'
 
 export const BrewSetup = reactive<{
@@ -33,16 +34,6 @@ export const BrewSetup = reactive<{
 export const Setup = (typeFlag: AllAppModule) => {
   const appStore = AppStore()
   const brewStore = BrewStore()
-
-  const proxy = computed(() => {
-    return appStore.config.setup.proxy
-  })
-  const proxyStr = computed(() => {
-    if (!proxy?.value.on) {
-      return undefined
-    }
-    return proxy?.value?.proxy
-  })
 
   const checkBrew = computed(() => {
     if (!appStore.envIndex) {
@@ -79,7 +70,10 @@ export const Setup = (typeFlag: AllAppModule) => {
     if (module.brewFetching) {
       return
     }
-    module.fetchBrew()
+    module.fetchBrew().then((ok) => {
+      if (ok && typeFlag === 'php' && window.Server.isMacOS)
+        homebrewUpgrade.loadCatalog(module.brew.map((row) => row.name)).catch(() => {})
+    })
   }
   const getData = () => {
     if (!checkBrew.value || fetching.value || BrewSetup.installing) {
@@ -147,13 +141,6 @@ export const Setup = (typeFlag: AllAppModule) => {
 
   BrewSetup.reFetch = reGetData
 
-  const regetInstalled = () => {
-    reGetData()
-    const module = brewStore.module(typeFlag)
-    module.installedFetched = false
-    module.fetchInstalled().catch()
-  }
-
   const fetchCommand = (row: any) => {
     let fn = ''
     if (row.installed) {
@@ -178,7 +165,7 @@ export const Setup = (typeFlag: AllAppModule) => {
   }
 
   const handleBrewVersion = async (row: any) => {
-    if (BrewSetup.installing) {
+    if (BrewSetup.installing || homebrewUpgrade.busy) {
       return
     }
     if (row.conflictingFormula) {
@@ -189,36 +176,7 @@ export const Setup = (typeFlag: AllAppModule) => {
       )
       return
     }
-    BrewSetup.installing = true
-    BrewSetup.installEnd = false
-    let fn = ''
-    if (row.installed) {
-      fn = 'uninstall'
-    } else {
-      fn = 'install'
-    }
-    const arch = window.Server.isArmArch ? '-arm64' : '-x86_64'
-    const name = row.name
-    let params = []
-    const sh = join(window.Server.Static!, 'sh/brew-cmd.sh')
-    const copyfile = join(window.Server.Cache!, 'brew-cmd.sh')
-    const exists = await fs.existsSync(copyfile)
-    if (exists) {
-      await fs.remove(copyfile)
-    }
-    await fs.copyFile(sh, copyfile)
-    await fs.chmod(copyfile, '0777')
-    params = [`${copyfile} ${arch} ${fn} ${name};`]
-    if (proxyStr?.value) {
-      params.unshift(proxyStr?.value)
-    }
-    await nextTick()
-    const execXTerm = new XTerm()
-    BrewSetup.xterm = execXTerm
-    await execXTerm.mount(xtermDom.value!)
-    await execXTerm.send(params)
-    BrewSetup.installEnd = true
-    regetInstalled()
+    await homebrewUpgrade.package({ name: row.name, installed: row.installed, typeFlag })
   }
 
   const tableData = computed(() => {
@@ -257,7 +215,7 @@ export const Setup = (typeFlag: AllAppModule) => {
   const xtermDom = ref<HTMLElement>()
 
   const installBrew = async () => {
-    if (BrewSetup.installing) {
+    if (BrewSetup.installing || homebrewUpgrade.busy) {
       return
     }
     BrewSetup.installEnd = false
@@ -280,6 +238,11 @@ export const Setup = (typeFlag: AllAppModule) => {
   }
 
   getData()
+  if (typeFlag === 'php' && window.Server.isMacOS && brewStore.module(typeFlag).brew.length) {
+    homebrewUpgrade
+      .loadCatalog(brewStore.module(typeFlag).brew.map((row) => row.name))
+      .catch(() => {})
+  }
 
   watch(checkBrew, (v, ov) => {
     if (!ov && v) {

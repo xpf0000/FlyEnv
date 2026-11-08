@@ -4,5 +4,37 @@
   "brewErrorTips": "在此位置 {bin}，偵測到 Homebrew 的可執行檔案。\n但是 FlyEnv 無法調用。錯誤訊息：\n{error}",
   "noSDKMANFound": "未偵測到 <a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a>\n如需安裝 SDKMAN，可點擊安裝按鈕進行安裝",
   "brewFormulaConflict": "當前來源：{source}\n切換來源前，請先卸載當前 PHP 版本。",
-  "brewFormulaUnavailable": "不可用"
+  "brewFormulaUnavailable": "不可用",
+  "brewAvailableVersion": "Available version",
+  "brewUpgrade": "Update",
+  "brewUpgradeConfirm": "Confirm update",
+  "brewUpgradeWarning": "Updating first stops related services and may change the version and installation path. You must manually update configuration files, extensions, environment variables and other related settings, and start services yourself. Continue?",
+  "brewUpgradeSeriesChange": "This update changes the PHP release series. Check configuration and extension compatibility manually.",
+  "brewUpgradeStops": "Services to stop",
+  "brewUpgradeNoServices": "No related managed services are running.",
+  "brewUpgradeLogs": "Logs",
+  "brewUpgradeSuccess": "Update succeeded. Complete related configuration and start services manually.",
+  "brewPackageSuccess": "Homebrew operation succeeded.",
+  "brewUpgradeRefreshFailed": "Update succeeded, but refreshing the lists failed. Refresh manually.",
+  "brewUpgradeCatalogFailed": "部分 Homebrew 更新資訊載入失敗，請重新整理列表後再試。",
+  "brewUpgradeFailed": "Update failed. Review the error and logs; stopped services remain stopped.",
+  "brewUpgradeUnknown": "The result is unknown. Do not repeat the operation while Homebrew may still be running.",
+  "brewUpgradeReason": {
+    "identity": "Cannot verify installation source or architecture",
+    "pinned": "Pinned in Homebrew",
+    "disabled": "Formula disabled",
+    "latest": "Up to date",
+    "dependencies": "Potential database changes are not supported by this update"
+  },
+  "brewUpgradePhase": {
+    "idle": "Ready",
+    "checking": "Checking Homebrew…",
+    "stopping": "Stopping related services…",
+    "upgrading": "Running Homebrew…",
+    "refreshing": "Refreshing installed versions…",
+    "succeeded": "Update succeeded",
+    "failed": "Update failed. Check logs.",
+    "unknown": "Result unknown. Do not repeat the operation."
+  },
+  "brewPackagePartial": "Homebrew completed, but a follow-up step failed. Check the logs."
 }

@@ -4,5 +4,37 @@
   "brewErrorTips": "На това място {bin} бяха открити изпълними файлове на Homebrew.\nFlyEnv обаче не може да ги стартира. Съобщение за грешка:\n{error}",
   "noSDKMANFound": "<a href=\"javascript:void();\" onclick=\"openUrl('https://sdkman.io/')\">SDKMAN</a> не е намерен\nЗа да инсталирате SDKMAN, натиснете бутона Инсталирай, за да продължите",
   "brewFormulaConflict": "Текущ източник: {source}\nДеинсталирайте текущата PHP версия, преди да смените източника.",
-  "brewFormulaUnavailable": "Недостъпно"
+  "brewFormulaUnavailable": "Недостъпно",
+  "brewAvailableVersion": "Available version",
+  "brewUpgrade": "Update",
+  "brewUpgradeConfirm": "Confirm update",
+  "brewUpgradeWarning": "Updating first stops related services and may change the version and installation path. You must manually update configuration files, extensions, environment variables and other related settings, and start services yourself. Continue?",
+  "brewUpgradeSeriesChange": "This update changes the PHP release series. Check configuration and extension compatibility manually.",
+  "brewUpgradeStops": "Services to stop",
+  "brewUpgradeNoServices": "No related managed services are running.",
+  "brewUpgradeLogs": "Logs",
+  "brewUpgradeSuccess": "Update succeeded. Complete related configuration and start services manually.",
+  "brewPackageSuccess": "Homebrew operation succeeded.",
+  "brewUpgradeRefreshFailed": "Update succeeded, but refreshing the lists failed. Refresh manually.",
+  "brewUpgradeCatalogFailed": "Some Homebrew update information could not be loaded. Refresh the list and try again.",
+  "brewUpgradeFailed": "Update failed. Review the error and logs; stopped services remain stopped.",
+  "brewUpgradeUnknown": "The result is unknown. Do not repeat the operation while Homebrew may still be running.",
+  "brewUpgradeReason": {
+    "identity": "Cannot verify installation source or architecture",
+    "pinned": "Pinned in Homebrew",
+    "disabled": "Formula disabled",
+    "latest": "Up to date",
+    "dependencies": "Potential database changes are not supported by this update"
+  },
+  "brewUpgradePhase": {
+    "idle": "Ready",
+    "checking": "Checking Homebrew…",
+    "stopping": "Stopping related services…",
+    "upgrading": "Running Homebrew…",
+    "refreshing": "Refreshing installed versions…",
+    "succeeded": "Update succeeded",
+    "failed": "Update failed. Check logs.",
+    "unknown": "Result unknown. Do not repeat the operation."
+  },
+  "brewPackagePartial": "Homebrew completed, but a follow-up step failed. Check the logs."
 }
