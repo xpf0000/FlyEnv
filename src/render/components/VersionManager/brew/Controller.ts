@@ -29,7 +29,7 @@ export const brewRequest = (
         resolve({
           operationId: '',
           action: action === 'executeUpgrade' ? 'upgrade' : args[0],
-          outcome: 'failed',
+          outcome: info?.outcome === 'unknown' ? 'unknown' : 'failed',
           error: info?.msg,
           logs: ''
         })

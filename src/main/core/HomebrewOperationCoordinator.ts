@@ -199,21 +199,24 @@ export class HomebrewOperationCoordinator {
     progress: (data: string) => void
   ) {
     if (this.active) throw new Error('Homebrew package operation is busy')
-    const operation: Operation = { snapshot, targets: [], phase: 'running' }
+    const operation: Operation = { snapshot, targets: [], phase: 'pending' }
     this.active = operation
     const id = randomUUID()
     try {
       await this.deps.idle(snapshot)
+      operation.phase = 'running'
       const result = await this.deps.run(id, action, snapshot, progress)
       if (result.outcome === 'unknown') operation.phase = 'unknown'
-      else this.active = undefined
+      else if (this.active === operation) this.active = undefined
       return result
     } catch (error) {
-      operation.phase = 'unknown'
+      const submitted = operation.phase !== 'pending'
+      if (submitted) operation.phase = 'unknown'
+      else if (this.active === operation) this.active = undefined
       return {
         operationId: id,
         action,
-        outcome: 'unknown',
+        outcome: submitted ? 'unknown' : 'failed',
         logs: '',
         error: String(error)
       } as BrewPackageResult

@@ -51,3 +51,14 @@
 它只启动临时私有 FPM 实例，不重启/停止日常服务或升级安装。全部测试进程已退出。修复后 Application smoke 五个检查点、既有 StartupGroup/启动诊断/renderer 边界/窗口展示（36/36）、main/fork/renderer 构建通过；定向 lint 0 errors / 10 warnings，全量类型仍为 61 个既有诊断，0 新增。
 
 审查中暂未判断的事项：真实包升级/正式 Helper 组合按上述验收边界保留；保守依赖阻挡和英文兜底维持既定取舍；跨重启持久恢复不在批准范围。本轮不会据 unknown 自动重试。
+
+## PR #960 反馈修复（2026-11-08）
+
+操作归属不变：main 协调器负责受理/提交门禁，Brew renderer 控制器负责 IPC 与页面间状态；没有新配置或 Pinia 状态。
+
+- `idle()` 是提交包命令的必要前置校验，失败时没有调用 runner、没有包变更。安装/卸载在该边界前维持 pending，前置失败返回 failed 并释放本次 gate；调用 runner 后的异常或 unknown 仍保留 gate，不自动重放。
+- renderer 必须保留 transport 的 unknown：未知是终态结果但不代表包进程已结束，busy/门禁与未知提示继续保留。普通明确失败仍为 failed，进度 code 200 不结算监听。
+
+两项先复现失败再修复；回归覆盖安装和卸载、连续前置失败与后续受理、提交后的异常/未知，以及 renderer 实际 IPC 适配层和控制器的未知状态。
+
+本轮验证：`npm run test:homebrew-upgrade`（扩为 10 个脚本）、renderer 操作边界、服务启动诊断和 StartupGroup 均通过；应用 smoke 五个检查点通过；main/fork/renderer 完整生产源码构建通过。本地 Monaco worker 文件可用，本轮没有修改 Monaco 配置或依赖。定向 ESLint 通过；全量类型检查仍为 61 个既有诊断，0 新增。未执行真实 Homebrew 升级，未合并 PR。

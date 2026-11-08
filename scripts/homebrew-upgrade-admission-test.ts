@@ -139,3 +139,60 @@ await assert.rejects(uncertain.prepareUpgrade('php', 'php'), /verify.*service/i)
 console.log(
   'PASS admission: unverifiable running alias blocks preparation rather than becoming a stop target'
 )
+
+for (const action of ['install', 'uninstall'] as const) {
+  let failIdle = true
+  let runs = 0
+  const owner = new HomebrewOperationCoordinator({
+    inspect: async () => snapshot,
+    running: () => [],
+    idle: async () => {
+      if (failIdle) throw new Error('earlier start result is unknown')
+    },
+    run: async (id, command) => {
+      runs++
+      return { operationId: id, action: command, outcome: 'succeeded', logs: '' }
+    }
+  })
+  const preflight = owner.mutate(action, snapshot, () => {})
+  assert.throws(() => owner.assertStart('php', { bin: snapshot.kegs[0] + '/bin/php' }), /Homebrew/)
+  const rejected = await preflight
+  assert.equal(rejected.outcome, 'failed', `${action}: pre-submission failure is known`)
+  assert.match(rejected.error!, /earlier start/)
+  assert.equal(runs, 0)
+  assert.doesNotThrow(() => owner.assertStart('php', { bin: snapshot.kegs[0] + '/bin/php' }))
+  assert.equal((await owner.mutate(action, snapshot, () => {})).outcome, 'failed')
+  assert.equal(runs, 0)
+  failIdle = false
+  const preview = await owner.prepareUpgrade('php', 'php')
+  const upgrade = await owner.beginUpgrade(preview.previewId)
+  owner.cancelPending(upgrade.operationId)
+  assert.equal((await owner.mutate(action, snapshot, () => {})).outcome, 'succeeded')
+  assert.equal(runs, 1)
+}
+console.log(
+  'PASS admission: install/uninstall preflight failure submits nothing and releases the gate for the next mutation/upgrade'
+)
+
+for (const failure of ['throw', 'unknown'] as const) {
+  let runs = 0
+  const owner = new HomebrewOperationCoordinator({
+    inspect: async () => snapshot,
+    running: () => [],
+    idle: async () => {},
+    run: async (id, action) => {
+      runs++
+      if (failure === 'throw') throw new Error('package transport exited after submission')
+      return { operationId: id, action, outcome: 'unknown', logs: '' }
+    }
+  })
+  assert.equal((await owner.mutate('install', snapshot, () => {})).outcome, 'unknown')
+  assert.equal(runs, 1)
+  await assert.rejects(
+    owner.mutate('uninstall', snapshot, () => {}),
+    /busy/
+  )
+  assert.throws(() => owner.assertStart('php', { bin: snapshot.kegs[0] + '/bin/php' }), /Homebrew/)
+  assert.equal(runs, 1)
+}
+console.log('PASS admission: submitted package exceptions/unknown retain the gate without replay')

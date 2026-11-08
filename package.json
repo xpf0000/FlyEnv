@@ -15,7 +15,7 @@
     "clean": "npx rimraf node_modules/node-pty/build",
     "fix-flyenv-helper": "sudo xattr -dr \"com.apple.quarantine\" ./build/bin/arm/flyenv-helper && sudo xattr -dr \"com.apple.quarantine\" ./build/bin/x86/flyenv-helper",
     "build-dev-runner": "npx esbuild --platform=node --bundle --packages=external --inject:scripts/shim-dynamic-require.mjs --format=esm scripts/dev-runner.ts --outfile=electron/dev-runner.mjs",
-    "test:homebrew-upgrade": "tsx scripts/homebrew-upgrade-catalog-test.ts && tsx scripts/homebrew-upgrade-admission-test.ts && tsx scripts/homebrew-package-runner-test.ts && tsx scripts/homebrew-upgrade-controller-test.ts && tsx scripts/homebrew-upgrade-refresh-test.ts && tsx scripts/homebrew-upgrade-ui-test.ts && tsx scripts/homebrew-upgrade-lifecycle-test.ts && tsx scripts/homebrew-upgrade-php-stop-test.ts && tsx scripts/homebrew-extension-package-test.ts",
+    "test:homebrew-upgrade": "tsx scripts/homebrew-upgrade-catalog-test.ts && tsx scripts/homebrew-upgrade-admission-test.ts && tsx scripts/homebrew-package-runner-test.ts && tsx scripts/homebrew-upgrade-controller-test.ts && tsx scripts/homebrew-upgrade-transport-test.ts && tsx scripts/homebrew-upgrade-refresh-test.ts && tsx scripts/homebrew-upgrade-ui-test.ts && tsx scripts/homebrew-upgrade-lifecycle-test.ts && tsx scripts/homebrew-upgrade-php-stop-test.ts && tsx scripts/homebrew-extension-package-test.ts",
     "test:homebrew-upgrade:app-smoke": "tsx scripts/homebrew-upgrade-app-smoke.ts",
     "test:renderer-operation-boundaries": "tsx scripts/renderer-operation-boundaries-test.ts",
     "test:language-project-ports": "tsx scripts/language-project-ports-test.ts",
