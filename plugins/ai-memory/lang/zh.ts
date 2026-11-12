@@ -206,9 +206,10 @@ export default {
   connectionsCount: '条关联',
   autoRotate: '自动巡航',
   pauseRotate: '暂停巡航',
+  reduceMotion: '减少动态',
   resetView: '重置视角',
   zoomIn: '放大',
   zoomOut: '缩小',
-  universeHelp: '拖拽旋转 · 滚轮缩放 · 点击节点查看详情；连线表示相同主题或标签',
+  universeHelp: '拖拽旋转 · 滚轮缩放 · 点击分类聚焦 · 点击记忆查看详情；记忆连线表示相同主题或标签',
   universeUnavailable: '当前环境无法绘制 3D 星图，请切换到列表视图。'
 }

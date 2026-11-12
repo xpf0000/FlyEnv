@@ -1,10 +1,12 @@
 import { PREVIEW_BUDGETS } from '../core/limits'
 import { MemoryFault, validateInput } from '../core/validation'
-import { searchPage, type SearchSnapshot } from '../core/search'
+import { rankMetadata, searchPage, type SearchSnapshot } from '../core/search'
 import type {
   MemoryAPI,
   MemoryAdminAPI,
   MemoryAdminInput,
+  MemoryUniverseInput,
+  MemoryUniverseFilters,
   MemoryInputs,
   MemoryMethod,
   MemoryOutputs,
@@ -12,7 +14,8 @@ import type {
   MemoryWarning,
   ResolvedScope,
   ScopeBudgets,
-  SearchInput
+  SearchInput,
+  SearchPage
 } from '../shared'
 import { AtomicFile } from './AtomicFile'
 import { ProjectRegistry } from './ProjectRegistry'
@@ -131,6 +134,71 @@ export class MemoryEngine implements MemoryAPI, MemoryAdminAPI {
     return this.track(async () => {
       const scope = await this.projects.resolveById(projectId)
       return 'key' in scope ? this.resolved(scope, method, input) : scope
+    })
+  }
+  universe(input: MemoryUniverseInput) {
+    return this.readUniverse(input)
+  }
+  universeForProject(projectId: string, filters: MemoryUniverseFilters) {
+    return this.readUniverse(filters, projectId)
+  }
+  private readUniverse(raw: unknown, projectId?: string): Promise<MemoryResult<SearchPage>> {
+    let input: SearchInput
+    try {
+      if (
+        !raw ||
+        typeof raw !== 'object' ||
+        Array.isArray(raw) ||
+        'cursor' in raw ||
+        'limit' in raw ||
+        (projectId !== undefined && ('scope' in raw || 'project_path' in raw))
+      )
+        throw new MemoryFault('invalid_input')
+      input = validateInput(
+        'search',
+        projectId === undefined
+          ? structuredClone(raw)
+          : {
+              ...structuredClone(raw),
+              scope: 'project',
+              project_path: '/registered-project'
+            }
+      )
+    } catch (error) {
+      return Promise.resolve(this.failure(error))
+    }
+    return this.track(async () => {
+      const scope =
+        projectId === undefined
+          ? await this.projects.resolve(input, { create: false })
+          : await this.projects.resolveById(projectId)
+      const snapshots: SearchSnapshot[] = []
+      let extra: Partial<SearchPage> = {}
+      if ('key' in scope) {
+        snapshots.push(await this.snapshot(scope))
+        if (scope.projectId && input.include_global) snapshots.push(await this.globalSnapshot())
+      } else {
+        if (projectId !== undefined || scope.error_code !== 'project_unregistered')
+          return { ...scope, outcome: scope.outcome === 'success' ? 'failed' : scope.outcome }
+        extra = {
+          unregistered: true,
+          ...(scope.project_candidates ? { project_candidates: scope.project_candidates } : {})
+        }
+        if (input.include_global) snapshots.push(await this.globalSnapshot())
+      }
+      const warnings = snapshots.flatMap((snapshot) => [...snapshot.warnings])
+      return {
+        outcome: warnings.length ? 'partial' : 'success',
+        data: {
+          ...extra,
+          results: rankMetadata(
+            snapshots.flatMap((snapshot) => [...snapshot.records]),
+            input
+          ),
+          truncated: false
+        },
+        ...(warnings.length ? { warnings: warnings.slice(0, 100) } : {})
+      }
     })
   }
   listProjects() {

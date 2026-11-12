@@ -179,7 +179,15 @@ export type MemoryAdminInput<M extends MemoryMethod> = Omit<
   MemoryInputs[M],
   'scope' | 'project_path'
 >
+export type MemoryUniverseInput = ScopeRef &
+  Omit<SearchInput, 'scope' | 'project_path' | 'limit' | 'cursor'>
+export type MemoryUniverseFilters = Omit<MemoryUniverseInput, 'scope' | 'project_path'>
 export interface MemoryAdminAPI {
+  universe(input: MemoryUniverseInput): Promise<MemoryResult<SearchPage>>
+  universeForProject(
+    projectId: string,
+    filters: MemoryUniverseFilters
+  ): Promise<MemoryResult<SearchPage>>
   listProjects(): Promise<MemoryResult<MemoryProjectInfo[]>>
   inspectRecovery(): Promise<MemoryResult<ProjectRecoveryReport>>
   callForProject<M extends MemoryMethod>(

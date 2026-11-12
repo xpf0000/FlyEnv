@@ -66,6 +66,11 @@ export class MemoryController {
   actions: Record<string, Action> = {}
   connection?: MemoryConnection
   private searchSequence = 0
+  private searchFlight?: {
+    key: string
+    sequence: number
+    promise: Promise<MemoryResult<SearchPage>>
+  }
   private detailSequence = 0
   private detailRequest?: { target: MemoryTarget; id: string }
   private mutationFlight?: Promise<MemoryResult<any>>
@@ -167,16 +172,40 @@ export class MemoryController {
       })
     return this.projectsFlight
   }
-  search(target: MemoryTarget, filters: Filters = {}) {
+  search(target: MemoryTarget, filters: Filters = {}, all = false) {
+    const targetSnapshot = clone(target)
+    const filterSnapshot = clone(filters)
+    if (all) {
+      delete filterSnapshot.cursor
+      delete filterSnapshot.limit
+    }
+    const key = JSON.stringify([targetSnapshot, filterSnapshot, all])
+    if (all && this.searchFlight?.key === key && this.searchFlight.sequence === this.searchSequence)
+      return this.searchFlight.promise
     const sequence = ++this.searchSequence
     this.searchBusy = true
-    return this.call(clone(target), 'search', clone(filters)).then((result) => {
-      if (sequence === this.searchSequence) {
-        this.searchResult = result
-        this.searchBusy = false
-      }
-      return result
-    })
+    if (all) this.searchResult = undefined
+    const request = all
+      ? this.request<SearchPage>(
+          'app-fork:ai-memory',
+          'projectId' in targetSnapshot
+            ? ['universeForProject', targetSnapshot.projectId, filterSnapshot]
+            : ['universe', { ...filterSnapshot, ...targetSnapshot }]
+        )
+      : this.call(targetSnapshot, 'search', filterSnapshot)
+    const promise = request
+      .then((result) => {
+        if (sequence === this.searchSequence) {
+          this.searchResult = result
+          this.searchBusy = false
+        }
+        return result
+      })
+      .finally(() => {
+        if (this.searchFlight?.sequence === sequence) this.searchFlight = undefined
+      })
+    this.searchFlight = { key, sequence, promise }
+    return promise
   }
   clearSearch() {
     this.searchSequence++

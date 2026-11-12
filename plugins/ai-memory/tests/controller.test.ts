@@ -298,3 +298,86 @@ test('committed deletion removes the visible body and search row while keeping i
   assert.equal(f.manager.searchResult?.data?.next_cursor, undefined)
   assert.equal(f.manager.mutation?.result?.data.cleanup_state, 'pending')
 })
+
+test('star map loads all data with one internal request and coalesces duplicate invocation', async () => {
+  const f = fixture()
+  const target = { projectId: 'project-a' }
+  const filters = { queries: ['original'] }
+  const first = f.manager.search(target, filters, true)
+  assert.equal(first, f.manager.search(target, filters, true))
+  target.projectId = 'changed'
+  filters.queries.push('changed')
+  assert.deepEqual(f.calls[0].args, ['universeForProject', 'project-a', { queries: ['original'] }])
+  f.reply(0, { code: 200, data: 'progress' })
+  assert.equal(f.manager.searchBusy, true)
+  assert.equal(f.removed.length, 0)
+  f.reply(0, {
+    code: 0,
+    data: {
+      outcome: 'success',
+      data: { results: Array.from({ length: 48 }, (_, i) => ({ id: String(i) })), truncated: false }
+    }
+  })
+  assert.equal((await first).data?.results.length, 48)
+  assert.equal(f.calls.length, 1)
+  assert.equal(f.manager.searchBusy, false)
+  assert.deepEqual(f.removed, ['request-0'])
+})
+
+test('star map global request strips pagination and only latest query or clearSearch may publish', async () => {
+  for (const clear of [false, true]) {
+    const f = fixture()
+    const old = f.manager.search(
+      { scope: 'global' },
+      { queries: ['old'], limit: 1, cursor: 'discard' },
+      true
+    )
+    assert.deepEqual(f.calls[0].args, ['universe', { queries: ['old'], scope: 'global' }])
+    if (clear) f.manager.clearSearch()
+    else {
+      const current = f.manager.search({ projectId: 'new' }, {}, true)
+      f.reply(1, {
+        code: 0,
+        data: { outcome: 'success', data: { results: [{ id: 'current' }], truncated: false } }
+      })
+      await current
+    }
+    f.reply(0, {
+      code: 0,
+      data: { outcome: 'success', data: { results: [{ id: 'old' }], truncated: false } }
+    })
+    await old
+    assert.deepEqual(
+      f.manager.searchResult?.data?.results.map((hit) => hit.id),
+      clear ? undefined : ['current']
+    )
+    assert.equal(f.manager.searchBusy, false)
+  }
+})
+
+test('star map preserves backend partial warnings or failures without replay; list stays paginated', async () => {
+  const f = fixture()
+  const all = f.manager.search({ scope: 'global' }, {}, true)
+  const partial = {
+    outcome: 'partial' as const,
+    warnings: [{ code: 'record_invalid', id: 'bad' }],
+    data: { results: [{ id: 'valid' }], truncated: false }
+  }
+  f.reply(0, { code: 0, data: partial })
+  assert.deepEqual(await all, partial)
+  const failed = f.manager.search({ scope: 'global' }, {}, true)
+  f.reply(1, { code: 0, data: { outcome: 'failed', error_code: 'scope_unavailable' } })
+  assert.equal((await failed).outcome, 'failed')
+  assert.equal(f.calls.length, 2)
+  const list = f.manager.search({ scope: 'global' })
+  assert.deepEqual(f.calls[2].args, ['search', { scope: 'global' }])
+  f.reply(2, {
+    code: 0,
+    data: {
+      outcome: 'success',
+      data: { results: [{ id: 'one' }], truncated: true, next_cursor: 'next' }
+    }
+  })
+  assert.equal((await list).data?.next_cursor, 'next')
+  assert.equal(f.calls.length, 3)
+})

@@ -52,7 +52,7 @@
             @click="create"
             >{{ T('newMemory') }}</el-button
           >
-          <el-radio-group v-model="view" class="memory-view-switch">
+          <el-radio-group v-model="view" class="memory-view-switch" @change="refresh">
             <el-radio-button value="universe">{{ T('universe') }}</el-radio-button>
             <el-radio-button value="list">{{ T('list') }}</el-radio-button>
           </el-radio-group>
@@ -154,7 +154,7 @@
         <MemoryOperation v-if="!editorOpen && !archiveOpen" global @resolved="refresh" />
         <div class="memory-content">
           <MemoryUniverse
-            v-if="view === 'universe' && manager.searchResult?.data?.results.length"
+            v-if="view === 'universe' && manager.searchResult?.data"
             :memories="manager.searchResult.data.results"
             :busy="manager.searchBusy"
             @select="select"
@@ -226,7 +226,7 @@
           </div>
         </div>
         <div
-          v-if="cursors.length || manager.searchResult?.data?.next_cursor"
+          v-if="view === 'list' && (cursors.length || manager.searchResult?.data?.next_cursor)"
           class="memory-pagination"
         >
           <el-button
@@ -428,7 +428,7 @@
     cursors.value = []
     currentCursor = undefined
     lastSearch = { target: { ...target.value }, filters: filters() }
-    void manager.search(lastSearch.target, lastSearch.filters)
+    void manager.search(lastSearch.target, lastSearch.filters, view.value === 'universe')
     void manager.loadProjects()
   }
   function nextPage() {

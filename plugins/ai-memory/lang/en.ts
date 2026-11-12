@@ -222,10 +222,11 @@ export default {
   connectionsCount: 'connections',
   autoRotate: 'Auto orbit',
   pauseRotate: 'Pause orbit',
+  reduceMotion: 'Reduce motion',
   resetView: 'Reset view',
   zoomIn: 'Zoom in',
   zoomOut: 'Zoom out',
   universeHelp:
-    'Drag to orbit · Scroll to zoom · Click a node for details; links share a topic or tag',
+    'Drag to orbit · Scroll to zoom · Focus a type · Click a memory for details; memory links share a topic or tag',
   universeUnavailable: 'This environment cannot draw the 3D universe. Switch to list view.'
 }
