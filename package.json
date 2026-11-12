@@ -83,7 +83,7 @@
     "electron-log": "^5.4.1",
     "electron-store": "^10.1.0",
     "electron-updater": "^6.6.5",
-    "fast-xml-parser": "^5.7.0",
+    "fast-xml-parser": "^5.12.0",
     "fs-extra": "^11.3.0",
     "fs-native-extensions": "1.5.3",
     "ftp-srv": "^4.6.3",
