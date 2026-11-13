@@ -505,7 +505,7 @@ export async function serviceStartSpawn(
   const doExec = (): Promise<{ 'APP-Service-Start-PID': string }> => {
     const cwd = param?.cwd ?? dirname(bin)
     const options: any = {
-      detached: param.detached ?? true,
+      detached: param.detached ?? !isWindows(),
       cwd,
       env: {
         ...env,
