@@ -1,3 +1,4 @@
+import { readMcpClientConfig } from '../../util/MCPClientConfig'
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, remove, existsSync, readdir, mkdirp } from '../../Fn'
@@ -69,10 +70,7 @@ class Kimi extends Base {
           return
         }
         const file = this.mcpFile()
-        let data: any = {}
-        if (existsSync(file)) {
-          data = JSON.parse(await readFile(file, 'utf-8'))
-        }
+        const data = await readMcpClientConfig(file, 'mcpServers')
         data.mcpServers = data.mcpServers ?? {}
         const headers = optionalBearerHeaders(token)
         data.mcpServers[name] = {

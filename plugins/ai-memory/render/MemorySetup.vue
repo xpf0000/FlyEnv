@@ -1,268 +1,241 @@
 <template>
-  <el-scrollbar>
-    <section v-if="section === 'connect'" class="memory-setup memory-settings">
-      <h2>{{ T('connectAgent') }}</h2
-      ><p class="memory-setting-help">{{ T('connectIntro') }}</p>
-      <section class="memory-setting-section">
-        <h3>{{ T('serviceStep') }}</h3>
-        <div class="memory-setting-actions">
-          <el-tag :type="ready ? 'success' : 'warning'">{{
-            T(ready ? 'serviceReady' : manager.connection ? 'serviceNotReady' : 'notChecked')
-          }}</el-tag>
-          <el-button
-            :loading="manager.actions.connection?.status === 'running'"
-            @click="manager.loadConnection()"
-            >{{ T('refreshStatus') }}</el-button
+  <section class="memory-maintenance">
+    <div class="maintenance-content">
+      <header class="maintenance-heading">
+        <div
+          ><span class="maintenance-eyebrow">MEMORY CARE</span><h1>{{ T('maintenance') }}</h1
+          ><p>{{ T('maintenanceIntro') }}</p></div
+        >
+        <span class="maintenance-local"><i />{{ T('maintenanceLocal') }}</span>
+      </header>
+      <div class="maintenance-actions">
+        <article class="maintenance-card maintenance-backup">
+          <span class="maintenance-icon"><Download aria-hidden="true" /></span>
+          <div
+            ><h2>{{ T('maintenanceBackup') }}</h2
+            ><p>{{ T('maintenanceBackupHelp') }}</p></div
           >
-          <el-button @click="router.push('/mcp')">{{ T('mcpSettings') }}</el-button>
-        </div>
-        <el-alert
-          v-if="manager.actions.connection?.result?.success === false"
-          :title="T('connectionFailed')"
-          type="error"
-          :closable="false"
-        />
-        <p v-if="manager.connection"
-          >{{ T('mcpService') }}: {{ T(manager.connection.running ? 'started' : 'stopped') }} ·
-          HTTP: {{ T(manager.connection.http ? 'enabled' : 'disabled') }} · {{ T('memoryTools') }}:
-          {{ manager.connection.enabledCount }}/5</p
-        >
-        <p class="memory-setting-help">{{ T('setupHelp') }}</p>
-      </section>
-      <section class="memory-setting-section">
-        <h3>{{ T('clientStep') }}</h3
-        ><p class="memory-setting-help">{{ T('clientHelp') }}</p>
-        <div v-for="client in clients" :key="client" class="memory-client-row">
-          <strong>{{ client === 'codex' ? 'Codex' : 'Kimi' }}</strong>
-          <el-button
-            :disabled="!ready"
-            :loading="manager.actions[`configure:${client}`]?.status === 'running'"
-            @click="manager.configureClient(client)"
-            >{{ T(client === 'codex' ? 'configureCodex' : 'configureKimi') }}</el-button
+          <button class="maintenance-button primary" :disabled="care.blocked" @click="care.backup()"
+            ><Loading
+              v-if="care.busy && care.operation?.kind === 'backup'"
+              class="spinning"
+              aria-hidden="true"
+            /><Download v-else aria-hidden="true" />{{ T('maintenanceBackupAction') }}</button
           >
-          <span
-            v-if="manager.actions[`configure:${client}`]?.result"
-            :class="{ 'text-red-500': !manager.actions[`configure:${client}`].result?.success }"
-            >{{
-              T(
-                manager.actions[`configure:${client}`].result?.success
-                  ? 'configured'
-                  : 'clientConfigFailed'
-              )
-            }}</span
+          <div v-if="care.lastBackup" class="maintenance-receipt">
+            <span
+              >{{ T('maintenanceLastBackup') }} · {{ displayDate(care.lastBackup.createdAt) }}</span
+            >
+            <button
+              :title="care.lastBackup.path"
+              :disabled="care.opening[care.lastBackup.path]"
+              @click="care.openDirectory(care.lastBackup.path)"
+              ><FolderOpened aria-hidden="true" /><span>{{ care.lastBackup.path }}</span></button
+            >
+          </div>
+        </article>
+        <article class="maintenance-card">
+          <span class="maintenance-icon muted"><Upload aria-hidden="true" /></span>
+          <div
+            ><h2>{{ T('maintenanceRestore') }}</h2
+            ><p>{{ T('maintenanceRestoreHelp') }}</p></div
           >
-        </div>
-      </section>
-      <section class="memory-setting-section">
-        <h3>{{ T('rulesStep') }}</h3
-        ><p class="memory-setting-help">{{ T('rulesHelp') }}</p>
-        <ol class="memory-instructions"
-          ><li>{{ T('rulesAppend') }}</li
-          ><li>{{ T('rulesRestart') }}</li></ol
-        >
-        <div class="memory-setting-actions"
-          ><el-button @click="manager.copyRules()">{{ T('copyRules') }}</el-button
-          ><el-button @click="manager.downloadRules()">{{ T('downloadRules') }}</el-button></div
-        >
-        <p v-if="manager.actions['rules:copy']?.result">{{
-          T(manager.actions['rules:copy'].result?.success ? 'copied' : 'copyFailed')
-        }}</p>
-        <p
-          v-if="
-            manager.actions['rules:download']?.result &&
-            !manager.actions['rules:download'].result?.cancelled
-          "
-          >{{
-            T(manager.actions['rules:download'].result?.success ? 'downloaded' : 'downloadFailed')
-          }}</p
-        >
-        <details
-          ><summary>{{ T('previewRules') }}</summary
-          ><pre class="memory-rules">{{ memoryRules() }}</pre>
-        </details>
-      </section>
-      <section class="memory-setting-section">
-        <h3>{{ T('verifyStep') }}</h3
-        ><p class="memory-setting-help">{{ T('verificationHelp') }}</p>
-        <blockquote class="memory-verification">{{ T('verificationPrompt') }}</blockquote>
-        <el-button @click="manager.copyVerification()">{{ T('copyVerification') }}</el-button>
-        <p v-if="manager.actions['verification:copy']?.result">{{
-          T(manager.actions['verification:copy'].result?.success ? 'copied' : 'copyFailed')
-        }}</p>
-        <p class="memory-setting-help mt-3">{{ T('verificationResultHelp') }}</p>
-      </section>
-    </section>
-    <section v-else class="memory-settings">
-      <h2>{{ T('maintenance') }}</h2>
-      <section class="memory-setting-section">
-        <h3>{{ T('dataDirectory') }}</h3
-        ><p class="memory-setting-help">{{ T('dataHelp') }}</p>
-        <p v-if="manager.runtimeResult?.data" class="memory-data-path">{{
-          manager.runtimeResult.data.dataRoot
-        }}</p>
-        <el-alert
-          v-if="manager.runtimeResult?.error_code"
-          :title="T(manager.runtimeResult.error_code)"
-          type="error"
-          :closable="false"
-        />
-        <el-button @click="manager.openDataDirectory()">{{ T('openDirectory') }}</el-button>
-        <p v-if="manager.actions.directory?.result?.success === false" class="text-red-500">{{
-          T('directory_unavailable')
-        }}</p>
-      </section>
-      <el-collapse>
-        <el-collapse-item :title="T('backup')" name="backup"
-          ><ol class="memory-instructions"
-            ><li>{{ T('backupStop') }}</li
-            ><li>{{ T('backupCopy') }}</li
-            ><li>{{ T('backupRestore') }}</li></ol
-          ><p class="memory-setting-help">{{ T('lifecycleHelp') }}</p></el-collapse-item
-        >
-        <el-collapse-item :title="T('recovery')" name="recovery">
-          <p class="memory-setting-help">{{ T('recoveryHelp') }}</p
-          ><el-button class="my-3" @click="manager.inspectRecovery()">{{
-            T('recovery')
-          }}</el-button>
-          <el-alert
-            v-if="manager.recoveryResult?.error_code"
-            :title="T(manager.recoveryResult.error_code)"
-            type="error"
-            :closable="false"
-          />
-          <el-alert
-            v-for="(warning, index) in manager.recoveryResult?.data?.warnings ?? []"
-            :key="index"
-            :title="T(warning.code)"
-            type="warning"
-            :closable="false"
-            class="my-3"
-          />
-          <el-alert
-            v-if="manager.recoveryResult?.data?.unmappedAfterPreviousRestore.length"
-            :title="T('previousRestoreMissing')"
-            type="warning"
-            :closable="false"
-            class="my-3"
-            ><p v-for="id in manager.recoveryResult.data.unmappedAfterPreviousRestore" :key="id">{{
-              id
-            }}</p></el-alert
+          <button class="maintenance-button" :disabled="care.blocked" @click="care.restore()"
+            ><Loading
+              v-if="care.busy && care.operation?.kind === 'restore'"
+              class="spinning"
+              aria-hidden="true"
+            /><Upload v-else aria-hidden="true" />{{ T('maintenanceRestoreAction') }}</button
           >
-          <el-descriptions v-if="manager.recoveryResult?.data" :column="1" border>
-            <el-descriptions-item :label="T('primaryMapping')">{{
-              T(
-                manager.recoveryResult.data.primary.status === 'missing'
-                  ? 'mappingMissing'
-                  : manager.recoveryResult.data.primary.status
-              )
-            }}</el-descriptions-item>
-            <el-descriptions-item :label="T('previousMapping')">{{
-              T(
-                manager.recoveryResult.data.previous.status === 'missing'
-                  ? 'mappingMissing'
-                  : manager.recoveryResult.data.previous.status
-              )
-            }}</el-descriptions-item>
-            <el-descriptions-item :label="T('unmappedProjects')">{{
-              recoverySummary(manager.recoveryResult.data).unmappedCount ?? T('notChecked')
-            }}</el-descriptions-item>
-          </el-descriptions>
-          <details v-if="manager.recoveryResult?.data?.unmappedProjectIds.length" class="mt-3"
+          <div v-if="care.lastRestore?.safetyBackupPath" class="maintenance-receipt">
+            <span>{{ T('maintenanceSafetyBackup') }}</span>
+            <button
+              :title="care.lastRestore.safetyBackupPath"
+              :disabled="care.opening[care.lastRestore.safetyBackupPath]"
+              @click="care.openDirectory(care.lastRestore.safetyBackupPath)"
+              ><FolderOpened aria-hidden="true" /><span>{{
+                care.lastRestore.safetyBackupPath
+              }}</span></button
+            >
+          </div>
+        </article>
+      </div>
+      <div
+        v-if="care.operation"
+        class="maintenance-operation"
+        :class="{ warning: care.operation.result && care.operation.result.outcome !== 'success' }"
+        role="status"
+        aria-live="polite"
+      >
+        <Loading v-if="care.busy" class="spinning" aria-hidden="true" /><CircleCheck
+          v-else-if="care.operation.result?.outcome === 'success'"
+          aria-hidden="true"
+        /><Warning v-else aria-hidden="true" />
+        <div
+          ><strong>{{ operationLabel }}</strong>
+          <p v-if="care.operation.result?.outcome === 'unknown'">{{
+            T('maintenanceUnknownHelp')
+          }}</p>
+          <button
+            v-if="
+              care.operation.result?.outcome !== 'success' &&
+              care.operation.result?.data?.safetyBackupPath
+            "
+            class="maintenance-text-button"
+            @click="care.openDirectory(care.operation.result.data.safetyBackupPath)"
+            >{{ T('maintenanceOpenSafetyBackup') }}</button
+          >
+          <details v-if="care.operation.result?.data?.warnings?.length"
             ><summary>{{ T('technicalDetails') }}</summary
-            ><p v-for="id in manager.recoveryResult.data.unmappedProjectIds" :key="id">{{
-              id
+            ><p v-for="warning in care.operation.result.data.warnings" :key="warning">{{
+              T(warning)
             }}</p></details
           >
-          <p class="memory-setting-help mt-3">{{ T('mappingRestoreHelp') }}</p>
-        </el-collapse-item>
-      </el-collapse>
-    </section>
-  </el-scrollbar>
+        </div>
+        <button
+          v-if="care.operation.result?.outcome === 'unknown'"
+          class="maintenance-button compact"
+          @click="care.checkOperation()"
+          >{{ T('maintenanceCheckResult') }}</button
+        >
+      </div>
+      <section class="maintenance-check">
+        <header class="maintenance-section-heading">
+          <span class="maintenance-small-icon"><DocumentChecked aria-hidden="true" /></span
+          ><div
+            ><h2>{{ T('maintenanceProjectLinks') }}</h2
+            ><p>{{ T('maintenanceProjectLinksHelp') }}</p></div
+          >
+          <button
+            class="maintenance-button compact"
+            :disabled="care.checking || care.busy"
+            @click="care.refresh(true)"
+            ><RefreshRight :class="{ spinning: care.checking }" aria-hidden="true" />{{
+              T('maintenanceCheckAction')
+            }}</button
+          >
+        </header>
+        <div class="maintenance-check-result" :class="healthTone" role="status">
+          <Loading v-if="care.checking" class="spinning" aria-hidden="true" /><CircleCheck
+            v-else-if="healthTone === 'healthy'"
+            aria-hidden="true"
+          /><Warning v-else aria-hidden="true" />
+          <strong>{{ healthLabel }}</strong>
+        </div>
+        <MemoryProjectPaths />
+        <details v-if="report" class="maintenance-details">
+          <summary>{{ T('technicalDetails') }}</summary>
+          <div v-if="report" class="maintenance-check-stats">
+            <div
+              ><span>{{ T('maintenanceCurrentLinks') }}</span
+              ><strong>{{ mappingLabel(report.primary.status) }}</strong></div
+            >
+            <div
+              ><span>{{ T('maintenancePreviousLinks') }}</span
+              ><strong>{{ mappingLabel(report.previous.status) }}</strong></div
+            >
+            <div
+              ><span>{{ T('maintenanceUnlinked') }}</span
+              ><strong>{{ recoverySummary(report).unmappedCount ?? T('notChecked') }}</strong></div
+            >
+          </div>
+
+          <p v-for="warning in report.warnings" :key="warning.code">{{ T(warning.code) }}</p>
+          <p v-if="report.primary.error_code">{{ T(report.primary.error_code) }}</p
+          ><p v-if="report.previous.error_code">{{ T(report.previous.error_code) }}</p>
+          <p v-if="report.unmappedProjectIds.length">{{ T('maintenanceUnlinkedHelp') }}</p
+          ><code v-for="id in report.unmappedProjectIds" :key="id">{{ id }}</code>
+        </details>
+      </section>
+      <section class="maintenance-storage">
+        <FolderOpened class="maintenance-small-icon" aria-hidden="true" /><div
+          ><h2>{{ T('dataDirectory') }}</h2
+          ><p class="maintenance-path">{{
+            care.runtimeResult?.data?.dataRoot ||
+            T(care.runtimeResult?.error_code || 'maintenanceLoading')
+          }}</p></div
+        >
+        <button
+          class="maintenance-button compact"
+          :disabled="
+            !care.runtimeResult?.data?.dataRoot ||
+            care.opening[care.runtimeResult?.data?.dataRoot ?? '']
+          "
+          @click="care.openDirectory(care.runtimeResult?.data?.dataRoot)"
+          ><FolderOpened aria-hidden="true" />{{ T('openFolder') }}</button
+        >
+      </section>
+      <p v-if="care.directoryError" class="maintenance-error" role="alert">{{
+        T(care.directoryError)
+      }}</p>
+    </div>
+  </section>
 </template>
 <script setup lang="ts">
-  import { computed, onMounted, watch } from 'vue'
-  import { useRouter } from 'vue-router'
-  import { MemoryManager as manager, memoryRules } from './manager'
+  import { computed, onMounted } from 'vue'
+  import {
+    Download,
+    Upload,
+    FolderOpened,
+    RefreshRight,
+    CircleCheck,
+    Warning,
+    Loading,
+    DocumentChecked
+  } from '@element-plus/icons-vue'
+  import MemoryProjectPaths from './MemoryProjectPaths.vue'
+  import { MemoryMaintenance as care } from './maintenance-manager'
   import { MemoryT as T } from './lang'
-  import { recoverySummary } from './presentation'
-  const props = defineProps<{ section: 'connect' | 'maintenance' }>()
-  const clients = ['codex', 'kimi'] as const
-  const router = useRouter()
-  const ready = computed(
-    () =>
-      manager.connection?.running &&
-      manager.connection.http &&
-      manager.connection.enabledCount === 5
-  )
-  function load() {
-    if (props.section === 'connect') void manager.loadConnection()
-    else void manager.loadRuntime()
-  }
-  onMounted(load)
-  watch(() => props.section, load)
+  import { displayDate, recoverySummary } from './presentation'
+  const report = computed(() => care.inspection?.data)
+  const healthTone = computed(() => {
+    if (!report.value || care.inspection?.outcome !== 'success') return 'warning'
+    const value = report.value
+    return care.projectsResult?.outcome !== 'success' ||
+      care.projectsResult.data?.some((project) => project.path_status !== 'available') ||
+      value.warnings.length ||
+      value.primary.status === 'invalid' ||
+      value.previous.status === 'invalid' ||
+      value.unmappedProjectIds.length
+      ? 'warning'
+      : 'healthy'
+  })
+  const healthLabel = computed(() => {
+    if (care.checking) return T('maintenanceChecking')
+    if (!report.value || care.inspection?.outcome !== 'success')
+      return T(care.inspection?.error_code ?? 'maintenance_check_failed')
+    if (report.value.warnings.length) return T('maintenanceCheckIncomplete')
+    if (report.value.primary.status === 'invalid') return T('maintenanceLinksDamaged')
+    if (report.value.unmappedProjectIds.length) return T('maintenanceLinksUnlinked')
+    if (care.projectsResult?.outcome !== 'success')
+      return T(care.projectsResult?.error_code || 'project_list_unavailable')
+    if (care.projectsResult.data?.some((project) => project.path_status !== 'available'))
+      return T('projectPathsNeedRelink')
+    if (report.value.previous.status === 'invalid') return T('maintenancePreviousDamaged')
+    return T('maintenanceLinksHealthy')
+  })
+  const mappingLabel = (status: string) => T(status === 'missing' ? 'maintenanceNoMapping' : status)
+  const operationLabel = computed(() => {
+    const operation = care.operation
+    if (!operation) return ''
+    if (operation.stage !== 'complete')
+      return T(
+        operation.stage === 'selecting'
+          ? 'maintenanceSelecting'
+          : operation.stage === 'confirming'
+            ? 'maintenanceConfirming'
+            : operation.kind === 'backup'
+              ? 'maintenanceBackingUp'
+              : 'maintenanceRestoring'
+      )
+    return T(
+      operation.result?.outcome === 'success'
+        ? operation.kind === 'backup'
+          ? 'maintenanceBackupDone'
+          : 'maintenanceRestoreDone'
+        : (operation.result?.error_code ?? 'maintenance_failed')
+    )
+  })
+  onMounted(() => void care.refresh(true))
 </script>
-<style scoped>
-  .memory-settings {
-    max-width: 960px;
-    padding-right: 16px;
-    line-height: 1.8;
-  }
-  h2 {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-  h3 {
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-  .memory-setting-help {
-    color: var(--el-text-color-secondary);
-  }
-  .memory-setting-section {
-    padding: 20px 0;
-    border-bottom: 1px solid var(--el-border-color-light);
-  }
-  .memory-setting-actions,
-  .memory-client-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin: 12px 0;
-  }
-  .memory-client-row strong {
-    min-width: 65px;
-  }
-  .memory-data-path {
-    overflow-wrap: anywhere;
-    margin: 10px 0 16px;
-    user-select: text;
-  }
-  .memory-instructions {
-    list-style: decimal;
-    padding-left: 22px;
-    margin: 12px 0;
-  }
-  .memory-instructions li {
-    margin: 8px 0;
-  }
-  summary {
-    cursor: pointer;
-    color: var(--el-color-primary);
-    margin: 12px 0;
-  }
-  .memory-rules {
-    white-space: pre-wrap;
-    max-height: 360px;
-    overflow: auto;
-    padding: 16px;
-    background: var(--el-fill-color-light);
-  }
-  .memory-verification {
-    padding: 14px 18px;
-    border-left: 3px solid var(--el-border-color);
-    background: var(--el-fill-color-light);
-    margin: 12px 0;
-  }
-</style>
+<style scoped src="./maintenance.css"></style>

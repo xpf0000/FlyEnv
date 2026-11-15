@@ -22,13 +22,13 @@ Measured preview limits: 16 KiB UTF-8 body; 256 KiB record JSON including histor
 
 Markdown viewing disables raw HTML, active links and image loading. Source labels are self-reported. The Call Records tab keeps up to 200 detailed in-memory entries, including search queries, filters and hit summaries, but recursively excludes full memory bodies; records clear on FlyEnv exit. Simplified plugin calls also use FlyEnv's shared MCP audit log without queries, summaries or bodies.
 
-## Offline backup and explicit recovery
+## Backup, restore and project relocation
 
-1. Open the data directory from the plugin and note its location. **Disable the plugin in Plugin Manager and wait for completion**, which waits for real worker exit. Do not merely close the page. If disabling fails, do not copy/replace a live database; complete shutdown first.
-2. Copy the **whole** data root: `projects.json`, `projects.previous.json`, `global/`, `projects/`, and remaining entries. Keep files from the same stopped snapshot together. A directory-lock file may remain on disk; it is an OS-held lease, not proof of a live owner. Do not delete it as an online “unlock.”
-3. Before any restore, preserve the current stopped directory in a separate backup. Restore a consistent full backup while the plugin remains disabled. Do not merge individual records or histories from different snapshots.
-4. For a mapping-only repair, use the recovery inspection to check the primary and previous mapping schemas/revisions/IDs. While stopped, explicitly copy the validated `projects.previous.json` over `projects.json`; never silently fall back or initialize an empty mapping over old data. Keep the damaged primary in your backup.
-5. Re-enable and inspect again. Project directories created after the previous mapping can be **unmapped**. Preserve and list these IDs; do not guess their paths, delete them, or treat them as empty projects. V1 has no online rebinding or merge wizard. Global memory can work independently of a damaged project mapping.
+Use **Maintenance → Back up now** to save a complete, checksummed backup folder. Copy that entire folder to another computer running a compatible plugin, then choose **Restore from backup**. Restore first preserves a full copy of current data; it replaces all memory scopes without restarting MCP. Project source files and client configurations are not included.
+
+Backups retain original project paths. After restoration, Maintenance lists missing/inaccessible project directories. Choose the new folder and confirm it is the same project. Reassociation preserves project ID, name, memories, revision history and deletion receipts; it changes only the stored root path. Available projects can also be moved using **Show all projects → Change folder**. If the selected folder already belongs to another project, choose whether they represent the same project. Combining keeps both physical memory collections, IDs, histories and deletion receipts, and exposes them together under the retained project; it does not overwrite or deduplicate content. Choosing different projects returns to folder selection without changing either collection. Merges require a plugin that supports project-mapping schema v2; older versions must not open these mappings. Unlinked new paths remain separate scopes.
+
+For manual recovery from a damaged mapping, disable the plugin and wait for its worker to exit before editing files. Preserve the complete current data directory, inspect the primary/previous mappings, and explicitly restore a validated mapping or a complete consistent backup. Preserve unmatched project directories; never guess their identity or remove their data. Global memory remains independent of project mappings.
 
 Unvisited scopes are not scanned at startup; pending deletions resume on first access. An oversized or corrupt record does not stop recovery of valid siblings. OS/process crash probes do not prove arbitrary power-loss durability on every storage device.
 
@@ -36,16 +36,8 @@ Unvisited scopes are not scanned at startup; pending deletions resume on first a
 
 记忆集中保存在 FlyEnv 插件数据目录中，按项目隔离，不向代码仓库写文件。先启动 MCP 并启用五个工具，再配置 Codex/Kimi、重连发现工具，手动安装复制或下载的规则。配置成功、规则复制成功和实际调用成功是三个独立结果。
 
-写入后核实真实 ID/revision；unknown/超时保留原请求参数和 request_id 确认，版本冲突先读最新版本。删除 partial 表示逻辑删除已完成但文件清理未结束。项目搬家按新项目处理，旧路径失效仍可在管理页按项目 ID 编辑/删除。FlyEnv 退出后工具不可用，删除不会覆盖外部备份。
+写入后核实真实 ID/revision；unknown/超时保留原请求参数和 request_id 确认，版本冲突先读最新版本。删除 partial 表示逻辑删除已完成但文件清理未结束。项目搬家或换电脑后，可在维护页为原项目重新关联新目录，保留原项目 ID、全部记忆和历史；尚未重新关联的新路径按独立项目处理。FlyEnv 退出后工具不可用，删除不会覆盖外部备份。
 
-备份/恢复必须先停用插件并等待实际 worker 退出，再复制整个数据根（主映射、previous 映射、global、projects 等）。恢复前保留当前目录，使用同一停止时刻的完整备份。仅修复映射时，先检查 previous 的有效性，再在停用状态明确复制为主映射；重新启用后检查缺失映射的项目 ID，保留目录，不猜测绑定、不删除未知数据。恢复检查本身不会修改数据。
+维护页支持一键备份和恢复：完整备份文件夹可以拷到另一台安装兼容插件的电脑，恢复前自动保留当前数据。恢复后为失效项目选择新目录；仍可用的旧目录可通过“查看全部项目 → 更换目录”调整。不会移动项目文件。目标目录已有项目记忆时，由用户选择“同一项目，合并两份记忆”或“不同项目，重新选择目录”；不自动判断、不覆盖、不自动去重。合并保留两边的原始记录、历史和删除回执，仅建立同一项目下的关联。备份不包含项目源码或客户端配置。
 
-## Validation
-
-See the [acceptance report](../../docs/superpowers/reports/2026-11-03-flyenv-ai-memory-acceptance.md) for reproducible checks, real Codex/Kimi observations and explicit limits. Tests use disposable constructed data. Support remains macOS ARM64; manual rules, model behavior and non-macOS platforms have the limitations stated there.
-
-## Management and client setup
-
-The FlyEnv panel separates Memories, Connect an agent, Maintenance and Call Records. Start with the connection guide for a new library. Project and global results are identified separately; technical metadata and advanced fields are collapsed. Unknown writes are confirmed by replaying the original request, including after leaving the page.
-
-Rules remain a manual step: append the supplied rules to your project AGENTS.md without replacing existing instructions, then open a new client session and run the provided save/read test. Supported instruction behavior is documented by [OpenAI](https://learn.chatgpt.com/docs/agent-configuration/agents-md) and [Kimi](https://moonshotai.github.io/kimi-cli/en/customization/agents.html). Service readiness and configuration writes do not prove that a client loaded its rules.
+仅手动修复损坏映射时，需要先停用插件并等待 worker 退出，再保留完整副本、检查 previous 并显式恢复。未匹配的项目数据目录必须保留，不猜测绑定或删除。

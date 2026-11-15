@@ -1,3 +1,4 @@
+import { readMcpClientConfig } from '../../util/MCPClientConfig'
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { execPromiseWithEnv, readFile, writeFile, remove, existsSync, mkdirp, uuid } from '../../Fn'
@@ -44,9 +45,9 @@ class CopilotCli extends Base {
     this.type = 'copilotCli'
   }
 
-  /** GitHub Copilot CLI stores everything under `~/.copilot` (override: COPILOT_CONFIG_DIR). */
+  /** GitHub Copilot CLI stores everything under `~/.copilot` (overrides: COPILOT_HOME / COPILOT_CONFIG_DIR). */
   private copilotHome() {
-    return process.env.COPILOT_CONFIG_DIR || join(homedir(), '.copilot')
+    return process.env.COPILOT_HOME || process.env.COPILOT_CONFIG_DIR || join(homedir(), '.copilot')
   }
 
   private sessionStoreDb() {
@@ -283,17 +284,7 @@ class CopilotCli extends Base {
       try {
         if (type === 'http' || type === 'sse') {
           const file = this.mcpConfigFile()
-          let data: any = {}
-          if (existsSync(file)) {
-            const raw = await readFile(file, 'utf-8')
-            if (raw.trim()) {
-              try {
-                data = JSON.parse(raw)
-              } catch {
-                data = {}
-              }
-            }
-          }
+          const data = await readMcpClientConfig(file, 'mcpServers')
           data.mcpServers = data.mcpServers ?? {}
           const headers = optionalBearerHeaders(token)
           data.mcpServers[name] = {

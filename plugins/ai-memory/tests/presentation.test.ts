@@ -34,3 +34,32 @@ test('recovery cannot present inaccessible directories as an empty successful sc
   report.warnings = []
   assert.equal(recoverySummary(report).unmappedCount, 0)
 })
+
+test('project selection falls back only after a successful listing confirms the project is absent', async () => {
+  const { memoryProjectSelection } = await import('../render/presentation')
+  const projects = [
+    {
+      projectId: 'active',
+      name: 'Project',
+      project_path: '/project',
+      path_status: 'missing' as const,
+      mergedProjectIds: ['merged']
+    }
+  ]
+  assert.equal(memoryProjectSelection(undefined, 'previous-id'), 'previous-id')
+  assert.equal(
+    memoryProjectSelection(
+      { outcome: 'failed', error_code: 'project_registry_corrupt' },
+      'previous-id'
+    ),
+    'previous-id'
+  )
+  assert.equal(
+    memoryProjectSelection({ outcome: 'partial', data: [] }, 'previous-id'),
+    'previous-id'
+  )
+  assert.equal(memoryProjectSelection({ outcome: 'success', data: projects }, 'active'), 'active')
+  assert.equal(memoryProjectSelection({ outcome: 'success', data: projects }, 'merged'), 'active')
+  assert.equal(memoryProjectSelection({ outcome: 'success', data: projects }, 'removed'), 'global')
+  assert.equal(memoryProjectSelection({ outcome: 'success', data: [] }, 'removed'), 'global')
+})

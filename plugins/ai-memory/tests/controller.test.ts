@@ -37,6 +37,7 @@ function fixture(overrides: Partial<MemoryControllerDeps> = {}) {
     copyRules: async () => {},
     downloadRules: async () => true,
     openPath: async () => {},
+    openTerminal: async () => {},
     notify: () => {},
     timeoutMs: 1000,
     ...overrides
@@ -380,4 +381,421 @@ test('star map preserves backend partial warnings or failures without replay; li
   })
   assert.equal((await list).data?.next_cursor, 'next')
   assert.equal(f.calls.length, 3)
+})
+
+test('project directory opens preserve path, coalesce clicks and release after completion', async () => {
+  const paths: string[] = []
+  let finish!: () => void
+  const f = fixture({
+    openPath: (path) => {
+      paths.push(path)
+      return new Promise<void>((resolve) => {
+        finish = resolve
+      })
+    }
+  })
+  const path = '/workspace/Project With Spaces'
+  const first = f.manager.openProjectDirectory(path)
+  assert.equal(first, f.manager.openProjectDirectory(path))
+  await Promise.resolve()
+  assert.deepEqual(paths, [path])
+  assert.equal(f.manager.actions[`project:open:${path}`].status, 'running')
+  finish()
+  assert.equal((await first).success, true)
+  assert.equal(f.manager.actions[`project:open:${path}`].status, 'complete')
+  const second = f.manager.openProjectDirectory(path)
+  await Promise.resolve()
+  finish()
+  await second
+  assert.equal(paths.length, 2)
+  assert.equal(f.calls.length, 0)
+})
+
+test('project directory failures notify without replaying or changing query results', async () => {
+  const notices: string[] = []
+  let attempts = 0
+  const f = fixture({
+    openPath: async () => {
+      attempts++
+      throw new Error('missing')
+    },
+    notify: (_type, key) => {
+      notices.push(key)
+    }
+  })
+  const result = await f.manager.openProjectDirectory('/missing/project')
+  assert.equal(result.success, false)
+  assert.equal(result.errorCode, 'directory_unavailable')
+  assert.equal(attempts, 1)
+  assert.deepEqual(notices, ['directory_unavailable'])
+  assert.equal(f.manager.searchBusy, false)
+  assert.equal(f.calls.length, 0)
+})
+
+test('project terminal keeps its path snapshot, coalesces clicks and retains pending state', async () => {
+  const paths: string[] = []
+  let finish!: () => void
+  const f = fixture({
+    openTerminal: (path) => {
+      paths.push(path)
+      return new Promise<void>((resolve) => {
+        finish = resolve
+      })
+    }
+  })
+  const path = '/workspace/Project With Spaces'
+  const first = f.manager.openProjectTerminal(path)
+  assert.equal(first, f.manager.openProjectTerminal(path))
+  await Promise.resolve()
+  assert.equal(f.manager.actions[`project:terminal:${path}`].status, 'running')
+  assert.deepEqual(paths, [path])
+  finish()
+  assert.equal((await first).success, true)
+  assert.equal(f.manager.actions[`project:terminal:${path}`].status, 'complete')
+  assert.equal(f.calls.length, 0)
+})
+
+test('project terminal failure is local and permits an explicit retry without replay', async () => {
+  let attempts = 0
+  const notices: string[] = []
+  const f = fixture({
+    openTerminal: async () => {
+      attempts++
+      throw new Error('unavailable')
+    },
+    notify: (_type, key) => {
+      notices.push(key)
+    }
+  })
+  assert.equal((await f.manager.openProjectTerminal('/project')).success, false)
+  assert.equal(f.manager.actions['project:terminal:/project'].status, 'complete')
+  assert.equal(attempts, 1)
+  assert.deepEqual(notices, ['terminalUnavailable'])
+  await f.manager.openProjectTerminal('/project')
+  assert.equal(attempts, 2)
+  assert.equal(f.calls.length, 0)
+})
+
+test('project relocation keeps ID selection and promotes legacy path preference without touching records', async () => {
+  let saved: any
+  const f = fixture({
+    writePreferences: async (value) => {
+      saved = value
+    }
+  })
+  f.manager.preferredTarget = { scope: 'project', project_path: '/old' }
+  const result = await f.manager.applyProjectRelink({
+    projectId: 'retained-id',
+    name: 'Project',
+    previousPath: '/old',
+    project_path: '/new',
+    changed: true
+  })
+  assert.equal(result.success, true)
+  assert.deepEqual(f.manager.preferredTarget, { projectId: 'retained-id' })
+  assert.deepEqual(saved, { projectId: 'retained-id' })
+  assert.equal(f.manager.relinkedProject?.project_path, '/new')
+  assert.equal(f.calls.length, 0)
+})
+
+test('a relocation preference waits for the previous path write and persists the retained ID', async () => {
+  let release!: () => void
+  const writes: any[] = []
+  const f = fixture({
+    writePreferences: async (target) => {
+      writes.push(target)
+      if (writes.length === 1)
+        await new Promise<void>((r) => {
+          release = r
+        })
+    }
+  })
+  const first = f.manager.savePreference({ scope: 'project', project_path: '/old' })
+  for (let i = 0; i < 5; i++) await Promise.resolve()
+  const promoted = f.manager.applyProjectRelink({
+    projectId: 'id',
+    name: 'Project',
+    previousPath: '/old',
+    project_path: '/new',
+    changed: true
+  })
+  release()
+  await first
+  await promoted
+  assert.deepEqual(writes, [{ scope: 'project', project_path: '/old' }, { projectId: 'id' }])
+})
+
+test('a backend-confirmed canonical alias also promotes the selected legacy project path', async () => {
+  const f = fixture()
+  f.manager.preferredTarget = { scope: 'project', project_path: '/alias/' }
+  await f.manager.applyProjectRelink({
+    projectId: 'id',
+    name: 'Project',
+    previousPath: '/canonical/old',
+    selectedPath: '/alias/',
+    project_path: '/new',
+    changed: true
+  })
+  assert.deepEqual(f.manager.preferredTarget, { projectId: 'id' })
+})
+
+test('a merged member selection follows the retained project ID without discarding its memories', async () => {
+  const f = fixture()
+  f.manager.preferredTarget = { projectId: 'B' }
+  await f.manager.applyProjectRelink({
+    projectId: 'A',
+    name: 'A',
+    previousPath: '/a',
+    project_path: '/b',
+    changed: true,
+    merged: true,
+    mergedProjectIds: ['B']
+  })
+  assert.deepEqual(f.manager.preferredTarget, { projectId: 'A' })
+})
+
+test('loading a merged mapping repairs a persisted retired project selection after restart', async () => {
+  let saved: any
+  const f = fixture({
+    readPreferences: async () => ({ projectId: 'B' }),
+    writePreferences: async (target) => {
+      saved = target
+    }
+  })
+  await f.manager.initialize()
+  const pending = f.manager.loadProjects()
+  f.reply(0, {
+    code: 0,
+    data: {
+      outcome: 'success',
+      data: [
+        {
+          projectId: 'A',
+          name: 'A',
+          project_path: '/new',
+          path_status: 'available',
+          mergedProjectIds: ['B']
+        }
+      ]
+    }
+  })
+  await pending
+  for (let i = 0; i < 8; i++) await Promise.resolve()
+  assert.deepEqual(f.manager.preferredTarget, { projectId: 'A' })
+  assert.deepEqual(saved, { projectId: 'A' })
+})
+
+test('a saved project removed from current memory data resets its preference to global', async () => {
+  let saved: any
+  const f = fixture({
+    readPreferences: async () => ({ projectId: 'removed' }),
+    writePreferences: async (target) => {
+      saved = target
+    }
+  })
+  await f.manager.initialize()
+  const flight = f.manager.loadProjects()
+  f.reply(0, { code: 0, data: { outcome: 'success', data: [] } })
+  await flight
+  for (let i = 0; i < 8; i++) await Promise.resolve()
+  assert.deepEqual(f.manager.preferredTarget, { scope: 'global' })
+  assert.deepEqual(saved, { scope: 'global' })
+})
+
+test('failed project data does not reset the selected project or persist a guessed global scope', async () => {
+  let writes = 0
+  const f = fixture({
+    readPreferences: async () => ({ projectId: 'previous' }),
+    writePreferences: async () => {
+      writes++
+    }
+  })
+  await f.manager.initialize()
+  const flight = f.manager.loadProjects()
+  f.reply(0, { code: 0, data: { outcome: 'failed', error_code: 'project_registry_corrupt' } })
+  await flight
+  assert.deepEqual(f.manager.preferredTarget, { projectId: 'previous' })
+  assert.equal(writes, 0)
+})
+
+test('a delayed project listing reconciles the latest selection rather than an earlier stored project', async () => {
+  const f = fixture()
+  f.manager.preferredTarget = { projectId: 'removed' }
+  const flight = f.manager.loadProjects()
+  await f.manager.savePreference({ projectId: 'new-selection' })
+  f.reply(0, {
+    code: 0,
+    data: {
+      outcome: 'success',
+      data: [
+        { projectId: 'new-selection', name: 'New', project_path: '/new', path_status: 'available' }
+      ]
+    }
+  })
+  await flight
+  assert.deepEqual(f.manager.preferredTarget, { projectId: 'new-selection' })
+})
+
+test('management caches complete and empty scopes, separates queries, and refresh bypasses the cache', async () => {
+  const f = fixture()
+  const global = { scope: 'global' as const }
+  const first = f.manager.search(global, { queries: [] }, true)
+  f.reply(0, {
+    code: 0,
+    data: { outcome: 'success', data: { results: [{ id: 'global' }], truncated: false } }
+  })
+  await first
+  await f.manager.search(global, { queries: [] }, true)
+  assert.equal(f.calls.length, 1, 'returning to the page uses the loaded result')
+  const empty = f.manager.search({ projectId: 'empty' }, {}, true)
+  f.reply(1, { code: 0, data: { outcome: 'success', data: { results: [], truncated: false } } })
+  await empty
+  await f.manager.search(global, { queries: [] }, true)
+  assert.equal(f.manager.searchResult?.data?.results[0].id, 'global')
+  await f.manager.search({ projectId: 'empty' }, {}, true)
+  assert.equal(f.calls.length, 2, 'empty data is cached too')
+  assert.deepEqual(f.manager.searchResult?.data?.results, [])
+  const filtered = f.manager.search(global, { queries: ['other'] }, true)
+  f.reply(2, {
+    code: 0,
+    data: { outcome: 'success', data: { results: [{ id: 'match' }], truncated: false } }
+  })
+  await filtered
+  const fresh = f.manager.search(global, { queries: [] }, true, true)
+  assert.equal(f.calls.length, 4)
+  assert.equal(fresh, f.manager.search(global, { queries: [] }, true, true))
+  f.reply(3, {
+    code: 0,
+    data: { outcome: 'success', data: { results: [{ id: 'new' }], truncated: false } }
+  })
+  await fresh
+  await f.manager.search(global, { queries: [] }, true)
+  assert.equal(f.calls.length, 4)
+  assert.equal(f.manager.searchResult?.data?.results[0].id, 'new')
+})
+
+test('cached project listing is reused and explicit refresh drains a pre-change listing', async () => {
+  const f = fixture()
+  const first = f.manager.loadProjects()
+  f.reply(0, { code: 0, data: { outcome: 'success', data: [] } })
+  await first
+  await f.manager.loadProjects()
+  assert.equal(f.calls.length, 1)
+  const fresh = f.manager.loadProjects(true)
+  const afterChange = f.manager.loadProjects(true)
+  f.reply(1, { code: 0, data: { outcome: 'success', data: [] } })
+  await fresh
+  await Promise.resolve()
+  assert.equal(f.calls.length, 3)
+  f.reply(2, { code: 0, data: { outcome: 'success', data: [] } })
+  await afterChange
+})
+
+test('successful writes invalidate all cached scopes and pre-write replies cannot refill them', async () => {
+  const f = fixture()
+  const global = { scope: 'global' as const }
+  const first = f.manager.search(global, {}, true)
+  f.reply(0, {
+    code: 0,
+    data: { outcome: 'success', data: { results: [{ id: 'old' }], truncated: false } }
+  })
+  await first
+  const pending = f.manager.search({ projectId: 'project' }, {}, true)
+  const write = f.manager.mutate(global, 'store', { title: 'New' })
+  f.reply(2, success())
+  await write
+  f.reply(1, {
+    code: 0,
+    data: { outcome: 'success', data: { results: [{ id: 'stale' }], truncated: false } }
+  })
+  await pending
+  assert.notEqual(f.manager.searchResult?.data?.results[0]?.id, 'stale')
+  const again = f.manager.search(global, {}, true)
+  assert.equal(f.calls.length, 4)
+  f.reply(3, {
+    code: 0,
+    data: { outcome: 'success', data: { results: [{ id: 'fresh' }], truncated: false } }
+  })
+  await again
+})
+
+test('manual refresh keeps same-query data on failure and does not substitute another scope', async () => {
+  const f = fixture()
+  const global = { scope: 'global' as const }
+  const first = f.manager.search(global, {}, true)
+  f.reply(0, {
+    code: 0,
+    data: { outcome: 'success', data: { results: [{ id: 'kept' }], truncated: false } }
+  })
+  await first
+  const refresh = f.manager.search(global, {}, true, true)
+  assert.equal(f.manager.searchResult?.data?.results[0].id, 'kept')
+  f.reply(1, { code: 0, data: { outcome: 'failed', error_code: 'scope_unavailable' } })
+  await refresh
+  assert.equal(f.manager.searchResult?.outcome, 'failed')
+  assert.equal(f.manager.searchResult?.data?.results[0].id, 'kept')
+  const other = f.manager.search({ projectId: 'different' }, {}, true)
+  assert.equal(f.manager.searchResult, undefined)
+  f.reply(2, { code: 0, data: { outcome: 'failed', error_code: 'scope_unavailable' } })
+  await other
+  assert.equal(f.manager.searchResult?.data, undefined)
+})
+
+test('restore invalidation rejects pre-restore project and memory replies before reusing any cache', async () => {
+  const f = fixture()
+  f.manager.preferredTarget = { projectId: 'retained' }
+  const projects = f.manager.loadProjects()
+  f.reply(0, {
+    code: 0,
+    data: { outcome: 'success', data: [{ projectId: 'retained', name: 'Project' }] }
+  })
+  await projects
+  const first = f.manager.search({ scope: 'global' }, {}, true)
+  f.reply(1, {
+    code: 0,
+    data: { outcome: 'success', data: { results: [{ id: 'before' }], truncated: false } }
+  })
+  await first
+  const oldProjects = f.manager.loadProjects(true)
+  const oldSearch = f.manager.search({ projectId: 'retained' }, {}, true)
+  f.manager.invalidateData()
+  const refreshedProjects = f.manager.loadProjects()
+  f.reply(2, { code: 0, data: { outcome: 'success', data: [] } })
+  f.reply(3, {
+    code: 0,
+    data: { outcome: 'success', data: { results: [{ id: 'stale' }], truncated: false } }
+  })
+  await Promise.all([oldProjects, oldSearch])
+  assert.deepEqual(f.manager.preferredTarget, { projectId: 'retained' })
+  assert.equal(f.manager.searchResult, undefined)
+  assert.equal(f.calls.length, 5)
+  f.reply(4, { code: 0, data: { outcome: 'success', data: [] } })
+  await refreshedProjects
+  assert.deepEqual(f.manager.preferredTarget, { scope: 'global' })
+  const restored = f.manager.search({ scope: 'global' }, {}, true)
+  assert.equal(f.calls.length, 6)
+  f.reply(5, { code: 0, data: { outcome: 'success', data: { results: [], truncated: false } } })
+  await restored
+  assert.deepEqual(f.manager.searchResult?.data?.results, [])
+})
+
+test('partial deletion and unknown writes invalidate cached data without replaying the mutation', async () => {
+  for (const outcome of ['partial', 'unknown'] as const) {
+    const f = fixture()
+    const first = f.manager.search({ scope: 'global' }, {}, true)
+    f.reply(0, {
+      code: 0,
+      data: { outcome: 'success', data: { results: [{ id: 'old' }], truncated: false } }
+    })
+    await first
+    const mutation = f.manager.mutate({ scope: 'global' }, 'forget', { id: 'old' })
+    f.reply(1, { code: 0, data: { outcome, data: { id: 'old' } } })
+    await mutation
+    const refresh = f.manager.search({ scope: 'global' }, {}, true)
+    assert.equal(f.calls.length, 3)
+    assert.equal(f.ids(), 1)
+    f.reply(2, { code: 0, data: { outcome: 'success', data: { results: [], truncated: false } } })
+    await refresh
+    assert.equal(f.manager.mutation?.result?.outcome, outcome)
+  }
 })

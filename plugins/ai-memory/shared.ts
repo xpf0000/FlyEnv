@@ -10,7 +10,12 @@ export const MEMORY_TYPES = [
 ] as const
 export type MemoryType = (typeof MEMORY_TYPES)[number]
 export type ScopeRef = { scope: 'global' } | { scope: 'project'; project_path: string }
-export type ResolvedScope = { key: string; directory: string; projectId?: string }
+export type ResolvedScope = {
+  key: string
+  directory: string
+  projectId?: string
+  projectGroup?: { id: string; projectIds: string[] }
+}
 export type MemorySource = {
   kind: 'user_statement' | 'tool_result' | 'document' | 'agent_inference'
   agent: string
@@ -139,6 +144,7 @@ export type MemoryResult<T> = {
   warnings?: MemoryWarning[]
   error_code?: string
   project_candidates?: ProjectCandidate[]
+  project_conflict?: ProjectPathConflict
 }
 export interface MemoryAPI {
   call<M extends MemoryMethod>(
@@ -159,7 +165,33 @@ export type MemoryProjectInfo = {
   name: string
   project_path: string
   path_status: 'available' | 'missing' | 'unavailable'
+  mergedProjectIds?: string[]
 }
+export type ProjectPathConflict = {
+  projectId: string
+  name: string
+  project_path: string
+  revision: number
+}
+export type ProjectRelinkInput = {
+  projectId: string
+  expectedPath: string
+  newPath: string
+  mergeWith?: string
+  mergeRevision?: number
+  selectedPath?: string
+}
+export type ProjectRelinkReceipt = {
+  projectId: string
+  name: string
+  previousPath: string
+  selectedPath?: string
+  project_path: string
+  changed: boolean
+  merged?: boolean
+  mergedProjectIds?: string[]
+}
+
 export type ProjectMappingInspection = {
   status: 'valid' | 'missing' | 'invalid'
   revision?: number

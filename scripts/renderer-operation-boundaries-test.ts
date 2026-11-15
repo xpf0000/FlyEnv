@@ -697,7 +697,15 @@ assert.match(damengLogs, /<LogVM ref="log"/)
 assert.match(damengLogs, /<ToolVM :log="log"/)
 assert.doesNotMatch(damengLogs, /IPC\.send|<pre/)
 
-for (const name of ['Index.vue', 'MemoryEditor.vue', 'MemorySetup.vue', 'MemoryOperation.vue']) {
+for (const name of [
+  'Index.vue',
+  'MemoryEditor.vue',
+  'MemorySetup.vue',
+  'MemoryProjectPaths.vue',
+  'MemoryProjectConflict.vue',
+  'MemoryConnect.vue',
+  'MemoryOperation.vue'
+]) {
   const page = readFileSync(join(root, 'plugins/ai-memory/render', name), 'utf8')
   assert.doesNotMatch(page, /from\s+['"]@\/util\/IPC['"]|IPC\.send|defineStore\(|config\.setup/)
 }
@@ -706,6 +714,40 @@ assert.match(memoryManager, /reactiveBind\(/)
 assert.match(memoryManager, /StorageGetAsync/)
 assert.match(memoryManager, /StorageSetAsync/)
 assert.doesNotMatch(memoryManager, /defineStore\(|config\.setup/)
+
+const memoryConnectManager = readFileSync(
+  join(root, 'plugins/ai-memory/render/connect-manager.ts'),
+  'utf8'
+)
+assert.match(memoryConnectManager, /reactiveBind\(\s*new MemoryConnectController/)
+assert.doesNotMatch(memoryConnectManager, /defineStore\(|config\.setup/)
+const memoryConnectPage = readFileSync(
+  join(root, 'plugins/ai-memory/render/MemoryConnect.vue'),
+  'utf8'
+)
+assert.doesNotMatch(memoryConnectPage, /configureMCPClient|mcp:start|writeFile|setTimeout|readMCP/)
+
+assert.match(
+  readFileSync(join(root, 'plugins/ai-memory/render/Index.vue'), 'utf8'),
+  /memoryNavigationTab\(AppModuleTab\)/
+)
+assert.doesNotMatch(
+  memoryConnectPage,
+  /prepareGeneric|connectPrepareCopy|service-notice|connect\.startService/
+)
+
+const memoryMaintenancePage = readFileSync(
+  join(root, 'plugins/ai-memory/render/MemorySetup.vue'),
+  'utf8'
+)
+assert.doesNotMatch(
+  memoryMaintenancePage,
+  /writeFile|showOpenDialog|showSaveDialog|setTimeout|IPC\.send|fs\./
+)
+assert.match(
+  readFileSync(join(root, 'plugins/ai-memory/render/maintenance-manager.ts'), 'utf8'),
+  /reactiveBind\(\s*new MemoryMaintenanceController/
+)
 
 // Include the LanguageProjects entry-page guards and its existing PID lifecycle contract.
 await import('./language-project-ports-test')

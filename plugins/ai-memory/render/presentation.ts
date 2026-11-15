@@ -29,3 +29,23 @@ export function recoverySummary(report: import('../shared').ProjectRecoveryRepor
     restoreMissingIds: report.unmappedAfterPreviousRestore
   }
 }
+
+export function activeMemoryProjectId(
+  projects: readonly import('../shared').MemoryProjectInfo[],
+  id: string
+) {
+  return (
+    projects.find((project) => project.projectId === id || project.mergedProjectIds?.includes(id))
+      ?.projectId ?? id
+  )
+}
+
+/** A failed or partial listing cannot establish that a saved project was removed. */
+export function memoryProjectSelection(
+  result: import('../shared').MemoryResult<import('../shared').MemoryProjectInfo[]> | undefined,
+  id: string
+) {
+  if (result?.outcome !== 'success' || !result.data) return id
+  const active = activeMemoryProjectId(result.data, id)
+  return result.data.some((project) => project.projectId === active) ? active : 'global'
+}

@@ -4,9 +4,11 @@ Use these rules only after enabling the five FlyEnv memory tools. The tools shar
 
 ## Read for the current task
 
+A global connection does not merge memory scopes. Use scope=global without a project path for cross-project preferences. Use scope=project with a confirmed project root for project facts. Without project context, use global memory only; never invent a project path.
+
 Confirm the project's absolute root path. A shell's working subdirectory is not necessarily the project root. Search project memory using that root and task keywords; browse pinned/recent summaries with an empty query when useful. Request global preferences explicitly. Use `get` only for relevant details and use the scope returned by search. Global results require `scope=global` for subsequent get.
 
-If a path is unregistered and `project_candidates` are returned, use the confirmed project root, or confirm it is an independent child project and pass `create_project=true` to store. Candidates are hints, not proof of project identity. Moving a project creates a new scope in this preview; old data remains in the UI.
+If a path is unregistered and `project_candidates` are returned, use the confirmed project root, or confirm it is an independent child project and pass `create_project=true` to store. Candidates are hints, not proof of project identity. After moving a project or changing computers, use Maintenance to explicitly relink the existing project to its new directory and retain its memories. An unlinked new path remains a separate project; never guess identity or merge projects automatically. If the destination already has memories, only the user can confirm a merge in Maintenance. Afterwards search using the selected directory; original memory IDs and histories remain intact.
 
 Search accepts a bounded `queries` array. Try the task's language, precise technical identifiers and useful translations/aliases. No results means no matching stored evidence, not proof that an event never happened. Memory may be stale; check live process/port/service state with the appropriate tools.
 

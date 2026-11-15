@@ -1,3 +1,4 @@
+import { readMcpClientConfig } from '../../util/MCPClientConfig'
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { SoftInstalled } from '@shared/app'
@@ -47,7 +48,7 @@ class OpenCode extends Base {
 
   private configHome() {
     const base = process.env.XDG_CONFIG_HOME || join(homedir(), '.config')
-    return join(base, 'opencode')
+    return process.env.OPENCODE_CONFIG_DIR || join(base, 'opencode')
   }
 
   private dataHome() {
@@ -208,19 +209,7 @@ class OpenCode extends Base {
   // ========== MCP ==========
 
   private async readConfig(): Promise<any> {
-    const file = this.configFile()
-    if (!existsSync(file)) {
-      return {}
-    }
-    try {
-      const raw = await readFile(file, 'utf-8')
-      // strip // and /* */ comments to tolerate JSONC
-      const stripped = raw.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1')
-      return JSON.parse(stripped)
-    } catch (e) {
-      console.log('openCode readConfig error: ', e)
-      return {}
-    }
+    return readMcpClientConfig(this.configFile(), 'mcp', true)
   }
 
   listMcp() {

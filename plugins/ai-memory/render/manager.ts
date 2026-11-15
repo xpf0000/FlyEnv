@@ -11,6 +11,8 @@ import rulesEn from '../assets/memory-rules.md?raw'
 import rulesZh from '../assets/memory-rules.zh.md?raw'
 import { MemoryController } from './controller'
 import { MemoryT } from './lang'
+import { openMemoryDirectory } from './directory'
+import { forkTerminalRequest } from '@/util/ForkTerminalRequest'
 
 export const memoryRules = () =>
   `${AppI18n().global.locale ?? 'en'}`.startsWith('zh') ? rulesZh : rulesEn
@@ -71,9 +73,15 @@ export const MemoryManager = reactiveBind(
       await fs.writeFile(choice.filePath, memoryRules())
       return true
     },
-    openPath: async (path) => {
-      const error = await shell.openPath(path)
-      if (error) throw new Error('directory_unavailable')
+    openPath: (path) => openMemoryDirectory(shell.openPath, path),
+    openTerminal: async (path) => {
+      const result = await forkTerminalRequest(
+        'app-fork:tools',
+        ['openPathByApp', path, window.Server.isWindows ? 'PowerShell' : 'Terminal'],
+        MemoryT('terminalUnavailable'),
+        90_000
+      )
+      if (result.code !== 0) throw new Error('terminalUnavailable')
     },
     notify: (type, key) => {
       ElMessage({ type, message: MemoryT(key) })

@@ -1,3 +1,4 @@
+import { memoryProjectSelection } from './presentation'
 import type { MCPHttpClientFlag } from '../../../src/shared/mcpClientConfig'
 import type {
   MemoryDraft,
@@ -8,6 +9,7 @@ import type {
   MemoryResult,
   MemoryView,
   ProjectRecoveryReport,
+  ProjectRelinkReceipt,
   SearchPage,
   ScopeRef
 } from '../shared'
@@ -43,6 +45,7 @@ export interface MemoryControllerDeps {
   copyRules(): Promise<void>
   downloadRules(): Promise<boolean>
   openPath(path: string): Promise<void>
+  openTerminal(path: string): Promise<void>
   notify(type: 'success' | 'error', key: string): void
   timeoutMs?: number
 }
@@ -52,6 +55,7 @@ const completed = (result: MemoryResult<unknown>) =>
 
 /** Page lifetime does not own requests, their immutable inputs, receipts or listener cleanup. */
 export class MemoryController {
+  relinkedProject?: ProjectRelinkReceipt
   preferredTarget: MemoryTarget = { scope: 'global' }
   projectsResult?: MemoryResult<MemoryProjectInfo[]>
   searchResult?: MemoryResult<SearchPage>
@@ -66,6 +70,11 @@ export class MemoryController {
   actions: Record<string, Action> = {}
   connection?: MemoryConnection
   private searchSequence = 0
+  private searchKey?: string
+  private readonly searchCache = new Map<string, MemoryResult<SearchPage>>()
+  private projectsStale = true
+  private projectsSequence = 0
+  private projectsFlightSequence = 0
   private searchFlight?: {
     key: string
     sequence: number
@@ -74,6 +83,7 @@ export class MemoryController {
   private detailSequence = 0
   private detailRequest?: { target: MemoryTarget; id: string }
   private mutationFlight?: Promise<MemoryResult<any>>
+  private preferenceWrite?: { key: string; promise: Promise<ActionResult> }
   private projectsFlight?: Promise<MemoryResult<MemoryProjectInfo[]>>
   private initialization?: Promise<void>
   private readonly actionFlights = new Map<string, Promise<ActionResult>>()
@@ -153,17 +163,55 @@ export class MemoryController {
   savePreference(target: MemoryTarget) {
     const snapshot = clone(target)
     this.preferredTarget = snapshot
-    return this.action('preferences', async () => {
-      await this.deps.writePreferences(snapshot)
-      return { success: true }
+    const key = JSON.stringify(snapshot)
+    if (this.preferenceWrite?.key === key) return this.preferenceWrite.promise
+    const preceding = this.preferenceWrite?.promise ?? Promise.resolve()
+    const promise = preceding.then(() =>
+      this.action('preferences', async () => {
+        await this.deps.writePreferences(snapshot)
+        return { success: true }
+      })
+    )
+    this.preferenceWrite = { key, promise }
+    void promise.then(() => {
+      if (this.preferenceWrite?.promise === promise) this.preferenceWrite = undefined
     })
+    return promise
   }
-  loadProjects() {
-    if (this.projectsFlight) return this.projectsFlight
+  applyProjectRelink(receipt: ProjectRelinkReceipt) {
+    this.relinkedProject = clone(receipt)
+    this.invalidateData()
+    const target = this.preferredTarget
+    if ('projectId' in target && receipt.mergedProjectIds?.includes(target.projectId))
+      return this.savePreference({ projectId: receipt.projectId })
+    if (
+      'scope' in target &&
+      target.scope === 'project' &&
+      (target.project_path === receipt.previousPath || target.project_path === receipt.selectedPath)
+    )
+      return this.savePreference({ projectId: receipt.projectId })
+    return Promise.resolve<ActionResult>({ success: true })
+  }
+  loadProjects(fresh = false): Promise<MemoryResult<MemoryProjectInfo[]>> {
+    if (this.projectsFlight)
+      return fresh || this.projectsFlightSequence !== this.projectsSequence
+        ? this.projectsFlight.then(() => this.loadProjects(fresh))
+        : this.projectsFlight
+    if (!fresh && !this.projectsStale && this.projectsResult?.outcome === 'success')
+      return Promise.resolve(this.projectsResult)
+    const sequence = this.projectsSequence
+    this.projectsFlightSequence = sequence
     this.projectsBusy = true
     this.projectsFlight = this.request<MemoryProjectInfo[]>('app-fork:ai-memory', ['listProjects'])
       .then((result) => {
-        this.projectsResult = result
+        if (sequence !== this.projectsSequence) return result
+        this.projectsStale = result.outcome !== 'success'
+        this.projectsResult = result.data ? result : { ...result, data: this.projectsResult?.data }
+        if (result.outcome === 'success' && result.data && 'projectId' in this.preferredTarget) {
+          const id = memoryProjectSelection(result, this.preferredTarget.projectId)
+          if (id !== this.preferredTarget.projectId)
+            void this.savePreference(id === 'global' ? { scope: 'global' } : { projectId: id })
+        }
         return result
       })
       .finally(() => {
@@ -172,7 +220,7 @@ export class MemoryController {
       })
     return this.projectsFlight
   }
-  search(target: MemoryTarget, filters: Filters = {}, all = false) {
+  search(target: MemoryTarget, filters: Filters = {}, all = false, fresh = false) {
     const targetSnapshot = clone(target)
     const filterSnapshot = clone(filters)
     if (all) {
@@ -182,9 +230,20 @@ export class MemoryController {
     const key = JSON.stringify([targetSnapshot, filterSnapshot, all])
     if (all && this.searchFlight?.key === key && this.searchFlight.sequence === this.searchSequence)
       return this.searchFlight.promise
+    const previous = this.searchKey === key ? this.searchResult : undefined
+    const cached = all && !fresh ? this.searchCache.get(key) : undefined
     const sequence = ++this.searchSequence
+    this.searchKey = key
+    if (cached) {
+      this.searchCache.delete(key)
+      this.searchCache.set(key, cached)
+      this.searchResult = cached
+      this.searchBusy = false
+      return Promise.resolve(cached)
+    }
+    if (fresh) this.searchCache.delete(key)
     this.searchBusy = true
-    if (all) this.searchResult = undefined
+    if (all) this.searchResult = previous
     const request = all
       ? this.request<SearchPage>(
           'app-fork:ai-memory',
@@ -196,8 +255,14 @@ export class MemoryController {
     const promise = request
       .then((result) => {
         if (sequence === this.searchSequence) {
-          this.searchResult = result
+          this.searchResult = result.data ? result : { ...result, data: previous?.data }
           this.searchBusy = false
+          if (all && result.outcome === 'success' && result.data && !result.data.truncated) {
+            this.searchCache.delete(key)
+            this.searchCache.set(key, result)
+            if (this.searchCache.size > 12)
+              this.searchCache.delete(this.searchCache.keys().next().value!)
+          }
         }
         return result
       })
@@ -207,10 +272,21 @@ export class MemoryController {
     this.searchFlight = { key, sequence, promise }
     return promise
   }
-  clearSearch() {
+  private invalidateSearchCache() {
     this.searchSequence++
-    this.searchResult = undefined
+    this.searchCache.clear()
     this.searchBusy = false
+  }
+  clearSearch() {
+    this.invalidateSearchCache()
+    this.searchKey = undefined
+    this.searchResult = undefined
+  }
+  invalidateData() {
+    this.clearSearch()
+    this.clearDetail()
+    this.projectsStale = true
+    this.projectsSequence++
   }
   clearDetail() {
     this.detailSequence++
@@ -251,6 +327,11 @@ export class MemoryController {
       .then((result) => {
         operation.result = result
         operation.status = 'complete'
+        if (['success', 'already_deleted', 'partial', 'unknown'].includes(result.outcome)) {
+          this.invalidateSearchCache()
+          this.projectsStale = true
+          this.projectsSequence++
+        }
         if (
           operation.method === 'forget' &&
           result.data?.id &&
@@ -393,6 +474,28 @@ export class MemoryController {
         return result
       }
     )
+  }
+  openProjectDirectory(path: string) {
+    return this.action(`project:open:${path}`, async () => {
+      try {
+        await this.deps.openPath(path)
+        return { success: true }
+      } catch {
+        this.deps.notify('error', 'directory_unavailable')
+        return { success: false, errorCode: 'directory_unavailable' }
+      }
+    })
+  }
+  openProjectTerminal(path: string) {
+    return this.action(`project:terminal:${path}`, async () => {
+      try {
+        await this.deps.openTerminal(path)
+        return { success: true }
+      } catch {
+        this.notice('error', 'terminalUnavailable')
+        return { success: false, errorCode: 'terminalUnavailable' }
+      }
+    })
   }
   openDataDirectory() {
     return this.action('directory', async () => {

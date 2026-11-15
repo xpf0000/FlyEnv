@@ -7,14 +7,14 @@
   >
     <div class="left">
       <div class="icon-block run">
-        <yb-icon :svg="memoryIcon" style="padding: 5px" width="30" height="30" />
+        <yb-icon :svg="memoryIcon" style="padding: 4px" width="30" height="30" />
       </div>
       <span class="title">{{ MemoryT('title') }}</span>
     </div>
   </li>
 </template>
 <script lang="ts" setup>
-  import memoryIcon from '@/svg/ai.svg?raw'
+  import memoryIcon from '../assets/ai-memory.svg?raw'
   import { MemoryT } from './lang'
   import { AsideSetup } from '@/core/ASide'
   import type { AllAppModule } from '@/core/type'

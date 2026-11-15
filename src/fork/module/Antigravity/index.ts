@@ -1,3 +1,4 @@
+import { readMcpClientConfig } from '../../util/MCPClientConfig'
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import { readFile, writeFile, remove, existsSync, readdir, mkdirp, stat } from '../../Fn'
@@ -305,17 +306,7 @@ class Antigravity extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         const file = this.mcpConfigFile()
-        let data: any = {}
-        if (existsSync(file)) {
-          const raw = await readFile(file, 'utf-8')
-          if (raw.trim()) {
-            try {
-              data = JSON.parse(raw)
-            } catch {
-              data = {}
-            }
-          }
-        }
+        const data = await readMcpClientConfig(file, 'mcpServers')
         data.mcpServers = data.mcpServers ?? {}
         if (type === 'http' || type === 'sse') {
           const headers = optionalBearerHeaders(token)

@@ -1,8 +1,11 @@
+import { join } from 'node:path'
 import { PREVIEW_BUDGETS } from '../core/limits'
 import { MemoryFault, validateInput } from '../core/validation'
 import { rankMetadata, searchPage, type SearchSnapshot } from '../core/search'
 import type {
   MemoryAPI,
+  ProjectRelinkInput,
+  ProjectRelinkReceipt,
   MemoryAdminAPI,
   MemoryAdminInput,
   MemoryUniverseInput,
@@ -20,7 +23,7 @@ import type {
 import { AtomicFile } from './AtomicFile'
 import { ProjectRegistry } from './ProjectRegistry'
 import { ScopeCoordinator, type ScopeLease } from './ScopeCoordinator'
-import { RecordStore } from './RecordStore'
+import { RecordStore, memoryStoreId } from './RecordStore'
 import { ScopeCache } from './ScopeCache'
 import { Deletion } from './Deletion'
 
@@ -56,6 +59,7 @@ export class MemoryEngine implements MemoryAPI, MemoryAdminAPI {
   private readonly deletion: Deletion
   private readonly budgets: ScopeBudgets
   private readonly active = new Set<Promise<unknown>>()
+  private readonly groupTails = new Map<string, Promise<void>>()
   private closing = false
   private closed?: Promise<void>
   constructor(
@@ -175,7 +179,7 @@ export class MemoryEngine implements MemoryAPI, MemoryAdminAPI {
       const snapshots: SearchSnapshot[] = []
       let extra: Partial<SearchPage> = {}
       if ('key' in scope) {
-        snapshots.push(await this.snapshot(scope))
+        snapshots.push(...(await this.projectSnapshots(scope)))
         if (scope.projectId && input.include_global) snapshots.push(await this.globalSnapshot())
       } else {
         if (projectId !== undefined || scope.error_code !== 'project_unregistered')
@@ -203,6 +207,14 @@ export class MemoryEngine implements MemoryAPI, MemoryAdminAPI {
   }
   listProjects() {
     return this.track(() => this.projects.listProjects())
+  }
+  relinkProject(raw: ProjectRelinkInput): Promise<MemoryResult<ProjectRelinkReceipt>> {
+    try {
+      const input = structuredClone(raw)
+      return this.track(() => this.projects.relink(input))
+    } catch (error) {
+      return Promise.resolve(this.failure(error))
+    }
   }
   inspectRecovery() {
     return this.track(async () => ({
@@ -238,6 +250,46 @@ export class MemoryEngine implements MemoryAPI, MemoryAdminAPI {
       }))
     })
   }
+  private memberScopes(scope: ResolvedScope): ResolvedScope[] {
+    return (
+      scope.projectGroup?.projectIds.map((id) => ({
+        key: `project:${id}`,
+        directory: join(this.dataRoot, 'projects', id),
+        projectId: id
+      })) ?? [scope]
+    )
+  }
+  private async projectSnapshots(scope: ResolvedScope): Promise<SearchSnapshot[]> {
+    if (!scope.projectGroup) return [await this.snapshot(scope)]
+    const snapshots: SearchSnapshot[] = []
+    const warnings: MemoryWarning[] = []
+    for (const member of this.memberScopes(scope)) {
+      try {
+        snapshots.push(await this.snapshot(member))
+      } catch (error) {
+        warnings.push({
+          code: error instanceof MemoryFault ? error.code : 'merged_scope_unavailable',
+          id: member.projectId
+        })
+      }
+    }
+    if (!snapshots.length) throw new MemoryFault('merged_scopes_unavailable')
+    if (warnings.length)
+      snapshots[0] = { ...snapshots[0], warnings: [...snapshots[0].warnings, ...warnings] }
+    return snapshots
+  }
+  private groupOperation<T>(id: string, work: () => Promise<T>) {
+    const task = (this.groupTails.get(id) ?? Promise.resolve()).then(work)
+    const tail = task.then(
+      () => {},
+      () => {}
+    )
+    this.groupTails.set(id, tail)
+    void tail.then(() => {
+      if (this.groupTails.get(id) === tail) this.groupTails.delete(id)
+    })
+    return task
+  }
   private async globalSnapshot() {
     const scope = await this.projects.resolve({ scope: 'global' }, { create: false })
     if (!('key' in scope)) throw new MemoryFault('scope_unavailable')
@@ -250,12 +302,54 @@ export class MemoryEngine implements MemoryAPI, MemoryAdminAPI {
   ): Promise<MemoryResult<MemoryOutputs[M]>> {
     if (method === 'search') {
       const search = input as SearchInput
-      const snapshots = [await this.snapshot(scope)]
+      const snapshots = await this.projectSnapshots(scope)
       if (scope.projectId && search.include_global) snapshots.push(await this.globalSnapshot())
       return searchPage(snapshots, search, this.budgets.responseBytes) as MemoryResult<
         MemoryOutputs[M]
       >
     }
+    if (!scope.projectGroup) return this.resolvedSingle(scope, method, input)
+    return this.groupOperation(scope.projectGroup.id, async () => {
+      const matches: ResolvedScope[] = []
+      const warnings: MemoryWarning[] = []
+      let unavailable = false
+      for (const member of this.memberScopes(scope)) {
+        const id =
+          method === 'store'
+            ? memoryStoreId(member.key, (input as MemoryInputs['store']).request_id)
+            : (input as MemoryInputs['get']).id
+        try {
+          const exists = await this.coordinator.run(member, async (lease) => {
+            warnings.push(...(await this.prepare(lease)))
+            return !!(await this.records.readDocument(lease, id))
+          })
+          if (exists) matches.push(member)
+        } catch (error) {
+          if (method !== 'get') throw error
+          unavailable = true
+          warnings.push({
+            code: error instanceof MemoryFault ? error.code : 'merged_scope_unavailable',
+            id: member.projectId
+          })
+        }
+      }
+      if (matches.length > 1)
+        return {
+          outcome: 'conflict' as const,
+          error_code: method === 'store' ? 'merged_request_conflict' : 'merged_record_conflict'
+        }
+      if (!matches.length && unavailable)
+        return { outcome: 'failed' as const, error_code: 'merged_scope_unavailable', warnings }
+      const result = await this.resolvedSingle(matches[0] ?? scope, method, input)
+      if (warnings.length) result.warnings = [...(result.warnings ?? []), ...warnings].slice(0, 100)
+      return result
+    })
+  }
+  private async resolvedSingle<M extends MemoryMethod>(
+    scope: ResolvedScope,
+    method: M,
+    input: MemoryInputs[M]
+  ): Promise<MemoryResult<MemoryOutputs[M]>> {
     return this.coordinator.run(scope, async (lease) => {
       const warnings = await this.prepare(lease)
       let result: MemoryResult<any>

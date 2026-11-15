@@ -1,3 +1,4 @@
+import { validateMcpConfig } from '../../util/MCPClientConfig'
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import {
@@ -419,6 +420,7 @@ class Codex extends Base {
           if (existsSync(file)) {
             data = parseToml(await readFile(file, 'utf-8'))
           }
+          validateMcpConfig(data, 'mcp_servers')
           const httpHeaders = optionalBearerHeaders(token)
           data.features = data.features ?? {}
           data.features.rmcp_client = true

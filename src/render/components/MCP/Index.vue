@@ -15,14 +15,14 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref } from 'vue'
+  import { AppModuleSetup } from '@/core/Module'
   import ServiceVM from './Service.vue'
   import ClientConfigVM from './ClientConfig.vue'
   import ToolsVM from './Tools.vue'
   import AuditVM from './Audit.vue'
   import { I18nT } from '@lang/index'
 
-  const tab = ref(0)
+  const { tab } = AppModuleSetup('mcp')
   const tabs = [
     I18nT('mcp.service'),
     I18nT('mcp.clientConfig'),

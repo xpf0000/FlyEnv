@@ -1,3 +1,5 @@
+import { claudeMcpConfigPath } from './config-path'
+import { readMcpClientConfig } from '../../util/MCPClientConfig'
 import { Base } from '../Base'
 import type { SoftInstalled } from '@shared/app'
 import { ForkPromise } from '@shared/ForkPromise'
@@ -449,7 +451,7 @@ class ClaudeCode extends Base {
     return new ForkPromise(async (resolve) => {
       const list: ClaudeCodeMcpItem[] = []
       try {
-        const file = join(homedir(), '.claude.json')
+        const file = claudeMcpConfigPath()
         if (existsSync(file)) {
           const data = JSON.parse(await readFile(file, 'utf-8'))
           const servers = data?.mcpServers ?? {}
@@ -473,11 +475,8 @@ class ClaudeCode extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         if (type === 'http' || type === 'sse') {
-          const file = join(homedir(), '.claude.json')
-          let data: any = {}
-          if (existsSync(file)) {
-            data = JSON.parse(await readFile(file, 'utf-8'))
-          }
+          const file = claudeMcpConfigPath()
+          const data = await readMcpClientConfig(file, 'mcpServers')
           data.mcpServers = data.mcpServers ?? {}
           data.mcpServers[name] = {
             type: 'http',
@@ -529,7 +528,7 @@ class ClaudeCode extends Base {
       { name: 'settings.json', path: join(home, 'settings.json') },
       { name: 'settings.local.json', path: join(home, 'settings.local.json') },
       { name: 'known_marketplaces.json', path: join(home, 'plugins', 'known_marketplaces.json') },
-      { name: 'claude.json', path: join(homedir(), '.claude.json') }
+      { name: 'claude.json', path: claudeMcpConfigPath() }
     ]
   }
 
