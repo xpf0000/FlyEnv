@@ -29,9 +29,9 @@ test('strict MCP client reads preserve JSONC settings and reject corrupt files w
 
 test('Claude MCP profile respects the same custom home as global instructions', async () => {
   const { claudeMcpConfigPath } = await import('../../../src/fork/module/ClaudeCode/config-path')
-  assert.equal(claudeMcpConfigPath('/user', {}), '/user/.claude.json')
+  assert.equal(claudeMcpConfigPath('/user', {}), join('/user', '.claude.json'))
   assert.equal(
     claudeMcpConfigPath('/user', { CLAUDE_CONFIG_DIR: '/custom' }),
-    '/custom/.claude.json'
+    join('/custom', '.claude.json')
   )
 })

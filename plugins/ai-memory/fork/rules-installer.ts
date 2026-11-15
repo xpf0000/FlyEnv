@@ -1,7 +1,8 @@
 import { constants } from 'node:fs'
-import { access, mkdir, open, realpath, stat } from 'node:fs/promises'
+import { access, mkdir, realpath, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { dirname, isAbsolute, join } from 'node:path'
+import { openRegularFile } from './RegularFile'
 const START = '<!-- flyenv-ai-memory:start -->'
 const END = '<!-- flyenv-ai-memory:end -->'
 const CLIENTS = ['claudeCode', 'codex', 'antigravity', 'copilotCli', 'openCode', 'kimi']
@@ -84,10 +85,13 @@ export class MemoryRulesInstaller {
   }
   private async append(path: string, rules: string, maxBytes: number) {
     await mkdir(dirname(path), { recursive: true })
-    const file = await open(
+    const file = await openRegularFile(
       path,
-      constants.O_RDWR | constants.O_CREAT | constants.O_APPEND | (constants.O_NOFOLLOW ?? 0),
-      0o600
+      constants.O_RDWR | constants.O_CREAT | constants.O_APPEND,
+      0o600,
+      () => {
+        throw new Error('rules_unavailable')
+      }
     )
     try {
       const metadata = await file.stat()

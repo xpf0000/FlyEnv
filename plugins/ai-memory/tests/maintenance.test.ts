@@ -129,7 +129,11 @@ test('tampered backups, escaping paths, symlinks and nested destinations never r
     manifest.files[0].path = '../outside'
     await writeFile(manifestPath, JSON.stringify(manifest))
     assert.equal((await ws.restore(folder)).outcome, 'failed')
-    await symlink(join(f.root, 'project-secrets'), join(f.data, 'unexpected-link'))
+    await symlink(
+      join(f.root, 'project-secrets'),
+      join(f.data, 'unexpected-link'),
+      process.platform === 'win32' ? 'junction' : 'dir'
+    )
     assert.equal((await ws.backup(f.root)).outcome, 'failed')
     assert.equal((await ws.run((e) => e.call('get', { scope: 'global', id }))).outcome, 'success')
   } finally {
@@ -242,34 +246,38 @@ test('restore preserves the live ownership lock inode and never backs it up', as
   }
 })
 
-test('a completed restore remains usable and can reopen when supplementary old-data cleanup fails', async () => {
-  const f = await fixture()
-  let ws = await MemoryWorkspace.open(f.data)
-  try {
-    await ws.run((e) => e.call('store', draft()))
-    await mkdir(join(f.data, 'retained', 'readonly'), { recursive: true })
-    await writeFile(join(f.data, 'retained', 'readonly', 'keep'), 'original')
-    const backup = await ws.backup(f.root)
-    await chmod(join(f.data, 'retained', 'readonly'), 0o500)
-    const restored = await ws.restore(backup.data!.path)
-    assert.equal(restored.outcome, 'success')
-    assert.ok(restored.data!.warnings?.includes('restore_cleanup_warning'))
-    assert.equal((await ws.run((e) => e.call('search', { scope: 'global' }))).outcome, 'success')
-    await ws.close()
-    ws = await MemoryWorkspace.open(f.data)
-    assert.equal(
-      (await ws.run((e) => e.call('search', { scope: 'global' }))).data!.results.length,
-      1
-    )
-  } finally {
-    await ws.close()
-    await chmod(join(f.data, 'retained', 'readonly'), 0o700).catch(() => {})
-    for (const name of await readdir(f.root))
-      if (name.startsWith('.memory-restore-previous-'))
-        await chmod(join(f.root, name, 'retained', 'readonly'), 0o700).catch(() => {})
-    await f.clean()
+test(
+  'a completed restore remains usable and can reopen when supplementary old-data cleanup fails',
+  { skip: process.platform === 'win32' },
+  async () => {
+    const f = await fixture()
+    let ws = await MemoryWorkspace.open(f.data)
+    try {
+      await ws.run((e) => e.call('store', draft()))
+      await mkdir(join(f.data, 'retained', 'readonly'), { recursive: true })
+      await writeFile(join(f.data, 'retained', 'readonly', 'keep'), 'original')
+      const backup = await ws.backup(f.root)
+      await chmod(join(f.data, 'retained', 'readonly'), 0o500)
+      const restored = await ws.restore(backup.data!.path)
+      assert.equal(restored.outcome, 'success')
+      assert.ok(restored.data!.warnings?.includes('restore_cleanup_warning'))
+      assert.equal((await ws.run((e) => e.call('search', { scope: 'global' }))).outcome, 'success')
+      await ws.close()
+      ws = await MemoryWorkspace.open(f.data)
+      assert.equal(
+        (await ws.run((e) => e.call('search', { scope: 'global' }))).data!.results.length,
+        1
+      )
+    } finally {
+      await ws.close()
+      await chmod(join(f.data, 'retained', 'readonly'), 0o700).catch(() => {})
+      for (const name of await readdir(f.root))
+        if (name.startsWith('.memory-restore-previous-'))
+          await chmod(join(f.root, name, 'retained', 'readonly'), 0o700).catch(() => {})
+      await f.clean()
+    }
   }
-})
+)
 
 test('rechecking a maintenance receipt never repeats a completed backup', async () => {
   const f = await fixture()

@@ -1,7 +1,8 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { constants } from 'node:fs'
-import { open, mkdir, realpath, lstat } from 'node:fs/promises'
+import { mkdir, realpath, lstat } from 'node:fs/promises'
 import { dirname, isAbsolute, join, relative, sep } from 'node:path'
+import { openRegularFile } from './RegularFile'
 import type {
   MemoryInputs,
   MemoryRecord,
@@ -92,7 +93,9 @@ export class RecordStore {
   ): Promise<Buffer> {
     try {
       await this.assertManagedPath(lease, dirname(path))
-      const file = await open(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0))
+      const file = await openRegularFile(path, constants.O_RDONLY, undefined, () => {
+        throw new MemoryFault('managed_path_invalid')
+      })
       try {
         const metadata = await file.stat()
         if (!metadata.isFile()) throw new MemoryFault('managed_path_invalid')

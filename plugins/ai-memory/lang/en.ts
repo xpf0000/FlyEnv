@@ -219,7 +219,7 @@ export default {
 
   title: 'AI Memory',
   subtitle: 'Local memories, separated by project.',
-  preview: 'Developer preview · macOS Apple Silicon',
+  preview: 'Developer preview · macOS / Windows · x64 only',
   global: 'Global',
   project: 'Project',
   newProject: 'Project path…',

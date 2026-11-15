@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { mkdtemp, mkdir, rm, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, sep } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { MemoryEngine } from '../fork/MemoryEngine'
 import { AtomicFile, AtomicWriteFailure } from '../fork/AtomicFile'
@@ -82,10 +82,10 @@ test('post-rename unknown and pre-rename failure keep complete versions and exac
   const engine = new MemoryEngine(f.data, {
     atomic: {
       replace: async (path, bytes) => {
-        if (path.includes('/records/') && failure === 'before')
+        if (path.includes(`${sep}records${sep}`) && failure === 'before')
           throw new AtomicWriteFailure('failed')
         await atomic.replace(path, bytes)
-        if (path.includes('/records/') && failure === 'after')
+        if (path.includes(`${sep}records${sep}`) && failure === 'after')
           throw new AtomicWriteFailure('unknown')
         return 'committed'
       }

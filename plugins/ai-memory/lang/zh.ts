@@ -195,7 +195,7 @@ export default {
 
   title: 'AI 记忆',
   subtitle: '集中存放，按项目隔离的本地记忆。',
-  preview: '开发者预览 · macOS Apple Silicon',
+  preview: '开发者预览 · macOS / Windows · 仅 x64',
   global: '全局',
   project: '项目',
   newProject: '指定项目路径…',

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { mkdtemp, mkdir, cp, rm, readFile, writeFile, symlink } from 'node:fs/promises'
-import { join } from 'node:path'
+import { basename, join, sep } from 'node:path'
 import { tmpdir } from 'node:os'
 import { randomUUID, createHash } from 'node:crypto'
 import { MemoryEngine } from '../fork/MemoryEngine'
@@ -118,7 +118,7 @@ test('conflicting destinations including symlink aliases, invalid directories an
     await e.call('store', draft(f.old))
     await e.call('store', draft(f.next))
     const projects = (await e.listProjects()).data!
-    const project = projects.find((p) => p.project_path.endsWith('/old'))!
+    const project = projects.find((p) => basename(p.project_path) === 'old')!
     const input = {
       projectId: project.projectId,
       expectedPath: project.project_path,
@@ -127,7 +127,7 @@ test('conflicting destinations including symlink aliases, invalid directories an
     const original = await readFile(join(f.data, 'projects.json'), 'utf8')
     assert.equal((await e.relinkProject(input)).error_code, 'project_path_in_use')
     const alias = join(f.root, 'alias')
-    await symlink(f.next, alias)
+    await symlink(f.next, alias, process.platform === 'win32' ? 'junction' : 'dir')
     assert.equal(
       (await e.relinkProject({ ...input, newPath: alias })).error_code,
       'project_path_in_use'
@@ -191,7 +191,7 @@ test('an uncertain committed mapping is confirmed by exact retry without another
       replace: async (path, bytes) => {
         writes++
         await atomic.replace(path, bytes)
-        if (uncertain && path.endsWith('/projects.json')) throw new AtomicWriteFailure('unknown')
+        if (uncertain && path.endsWith('projects.json')) throw new AtomicWriteFailure('unknown')
         return 'committed'
       }
     }
@@ -218,7 +218,7 @@ test('failed previous mapping preservation prevents reassociation and leaves the
   const e = new MemoryEngine(f.data, {
     atomic: {
       replace: async (path, bytes) => {
-        if (fail && path.endsWith('/projects.previous.json')) throw new AtomicWriteFailure('failed')
+        if (fail && path.endsWith('projects.previous.json')) throw new AtomicWriteFailure('failed')
         return atomic.replace(path, bytes)
       }
     }
@@ -281,17 +281,17 @@ test('relocation resolves the captured legacy selection alias before changing it
     await e.call('store', draft(f.old))
     const p = (await e.listProjects()).data![0]
     const alias = join(f.root, 'selected-alias')
-    await symlink(f.old, alias)
+    await symlink(f.old, alias, process.platform === 'win32' ? 'junction' : 'dir')
     const input = {
       projectId: p.projectId,
       expectedPath: p.project_path,
       newPath: f.next,
-      selectedPath: alias + '/'
+      selectedPath: alias + sep
     }
     const result = await e.relinkProject(input)
     assert.equal(result.outcome, 'success')
-    assert.equal(result.data!.selectedPath, alias + '/')
-    assert.equal((await e.relinkProject(input)).data!.selectedPath, alias + '/')
+    assert.equal(result.data!.selectedPath, alias + sep)
+    assert.equal((await e.relinkProject(input)).data!.selectedPath, alias + sep)
   } finally {
     await e.close()
     await f.clean()
@@ -328,7 +328,7 @@ test('independent registration cannot erase an uncertain relocation selection pr
     atomic: {
       replace: async (path, bytes) => {
         await atomic.replace(path, bytes)
-        if (uncertain && path.endsWith('/projects.json')) throw new AtomicWriteFailure('unknown')
+        if (uncertain && path.endsWith('projects.json')) throw new AtomicWriteFailure('unknown')
         return 'committed'
       }
     }
@@ -337,12 +337,12 @@ test('independent registration cannot erase an uncertain relocation selection pr
     await e.call('store', draft(f.old))
     const p = (await e.listProjects()).data![0]
     const alias = join(f.root, 'alias')
-    await symlink(f.old, alias)
+    await symlink(f.old, alias, process.platform === 'win32' ? 'junction' : 'dir')
     const input = {
       projectId: p.projectId,
       expectedPath: p.project_path,
       newPath: f.next,
-      selectedPath: alias + '/'
+      selectedPath: alias + sep
     }
     uncertain = true
     assert.equal((await e.relinkProject(input)).outcome, 'unknown')

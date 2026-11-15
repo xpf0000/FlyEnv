@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { join, sep } from 'node:path'
 import { tmpdir } from 'node:os'
 import { randomUUID } from 'node:crypto'
 import { AjvJsonSchemaValidator } from '@modelcontextprotocol/sdk/validation/ajv-provider.js'
@@ -332,7 +332,7 @@ test('unknown JSON commit is reported, then reconciled from disk before a depend
     atomic: {
       replace: async (path, bytes) => {
         await atomic.replace(path, bytes)
-        if (once && path.includes('/records/')) {
+        if (once && path.includes(`${sep}records${sep}`)) {
           once = false
           throw new AtomicWriteFailure('unknown')
         }

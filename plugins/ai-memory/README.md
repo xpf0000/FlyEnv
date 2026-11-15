@@ -1,6 +1,6 @@
 # AI Memory · developer preview
 
-Local JSON metadata and immutable Markdown bodies for AI agents, with a project-isolated data directory managed by FlyEnv. No memory files are added to your source repository. This preview currently declares macOS ARM64 support only; other native filesystems and process lifecycles have not passed acceptance.
+Local JSON metadata and immutable Markdown bodies for AI agents, with a project-isolated data directory managed by FlyEnv. No memory files are added to your source repository. This preview supports macOS and Windows on x64 only; ARM64 is not declared.
 
 ## Connect
 
