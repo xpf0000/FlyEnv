@@ -215,3 +215,25 @@ test('plugin result adapter preserves explicit error classification for partial 
   assert.equal(pluginToolIsError({ outcome: 'unknown' }), true)
   assert.equal(pluginToolIsError({ outcome: 'success' }), false)
 })
+
+test('localized tool descriptions survive catalog listing without changing protocol descriptions', () => {
+  const f = fixture()
+  const entry = registration()
+  const tool = entry.declaration.tools[0] as any
+  tool.descriptionI18n = { en: tool.description, zh: '增加计数' }
+  f.registry.replace([entry])
+  const listed = f.registry.listTools()[0] as any
+  assert.deepEqual(listed.descriptionI18n, { en: 'Increment counter', zh: '增加计数' })
+  assert.equal(listed.description, 'Increment counter')
+  assert.equal(f.count(), 0)
+})
+
+test('invalid localized MCP metadata is rejected without replacing the installed tool catalog', () => {
+  const f = fixture()
+  for (const invalid of ['', [], {}, { zh: '' }, { zh: 1 }, { zh: 'a'.repeat(4097) }]) {
+    const entry = registration()
+    ;(entry.declaration.tools[0] as any).descriptionI18n = invalid
+    assert.throws(() => f.registry.replace([entry]), /metadata/)
+    assert.equal(f.registry.listTools()[0].description, 'Increment counter')
+  }
+})

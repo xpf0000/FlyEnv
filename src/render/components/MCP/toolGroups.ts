@@ -1,3 +1,4 @@
+import { resolvePluginI18nText } from '@shared/plugin/PluginManifest'
 import type { MCPRuntimeTool } from '@shared/mcpRuntimeCatalog'
 
 export type MCPToolGroup = {
@@ -29,4 +30,9 @@ export function groupMcpTools(tools: MCPRuntimeTool[]): MCPToolGroup[] {
 
 export function resolveMcpToolGroup(groups: MCPToolGroup[], current: string) {
   return groups.some((group) => group.id === current) ? current : 'builtin'
+}
+
+/** Display translations follow the UI locale; the protocol description remains unchanged. */
+export function pluginMcpToolDescription(tool: MCPRuntimeTool, locale: string): string {
+  return resolvePluginI18nText(tool.descriptionI18n, locale) || tool.description
 }

@@ -82,5 +82,14 @@
   "tomcatContexts": "تعيينات التطبيقات",
   "tomcatContextPath": "مسار السياق",
   "tomcatDocBase": "مسار التطبيق",
-  "tomcatRewrite": "إعادة كتابة Tomcat"
+  "tomcatRewrite": "إعادة كتابة Tomcat",
+  "hostsAppliedPreferencesFailed": "تم تحديث ملف hosts الخاص بالنظام، لكن تعذّر حفظ الإعدادات: {error}",
+  "primaryProjectPort": "منفذ TCP الرئيسي",
+  "additionalProjectPorts": "منافذ TCP إضافية (اختياري)",
+  "addProjectPort": "إضافة منفذ",
+  "removeProjectPort": "إزالة منفذ",
+  "projectPortsHint": "إضافة المنافذ لا تشغّل الخدمات ولا تضمن تقديم خدمة HTTP عبرها.",
+  "projectPortsInvalid": "أدخل أعدادًا صحيحة بالنظام العشري من 1 إلى 65535، دون تكرار بينها أو تطابق مع المنفذ الرئيسي.",
+  "projectPortsStoredInvalid": "يحتوي هذا المشروع على منافذ محفوظة غير صالحة. أُخفيت الروابط غير الصالحة؛ عدّل المنافذ لتصحيحها.",
+  "projectPortUnavailable": "منفذ غير صالح"
 }

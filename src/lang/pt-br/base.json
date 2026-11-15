@@ -86,7 +86,6 @@
   "themeAuto": "Sistema",
   "addToPath": "Adicionar ao PATH",
   "Official": "Oficial",
-  "staticDelAlert": "Para garantir a segurança dos dados do usuário, a função de exclusão automática de software instalado não é mais fornecida. Se você tiver certeza de que quer excluir, clique em OK e apague o software manualmente na pasta que se abrir.",
   "projects": "Projetos",
   "cleanup": "Limpeza",
   "executing": "Em execução",

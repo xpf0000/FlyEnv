@@ -20,5 +20,6 @@
   },
   "linuxSudoRequiresTerminal": "Hãy khởi chạy tác vụ này thủ công và cấp quyền trong terminal; macOS/Linux không hỗ trợ sudo tự động chạy nền.",
   "linuxFtpUnmanagedRoot": "Tiến trình FTP chạy với quyền root này không được khởi chạy bởi dịch vụ do FlyEnv quản lý. Hãy dừng nó bằng quyền quản trị viên trước khi khởi chạy lại.",
-  "linuxFtpUsersRefreshFailed": "Các thay đổi tài khoản FTP đã được lưu, nhưng dịch vụ đang chạy không thể áp dụng chúng: {error}"
+  "linuxFtpUsersRefreshFailed": "Các thay đổi tài khoản FTP đã được lưu, nhưng dịch vụ đang chạy không thể áp dụng chúng: {error}",
+  "pathSavedRefreshFailed": "Đã lưu các biến môi trường nhưng không thể làm mới danh sách: {error}"
 }

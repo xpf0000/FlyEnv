@@ -145,5 +145,6 @@
     "detailsTitle": "Åtgärder som kräver auktorisering",
     "detailsMore": "{count} ytterligare åtgärder är inte utfällda."
   },
-  "linuxHelperScope": "Auktorisera vid installation: fullständig redigering av hosts, bindning till låga portar för inbyggda webbservrar under ditt användarkonto, körning av Pure-Ftpd som root och reparation av FlyEnvs PID-katalog. Hjälparens dagliga åtgärder kräver inget lösenord; sudo i terminalen använder fortfarande systemautentisering."
+  "linuxHelperScope": "Auktorisera vid installation: fullständig redigering av hosts, bindning till låga portar för inbyggda webbservrar under ditt användarkonto, körning av Pure-Ftpd som root och reparation av FlyEnvs PID-katalog. Hjälparens dagliga åtgärder kräver inget lösenord; sudo i terminalen använder fortfarande systemautentisering.",
+  "pluginsUpdateFlyEnv": "Uppdatera FlyEnv"
 }

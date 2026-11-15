@@ -78,5 +78,10 @@
   "templatePackageDesc": "Balík Dart, ktorý je možné zdieľať cez pub.dev.",
   "templatePluginDesc": "Plugin Flutter pre API špecifické pre platformu (Android/iOS/Windows...).",
   "templateModuleDesc": "Modul Flutter na vloženie do existujúcej aplikácie pre Android/iOS.",
-  "templateSkeletonDesc": "Aplikácia Flutter so zoznamom a detailom s Material 3 a Navigation 2.0."
+  "templateSkeletonDesc": "Aplikácia Flutter so zoznamom a detailom s Material 3 a Navigation 2.0.",
+  "androidSdkNotDetected": "Android SDK sa nenašlo",
+  "androidSdkInstallHint": "FlyEnv neinštaluje Android SDK automaticky. Nainštalujte ho cez Android Studio alebo pomocou oficiálnych nástrojov príkazového riadka Android.",
+  "installAndroidStudio": "Nainštalovať Android Studio",
+  "androidCommandLineTools": "Nástroje príkazového riadka Android",
+  "androidSdkAfterInstall": "Po nainštalovaní SDK sa vráťte do FlyEnv, kliknite na Obnoviť a potom nastavte prostredie pomocou automatickej opravy (Auto-fix)."
 }

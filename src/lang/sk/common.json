@@ -177,6 +177,7 @@
       "failed": "Zlyhala",
       "not-run": "Nespustená",
       "invalid": "Neplatná konfigurácia"
-    }
+    },
+    "continueOnFailure": "Ak sa niektorý člen skupiny nespustí, pokračovať v spúšťaní ostatných"
   }
 }

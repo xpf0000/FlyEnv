@@ -49,5 +49,7 @@
     "update_site": "Frissíts egy meglévő FlyEnv helyi fejlesztői webhelyet.",
     "delete_site": "Törölj egy helyi fejlesztői webhelyet a FlyEnv konfigurációjából.",
     "install_service": "Tölts le és telepíts egy verziót egy telepíthető FlyEnv-modulhoz."
-  }
+  },
+  "pluginToolsRefresh": "A bővítmények eszközeinek módosítása után frissítse vagy csatlakoztassa újra az MCP-klienst az eszközlista frissítéséhez.",
+  "builtinTools": "Beépített eszközök"
 }

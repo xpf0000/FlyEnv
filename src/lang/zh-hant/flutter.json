@@ -78,5 +78,10 @@
   "templatePackageDesc": "可透過 pub.dev 分享的 Dart 套件。",
   "templatePluginDesc": "用於存取平台特定（Android/iOS/Windows...）API 的 Flutter 外掛。",
   "templateModuleDesc": "可嵌入現有 Android/iOS 應用的 Flutter 模組。",
-  "templateSkeletonDesc": "使用 Material 3 和 Navigation 2.0 的清單/詳細頁 Flutter 應用。"
+  "templateSkeletonDesc": "使用 Material 3 和 Navigation 2.0 的清單/詳細頁 Flutter 應用。",
+  "androidSdkNotDetected": "未偵測到 Android SDK",
+  "androidSdkInstallHint": "FlyEnv 不會自動安裝 Android SDK。請透過 Android Studio 或 Android 官方命令列工具安裝 SDK。",
+  "installAndroidStudio": "安裝 Android Studio",
+  "androidCommandLineTools": "Android 命令列工具",
+  "androidSdkAfterInstall": "安裝 SDK 後，請回到 FlyEnv，點擊「重新整理」，再使用「自動修復」（Auto-fix）設定環境。"
 }

@@ -20,5 +20,6 @@
   },
   "linuxSudoRequiresTerminal": "Bu imtiyazlı tapşırığı əl ilə başladın və terminalda icazə verin; macOS/Linux-da arxa planda avtomatik sudo dəstəklənmir.",
   "linuxFtpUnmanagedRoot": "Bu root FTP prosesi FlyEnv-in idarə olunan xidməti tərəfindən başladılmayıb. Yenidən başlatmazdan əvvəl onu inzibatçı hüquqları ilə dayandırın.",
-  "linuxFtpUsersRefreshFailed": "FTP hesab dəyişiklikləri saxlanıldı, lakin işləyən xidmət onları tətbiq edə bilmədi: {error}"
+  "linuxFtpUsersRefreshFailed": "FTP hesab dəyişiklikləri saxlanıldı, lakin işləyən xidmət onları tətbiq edə bilmədi: {error}",
+  "pathSavedRefreshFailed": "Mühit dəyişənləri saxlandı, lakin siyahı yenilənmədi: {error}"
 }

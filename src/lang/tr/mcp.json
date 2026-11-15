@@ -49,5 +49,7 @@
     "update_site": "Mevcut bir FlyEnv yerel geliştirme sitesini güncelle.",
     "delete_site": "FlyEnv yapılandırmasından bir yerel geliştirme sitesini sil.",
     "install_service": "Yüklenebilir bir FlyEnv modülü için bir sürümü indir ve kur."
-  }
+  },
+  "pluginToolsRefresh": "Eklenti araçlarını değiştirdikten sonra araç listesini güncellemek için MCP istemcinizi yenileyin veya yeniden bağlayın.",
+  "builtinTools": "Yerleşik"
 }

@@ -177,6 +177,7 @@
       "failed": "Epäonnistui",
       "not-run": "Ei suoritettu",
       "invalid": "Virheellinen määritys"
-    }
+    },
+    "continueOnFailure": "Jatka muiden jäsenten käynnistämistä, jos yhden käynnistys epäonnistuu"
   }
 }

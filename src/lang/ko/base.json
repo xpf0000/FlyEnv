@@ -86,7 +86,6 @@
   "themeAuto": "시스템 테마",
   "addToPath": "PATH에 추가",
   "Official": "공식",
-  "staticDelAlert": "사용자 데이터의 안전을 위해 설치된 소프트웨어를 자동으로 삭제하는 기능은 더 이상 제공되지 않습니다. 삭제를 원하시면 확인을 클릭한 후 열린 폴더에서 수동으로 소프트웨어를 삭제하세요.",
   "projects": "프로젝트",
   "cleanup": "정리",
   "executing": "실행 중",

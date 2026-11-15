@@ -49,5 +49,7 @@
     "update_site": "既存の FlyEnv ローカル開発サイトを更新します。",
     "delete_site": "FlyEnv 設定からローカル開発サイトを削除します。",
     "install_service": "インストール可能な FlyEnv モジュールのバージョンをダウンロードしてインストールします。"
-  }
+  },
+  "pluginToolsRefresh": "プラグインのツールを変更した後は、MCP クライアントを更新するか再接続して、ツール一覧を更新してください。",
+  "builtinTools": "組み込みツール"
 }

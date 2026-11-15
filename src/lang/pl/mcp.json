@@ -49,5 +49,7 @@
     "update_site": "Zaktualizuj istniejącą lokalną stronę developerską FlyEnv.",
     "delete_site": "Usuń lokalną stronę developerską z konfiguracji FlyEnv.",
     "install_service": "Pobierz i zainstaluj wersję instalowalnego modułu FlyEnv."
-  }
+  },
+  "pluginToolsRefresh": "Po zmianie narzędzi wtyczek odśwież klienta MCP lub połącz go ponownie, aby zaktualizować listę narzędzi.",
+  "builtinTools": "Wbudowane"
 }

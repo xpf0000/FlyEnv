@@ -83,5 +83,13 @@
   "tomcatContexts": "應用程式對映",
   "tomcatContextPath": "Context 路徑",
   "tomcatDocBase": "應用程式路徑（docBase）",
-  "tomcatRewrite": "Tomcat 重寫規則"
+  "tomcatRewrite": "Tomcat 重寫規則",
+  "primaryProjectPort": "主要 TCP 連接埠",
+  "additionalProjectPorts": "其他 TCP 連接埠（選填）",
+  "addProjectPort": "新增連接埠",
+  "removeProjectPort": "移除連接埠",
+  "projectPortsHint": "新增連接埠不會啟動服務，也不保證這些連接埠提供 HTTP 服務。",
+  "projectPortsInvalid": "請輸入 1 到 65535 之間的十進位整數。其他連接埠不得重複，也不得與主要連接埠相同。",
+  "projectPortsStoredInvalid": "此專案儲存的連接埠無效。無效連接埠的連結已隱藏，請編輯連接埠以修正。",
+  "projectPortUnavailable": "無效的連接埠"
 }

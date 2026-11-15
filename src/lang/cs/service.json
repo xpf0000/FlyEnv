@@ -20,5 +20,6 @@
   },
   "linuxSudoRequiresTerminal": "Spusťte tuto úlohu vyžadující zvýšená oprávnění ručně a dokončete autorizaci v terminálu; macOS/Linux nepodporuje automatické sudo na pozadí.",
   "linuxFtpUnmanagedRoot": "Tento proces FTP běžící jako root nebyl spuštěn spravovanou službou FlyEnv. Před opětovným spuštěním jej zastavte s oprávněními správce.",
-  "linuxFtpUsersRefreshFailed": "Změny účtů FTP byly uloženy, ale běžící služba je nemohla použít: {error}"
+  "linuxFtpUsersRefreshFailed": "Změny účtů FTP byly uloženy, ale běžící služba je nemohla použít: {error}",
+  "pathSavedRefreshFailed": "Proměnné prostředí byly uloženy, ale seznam se nepodařilo obnovit: {error}"
 }

@@ -163,20 +163,21 @@
     "hideConfirm": "Ukrycie grup uruchamiania zatrzyma wszystkie zawarte w nich usługi. Kontynuować?",
     "hideFailed": "Grupy uruchamiania pozostaną widoczne, ponieważ nie udało się zatrzymać następujących usług:",
     "hideBusy": "Poczekaj na zakończenie bieżącej operacji grupy uruchamiania.",
-    "state":   {
+    "state": {
       "stopped": "Zatrzymano",
       "running": "Działa",
       "partial-running": "Częściowo uruchomiono",
       "executing": "Wykonywanie",
       "invalid": "Nieprawidłowa konfiguracja"
     },
-    "outcome":   {
+    "outcome": {
       "started": "Uruchomiono",
       "stopped": "Zatrzymano",
       "skipped": "Pominięto",
       "failed": "Niepowodzenie",
       "not-run": "Nie uruchomiono",
       "invalid": "Nieprawidłowa konfiguracja"
-    }
+    },
+    "continueOnFailure": "Kontynuuj uruchamianie pozostałych elementów, jeśli jeden z nich nie zostanie uruchomiony"
   }
 }

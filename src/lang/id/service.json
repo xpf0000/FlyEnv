@@ -20,5 +20,6 @@
   },
   "linuxSudoRequiresTerminal": "Mulai tugas ini secara manual dan berikan otorisasi di terminal; macOS/Linux tidak mendukung sudo otomatis di latar belakang.",
   "linuxFtpUnmanagedRoot": "Proses FTP root ini tidak dimulai oleh layanan yang dikelola FlyEnv. Hentikan dengan hak administrator sebelum memulai kembali.",
-  "linuxFtpUsersRefreshFailed": "Perubahan akun FTP telah disimpan, tetapi layanan yang berjalan tidak dapat menerapkannya: {error}"
+  "linuxFtpUsersRefreshFailed": "Perubahan akun FTP telah disimpan, tetapi layanan yang berjalan tidak dapat menerapkannya: {error}",
+  "pathSavedRefreshFailed": "Variabel lingkungan telah disimpan, tetapi daftar gagal disegarkan: {error}"
 }

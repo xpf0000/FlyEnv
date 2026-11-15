@@ -20,5 +20,6 @@
   },
   "linuxSudoRequiresTerminal": "Inicia manualmente esta tarea con privilegios elevados y completa la autorización en el terminal; macOS/Linux no admite sudo automático en segundo plano.",
   "linuxFtpUnmanagedRoot": "Este proceso FTP que se ejecuta como root no fue iniciado por el servicio administrado de FlyEnv. Detenlo con permisos de administrador antes de volver a iniciarlo.",
-  "linuxFtpUsersRefreshFailed": "Los cambios en las cuentas FTP se guardaron, pero el servicio en ejecución no pudo aplicarlos: {error}"
+  "linuxFtpUsersRefreshFailed": "Los cambios en las cuentas FTP se guardaron, pero el servicio en ejecución no pudo aplicarlos: {error}",
+  "pathSavedRefreshFailed": "Se han guardado las variables de entorno, pero no se ha podido actualizar la lista: {error}"
 }

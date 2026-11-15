@@ -49,5 +49,7 @@
     "update_site": "Ažuriraj postojeću FlyEnv lokalnu razvojnu stranicu.",
     "delete_site": "Izbriši lokalnu razvojnu stranicu iz FlyEnv konfiguracije.",
     "install_service": "Preuzmi i instaliraj verziju za instalabilni FlyEnv modul."
-  }
+  },
+  "pluginToolsRefresh": "Nakon promjene alata dodataka osvježite ili ponovno povežite MCP klijent kako biste ažurirali njegov popis alata.",
+  "builtinTools": "Ugrađeni alati"
 }

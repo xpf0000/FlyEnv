@@ -145,5 +145,6 @@
     "detailsTitle": "Engedélyezést igénylő műveletek",
     "detailsMore": "További {count} művelet részletei nincsenek kibontva."
   },
-  "linuxHelperScope": "Telepítéskor engedélyezett műveletek: a hosts teljes szerkesztése, alacsony számú portok kötése a beépített webkiszolgálókhoz az Ön felhasználói fiókjával, a Pure-Ftpd futtatása rootként és a FlyEnv PID-könyvtárának javítása. A segédprogram napi műveleteihez nem kell jelszó; a terminálban futó sudo továbbra is a rendszer hitelesítését használja."
+  "linuxHelperScope": "Telepítéskor engedélyezett műveletek: a hosts teljes szerkesztése, alacsony számú portok kötése a beépített webkiszolgálókhoz az Ön felhasználói fiókjával, a Pure-Ftpd futtatása rootként és a FlyEnv PID-könyvtárának javítása. A segédprogram napi műveleteihez nem kell jelszó; a terminálban futó sudo továbbra is a rendszer hitelesítését használja.",
+  "pluginsUpdateFlyEnv": "FlyEnv frissítése"
 }

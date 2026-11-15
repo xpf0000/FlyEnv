@@ -82,5 +82,14 @@
   "tomcatContexts": "アプリケーションマッピング",
   "tomcatContextPath": "コンテキストパス",
   "tomcatDocBase": "アプリケーションパス",
-  "tomcatRewrite": "Tomcat リライト"
+  "tomcatRewrite": "Tomcat リライト",
+  "hostsAppliedPreferencesFailed": "システムの hosts ファイルは更新されましたが、設定の保存に失敗しました：{error}",
+  "primaryProjectPort": "メイン TCP ポート",
+  "additionalProjectPorts": "追加 TCP ポート（任意）",
+  "addProjectPort": "ポートを追加",
+  "removeProjectPort": "ポートを削除",
+  "projectPortsHint": "ポートを追加してもサービスは起動しません。また、そのポートで HTTP サービスが提供されるとは限りません。",
+  "projectPortsInvalid": "1～65535 の十進整数を入力してください。追加ポート同士の重複やメインポートとの重複はできません。",
+  "projectPortsStoredInvalid": "このプロジェクトに保存されているポートに無効なものがあります。該当するリンクは非表示です。ポートを編集して修正してください。",
+  "projectPortUnavailable": "無効なポート"
 }

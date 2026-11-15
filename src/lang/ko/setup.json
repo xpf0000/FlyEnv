@@ -145,5 +145,6 @@
     "detailsTitle": "승인이 필요한 작업",
     "detailsMore": "추가 작업 {count}개의 상세 내용이 표시되지 않았습니다."
   },
-  "linuxHelperScope": "설치 시 승인하는 작업: hosts 전체 편집, 내장 웹 서버를 사용자 계정으로 실행하여 낮은 번호의 포트에 바인딩, Pure-Ftpd를 root로 실행, FlyEnv의 PID 디렉터리 복구. 일상적인 도우미 작업에는 비밀번호를 요청하지 않습니다. 터미널 sudo는 계속 시스템 인증을 사용합니다."
+  "linuxHelperScope": "설치 시 승인하는 작업: hosts 전체 편집, 내장 웹 서버를 사용자 계정으로 실행하여 낮은 번호의 포트에 바인딩, Pure-Ftpd를 root로 실행, FlyEnv의 PID 디렉터리 복구. 일상적인 도우미 작업에는 비밀번호를 요청하지 않습니다. 터미널 sudo는 계속 시스템 인증을 사용합니다.",
+  "pluginsUpdateFlyEnv": "FlyEnv 업데이트"
 }

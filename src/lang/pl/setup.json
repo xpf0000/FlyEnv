@@ -145,5 +145,6 @@
     "detailsTitle": "Operacje wymagające autoryzacji",
     "detailsMore": "Nie rozwinięto szczegółów {count} dodatkowych operacji."
   },
-  "linuxHelperScope": "Autoryzacja podczas instalacji obejmuje: pełną edycję hosts, powiązanie wbudowanych serwerów WWW z portami o niskich numerach jako Twój użytkownik, uruchamianie Pure-Ftpd jako root oraz naprawę katalogu PID FlyEnv. Codzienne operacje pomocnika nie wymagają hasła; sudo w terminalu nadal korzysta z uwierzytelniania systemowego."
+  "linuxHelperScope": "Autoryzacja podczas instalacji obejmuje: pełną edycję hosts, powiązanie wbudowanych serwerów WWW z portami o niskich numerach jako Twój użytkownik, uruchamianie Pure-Ftpd jako root oraz naprawę katalogu PID FlyEnv. Codzienne operacje pomocnika nie wymagają hasła; sudo w terminalu nadal korzysta z uwierzytelniania systemowego.",
+  "pluginsUpdateFlyEnv": "Zaktualizuj FlyEnv"
 }

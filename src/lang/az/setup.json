@@ -145,5 +145,6 @@
     "detailsTitle": "İcazə tələb edən əməliyyatlar",
     "detailsMore": "Daha {count} əməliyyatın təfərrüatları göstərilmir."
   },
-  "linuxHelperScope": "Quraşdırma zamanı icazə verilir: hosts faylının tam redaktəsi, daxili veb serverlərin sizin istifadəçi hesabınızla aşağı nömrəli portlara bağlanması, Pure-Ftpd-nin root kimi işləməsi və FlyEnv-in PID qovluğunun bərpası. Köməkçinin gündəlik əməliyyatları parol tələb etmir; terminaldakı sudo sistem autentifikasiyasından istifadə etməyə davam edir."
+  "linuxHelperScope": "Quraşdırma zamanı icazə verilir: hosts faylının tam redaktəsi, daxili veb serverlərin sizin istifadəçi hesabınızla aşağı nömrəli portlara bağlanması, Pure-Ftpd-nin root kimi işləməsi və FlyEnv-in PID qovluğunun bərpası. Köməkçinin gündəlik əməliyyatları parol tələb etmir; terminaldakı sudo sistem autentifikasiyasından istifadə etməyə davam edir.",
+  "pluginsUpdateFlyEnv": "FlyEnv-i yenilə"
 }

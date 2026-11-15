@@ -82,5 +82,14 @@
   "tomcatContexts": "Mapowania aplikacji",
   "tomcatContextPath": "Ścieżka kontekstu",
   "tomcatDocBase": "Ścieżka aplikacji",
-  "tomcatRewrite": "Przepisywanie Tomcata"
+  "tomcatRewrite": "Przepisywanie Tomcata",
+  "hostsAppliedPreferencesFailed": "Systemowy plik hosts został zaktualizowany, ale nie udało się zapisać ustawień: {error}",
+  "primaryProjectPort": "Główny port TCP",
+  "additionalProjectPorts": "Dodatkowe porty TCP (opcjonalne)",
+  "addProjectPort": "Dodaj port",
+  "removeProjectPort": "Usuń port",
+  "projectPortsHint": "Dodanie portów nie uruchamia usług ani nie gwarantuje, że obsługują one HTTP.",
+  "projectPortsInvalid": "Wprowadź liczby całkowite dziesiętne od 1 do 65535. Porty nie mogą się powtarzać ani być takie same jak port główny.",
+  "projectPortsStoredInvalid": "Ten projekt ma zapisane nieprawidłowe porty. Linki z nieprawidłowymi portami są ukryte; popraw porty w edycji.",
+  "projectPortUnavailable": "Nieprawidłowy port"
 }

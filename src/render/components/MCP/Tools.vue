@@ -36,9 +36,7 @@
                     </el-tag>
                   </div>
                   <p class="text-xs text-gray-500 leading-relaxed">
-                    {{
-                      tool.pluginId ? tool.description : I18nT('mcp.toolDescriptions.' + tool.name)
-                    }}
+                    {{ toolDescription(tool) }}
                   </p>
                 </div>
                 <el-switch
@@ -63,9 +61,7 @@
                 <div class="flex flex-col gap-1 min-w-0">
                   <span class="font-mono text-sm">{{ tool.name }}</span>
                   <p class="text-xs text-gray-500 leading-relaxed">
-                    {{
-                      tool.pluginId ? tool.description : I18nT('mcp.toolDescriptions.' + tool.name)
-                    }}
+                    {{ toolDescription(tool) }}
                   </p>
                 </div>
                 <el-radio-group
@@ -94,9 +90,15 @@
 
 <script lang="ts" setup>
   import { computed, onMounted, ref, watch } from 'vue'
-  import { I18nT } from '@lang/index'
+  import { AppI18n, I18nT } from '@lang/index'
+  import type { MCPRuntimeTool } from '@shared/mcpRuntimeCatalog'
   import { MCPSetup } from './setup'
-  import { groupMcpTools, resolveMcpToolGroup } from './toolGroups'
+  import { groupMcpTools, resolveMcpToolGroup, pluginMcpToolDescription } from './toolGroups'
+
+  const toolDescription = (tool: MCPRuntimeTool) =>
+    tool.pluginId
+      ? pluginMcpToolDescription(tool, AppI18n().global.locale)
+      : I18nT('mcp.toolDescriptions.' + tool.name)
 
   const activeGroup = ref('builtin')
   const groups = computed(() => groupMcpTools(MCPSetup.tools))

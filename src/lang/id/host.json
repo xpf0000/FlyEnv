@@ -82,5 +82,14 @@
   "tomcatContexts": "Pemetaan aplikasi",
   "tomcatContextPath": "Jalur konteks",
   "tomcatDocBase": "Jalur aplikasi",
-  "tomcatRewrite": "Penulisan ulang Tomcat"
+  "tomcatRewrite": "Penulisan ulang Tomcat",
+  "hostsAppliedPreferencesFailed": "File hosts sistem telah diperbarui, tetapi pengaturan gagal disimpan: {error}",
+  "primaryProjectPort": "Port TCP utama",
+  "additionalProjectPorts": "Port TCP tambahan (opsional)",
+  "addProjectPort": "Tambah port",
+  "removeProjectPort": "Hapus port",
+  "projectPortsHint": "Menambahkan port tidak menjalankan layanan atau menjamin bahwa port tersebut menyediakan layanan HTTP.",
+  "projectPortsInvalid": "Masukkan bilangan bulat desimal dari 1 hingga 65535. Port tambahan tidak boleh duplikat atau sama dengan port utama.",
+  "projectPortsStoredInvalid": "Proyek ini memiliki port tersimpan yang tidak valid. Tautannya disembunyikan; edit port untuk memperbaikinya.",
+  "projectPortUnavailable": "Port tidak valid"
 }

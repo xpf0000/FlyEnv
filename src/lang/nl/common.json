@@ -163,20 +163,21 @@
     "hideConfirm": "Als u opstartgroepen verbergt, worden alle services erin gestopt. Doorgaan?",
     "hideFailed": "Opstartgroepen blijven zichtbaar omdat deze services niet konden worden gestopt:",
     "hideBusy": "Wacht tot de huidige opstartgroepbewerking is voltooid.",
-    "state":   {
+    "state": {
       "stopped": "Gestopt",
       "running": "Actief",
       "partial-running": "Gedeeltelijk actief",
       "executing": "Bezig met uitvoeren",
       "invalid": "Ongeldige configuratie"
     },
-    "outcome":   {
+    "outcome": {
       "started": "Gestart",
       "stopped": "Gestopt",
       "skipped": "Overgeslagen",
       "failed": "Mislukt",
       "not-run": "Niet uitgevoerd",
       "invalid": "Ongeldige configuratie"
-    }
+    },
+    "continueOnFailure": "Ga door met het starten van de overige leden als er één niet kan starten"
   }
 }

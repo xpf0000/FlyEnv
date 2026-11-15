@@ -82,5 +82,14 @@
   "tomcatContexts": "एप्लिकेशन मैपिंग",
   "tomcatContextPath": "कॉन्टेक्स्ट पथ",
   "tomcatDocBase": "एप्लिकेशन पथ (docBase)",
-  "tomcatRewrite": "Tomcat पुनर्लेखन"
+  "tomcatRewrite": "Tomcat पुनर्लेखन",
+  "hostsAppliedPreferencesFailed": "सिस्टम की hosts फ़ाइल अपडेट हो गई, लेकिन सेटिंग सहेजी नहीं जा सकी: {error}",
+  "primaryProjectPort": "मुख्य TCP पोर्ट",
+  "additionalProjectPorts": "अतिरिक्त TCP पोर्ट (वैकल्पिक)",
+  "addProjectPort": "पोर्ट जोड़ें",
+  "removeProjectPort": "पोर्ट हटाएँ",
+  "projectPortsHint": "पोर्ट जोड़ने से सेवाएँ शुरू नहीं होतीं और न ही यह सुनिश्चित होता है कि उन पोर्ट पर HTTP सेवा उपलब्ध है।",
+  "projectPortsInvalid": "1 से 65535 के बीच दशमलव पूर्णांक डालें। अतिरिक्त पोर्ट आपस में या मुख्य पोर्ट के समान नहीं होने चाहिए।",
+  "projectPortsStoredInvalid": "इस प्रोजेक्ट में सहेजे गए कुछ पोर्ट अमान्य हैं। उनके लिंक छिपा दिए गए हैं; उन्हें ठीक करने के लिए पोर्ट संपादित करें।",
+  "projectPortUnavailable": "अमान्य पोर्ट"
 }

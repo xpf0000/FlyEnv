@@ -163,20 +163,21 @@
     "hideConfirm": "Az indítási csoportok elrejtése leállítja az összes bennük lévő szolgáltatást. Folytatja?",
     "hideFailed": "Az indítási csoportok láthatók maradnak, mert ezeket a szolgáltatásokat nem sikerült leállítani:",
     "hideBusy": "Várja meg, amíg a jelenlegi indítási csoport művelete befejeződik.",
-    "state":   {
+    "state": {
       "stopped": "Leállítva",
       "running": "Fut",
       "partial-running": "Részben fut",
       "executing": "Végrehajtás alatt",
       "invalid": "Érvénytelen konfiguráció"
     },
-    "outcome":   {
+    "outcome": {
       "started": "Elindítva",
       "stopped": "Leállítva",
       "skipped": "Kihagyva",
       "failed": "Sikertelen",
       "not-run": "Nem futott le",
       "invalid": "Érvénytelen konfiguráció"
-    }
+    },
+    "continueOnFailure": "Egy tag sikertelen indítása esetén folytassa a többi tag indítását"
   }
 }

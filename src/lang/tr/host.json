@@ -82,5 +82,14 @@
   "tomcatContexts": "Uygulama eşlemeleri",
   "tomcatContextPath": "Bağlam yolu",
   "tomcatDocBase": "Uygulama yolu",
-  "tomcatRewrite": "Tomcat yeniden yazma"
+  "tomcatRewrite": "Tomcat yeniden yazma",
+  "hostsAppliedPreferencesFailed": "Sistemin hosts dosyası güncellendi ancak ayarlar kaydedilemedi: {error}",
+  "primaryProjectPort": "Ana TCP bağlantı noktası",
+  "additionalProjectPorts": "Ek TCP bağlantı noktaları (isteğe bağlı)",
+  "addProjectPort": "Bağlantı noktası ekle",
+  "removeProjectPort": "Bağlantı noktasını kaldır",
+  "projectPortsHint": "Bağlantı noktası eklemek hizmetleri başlatmaz ve bu bağlantı noktalarının HTTP sunacağını garanti etmez.",
+  "projectPortsInvalid": "1 ile 65535 arasında ondalık tam sayılar girin. Bağlantı noktaları tekrarlanmamalı ve ana bağlantı noktasıyla aynı olmamalıdır.",
+  "projectPortsStoredInvalid": "Bu projede kayıtlı geçersiz bağlantı noktaları var. Geçersiz bağlantılar gizlendi; düzeltmek için bağlantı noktalarını düzenleyin.",
+  "projectPortUnavailable": "Geçersiz bağlantı noktası"
 }

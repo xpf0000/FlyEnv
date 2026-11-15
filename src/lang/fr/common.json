@@ -163,20 +163,21 @@
     "hideConfirm": "Masquer les groupes de démarrage arrêtera tous les services qu’ils contiennent. Continuer ?",
     "hideFailed": "Les groupes de démarrage resteront visibles, car les services suivants n’ont pas pu être arrêtés :",
     "hideBusy": "Attendez la fin de l’opération en cours sur le groupe de démarrage.",
-    "state":   {
+    "state": {
       "stopped": "Arrêté",
       "running": "En cours d’exécution",
       "partial-running": "Partiellement en cours",
       "executing": "Exécution en cours",
       "invalid": "Configuration non valide"
     },
-    "outcome":   {
+    "outcome": {
       "started": "Démarré",
       "stopped": "Arrêté",
       "skipped": "Ignoré",
       "failed": "Échec",
       "not-run": "Non exécuté",
       "invalid": "Configuration non valide"
-    }
+    },
+    "continueOnFailure": "Continuer à démarrer les autres membres si l’un d’eux échoue"
   }
 }

@@ -49,5 +49,7 @@
     "update_site": "Oppdater et eksisterende lokalt utviklingsnettsted i FlyEnv.",
     "delete_site": "Slett et lokalt utviklingsnettsted fra FlyEnv-konfigurasjonen.",
     "install_service": "Last ned og installer en versjon for en installerbar FlyEnv-modul."
-  }
+  },
+  "pluginToolsRefresh": "Etter at du har endret programtilleggenes verktøy, må du oppdatere eller koble til MCP-klienten på nytt for å oppdatere verktøylisten.",
+  "builtinTools": "Innebygde verktøy"
 }

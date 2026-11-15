@@ -49,5 +49,7 @@
     "update_site": "Päivitä olemassa oleva paikallinen kehityssivusto FlyEnvissä.",
     "delete_site": "Poista paikallinen kehityssivusto FlyEnvin asetuksista.",
     "install_service": "Lataa ja asenna versio asennettavasta FlyEnv-moduulista."
-  }
+  },
+  "pluginToolsRefresh": "Kun olet muuttanut lisäosien työkaluja, päivitä MCP-asiakkaan työkaluluettelo päivittämällä asiakas tai muodostamalla yhteys uudelleen.",
+  "builtinTools": "Sisäiset työkalut"
 }

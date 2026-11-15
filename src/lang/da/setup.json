@@ -145,5 +145,6 @@
     "detailsTitle": "Handlinger, der kræver godkendelse",
     "detailsMore": "{count} yderligere handlinger er ikke foldet ud."
   },
-  "linuxHelperScope": "Godkend ved installation: fuld redigering af hosts, binding til lave porte for indbyggede webservere under din brugerkonto, kørsel af Pure-Ftpd som root og reparation af FlyEnvs PID-mappe. Daglige hjælperhandlinger kræver ikke adgangskode; sudo i terminalen bruger fortsat systemgodkendelse."
+  "linuxHelperScope": "Godkend ved installation: fuld redigering af hosts, binding til lave porte for indbyggede webservere under din brugerkonto, kørsel af Pure-Ftpd som root og reparation af FlyEnvs PID-mappe. Daglige hjælperhandlinger kræver ikke adgangskode; sudo i terminalen bruger fortsat systemgodkendelse.",
+  "pluginsUpdateFlyEnv": "Opdater FlyEnv"
 }

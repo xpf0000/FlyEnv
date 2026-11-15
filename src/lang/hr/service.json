@@ -20,5 +20,6 @@
   },
   "linuxSudoRequiresTerminal": "Ručno pokrenite ovaj zadatak s povišenim ovlastima i dovršite autorizaciju u terminalu; macOS/Linux ne podržava automatski sudo u pozadini.",
   "linuxFtpUnmanagedRoot": "Ovaj FTP proces s ovlastima root nije pokrenula upravljana usluga FlyEnva. Zaustavite ga s administratorskim ovlastima prije ponovnog pokretanja.",
-  "linuxFtpUsersRefreshFailed": "Promjene FTP računa su spremljene, ali ih pokrenuta usluga nije mogla primijeniti: {error}"
+  "linuxFtpUsersRefreshFailed": "Promjene FTP računa su spremljene, ali ih pokrenuta usluga nije mogla primijeniti: {error}",
+  "pathSavedRefreshFailed": "Varijable okruženja spremljene su, ali osvježavanje popisa nije uspjelo: {error}"
 }

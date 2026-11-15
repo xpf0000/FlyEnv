@@ -145,5 +145,6 @@
     "detailsTitle": "Vorgänge, die eine Autorisierung erfordern",
     "detailsMore": "{count} weitere Vorgänge werden nicht aufgeklappt angezeigt."
   },
-  "linuxHelperScope": "Bei der Installation autorisieren: vollständige Bearbeitung der hosts-Datei, Bindung integrierter Webserver an niedrige Ports unter Ihrem Benutzerkonto, Ausführung von Pure-Ftpd als root und Reparatur des PID-Verzeichnisses von FlyEnv. Für alltägliche Vorgänge des Hilfsprogramms wird kein Passwort abgefragt; sudo im Terminal verwendet weiterhin die Systemauthentifizierung."
+  "linuxHelperScope": "Bei der Installation autorisieren: vollständige Bearbeitung der hosts-Datei, Bindung integrierter Webserver an niedrige Ports unter Ihrem Benutzerkonto, Ausführung von Pure-Ftpd als root und Reparatur des PID-Verzeichnisses von FlyEnv. Für alltägliche Vorgänge des Hilfsprogramms wird kein Passwort abgefragt; sudo im Terminal verwendet weiterhin die Systemauthentifizierung.",
+  "pluginsUpdateFlyEnv": "FlyEnv aktualisieren"
 }

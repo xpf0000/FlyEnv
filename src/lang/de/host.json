@@ -82,5 +82,14 @@
   "tomcatContexts": "Anwendungszuordnungen",
   "tomcatContextPath": "Kontextpfad",
   "tomcatDocBase": "Anwendungspfad",
-  "tomcatRewrite": "Tomcat-Rewrite"
+  "tomcatRewrite": "Tomcat-Rewrite",
+  "hostsAppliedPreferencesFailed": "Die hosts-Datei des Systems wurde aktualisiert, aber die Einstellungen konnten nicht gespeichert werden: {error}",
+  "primaryProjectPort": "Primärer TCP-Port",
+  "additionalProjectPorts": "Zusätzliche TCP-Ports (optional)",
+  "addProjectPort": "Port hinzufügen",
+  "removeProjectPort": "Port entfernen",
+  "projectPortsHint": "Das Hinzufügen von Ports startet keine Dienste und garantiert nicht, dass diese Ports HTTP bereitstellen.",
+  "projectPortsInvalid": "Geben Sie ganze Dezimalzahlen von 1 bis 65535 ein. Zusätzliche Ports dürfen weder mehrfach vorkommen noch mit dem primären Port übereinstimmen.",
+  "projectPortsStoredInvalid": "Dieses Projekt enthält ungültige gespeicherte Ports. Ungültige Links werden ausgeblendet. Bearbeiten Sie die Ports, um sie zu korrigieren.",
+  "projectPortUnavailable": "Ungültiger Port"
 }

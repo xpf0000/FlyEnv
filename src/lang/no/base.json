@@ -86,7 +86,6 @@
   "themeAuto": "System tema",
   "addToPath": "Legge til PATH",
   "Official": "Offisiell",
-  "staticDelAlert": "For å sikre at brukerdata er sikkert, tilbyr det ikke lenger funksjonen ved å automatisk slette installerte programvare. Hvis du er sikker på at du vil slette den, klikker du på OK. Du kan manuelt slette programvaren i den åpne mappen.",
   "projects": "Prosjekt",
   "cleanup": "Opprydding",
   "executing": "Utfører",

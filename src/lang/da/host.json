@@ -82,5 +82,14 @@
   "tomcatContexts": "Applikationskortlægninger",
   "tomcatContextPath": "Kontekststi",
   "tomcatDocBase": "Programsti",
-  "tomcatRewrite": "Tomcat-omskrivning"
+  "tomcatRewrite": "Tomcat-omskrivning",
+  "hostsAppliedPreferencesFailed": "Systemets hosts-fil blev opdateret, men indstillingerne kunne ikke gemmes: {error}",
+  "primaryProjectPort": "Primær TCP-port",
+  "additionalProjectPorts": "Yderligere TCP-porte (valgfrit)",
+  "addProjectPort": "Tilføj port",
+  "removeProjectPort": "Fjern port",
+  "projectPortsHint": "Tilføjelse af porte starter ikke tjenester og garanterer ikke, at de tilbyder HTTP.",
+  "projectPortsInvalid": "Indtast heltal i titalssystemet fra 1 til 65535. De ekstra porte må hverken gentages eller være identiske med den primære port.",
+  "projectPortsStoredInvalid": "Dette projekt har ugyldige gemte porte. Ugyldige links er skjult; rediger portene for at rette dem.",
+  "projectPortUnavailable": "Ugyldig port"
 }

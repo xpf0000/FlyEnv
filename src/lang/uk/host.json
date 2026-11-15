@@ -82,5 +82,14 @@
   "tomcatContexts": "Відповідності застосунків",
   "tomcatContextPath": "Шлях контексту",
   "tomcatDocBase": "Шлях застосунку",
-  "tomcatRewrite": "Перезапис Tomcat"
+  "tomcatRewrite": "Перезапис Tomcat",
+  "hostsAppliedPreferencesFailed": "Системний файл hosts оновлено, але не вдалося зберегти налаштування: {error}",
+  "primaryProjectPort": "Основний порт TCP",
+  "additionalProjectPorts": "Додаткові порти TCP (необов’язково)",
+  "addProjectPort": "Додати порт",
+  "removeProjectPort": "Видалити порт",
+  "projectPortsHint": "Додавання портів не запускає служби й не гарантує, що ці порти надають HTTP.",
+  "projectPortsInvalid": "Введіть цілі десяткові числа від 1 до 65535. Порти не повинні повторюватися або збігатися з основним портом.",
+  "projectPortsStoredInvalid": "У проєкті збережено недійсні порти. Посилання з недійсними портами приховано; відредагуйте порти, щоб їх виправити.",
+  "projectPortUnavailable": "Недійсний порт"
 }

@@ -78,5 +78,10 @@
   "templatePackageDesc": "Ένα πακέτο Dart που μπορεί να μοιραστεί μέσω pub.dev.",
   "templatePluginDesc": "Ένα πρόσθετο Flutter για ειδικά προγράμματα (Android/iOS/Windows...) APIs.",
   "templateModuleDesc": "Μια ενότητα Flutter για ενσωμάτωση σε μια υπάρχουσα εφαρμογή Android / iOS.",
-  "templateSkeletonDesc": "Ένας κατάλογος/λεπτομέρεια Flutter εφαρμογή με Υλικό 3 και Πλοήγηση 2.0."
+  "templateSkeletonDesc": "Ένας κατάλογος/λεπτομέρεια Flutter εφαρμογή με Υλικό 3 και Πλοήγηση 2.0.",
+  "androidSdkNotDetected": "Δεν εντοπίστηκε Android SDK",
+  "androidSdkInstallHint": "Το FlyEnv δεν εγκαθιστά αυτόματα το Android SDK. Εγκαταστήστε το SDK μέσω του Android Studio ή των επίσημων εργαλείων γραμμής εντολών του Android.",
+  "installAndroidStudio": "Εγκατάσταση Android Studio",
+  "androidCommandLineTools": "Εργαλεία γραμμής εντολών Android",
+  "androidSdkAfterInstall": "Μετά την εγκατάσταση του SDK, επιστρέψτε στο FlyEnv, πατήστε Ανανέωση (Refresh) και στη συνέχεια χρησιμοποιήστε το Auto-fix για να ρυθμίσετε το περιβάλλον."
 }

@@ -78,5 +78,10 @@
   "templatePackageDesc": "یک بسته دارت که می‌تواند از طریق pub.dev به اشتراک گذاشته شود.",
   "templatePluginDesc": "یک پلاگین فلاتر برای وب‌سرویس‌های خاص پلتفرم (Android/iOS/Windows...).",
   "templateModuleDesc": "یک ماژول فلاتر برای قرار گرفتن در یک برنامه اندروید یا iOS موجود.",
-  "templateSkeletonDesc": "یک برنامه لیست/جزئیات فلاتر با متریال ۳ و ناوبری ۲.۰."
+  "templateSkeletonDesc": "یک برنامه لیست/جزئیات فلاتر با متریال ۳ و ناوبری ۲.۰.",
+  "androidSdkNotDetected": "Android SDK شناسایی نشد",
+  "androidSdkInstallHint": "FlyEnv به‌طور خودکار Android SDK را نصب نمی‌کند. SDK را با Android Studio یا ابزارهای رسمی خط فرمان Android نصب کنید.",
+  "installAndroidStudio": "نصب Android Studio",
+  "androidCommandLineTools": "ابزارهای خط فرمان Android",
+  "androidSdkAfterInstall": "پس از نصب SDK، به FlyEnv برگردید، روی به‌روزرسانی (Refresh) کلیک کنید و سپس با Auto-fix محیط را پیکربندی کنید."
 }

@@ -49,5 +49,7 @@
     "update_site": "Mövcud FlyEnv yerli inkişaf saytını yenilə.",
     "delete_site": "FlyEnv konfiqurasiyasından yerli inkişaf saytını sil.",
     "install_service": "Quraşdırıla bilən FlyEnv modulu üçün versiyanı yüklə və quraşdır."
-  }
+  },
+  "pluginToolsRefresh": "Plagin alətlərini dəyişdikdən sonra alətlər siyahısını yeniləmək üçün MCP müştərinizi yeniləyin və ya yenidən qoşun.",
+  "builtinTools": "Daxili alətlər"
 }

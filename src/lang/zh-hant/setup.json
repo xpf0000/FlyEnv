@@ -145,5 +145,6 @@
     "detailsTitle": "本次需要執行的操作",
     "detailsMore": "另有 {count} 項操作未展開顯示。"
   },
-  "linuxHelperScope": "安裝時授權：完整編輯 hosts、以一般使用者身分讓內建 Web 服務綁定低號連接埠、以 root 執行 Pure-Ftpd，以及修復 FlyEnv 的 PID 目錄。日常輔助程式操作不再詢問密碼；終端機中的 sudo 仍使用系統認證。"
+  "linuxHelperScope": "安裝時授權：完整編輯 hosts、以一般使用者身分讓內建 Web 服務綁定低號連接埠、以 root 執行 Pure-Ftpd，以及修復 FlyEnv 的 PID 目錄。日常輔助程式操作不再詢問密碼；終端機中的 sudo 仍使用系統認證。",
+  "pluginsUpdateFlyEnv": "請升級 FlyEnv"
 }

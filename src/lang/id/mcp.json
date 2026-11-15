@@ -49,5 +49,7 @@
     "update_site": "Perbarui situs pengembangan lokal FlyEnv yang sudah ada.",
     "delete_site": "Hapus situs pengembangan lokal dari konfigurasi FlyEnv.",
     "install_service": "Unduh dan pasang versi untuk modul FlyEnv yang dapat dipasang."
-  }
+  },
+  "pluginToolsRefresh": "Setelah mengubah alat plugin, segarkan atau hubungkan kembali klien MCP Anda untuk memperbarui daftar alatnya.",
+  "builtinTools": "Alat bawaan"
 }

@@ -177,6 +177,7 @@
       "failed": "Uğursuz oldu",
       "not-run": "İşə salınmadı",
       "invalid": "Konfiqurasiya etibarsızdır"
-    }
+    },
+    "continueOnFailure": "Üzvlərdən biri başlamasa, qalanlarını başlatmağa davam et"
   }
 }

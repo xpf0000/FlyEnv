@@ -83,5 +83,13 @@
   "tomcatContexts": "Mapovania aplikácií",
   "tomcatContextPath": "Cesta kontextu",
   "tomcatDocBase": "Cesta k aplikácii (docBase)",
-  "tomcatRewrite": "Prepisovanie Tomcat"
+  "tomcatRewrite": "Prepisovanie Tomcat",
+  "primaryProjectPort": "Hlavný port TCP",
+  "additionalProjectPorts": "Ďalšie porty TCP (voliteľné)",
+  "addProjectPort": "Pridať port",
+  "removeProjectPort": "Odstrániť port",
+  "projectPortsHint": "Pridanie portov nespustí služby ani nezaručí, že na nich bude dostupné HTTP.",
+  "projectPortsInvalid": "Zadajte celé desiatkové čísla od 1 do 65535. Ďalšie porty sa nesmú opakovať ani zhodovať s hlavným portom.",
+  "projectPortsStoredInvalid": "Tento projekt má uložené neplatné porty. Ich odkazy sa nezobrazujú; opravte ich v nastavení portov.",
+  "projectPortUnavailable": "Neplatný port"
 }

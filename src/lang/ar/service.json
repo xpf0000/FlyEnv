@@ -20,5 +20,6 @@
   },
   "linuxSudoRequiresTerminal": "ابدأ هذه المهمة يدويًا وأكمل التفويض في الطرفية؛ لا يدعم macOS وLinux تشغيل sudo تلقائيًا في الخلفية.",
   "linuxFtpUnmanagedRoot": "عملية FTP هذه تعمل بصلاحيات root ولم تبدأها خدمة يديرها FlyEnv. أوقفها بصلاحيات المسؤول قبل إعادة التشغيل.",
-  "linuxFtpUsersRefreshFailed": "حُفظت تغييرات حسابات FTP، لكن تعذر تطبيقها على الخدمة قيد التشغيل: {error}"
+  "linuxFtpUsersRefreshFailed": "حُفظت تغييرات حسابات FTP، لكن تعذر تطبيقها على الخدمة قيد التشغيل: {error}",
+  "pathSavedRefreshFailed": "تم حفظ متغيرات البيئة، لكن تعذّر تحديث القائمة: {error}"
 }

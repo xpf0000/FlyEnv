@@ -177,6 +177,7 @@
       "failed": "Mislykkedes",
       "not-run": "Ikke kørt",
       "invalid": "Ugyldig konfiguration"
-    }
+    },
+    "continueOnFailure": "Fortsæt med at starte de øvrige medlemmer, hvis et medlem ikke kan starte"
   }
 }

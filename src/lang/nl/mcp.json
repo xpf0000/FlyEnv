@@ -49,5 +49,7 @@
     "update_site": "Werk een bestaande lokale FlyEnv-ontwikkelsite bij.",
     "delete_site": "Verwijder een lokale ontwikkelsite uit de FlyEnv-configuratie.",
     "install_service": "Download en installeer een versie voor een installeerbare FlyEnv-module."
-  }
+  },
+  "pluginToolsRefresh": "Vernieuw of verbind je MCP-client opnieuw nadat je plugintools hebt gewijzigd om de lijst met tools bij te werken.",
+  "builtinTools": "Ingebouwde tools"
 }

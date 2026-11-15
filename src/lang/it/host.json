@@ -82,5 +82,14 @@
   "tomcatContexts": "Mapping delle applicazioni",
   "tomcatContextPath": "Percorso del contesto",
   "tomcatDocBase": "Percorso dell’applicazione",
-  "tomcatRewrite": "Rewrite di Tomcat"
+  "tomcatRewrite": "Rewrite di Tomcat",
+  "hostsAppliedPreferencesFailed": "Il file hosts di sistema è stato aggiornato, ma il salvataggio delle impostazioni non è riuscito: {error}",
+  "primaryProjectPort": "Porta TCP principale",
+  "additionalProjectPorts": "Porte TCP aggiuntive (facoltative)",
+  "addProjectPort": "Aggiungi porta",
+  "removeProjectPort": "Rimuovi porta",
+  "projectPortsHint": "L’aggiunta di porte non avvia servizi e non garantisce che forniscano un servizio HTTP.",
+  "projectPortsInvalid": "Inserisci numeri interi decimali da 1 a 65535. Le porte aggiuntive non possono essere duplicate né coincidere con quella principale.",
+  "projectPortsStoredInvalid": "Questo progetto contiene porte salvate non valide. I relativi collegamenti sono nascosti; modifica le porte per correggerle.",
+  "projectPortUnavailable": "Porta non valida"
 }

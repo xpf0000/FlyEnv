@@ -163,20 +163,21 @@
     "hideConfirm": "Ocultar os grupos de arranque irá parar todos os serviços neles contidos. Continuar?",
     "hideFailed": "Os grupos de arranque continuarão visíveis porque não foi possível parar estes serviços:",
     "hideBusy": "Aguarde até que a operação atual do grupo de arranque termine.",
-    "state":   {
+    "state": {
       "stopped": "Parado",
       "running": "Em execução",
       "partial-running": "Parcialmente em execução",
       "executing": "A executar",
       "invalid": "Configuração inválida"
     },
-    "outcome":   {
+    "outcome": {
       "started": "Iniciado",
       "stopped": "Parado",
       "skipped": "Ignorado",
       "failed": "Falhou",
       "not-run": "Não executado",
       "invalid": "Configuração inválida"
-    }
+    },
+    "continueOnFailure": "Continuar a iniciar os restantes membros se um deles falhar"
   }
 }

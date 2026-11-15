@@ -82,5 +82,14 @@
   "tomcatContexts": "Programmappningar",
   "tomcatContextPath": "Kontextsökväg",
   "tomcatDocBase": "Programsökväg",
-  "tomcatRewrite": "Tomcat-omskrivning"
+  "tomcatRewrite": "Tomcat-omskrivning",
+  "hostsAppliedPreferencesFailed": "Systemets hosts-fil uppdaterades, men inställningarna kunde inte sparas: {error}",
+  "primaryProjectPort": "Primär TCP-port",
+  "additionalProjectPorts": "Ytterligare TCP-portar (valfritt)",
+  "addProjectPort": "Lägg till port",
+  "removeProjectPort": "Ta bort port",
+  "projectPortsHint": "Att lägga till portar startar inga tjänster och garanterar inte att de erbjuder HTTP.",
+  "projectPortsInvalid": "Ange decimala heltal från 1 till 65535, utan dubbletter eller samma nummer som den primära porten.",
+  "projectPortsStoredInvalid": "Projektet har ogiltiga sparade portar. Ogiltiga länkar visas inte; redigera portarna för att rätta till dem.",
+  "projectPortUnavailable": "Ogiltig port"
 }

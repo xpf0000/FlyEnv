@@ -145,5 +145,6 @@
     "detailsTitle": "Radnje koje zahtijevaju autorizaciju",
     "detailsMore": "Još {count} radnji nije prošireno."
   },
-  "linuxHelperScope": "Autorizacija pri instalaciji: potpuno uređivanje datoteke hosts, vezanje ugrađenih web poslužitelja na portove s niskim brojem pod vašim korisničkim računom, pokretanje Pure-Ftpda kao root i popravak PID direktorija FlyEnva. Svakodnevne radnje pomoćnika ne traže lozinku; sudo u terminalu i dalje koristi sistemsku autentifikaciju."
+  "linuxHelperScope": "Autorizacija pri instalaciji: potpuno uređivanje datoteke hosts, vezanje ugrađenih web poslužitelja na portove s niskim brojem pod vašim korisničkim računom, pokretanje Pure-Ftpda kao root i popravak PID direktorija FlyEnva. Svakodnevne radnje pomoćnika ne traže lozinku; sudo u terminalu i dalje koristi sistemsku autentifikaciju.",
+  "pluginsUpdateFlyEnv": "Ažuriraj FlyEnv"
 }

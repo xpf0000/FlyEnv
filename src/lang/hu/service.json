@@ -20,5 +20,6 @@
   },
   "linuxSudoRequiresTerminal": "Indítsa el kézzel ezt a magasabb jogosultságot igénylő feladatot, és végezze el az engedélyezést a terminálban; macOS/Linux rendszeren az automatikus háttérbeli sudo nem támogatott.",
   "linuxFtpUnmanagedRoot": "Ezt a root jogosultságú FTP-folyamatot nem a FlyEnv által kezelt szolgáltatás indította el. Az újraindítás előtt állítsa le rendszergazdai jogosultsággal.",
-  "linuxFtpUsersRefreshFailed": "Az FTP-fiókok módosításait elmentettük, de a futó szolgáltatás nem tudta alkalmazni őket: {error}"
+  "linuxFtpUsersRefreshFailed": "Az FTP-fiókok módosításait elmentettük, de a futó szolgáltatás nem tudta alkalmazni őket: {error}",
+  "pathSavedRefreshFailed": "A környezeti változók mentése megtörtént, de a lista frissítése sikertelen: {error}"
 }

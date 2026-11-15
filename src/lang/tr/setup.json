@@ -145,5 +145,6 @@
     "detailsTitle": "Yetkilendirme gerektiren işlemler",
     "detailsMore": "{count} ek işlemin ayrıntıları genişletilmedi."
   },
-  "linuxHelperScope": "Kurulum sırasında yetkilendirilen işlemler: hosts dosyasının tam düzenlenmesi, yerleşik web sunucularının sizin kullanıcı hesabınızla düşük numaralı bağlantı noktalarına bağlanması, Pure-Ftpd'nin root olarak çalışması ve FlyEnv'in PID dizininin onarılması. Yardımcının günlük işlemleri parola istemez; terminaldeki sudo sistem kimlik doğrulamasını kullanmaya devam eder."
+  "linuxHelperScope": "Kurulum sırasında yetkilendirilen işlemler: hosts dosyasının tam düzenlenmesi, yerleşik web sunucularının sizin kullanıcı hesabınızla düşük numaralı bağlantı noktalarına bağlanması, Pure-Ftpd'nin root olarak çalışması ve FlyEnv'in PID dizininin onarılması. Yardımcının günlük işlemleri parola istemez; terminaldeki sudo sistem kimlik doğrulamasını kullanmaya devam eder.",
+  "pluginsUpdateFlyEnv": "FlyEnv'i güncelle"
 }

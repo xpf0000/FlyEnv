@@ -145,5 +145,6 @@
     },
     "detailsTitle": "Operácie vyžadujúce autorizáciu",
     "detailsMore": "Ďalších operácií: {count}, nie sú rozbalené."
-  }
+  },
+  "pluginsUpdateFlyEnv": "Aktualizovať FlyEnv"
 }

@@ -145,5 +145,6 @@
     "detailsTitle": "Operațiuni care necesită autorizare",
     "detailsMore": "Detaliile pentru încă {count} operațiuni nu sunt extinse."
   },
-  "linuxHelperScope": "Autorizare la instalare: editarea completă a hosts, asocierea serverelor web integrate cu porturi cu număr mic folosind contul dvs. de utilizator, rularea Pure-Ftpd ca root și repararea directorului PID al FlyEnv. Operațiunile zilnice ale programului auxiliar nu solicită o parolă; sudo din terminal continuă să folosească autentificarea sistemului."
+  "linuxHelperScope": "Autorizare la instalare: editarea completă a hosts, asocierea serverelor web integrate cu porturi cu număr mic folosind contul dvs. de utilizator, rularea Pure-Ftpd ca root și repararea directorului PID al FlyEnv. Operațiunile zilnice ale programului auxiliar nu solicită o parolă; sudo din terminal continuă să folosească autentificarea sistemului.",
+  "pluginsUpdateFlyEnv": "Actualizează FlyEnv"
 }

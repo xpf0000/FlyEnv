@@ -78,5 +78,10 @@
   "templatePackageDesc": "Ett dartpaket som kan delas via pub.dev.",
   "templatePluginDesc": "En Flutter plugin för plattformsspecifik (Android / iOS/Windows...) API:er.",
   "templateModuleDesc": "En Fluttermodul för att bädda in i en befintlig Android/iOS-app.",
-  "templateSkeletonDesc": "En list/detalj Flutter applikation med Material 3 och Navigering 2.0."
+  "templateSkeletonDesc": "En list/detalj Flutter applikation med Material 3 och Navigering 2.0.",
+  "androidSdkNotDetected": "Android SDK hittades inte",
+  "androidSdkInstallHint": "FlyEnv installerar inte Android SDK automatiskt. Installera SDK med Android Studio eller Androids officiella kommandoradsverktyg.",
+  "installAndroidStudio": "Installera Android Studio",
+  "androidCommandLineTools": "Androids kommandoradsverktyg",
+  "androidSdkAfterInstall": "När SDK har installerats går du tillbaka till FlyEnv, klickar på Uppdatera och använder sedan automatisk korrigering (Auto-fix) för att konfigurera miljön."
 }

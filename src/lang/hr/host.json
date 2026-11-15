@@ -82,5 +82,14 @@
   "tomcatContexts": "Mapiranja aplikacija",
   "tomcatContextPath": "Putanja konteksta",
   "tomcatDocBase": "Putanja aplikacije",
-  "tomcatRewrite": "Tomcat prepisivanje"
+  "tomcatRewrite": "Tomcat prepisivanje",
+  "hostsAppliedPreferencesFailed": "Sistemska datoteka hosts ažurirana je, ali spremanje postavki nije uspjelo: {error}",
+  "primaryProjectPort": "Glavni TCP port",
+  "additionalProjectPorts": "Dodatni TCP portovi (neobavezno)",
+  "addProjectPort": "Dodaj port",
+  "removeProjectPort": "Ukloni port",
+  "projectPortsHint": "Dodavanje portova ne pokreće servise niti jamči da pružaju HTTP uslugu.",
+  "projectPortsInvalid": "Unesite decimalne cijele brojeve od 1 do 65535. Dodatni portovi ne smiju se ponavljati niti biti jednaki glavnom portu.",
+  "projectPortsStoredInvalid": "Ovaj projekt ima nevaljane spremljene portove. Njihove su poveznice skrivene; uredite portove kako biste ih ispravili.",
+  "projectPortUnavailable": "Nevaljan port"
 }

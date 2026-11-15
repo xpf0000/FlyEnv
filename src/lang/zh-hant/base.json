@@ -86,7 +86,6 @@
   "themeAuto": "系統",
   "addToPath": "添加到環境變數",
   "Official": "官方",
-  "staticDelAlert": "為了保證使用者資料安全，不再提供自動刪除已安裝軟體的功能。如確定要刪除，可點擊確定，在開啟的資料夾中手動刪除軟體。",
   "projects": "專案",
   "cleanup": "清理",
   "executing": "執行中",

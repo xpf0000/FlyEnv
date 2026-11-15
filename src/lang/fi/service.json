@@ -20,5 +20,6 @@
   },
   "linuxSudoRequiresTerminal": "Käynnistä tämä korotettuja oikeuksia vaativa tehtävä käsin ja suorita valtuutus päätteessä; macOS/Linux ei tue automaattista sudo-toimintoa taustalla.",
   "linuxFtpUnmanagedRoot": "FlyEnvin hallittu palvelu ei käynnistänyt tätä root-käyttäjänä toimivaa FTP-prosessia. Pysäytä se järjestelmänvalvojan oikeuksilla ennen uudelleenkäynnistystä.",
-  "linuxFtpUsersRefreshFailed": "FTP-tilien muutokset tallennettiin, mutta käynnissä oleva palvelu ei voinut ottaa niitä käyttöön: {error}"
+  "linuxFtpUsersRefreshFailed": "FTP-tilien muutokset tallennettiin, mutta käynnissä oleva palvelu ei voinut ottaa niitä käyttöön: {error}",
+  "pathSavedRefreshFailed": "Ympäristömuuttujat tallennettiin, mutta luettelon päivitys epäonnistui: {error}"
 }

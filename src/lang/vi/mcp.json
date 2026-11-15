@@ -49,5 +49,7 @@
     "update_site": "Cập nhật một trang phát triển cục bộ FlyEnv hiện có.",
     "delete_site": "Xóa một trang phát triển cục bộ khỏi cấu hình FlyEnv.",
     "install_service": "Tải xuống và cài đặt một phiên bản cho mô-đun FlyEnv có thể cài đặt."
-  }
+  },
+  "pluginToolsRefresh": "Sau khi thay đổi công cụ của plugin, hãy làm mới hoặc kết nối lại ứng dụng khách MCP để cập nhật danh sách công cụ.",
+  "builtinTools": "Tích hợp sẵn"
 }

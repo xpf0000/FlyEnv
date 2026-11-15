@@ -78,5 +78,10 @@
   "templatePackageDesc": "Một gói Dart có thể chia sẻ qua pub.dev.",
   "templatePluginDesc": "Một plugin Flutter cho các API đặc thù của nền tảng (Android/iOS/Windows...).",
   "templateModuleDesc": "Một module Flutter để nhúng vào ứng dụng Android/iOS hiện có.",
-  "templateSkeletonDesc": "Một ứng dụng Flutter dạng danh sách/chi tiết với Material 3 và Navigation 2.0."
+  "templateSkeletonDesc": "Một ứng dụng Flutter dạng danh sách/chi tiết với Material 3 và Navigation 2.0.",
+  "androidSdkNotDetected": "Không phát hiện Android SDK",
+  "androidSdkInstallHint": "FlyEnv không tự động cài đặt Android SDK. Hãy cài SDK bằng Android Studio hoặc bộ công cụ dòng lệnh chính thức của Android.",
+  "installAndroidStudio": "Cài đặt Android Studio",
+  "androidCommandLineTools": "Công cụ dòng lệnh Android",
+  "androidSdkAfterInstall": "Sau khi cài SDK, quay lại FlyEnv, nhấp Làm mới rồi dùng tính năng tự động sửa lỗi (Auto-fix) để cấu hình môi trường."
 }

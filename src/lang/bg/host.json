@@ -82,5 +82,14 @@
   "tomcatContexts": "Съпоставяния на приложения",
   "tomcatContextPath": "Път на контекста",
   "tomcatDocBase": "Път на приложението",
-  "tomcatRewrite": "Презаписване на Tomcat"
+  "tomcatRewrite": "Презаписване на Tomcat",
+  "hostsAppliedPreferencesFailed": "Системният файл hosts е обновен, но настройките не бяха запазени: {error}",
+  "primaryProjectPort": "Основен TCP порт",
+  "additionalProjectPorts": "Допълнителни TCP портове (по избор)",
+  "addProjectPort": "Добавяне на порт",
+  "removeProjectPort": "Премахване на порт",
+  "projectPortsHint": "Добавянето на портове не стартира услуги и не гарантира, че те предоставят HTTP.",
+  "projectPortsInvalid": "Въведете цели десетични числа от 1 до 65535. Допълнителните портове не трябва да се повтарят или да съвпадат с основния порт.",
+  "projectPortsStoredInvalid": "Този проект има невалидни запазени портове. Невалидните връзки са скрити; редактирайте портовете, за да ги коригирате.",
+  "projectPortUnavailable": "Невалиден порт"
 }

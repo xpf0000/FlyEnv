@@ -145,5 +145,6 @@
     "detailsTitle": "承認が必要な操作",
     "detailsMore": "ほか {count} 件の操作の詳細は表示されていません。"
   },
-  "linuxHelperScope": "インストール時に承認する操作：hosts の完全な編集、内蔵 Web サーバーによる一般ユーザー権限での低番号ポートへのバインド、root 権限での Pure-Ftpd の実行、FlyEnv の PID ディレクトリの修復。日常的なヘルパー操作ではパスワードを求めません。ターミナルの sudo は引き続きシステムの認証を使用します。"
+  "linuxHelperScope": "インストール時に承認する操作：hosts の完全な編集、内蔵 Web サーバーによる一般ユーザー権限での低番号ポートへのバインド、root 権限での Pure-Ftpd の実行、FlyEnv の PID ディレクトリの修復。日常的なヘルパー操作ではパスワードを求めません。ターミナルの sudo は引き続きシステムの認証を使用します。",
+  "pluginsUpdateFlyEnv": "FlyEnv を更新"
 }

@@ -20,5 +20,6 @@
   },
   "linuxSudoRequiresTerminal": "Porniți manual această sarcină cu privilegii ridicate și finalizați autorizarea în terminal; macOS/Linux nu acceptă sudo automat în fundal.",
   "linuxFtpUnmanagedRoot": "Acest proces FTP cu privilegii root nu a fost pornit de serviciul gestionat de FlyEnv. Opriți-l cu drepturi de administrator înainte de a-l porni din nou.",
-  "linuxFtpUsersRefreshFailed": "Modificările conturilor FTP au fost salvate, dar serviciul în execuție nu le-a putut aplica: {error}"
+  "linuxFtpUsersRefreshFailed": "Modificările conturilor FTP au fost salvate, dar serviciul în execuție nu le-a putut aplica: {error}",
+  "pathSavedRefreshFailed": "Variabilele de mediu au fost salvate, dar lista nu a putut fi reîmprospătată: {error}"
 }

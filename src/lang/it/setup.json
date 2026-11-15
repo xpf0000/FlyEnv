@@ -145,5 +145,6 @@
     "detailsTitle": "Operazioni che richiedono autorizzazione",
     "detailsMore": "{count} operazioni aggiuntive non sono espanse."
   },
-  "linuxHelperScope": "Autorizza durante l’installazione: modifica completa di hosts, associazione dei server web integrati alle porte basse con il tuo account utente, esecuzione di Pure-Ftpd come root e riparazione della directory PID di FlyEnv. Le operazioni quotidiane dell’assistente non richiedono una password; sudo nel terminale continua a usare l’autenticazione di sistema."
+  "linuxHelperScope": "Autorizza durante l’installazione: modifica completa di hosts, associazione dei server web integrati alle porte basse con il tuo account utente, esecuzione di Pure-Ftpd come root e riparazione della directory PID di FlyEnv. Le operazioni quotidiane dell’assistente non richiedono una password; sudo nel terminale continua a usare l’autenticazione di sistema.",
+  "pluginsUpdateFlyEnv": "Aggiorna FlyEnv"
 }

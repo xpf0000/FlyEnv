@@ -20,5 +20,6 @@
   },
   "linuxSudoRequiresTerminal": "このタスクを手動で開始し、ターミナルで権限を承認してください。macOS/Linux ではバックグラウンドでの自動 sudo は利用できません。",
   "linuxFtpUnmanagedRoot": "この root 権限の FTP プロセスは、FlyEnv が管理するサービスから起動されたものではありません。再起動する前に、管理者権限で停止してください。",
-  "linuxFtpUsersRefreshFailed": "FTP アカウントの変更は保存されましたが、実行中のサービスに適用できませんでした：{error}"
+  "linuxFtpUsersRefreshFailed": "FTP アカウントの変更は保存されましたが、実行中のサービスに適用できませんでした：{error}",
+  "pathSavedRefreshFailed": "環境変数は保存されましたが、一覧の更新に失敗しました：{error}"
 }

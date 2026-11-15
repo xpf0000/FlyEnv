@@ -78,5 +78,10 @@
   "templatePackageDesc": "Dart paket koji se može dijeliti putem pub.dev-a.",
   "templatePluginDesc": "Flutter dodatak za API-je specifične za platformu (Android/iOS/Windows...).",
   "templateModuleDesc": "Flutter modul za ugradnju u postojeću Android/iOS aplikaciju.",
-  "templateSkeletonDesc": "Flutter aplikacija s prikazom popisa/detalja uz Material 3 i Navigation 2.0."
+  "templateSkeletonDesc": "Flutter aplikacija s prikazom popisa/detalja uz Material 3 i Navigation 2.0.",
+  "androidSdkNotDetected": "Android SDK nije otkriven",
+  "androidSdkInstallHint": "FlyEnv ne instalira Android SDK automatski. Instalirajte SDK putem Android Studija ili službenih Android alata naredbenog retka.",
+  "installAndroidStudio": "Instaliraj Android Studio",
+  "androidCommandLineTools": "Android alati naredbenog retka",
+  "androidSdkAfterInstall": "Nakon instalacije SDK-a vratite se u FlyEnv, kliknite Osvježi, a zatim upotrijebite Auto-fix za konfiguriranje okruženja."
 }

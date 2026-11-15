@@ -3,6 +3,8 @@ import { MCP_ALL_TOOLS } from '../mcpToolCatalog'
 export type PluginMCPTool = {
   name: string
   description: string
+  /** Optional UI translations; MCP clients continue to receive description. */
+  descriptionI18n?: Record<string, string>
   inputSchema: Record<string, unknown>
   method: string
   readOnly: boolean
@@ -113,6 +115,20 @@ export function validatePluginMCP(value: PluginMCPDeclaration) {
       typeof tool.risky !== 'boolean'
     )
       throw new Error('Invalid plugin MCP tool metadata')
+    if (tool.descriptionI18n !== undefined) {
+      const text = tool.descriptionI18n
+      if (
+        !text ||
+        typeof text !== 'object' ||
+        Array.isArray(text) ||
+        !Object.keys(text).length ||
+        Object.keys(text).length > 64 ||
+        !Object.values(text).every(
+          (value) => typeof value === 'string' && !!value.trim() && value.length <= 4096
+        )
+      )
+        throw new Error('Invalid plugin MCP tool metadata')
+    }
     validateSchema(tool.inputSchema)
   }
 }

@@ -82,5 +82,14 @@
   "tomcatContexts": "Mapeamentos de aplicativos",
   "tomcatContextPath": "Caminho do contexto",
   "tomcatDocBase": "Caminho do aplicativo",
-  "tomcatRewrite": "Rewrite do Tomcat"
+  "tomcatRewrite": "Rewrite do Tomcat",
+  "hostsAppliedPreferencesFailed": "O arquivo hosts do sistema foi atualizado, mas não foi possível salvar as configurações: {error}",
+  "primaryProjectPort": "Porta TCP principal",
+  "additionalProjectPorts": "Portas TCP adicionais (opcional)",
+  "addProjectPort": "Adicionar porta",
+  "removeProjectPort": "Remover porta",
+  "projectPortsHint": "Adicionar portas não inicia serviços nem garante que elas ofereçam HTTP.",
+  "projectPortsInvalid": "Use números inteiros decimais de 1 a 65535, sem repetições e sem usar a mesma porta definida como principal.",
+  "projectPortsStoredInvalid": "Este projeto tem portas inválidas salvas. Os links inválidos foram ocultados; edite as portas para corrigi-las.",
+  "projectPortUnavailable": "Porta inválida"
 }

@@ -58,5 +58,17 @@
   "windowsRetry": "重試",
   "windowsCopyCommand": "複製命令",
   "windowsDownloadLink": "下載連結",
-  "windowsInstallCommand": "安裝命令"
+  "windowsInstallCommand": "安裝命令",
+  "windowsInstall": "安裝擴充功能",
+  "windowsInstallHelp": "為目前的 PHP 安裝擴充功能。使用 PHP 官方 Windows 封存庫中的相容二進位檔，或透過 PIE 取得套件發布者提供的檔案。PHP 版本、執行緒安全性、編譯器及架構必須相符。沒有相容二進位檔的套件無法安裝。",
+  "windowsSearchPlaceholder": "搜尋擴充功能，例如 redis、xdebug 或 imagick",
+  "windowsSearch": "搜尋",
+  "windowsPartialCatalog": "部分擴充功能目錄無法存取。目前的結果不完整，可再次搜尋以重試。",
+  "windowsDescription": "說明",
+  "windowsEmptyCatalog": "找不到擴充功能，請嘗試其他關鍵字。",
+  "windowsInstallSuccess": "已為所選的 PHP 版本安裝並載入擴充功能。",
+  "windowsRestart": "請重新啟動此 PHP 服務，讓執行中的網站載入擴充功能。",
+  "windowsBackup": "php.ini 備份",
+  "windowsNotLoaded": "已設定但未載入",
+  "windowsDisableSuccess": "已在 php.ini 中停用擴充功能。請重新啟動此 PHP 服務以套用變更。"
 }

@@ -145,5 +145,6 @@
     "detailsTitle": "Các thao tác cần cấp quyền",
     "detailsMore": "{count} thao tác bổ sung chưa được hiển thị chi tiết."
   },
-  "linuxHelperScope": "Cấp quyền khi cài đặt: chỉnh sửa toàn bộ hosts, gắn các máy chủ web tích hợp vào cổng số thấp bằng tài khoản người dùng của bạn, chạy Pure-Ftpd với quyền root và sửa thư mục PID của FlyEnv. Các thao tác hằng ngày của trình trợ giúp không yêu cầu mật khẩu; sudo trong terminal vẫn dùng xác thực hệ thống."
+  "linuxHelperScope": "Cấp quyền khi cài đặt: chỉnh sửa toàn bộ hosts, gắn các máy chủ web tích hợp vào cổng số thấp bằng tài khoản người dùng của bạn, chạy Pure-Ftpd với quyền root và sửa thư mục PID của FlyEnv. Các thao tác hằng ngày của trình trợ giúp không yêu cầu mật khẩu; sudo trong terminal vẫn dùng xác thực hệ thống.",
+  "pluginsUpdateFlyEnv": "Cập nhật FlyEnv"
 }

@@ -49,5 +49,7 @@
     "update_site": "Mettre à jour un site de développement local FlyEnv existant.",
     "delete_site": "Supprimer un site de développement local de la configuration FlyEnv.",
     "install_service": "Télécharger et installer une version d’un module FlyEnv installable."
-  }
+  },
+  "pluginToolsRefresh": "Après avoir modifié les outils des plugins, actualisez ou reconnectez votre client MCP pour mettre à jour sa liste d’outils.",
+  "builtinTools": "Outils intégrés"
 }

@@ -82,5 +82,14 @@
   "tomcatContexts": "Applicatietoewijzingen",
   "tomcatContextPath": "Contextpad",
   "tomcatDocBase": "Applicatiepad",
-  "tomcatRewrite": "Tomcat-herschrijving"
+  "tomcatRewrite": "Tomcat-herschrijving",
+  "hostsAppliedPreferencesFailed": "Het hosts-bestand van het systeem is bijgewerkt, maar de instellingen konden niet worden opgeslagen: {error}",
+  "primaryProjectPort": "Primaire TCP-poort",
+  "additionalProjectPorts": "Extra TCP-poorten (optioneel)",
+  "addProjectPort": "Poort toevoegen",
+  "removeProjectPort": "Poort verwijderen",
+  "projectPortsHint": "Het toevoegen van poorten start geen services en garandeert niet dat ze HTTP-verkeer afhandelen.",
+  "projectPortsInvalid": "Voer decimale gehele getallen van 1 tot 65535 in. Extra poorten mogen niet dubbel voorkomen of gelijk zijn aan de primaire poort.",
+  "projectPortsStoredInvalid": "Dit project bevat ongeldige opgeslagen poorten. De bijbehorende links zijn verborgen; bewerk de poorten om ze te corrigeren.",
+  "projectPortUnavailable": "Ongeldige poort"
 }

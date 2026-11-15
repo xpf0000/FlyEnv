@@ -78,5 +78,10 @@
   "templatePackageDesc": "En kartpakke som kan deles via pub.dev.",
   "templatePluginDesc": "En flammeplugin for plattformspesifikke (Android/iOS/Windows...) APIer.",
   "templateModuleDesc": "En lukkermodul for å bygge inn i en eksisterende app for Android/iOS.",
-  "templateSkeletonDesc": "En liste/detail-Flutter applikasjon med materiale 3 og navigasjon 2.0."
+  "templateSkeletonDesc": "En liste/detail-Flutter applikasjon med materiale 3 og navigasjon 2.0.",
+  "androidSdkNotDetected": "Android SDK ble ikke funnet",
+  "androidSdkInstallHint": "FlyEnv installerer ikke Android SDK automatisk. Installer SDK-en via Android Studio eller de offisielle kommandolinjeverktøyene for Android.",
+  "installAndroidStudio": "Installer Android Studio",
+  "androidCommandLineTools": "Kommandolinjeverktøy for Android",
+  "androidSdkAfterInstall": "Etter at SDK-en er installert, går du tilbake til FlyEnv, klikker på Oppdater og bruker deretter Auto-fix til å konfigurere miljøet."
 }

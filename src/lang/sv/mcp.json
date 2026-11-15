@@ -49,5 +49,7 @@
     "update_site": "Uppdatera en befintlig lokal utvecklingssajt i FlyEnv.",
     "delete_site": "Ta bort en lokal utvecklingssajt från FlyEnv-konfigurationen.",
     "install_service": "Ladda ner och installera en version för en installerbar FlyEnv-modul."
-  }
+  },
+  "pluginToolsRefresh": "När du har ändrat pluginverktygen uppdaterar du eller återansluter MCP-klienten för att uppdatera verktygslistan.",
+  "builtinTools": "Inbyggda"
 }

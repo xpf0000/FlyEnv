@@ -82,5 +82,14 @@
   "tomcatContexts": "অ্যাপ্লিকেশন ম্যাপিং",
   "tomcatContextPath": "কনটেক্সট পাথ",
   "tomcatDocBase": "অ্যাপ্লিকেশন পাথ",
-  "tomcatRewrite": "Tomcat রিরাইট"
+  "tomcatRewrite": "Tomcat রিরাইট",
+  "hostsAppliedPreferencesFailed": "সিস্টেমের hosts ফাইল আপডেট হয়েছে, কিন্তু সেটিংস সংরক্ষণ করা যায়নি: {error}",
+  "primaryProjectPort": "প্রধান TCP পোর্ট",
+  "additionalProjectPorts": "অতিরিক্ত TCP পোর্ট (ঐচ্ছিক)",
+  "addProjectPort": "পোর্ট যোগ করুন",
+  "removeProjectPort": "পোর্ট সরান",
+  "projectPortsHint": "পোর্ট যোগ করলে সার্ভিস চালু হয় না, আর সেই পোর্টে HTTP সেবা পাওয়া যাবে এমন নিশ্চয়তাও নেই।",
+  "projectPortsInvalid": "1 থেকে 65535-এর মধ্যে দশমিক পূর্ণসংখ্যা লিখুন। অতিরিক্ত পোর্টগুলো একে অপরের বা প্রধান পোর্টের সমান হতে পারবে না।",
+  "projectPortsStoredInvalid": "এই প্রজেক্টে সংরক্ষিত কিছু পোর্ট অবৈধ। অবৈধ লিংকগুলো লুকানো হয়েছে; পোর্ট সম্পাদনা করে সংশোধন করুন।",
+  "projectPortUnavailable": "অবৈধ পোর্ট"
 }

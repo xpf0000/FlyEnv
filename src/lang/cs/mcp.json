@@ -49,5 +49,7 @@
     "update_site": "Aktualizuj existující lokální vývojový web ve FlyEnv.",
     "delete_site": "Odstraň lokální vývojový web z konfigurace FlyEnv.",
     "install_service": "Stáhni a nainstaluj verzi pro instalovatelný modul FlyEnv."
-  }
+  },
+  "pluginToolsRefresh": "Po změně nástrojů pluginů obnovte nebo znovu připojte klienta MCP, aby se aktualizoval jeho seznam nástrojů.",
+  "builtinTools": "Vestavěné nástroje"
 }

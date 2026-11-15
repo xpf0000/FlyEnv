@@ -78,5 +78,10 @@
   "templatePackageDesc": "Un pachet Dart care poate fi partajat prin intermediul pub.dev.",
   "templatePluginDesc": "Un plugin Flutter pentru API specific platformei (Android/iOS/Windows...).",
   "templateModuleDesc": "Un modul Flutter pentru a încorpora într-o aplicație existentă Android/iOS.",
-  "templateSkeletonDesc": "O listă/detalii aplicație Flutter cu Material 3 și Navigare 2.0."
+  "templateSkeletonDesc": "O listă/detalii aplicație Flutter cu Material 3 și Navigare 2.0.",
+  "androidSdkNotDetected": "Android SDK nu a fost detectat",
+  "androidSdkInstallHint": "FlyEnv nu instalează automat Android SDK. Instalează SDK-ul folosind Android Studio sau instrumentele oficiale Android pentru linia de comandă.",
+  "installAndroidStudio": "Instalează Android Studio",
+  "androidCommandLineTools": "Instrumente Android pentru linia de comandă",
+  "androidSdkAfterInstall": "După instalarea SDK-ului, revino în FlyEnv, apasă Reîmprospătare, apoi folosește remedierea automată (Auto-fix) pentru a configura mediul."
 }

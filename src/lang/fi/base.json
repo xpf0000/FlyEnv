@@ -86,7 +86,6 @@
   "themeAuto": "Järjestelmän Teema",
   "addToPath": "Lisää PATH",
   "Official": "Virallinen",
-  "staticDelAlert": "Käyttäjän tietojen turvallisen käytön varmistamiseksi Ei enää tarjoa automaattisesti asennettujen ohjelmistojen poistamista koskevaa toimintoa. Jos olet varma, että haluat poistaa sen, napsauta OK. Poista ohjelmisto manuaalisesti avoimessa kansiossa.",
   "projects": "Projekti",
   "cleanup": "Siivoaminen",
   "executing": "Suoritetaan",

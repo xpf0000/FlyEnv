@@ -145,5 +145,6 @@
     "detailsTitle": "Operace vyžadující autorizaci",
     "detailsMore": "Dalších {count} operací není rozbaleno."
   },
-  "linuxHelperScope": "Autorizace při instalaci: úplné úpravy souboru hosts, vazba vestavěných webových serverů na nízké porty pod vaším uživatelským účtem, spuštění Pure-Ftpd jako root a oprava adresáře PID aplikace FlyEnv. Běžné operace pomocníka nevyžadují heslo; sudo v terminálu nadále používá systémové ověřování."
+  "linuxHelperScope": "Autorizace při instalaci: úplné úpravy souboru hosts, vazba vestavěných webových serverů na nízké porty pod vaším uživatelským účtem, spuštění Pure-Ftpd jako root a oprava adresáře PID aplikace FlyEnv. Běžné operace pomocníka nevyžadují heslo; sudo v terminálu nadále používá systémové ověřování.",
+  "pluginsUpdateFlyEnv": "Aktualizovat FlyEnv"
 }

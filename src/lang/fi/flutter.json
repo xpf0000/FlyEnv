@@ -78,5 +78,10 @@
   "templatePackageDesc": "Dart-paketti, joka voidaan jakaa pub.devin kautta.",
   "templatePluginDesc": "Flutter plugin alustakohtaisille (Android / iOS/Windows...) APIlle.",
   "templateModuleDesc": "Flutter moduuli upotetaan olemassa olevaan Android/iOS-sovellukseen.",
-  "templateSkeletonDesc": "Lista / yksityiskohta Lattiasovellus Materiaali 3 ja Navigaatio 2.0."
+  "templateSkeletonDesc": "Lista / yksityiskohta Lattiasovellus Materiaali 3 ja Navigaatio 2.0.",
+  "androidSdkNotDetected": "Android SDK:ta ei havaittu",
+  "androidSdkInstallHint": "FlyEnv ei asenna Android SDK:ta automaattisesti. Asenna SDK Android Studiolla tai Androidin virallisilla komentorivityökaluilla.",
+  "installAndroidStudio": "Asenna Android Studio",
+  "androidCommandLineTools": "Androidin komentorivityökalut",
+  "androidSdkAfterInstall": "Kun SDK on asennettu, palaa FlyEnviin, napsauta Päivitä (Refresh) ja määritä sitten ympäristö Auto-fix-toiminnolla."
 }

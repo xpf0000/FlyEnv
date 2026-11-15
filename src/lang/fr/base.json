@@ -86,7 +86,6 @@
   "themeAuto": "Thème système",
   "addToPath": "Ajouter au PATH",
   "Official": "Officiel",
-  "staticDelAlert": "Afin d'assurer la sécurité des données utilisateur, la fonction de suppression automatique des logiciels installés n'est plus fournie. Si vous êtes sûr de vouloir le supprimer, cliquez sur OK. Supprimez manuellement le logiciel dans le dossier ouvert.",
   "projects": "Projet",
   "cleanup": "Nettoyage",
   "executing": "En cours d'exécution",

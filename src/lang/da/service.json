@@ -20,5 +20,6 @@
   },
   "linuxSudoRequiresTerminal": "Start denne opgave med forhøjede rettigheder manuelt, og gennemfør godkendelsen i terminalen; macOS/Linux understøtter ikke automatisk sudo i baggrunden.",
   "linuxFtpUnmanagedRoot": "Denne FTP-proces, som kører som root, blev ikke startet af FlyEnvs administrerede tjeneste. Stop den med administratorrettigheder, før du starter igen.",
-  "linuxFtpUsersRefreshFailed": "Ændringerne af FTP-konti blev gemt, men den kørende tjeneste kunne ikke anvende dem: {error}"
+  "linuxFtpUsersRefreshFailed": "Ændringerne af FTP-konti blev gemt, men den kørende tjeneste kunne ikke anvende dem: {error}",
+  "pathSavedRefreshFailed": "Miljøvariablerne blev gemt, men listen kunne ikke opdateres: {error}"
 }

@@ -145,5 +145,6 @@
     "detailsTitle": "Valtuutusta vaativat toiminnot",
     "detailsMore": "{count} muuta toimintoa ei ole avattu näkyviin."
   },
-  "linuxHelperScope": "Valtuuta asennuksen yhteydessä: hosts-tiedoston täydellinen muokkaus, sisäisten verkkopalvelimien sitominen mataliin portteihin omalla käyttäjätililläsi, Pure-Ftpd:n suorittaminen root-käyttäjänä ja FlyEnvin PID-hakemiston korjaus. Apuohjelman päivittäiset toiminnot eivät pyydä salasanaa; päätteen sudo käyttää edelleen järjestelmän todennusta."
+  "linuxHelperScope": "Valtuuta asennuksen yhteydessä: hosts-tiedoston täydellinen muokkaus, sisäisten verkkopalvelimien sitominen mataliin portteihin omalla käyttäjätililläsi, Pure-Ftpd:n suorittaminen root-käyttäjänä ja FlyEnvin PID-hakemiston korjaus. Apuohjelman päivittäiset toiminnot eivät pyydä salasanaa; päätteen sudo käyttää edelleen järjestelmän todennusta.",
+  "pluginsUpdateFlyEnv": "Päivitä FlyEnv"
 }

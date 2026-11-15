@@ -82,5 +82,14 @@
   "tomcatContexts": "Αντιστοιχίσεις εφαρμογών",
   "tomcatContextPath": "Διαδρομή context",
   "tomcatDocBase": "Διαδρομή εφαρμογής",
-  "tomcatRewrite": "Επανεγγραφή Tomcat"
+  "tomcatRewrite": "Επανεγγραφή Tomcat",
+  "hostsAppliedPreferencesFailed": "Το αρχείο hosts του συστήματος ενημερώθηκε, αλλά η αποθήκευση των ρυθμίσεων απέτυχε: {error}",
+  "primaryProjectPort": "Κύρια θύρα TCP",
+  "additionalProjectPorts": "Πρόσθετες θύρες TCP (προαιρετικά)",
+  "addProjectPort": "Προσθήκη θύρας",
+  "removeProjectPort": "Αφαίρεση θύρας",
+  "projectPortsHint": "Η προσθήκη θυρών δεν εκκινεί υπηρεσίες ούτε εγγυάται ότι παρέχουν HTTP.",
+  "projectPortsInvalid": "Εισαγάγετε ακέραιους αριθμούς στο δεκαδικό σύστημα από 1 έως 65535. Οι πρόσθετες θύρες δεν πρέπει να επαναλαμβάνονται ούτε να συμπίπτουν με την κύρια θύρα.",
+  "projectPortsStoredInvalid": "Αυτό το έργο έχει μη έγκυρες αποθηκευμένες θύρες. Οι μη έγκυροι σύνδεσμοι έχουν αποκρυφτεί· διορθώστε τους με επεξεργασία των θυρών.",
+  "projectPortUnavailable": "Μη έγκυρη θύρα"
 }

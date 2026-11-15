@@ -78,5 +78,10 @@
   "templatePackageDesc": "pub.dev経由で共有できるDartパッケージ。",
   "templatePluginDesc": "プラットフォーム固有の Flutter プラグイン(Android/iOS/Windows...) の API です。",
   "templateModuleDesc": "既存の Android/iOS アプリに埋め込むFlutter モジュール。",
-  "templateSkeletonDesc": "Material 3とNavigation 2.0を備えたリスト/詳細Flutterアプリケーション。"
+  "templateSkeletonDesc": "Material 3とNavigation 2.0を備えたリスト/詳細Flutterアプリケーション。",
+  "androidSdkNotDetected": "Android SDK が検出されませんでした",
+  "androidSdkInstallHint": "FlyEnv は Android SDK を自動インストールしません。Android Studio または Android 公式のコマンドラインツールで SDK をインストールしてください。",
+  "installAndroidStudio": "Android Studio をインストール",
+  "androidCommandLineTools": "Android コマンドラインツール",
+  "androidSdkAfterInstall": "SDK のインストール後、FlyEnv に戻って「更新」をクリックし、Auto-fix で環境を設定してください。"
 }

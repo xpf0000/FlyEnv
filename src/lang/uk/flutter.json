@@ -78,5 +78,10 @@
   "templatePackageDesc": "Пакет Dart може бути доступний через pub.dev.",
   "templatePluginDesc": "Плагін для точної платформи (Android/iOS/Windows...) API.",
   "templateModuleDesc": "Модуль Flutter для вставки в існуючу програму Android/iOS.",
-  "templateSkeletonDesc": "Перелік / деталь блимання програми з Матеріалом 3 та навігацією 2.0."
+  "templateSkeletonDesc": "Перелік / деталь блимання програми з Матеріалом 3 та навігацією 2.0.",
+  "androidSdkNotDetected": "Android SDK не виявлено",
+  "androidSdkInstallHint": "FlyEnv не встановлює Android SDK автоматично. Встановіть SDK за допомогою Android Studio або офіційних інструментів командного рядка Android.",
+  "installAndroidStudio": "Встановити Android Studio",
+  "androidCommandLineTools": "Інструменти командного рядка Android",
+  "androidSdkAfterInstall": "Після встановлення SDK поверніться до FlyEnv, натисніть «Оновити», а потім скористайтеся автоматичним виправленням (Auto-fix), щоб налаштувати середовище."
 }

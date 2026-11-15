@@ -82,5 +82,14 @@
   "tomcatContexts": "Mapări de aplicații",
   "tomcatContextPath": "Calea contextului",
   "tomcatDocBase": "Calea aplicației",
-  "tomcatRewrite": "Rescriere Tomcat"
+  "tomcatRewrite": "Rescriere Tomcat",
+  "hostsAppliedPreferencesFailed": "Fișierul hosts al sistemului a fost actualizat, dar salvarea setărilor a eșuat: {error}",
+  "primaryProjectPort": "Port TCP principal",
+  "additionalProjectPorts": "Porturi TCP suplimentare (opțional)",
+  "addProjectPort": "Adaugă port",
+  "removeProjectPort": "Elimină portul",
+  "projectPortsHint": "Adăugarea porturilor nu pornește servicii și nu garantează că acestea oferă HTTP.",
+  "projectPortsInvalid": "Introdu numere întregi zecimale de la 1 la 65535, fără duplicate și fără a repeta portul principal.",
+  "projectPortsStoredInvalid": "Acest proiect are porturi salvate nevalide. Legăturile nevalide sunt ascunse; editează porturile pentru a le corecta.",
+  "projectPortUnavailable": "Port nevalid"
 }

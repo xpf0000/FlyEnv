@@ -82,5 +82,14 @@
   "tomcatContexts": "Alkalmazás-hozzárendelések",
   "tomcatContextPath": "Környezeti útvonal",
   "tomcatDocBase": "Alkalmazás útvonala",
-  "tomcatRewrite": "Tomcat-átírás"
+  "tomcatRewrite": "Tomcat-átírás",
+  "hostsAppliedPreferencesFailed": "A rendszer hosts fájlja frissült, de a beállítások mentése sikertelen: {error}",
+  "primaryProjectPort": "Elsődleges TCP-port",
+  "additionalProjectPorts": "További TCP-portok (nem kötelező)",
+  "addProjectPort": "Port hozzáadása",
+  "removeProjectPort": "Port eltávolítása",
+  "projectPortsHint": "A portok hozzáadása nem indít el szolgáltatásokat, és nem garantálja, hogy HTTP-szolgáltatást nyújtanak.",
+  "projectPortsInvalid": "1 és 65535 közötti tízes számrendszerbeli egész számokat adjon meg. A további portok nem ismétlődhetnek, és nem egyezhetnek meg az elsődleges porttal.",
+  "projectPortsStoredInvalid": "A projekt érvénytelen mentett portokat tartalmaz. Az ezekhez tartozó hivatkozások rejtve maradnak; a javításhoz szerkessze a portokat.",
+  "projectPortUnavailable": "Érvénytelen port"
 }

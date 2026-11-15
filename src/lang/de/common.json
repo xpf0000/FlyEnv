@@ -177,6 +177,7 @@
       "failed": "Fehlgeschlagen",
       "not-run": "Nicht ausgeführt",
       "invalid": "Ungültige Konfiguration"
-    }
+    },
+    "continueOnFailure": "Übrige Mitglieder weiter starten, wenn ein Mitglied nicht gestartet werden kann"
   }
 }

@@ -20,5 +20,6 @@
   },
   "linuxSudoRequiresTerminal": "Uruchom to zadanie wymagające podwyższonych uprawnień ręcznie i przeprowadź autoryzację w terminalu; macOS/Linux nie obsługuje automatycznego sudo w tle.",
   "linuxFtpUnmanagedRoot": "Ten proces FTP działający jako root nie został uruchomiony przez usługę zarządzaną przez FlyEnv. Zatrzymaj go z uprawnieniami administratora przed ponownym uruchomieniem.",
-  "linuxFtpUsersRefreshFailed": "Zmiany kont FTP zostały zapisane, ale działająca usługa nie mogła ich zastosować: {error}"
+  "linuxFtpUsersRefreshFailed": "Zmiany kont FTP zostały zapisane, ale działająca usługa nie mogła ich zastosować: {error}",
+  "pathSavedRefreshFailed": "Zmienne środowiskowe zostały zapisane, ale nie udało się odświeżyć listy: {error}"
 }

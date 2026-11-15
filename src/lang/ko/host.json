@@ -82,5 +82,14 @@
   "tomcatContexts": "애플리케이션 매핑",
   "tomcatContextPath": "컨텍스트 경로",
   "tomcatDocBase": "애플리케이션 경로",
-  "tomcatRewrite": "Tomcat 재작성"
+  "tomcatRewrite": "Tomcat 재작성",
+  "hostsAppliedPreferencesFailed": "시스템 hosts 파일은 업데이트되었지만 설정을 저장하지 못했습니다: {error}",
+  "primaryProjectPort": "기본 TCP 포트",
+  "additionalProjectPorts": "추가 TCP 포트(선택 사항)",
+  "addProjectPort": "포트 추가",
+  "removeProjectPort": "포트 제거",
+  "projectPortsHint": "포트를 추가해도 서비스가 시작되지 않으며 해당 포트가 HTTP 서비스를 제공한다고 보장되지 않습니다.",
+  "projectPortsInvalid": "1에서 65535 사이의 십진 정수를 입력하세요. 추가 포트끼리 중복되거나 기본 포트와 같아서는 안 됩니다.",
+  "projectPortsStoredInvalid": "이 프로젝트에 저장된 포트 중 유효하지 않은 포트가 있습니다. 해당 링크는 숨겨져 있습니다. 포트를 편집하여 수정하세요.",
+  "projectPortUnavailable": "유효하지 않은 포트"
 }

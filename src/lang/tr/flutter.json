@@ -78,5 +78,10 @@
   "templatePackageDesc": "pub.dev üzerinden paylaşılabilecek bir Dart paketi.",
   "templatePluginDesc": "Platforma özgü (Android/iOS/Windows...) API'ler için bir Flutter eklentisi.",
   "templateModuleDesc": "Mevcut bir Android/iOS uygulamasına gömülebilecek bir Flutter modülü.",
-  "templateSkeletonDesc": "Material 3 ve Navigation 2.0 kullanan liste/detay Flutter uygulaması."
+  "templateSkeletonDesc": "Material 3 ve Navigation 2.0 kullanan liste/detay Flutter uygulaması.",
+  "androidSdkNotDetected": "Android SDK algılanmadı",
+  "androidSdkInstallHint": "FlyEnv, Android SDK'yı otomatik olarak yüklemez. SDK'yı Android Studio veya resmi Android komut satırı araçlarıyla yükleyin.",
+  "installAndroidStudio": "Android Studio'yu yükle",
+  "androidCommandLineTools": "Android komut satırı araçları",
+  "androidSdkAfterInstall": "SDK'yı yükledikten sonra FlyEnv'e dönün, Yenile'ye tıklayın ve ortamı yapılandırmak için otomatik düzeltmeyi (Auto-fix) kullanın."
 }

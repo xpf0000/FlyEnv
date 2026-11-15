@@ -145,5 +145,6 @@
     "detailsTitle": "Operasi yang memerlukan otorisasi",
     "detailsMore": "{count} operasi tambahan tidak ditampilkan secara terperinci."
   },
-  "linuxHelperScope": "Berikan otorisasi saat pemasangan: penyuntingan penuh hosts, pengikatan port rendah untuk server web bawaan dengan akun pengguna Anda, menjalankan Pure-Ftpd sebagai root, dan perbaikan direktori PID FlyEnv. Operasi harian pembantu tidak meminta kata sandi; sudo di terminal tetap menggunakan autentikasi sistem."
+  "linuxHelperScope": "Berikan otorisasi saat pemasangan: penyuntingan penuh hosts, pengikatan port rendah untuk server web bawaan dengan akun pengguna Anda, menjalankan Pure-Ftpd sebagai root, dan perbaikan direktori PID FlyEnv. Operasi harian pembantu tidak meminta kata sandi; sudo di terminal tetap menggunakan autentikasi sistem.",
+  "pluginsUpdateFlyEnv": "Perbarui FlyEnv"
 }

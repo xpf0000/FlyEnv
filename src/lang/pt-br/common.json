@@ -163,20 +163,21 @@
     "hideConfirm": "Ocultar os grupos de inicialização interromperá todos os serviços contidos neles. Continuar?",
     "hideFailed": "Os grupos de inicialização continuarão visíveis porque estes serviços não puderam ser interrompidos:",
     "hideBusy": "Aguarde a conclusão da operação atual do grupo de inicialização.",
-    "state":   {
+    "state": {
       "stopped": "Parado",
       "running": "Em execução",
       "partial-running": "Parcialmente em execução",
       "executing": "Executando",
       "invalid": "Configuração inválida"
     },
-    "outcome":   {
+    "outcome": {
       "started": "Iniciado",
       "stopped": "Interrompido",
       "skipped": "Ignorado",
       "failed": "Falhou",
       "not-run": "Não executado",
       "invalid": "Configuração inválida"
-    }
+    },
+    "continueOnFailure": "Continuar iniciando os demais membros se um deles falhar"
   }
 }

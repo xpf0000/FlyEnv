@@ -78,5 +78,10 @@
   "templatePackageDesc": "Un paquet Dart qui peut être partagé via pub.dev.",
   "templatePluginDesc": "Un plugin Flutter pour les API spécifiques à la plateforme (Android/iOS/Windows...).",
   "templateModuleDesc": "Un module Flutter à intégrer dans une application existante Android/iOS.",
-  "templateSkeletonDesc": "Une liste / une application de Flutter détaillée avec les Material 3 et Navigation 2.0."
+  "templateSkeletonDesc": "Une liste / une application de Flutter détaillée avec les Material 3 et Navigation 2.0.",
+  "androidSdkNotDetected": "Android SDK non détecté",
+  "androidSdkInstallHint": "FlyEnv n’installe pas automatiquement le SDK Android. Installez-le avec Android Studio ou les outils officiels en ligne de commande Android.",
+  "installAndroidStudio": "Installer Android Studio",
+  "androidCommandLineTools": "Outils en ligne de commande Android",
+  "androidSdkAfterInstall": "Après l’installation du SDK, revenez dans FlyEnv, cliquez sur Actualiser, puis utilisez Auto-fix pour configurer l’environnement."
 }

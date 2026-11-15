@@ -145,5 +145,6 @@
     "detailsTitle": "Bewerkingen waarvoor autorisatie nodig is",
     "detailsMore": "{count} extra bewerkingen zijn niet uitgeklapt."
   },
-  "linuxHelperScope": "Autoriseer tijdens de installatie: volledige bewerking van hosts, binding aan lage poorten voor ingebouwde webservers onder uw gebruikersaccount, uitvoering van Pure-Ftpd als root en herstel van de PID-map van FlyEnv. Dagelijkse bewerkingen van de Helper vragen niet om een wachtwoord; sudo in de terminal gebruikt nog steeds systeemauthenticatie."
+  "linuxHelperScope": "Autoriseer tijdens de installatie: volledige bewerking van hosts, binding aan lage poorten voor ingebouwde webservers onder uw gebruikersaccount, uitvoering van Pure-Ftpd als root en herstel van de PID-map van FlyEnv. Dagelijkse bewerkingen van de Helper vragen niet om een wachtwoord; sudo in de terminal gebruikt nog steeds systeemauthenticatie.",
+  "pluginsUpdateFlyEnv": "FlyEnv bijwerken"
 }

@@ -78,5 +78,10 @@
   "templatePackageDesc": "pub.dev-en megosztható Dart csomag.",
   "templatePluginDesc": "Flutter bővítmény platformspecifikus (Android/iOS/Windows...) API-khoz.",
   "templateModuleDesc": "Meglévő Android/iOS alkalmazásba beágyazható Flutter modul.",
-  "templateSkeletonDesc": "Lista/részletek Flutter alkalmazás Material 3-mal és Navigation 2.0-val."
+  "templateSkeletonDesc": "Lista/részletek Flutter alkalmazás Material 3-mal és Navigation 2.0-val.",
+  "androidSdkNotDetected": "Az Android SDK nem található",
+  "androidSdkInstallHint": "A FlyEnv nem telepíti automatikusan az Android SDK-t. Telepítse az SDK-t az Android Studio vagy a hivatalos Android parancssori eszközök segítségével.",
+  "installAndroidStudio": "Android Studio telepítése",
+  "androidCommandLineTools": "Android parancssori eszközök",
+  "androidSdkAfterInstall": "Az SDK telepítése után térjen vissza a FlyEnv alkalmazásba, kattintson a Frissítés gombra, majd az Auto-fix segítségével állítsa be a környezetet."
 }

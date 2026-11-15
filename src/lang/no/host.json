@@ -82,5 +82,14 @@
   "tomcatContexts": "Programtilordninger",
   "tomcatContextPath": "Kontekstbane",
   "tomcatDocBase": "Programbane",
-  "tomcatRewrite": "Tomcat-omskriving"
+  "tomcatRewrite": "Tomcat-omskriving",
+  "hostsAppliedPreferencesFailed": "Systemets hosts-fil ble oppdatert, men innstillingene kunne ikke lagres: {error}",
+  "primaryProjectPort": "Primær TCP-port",
+  "additionalProjectPorts": "Ekstra TCP-porter (valgfritt)",
+  "addProjectPort": "Legg til port",
+  "removeProjectPort": "Fjern port",
+  "projectPortsHint": "Å legge til porter starter ikke tjenester og garanterer ikke at de tilbyr HTTP-tjenester.",
+  "projectPortsInvalid": "Skriv inn desimale heltall fra 1 til 65535. Ekstra porter må være unike og kan ikke være like den primære porten.",
+  "projectPortsStoredInvalid": "Dette prosjektet har ugyldige lagrede porter. Lenker til disse er skjult; rediger portene for å rette dem.",
+  "projectPortUnavailable": "Ugyldig port"
 }

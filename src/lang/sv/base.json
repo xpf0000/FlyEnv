@@ -86,7 +86,6 @@
   "themeAuto": "System",
   "addToPath": "Lägg till i PATH",
   "Official": "Officiell",
-  "staticDelAlert": "För att säkerställa användardatasäkerhet tillhandahålls inte längre funktionen för att automatiskt radera installerad programvara. Om du är säker på att du vill radera den, klicka på OK. Radera programvaran manuellt i den öppnade mappen.",
   "projects": "Projekt",
   "cleanup": "Cleanup",
   "executing": "Körs",

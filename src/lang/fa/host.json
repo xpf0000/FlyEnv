@@ -82,5 +82,14 @@
   "tomcatContexts": "نگاشت‌های برنامه (Application Mappings)",
   "tomcatContextPath": "مسیر Context",
   "tomcatDocBase": "مسیر برنامه (docBase)",
-  "tomcatRewrite": "تغییر مسیر تام‌کت (Rewrite)"
+  "tomcatRewrite": "تغییر مسیر تام‌کت (Rewrite)",
+  "hostsAppliedPreferencesFailed": "فایل hosts سیستم به‌روز شد، اما ذخیره تنظیمات ناموفق بود: {error}",
+  "primaryProjectPort": "درگاه اصلی TCP",
+  "additionalProjectPorts": "درگاه‌های اضافی TCP (اختیاری)",
+  "addProjectPort": "افزودن درگاه",
+  "removeProjectPort": "حذف درگاه",
+  "projectPortsHint": "افزودن درگاه‌ها سرویسی را راه‌اندازی نمی‌کند و تضمین نمی‌کند که در آن‌ها خدمات HTTP ارائه شود.",
+  "projectPortsInvalid": "اعداد صحیح ده‌دهی از 1 تا 65535 وارد کنید. درگاه‌های اضافی نباید تکراری یا با درگاه اصلی یکسان باشند.",
+  "projectPortsStoredInvalid": "این پروژه درگاه‌های ذخیره‌شده نامعتبر دارد. پیوندهای نامعتبر پنهان شده‌اند؛ برای اصلاح، درگاه‌ها را ویرایش کنید.",
+  "projectPortUnavailable": "درگاه نامعتبر"
 }

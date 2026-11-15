@@ -78,5 +78,10 @@
   "templatePackageDesc": "حزمة Dart يمكن مشاركتها عبر pub.dev.",
   "templatePluginDesc": "إضافة Flutter للتكامل مع المنصات (Android/iOS/Windows...).",
   "templateModuleDesc": "وحدة Flutter يمكن دمجها داخل تطبيق Android/iOS موجود.",
-  "templateSkeletonDesc": "قالب قائمة/تفاصيل يعتمد على Material 3 و Navigation 2.0."
+  "templateSkeletonDesc": "قالب قائمة/تفاصيل يعتمد على Material 3 و Navigation 2.0.",
+  "androidSdkNotDetected": "لم يتم اكتشاف Android SDK",
+  "androidSdkInstallHint": "لا يثبّت FlyEnv حزمة Android SDK تلقائيًا. ثبّت الحزمة باستخدام Android Studio أو أدوات سطر الأوامر الرسمية لنظام Android.",
+  "installAndroidStudio": "تثبيت Android Studio",
+  "androidCommandLineTools": "أدوات سطر الأوامر لنظام Android",
+  "androidSdkAfterInstall": "بعد تثبيت SDK، عُد إلى FlyEnv وانقر على تحديث (Refresh)، ثم استخدم الإصلاح التلقائي (Auto-fix) لإعداد البيئة."
 }

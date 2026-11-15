@@ -82,5 +82,14 @@
   "tomcatContexts": "Sovellusten yhdistämiset",
   "tomcatContextPath": "Kontekstipolku",
   "tomcatDocBase": "Sovelluspolku",
-  "tomcatRewrite": "Tomcat-uudelleenkirjoitus"
+  "tomcatRewrite": "Tomcat-uudelleenkirjoitus",
+  "hostsAppliedPreferencesFailed": "Järjestelmän hosts-tiedosto päivitettiin, mutta asetusten tallennus epäonnistui: {error}",
+  "primaryProjectPort": "Ensisijainen TCP-portti",
+  "additionalProjectPorts": "Muut TCP-portit (valinnainen)",
+  "addProjectPort": "Lisää portti",
+  "removeProjectPort": "Poista portti",
+  "projectPortsHint": "Porttien lisääminen ei käynnistä palveluita eikä takaa, että ne tarjoavat HTTP-palvelua.",
+  "projectPortsInvalid": "Anna kymmenjärjestelmän kokonaislukuja väliltä 1–65535. Lisäportit eivät saa toistua eivätkä vastata ensisijaista porttia.",
+  "projectPortsStoredInvalid": "Tässä projektissa on virheellisiä tallennettuja portteja. Virheelliset linkit on piilotettu. Korjaa ne muokkaamalla portteja.",
+  "projectPortUnavailable": "Virheellinen portti"
 }

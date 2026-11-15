@@ -84,7 +84,6 @@
   "themeAuto": "Rendszer",
   "addToPath": "Hozzáadás a PATH-hoz",
   "Official": "Hivatalos",
-  "staticDelAlert": "A felhasználói adatok biztonsága érdekében az alkalmazás már nem biztosítja a telepített szoftverek automatikus törlését. Ha biztosan törölni szeretné, kattintson az OK gombra, majd törölje kézzel a szoftvert a megnyitott mappában.",
   "parkConfirm": "Ez az összes almappát aldomainként elérhetővé teszi. Folytatja?",
   "editorSettings": "Szerkesztő beállításai",
   "settings": "Beállítások",

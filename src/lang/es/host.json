@@ -90,5 +90,6 @@
   "tomcatContexts": "Asignaciones de aplicaciones",
   "tomcatContextPath": "Ruta de contexto",
   "tomcatDocBase": "Ruta de aplicación",
-  "tomcatRewrite": "Rewrite de Tomcat"
+  "tomcatRewrite": "Rewrite de Tomcat",
+  "hostsAppliedPreferencesFailed": "Se ha actualizado el archivo hosts del sistema, pero no se ha podido guardar la configuración: {error}"
 }

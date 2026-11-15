@@ -78,5 +78,10 @@
   "templatePackageDesc": "Paket Dart yang dapat dibagikan melalui pub.dev.",
   "templatePluginDesc": "Plugin Flutter untuk API khusus platform (Android/iOS/Windows...).",
   "templateModuleDesc": "Modul Flutter untuk disematkan ke aplikasi Android/iOS yang sudah ada.",
-  "templateSkeletonDesc": "Aplikasi Flutter daftar/detail dengan Material 3 dan Navigation 2.0."
+  "templateSkeletonDesc": "Aplikasi Flutter daftar/detail dengan Material 3 dan Navigation 2.0.",
+  "androidSdkNotDetected": "Android SDK tidak terdeteksi",
+  "androidSdkInstallHint": "FlyEnv tidak menginstal Android SDK secara otomatis. Instal SDK melalui Android Studio atau alat baris perintah resmi Android.",
+  "installAndroidStudio": "Instal Android Studio",
+  "androidCommandLineTools": "Alat baris perintah Android",
+  "androidSdkAfterInstall": "Setelah menginstal SDK, kembali ke FlyEnv, klik Segarkan, lalu gunakan Auto-fix untuk mengonfigurasi lingkungan."
 }

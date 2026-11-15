@@ -82,5 +82,14 @@
   "tomcatContexts": "Tətbiq xəritələri",
   "tomcatContextPath": "Context yolu",
   "tomcatDocBase": "Tətbiq yolu",
-  "tomcatRewrite": "Tomcat yenidən yazması"
+  "tomcatRewrite": "Tomcat yenidən yazması",
+  "hostsAppliedPreferencesFailed": "Sistemin hosts faylı yeniləndi, lakin parametrlər saxlanmadı: {error}",
+  "primaryProjectPort": "Əsas TCP portu",
+  "additionalProjectPorts": "Əlavə TCP portları (istəyə bağlı)",
+  "addProjectPort": "Port əlavə et",
+  "removeProjectPort": "Portu sil",
+  "projectPortsHint": "Portların əlavə edilməsi xidmətləri başlatmır və həmin portların HTTP xidməti göstərməsinə zəmanət vermir.",
+  "projectPortsInvalid": "1 ilə 65535 arasında onluq tam ədədlər daxil edin. Əlavə portlar təkrarlanmamalı və əsas portla eyni olmamalıdır.",
+  "projectPortsStoredInvalid": "Bu layihədə saxlanmış etibarsız portlar var. Etibarsız bağlantılar gizlədilib; düzəltmək üçün portları redaktə edin.",
+  "projectPortUnavailable": "Etibarsız port"
 }

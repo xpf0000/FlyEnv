@@ -82,5 +82,14 @@
   "tomcatContexts": "mappages d’applications",
   "tomcatContextPath": "chemin de contexte",
   "tomcatDocBase": "chemin de l’application",
-  "tomcatRewrite": "réécriture Tomcat"
+  "tomcatRewrite": "réécriture Tomcat",
+  "hostsAppliedPreferencesFailed": "Le fichier hosts du système a été mis à jour, mais l’enregistrement des paramètres a échoué : {error}",
+  "primaryProjectPort": "Port TCP principal",
+  "additionalProjectPorts": "Ports TCP supplémentaires (facultatif)",
+  "addProjectPort": "Ajouter un port",
+  "removeProjectPort": "Retirer le port",
+  "projectPortsHint": "L’ajout de ports ne démarre aucun service et ne garantit pas qu’ils fournissent un service HTTP.",
+  "projectPortsInvalid": "Saisissez des entiers décimaux de 1 à 65535, sans doublons entre les ports supplémentaires ni avec le port principal.",
+  "projectPortsStoredInvalid": "Ce projet contient des ports enregistrés non valides. Leurs liens sont masqués ; modifiez les ports pour les corriger.",
+  "projectPortUnavailable": "Port non valide"
 }

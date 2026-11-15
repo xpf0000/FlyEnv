@@ -82,5 +82,14 @@
   "tomcatContexts": "Ánh xạ ứng dụng",
   "tomcatContextPath": "Đường dẫn context",
   "tomcatDocBase": "Đường dẫn ứng dụng",
-  "tomcatRewrite": "Rewrite Tomcat"
+  "tomcatRewrite": "Rewrite Tomcat",
+  "hostsAppliedPreferencesFailed": "Đã cập nhật tệp hosts của hệ thống nhưng không lưu được cài đặt: {error}",
+  "primaryProjectPort": "Cổng TCP chính",
+  "additionalProjectPorts": "Cổng TCP bổ sung (tùy chọn)",
+  "addProjectPort": "Thêm cổng",
+  "removeProjectPort": "Xóa cổng",
+  "projectPortsHint": "Việc thêm cổng không khởi động dịch vụ và cũng không đảm bảo các cổng đó cung cấp HTTP.",
+  "projectPortsInvalid": "Nhập số nguyên thập phân từ 1 đến 65535, không trùng nhau và không trùng với cổng chính.",
+  "projectPortsStoredInvalid": "Dự án này có cổng đã lưu không hợp lệ. Các liên kết không hợp lệ đã được ẩn; hãy chỉnh sửa các cổng để khắc phục.",
+  "projectPortUnavailable": "Cổng không hợp lệ"
 }

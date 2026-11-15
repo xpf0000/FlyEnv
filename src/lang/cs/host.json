@@ -82,5 +82,14 @@
   "tomcatContexts": "Mapování aplikací",
   "tomcatContextPath": "Cesta kontextu",
   "tomcatDocBase": "Cesta aplikace",
-  "tomcatRewrite": "Přepisování Tomcat"
+  "tomcatRewrite": "Přepisování Tomcat",
+  "hostsAppliedPreferencesFailed": "Systémový soubor hosts byl aktualizován, ale nastavení se nepodařilo uložit: {error}",
+  "primaryProjectPort": "Hlavní port TCP",
+  "additionalProjectPorts": "Další porty TCP (volitelné)",
+  "addProjectPort": "Přidat port",
+  "removeProjectPort": "Odebrat port",
+  "projectPortsHint": "Přidáním portů se nespustí žádné služby ani se nezaručí, že na nich bude dostupné HTTP.",
+  "projectPortsInvalid": "Zadejte celá čísla v desítkové soustavě od 1 do 65535. Další porty se nesmí opakovat ani shodovat s hlavním portem.",
+  "projectPortsStoredInvalid": "Tento projekt obsahuje neplatné uložené porty. Neplatné odkazy jsou skryté; opravte je úpravou portů.",
+  "projectPortUnavailable": "Neplatný port"
 }

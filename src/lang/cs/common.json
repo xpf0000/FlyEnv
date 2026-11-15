@@ -177,6 +177,7 @@
       "failed": "Selhalo",
       "not-run": "Nespuštěno",
       "invalid": "Neplatná konfigurace"
-    }
+    },
+    "continueOnFailure": "Pokračovat ve spouštění ostatních členů, pokud se některý nespustí"
   }
 }
