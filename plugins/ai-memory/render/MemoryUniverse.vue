@@ -178,7 +178,6 @@
   let scene: NeuralScene | undefined
   let frame = 0
   let active = false
-  let media: MediaQueryList | undefined
   let contextCanvas: HTMLCanvasElement | undefined
   let pointer: { x: number; y: number } | undefined
 
@@ -360,10 +359,6 @@
     else scheduleFrame()
   }
 
-  function onMotionPreference(event: MediaQueryListEvent) {
-    reducedMotion.value = event.matches
-  }
-
   watch(
     () => props.detailOpen,
     (open) => {
@@ -387,9 +382,6 @@
   )
   onMounted(() => {
     active = true
-    media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    reducedMotion.value = media.matches
-    media.addEventListener('change', onMotionPreference)
     document.addEventListener('visibilitychange', onVisibilityChange)
     initialize()
   })
@@ -403,7 +395,6 @@
   })
   onBeforeUnmount(() => {
     active = false
-    media?.removeEventListener('change', onMotionPreference)
     document.removeEventListener('visibilitychange', onVisibilityChange)
     disposeScene()
   })

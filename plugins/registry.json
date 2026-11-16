@@ -64,7 +64,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "1618eb752a8b4b20896222be138803a57bd6d9ef48158d3735ab77162f83fa3d"
+        "sha256": "200446b535440ba2b5d1d54319ef3e92e8d9277534bb692b9b55865dfb828fa5"
       },
       "official": true
     },
@@ -98,7 +98,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "e53ea6334088ccce0109fa38f0ac19dda2048b2edc85e68c804560241033fd79"
+        "sha256": "0cf00be308b7b62aa7e0adabba8839ad4f7eda6cab15121c8ae6ea7e99112989"
       },
       "official": true
     },
@@ -132,7 +132,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "1346ea08307a6f376e2c2e2a86027386163928c65e9e797c7cc33b0c8697b5a4"
+        "sha256": "17040976e0f52556847acf69fbb03d2827c6055f0825f202506aef33a2497b30"
       },
       "official": true
     },
@@ -164,7 +164,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "b5e0e650476c14735ce26f4ec036cca4f9ed96020b864a62376c9615ec7e909b"
+        "sha256": "5b890ddff05ec199d0582c01277cd720656f181fbaa3eeed3a729ee93f411e2b"
       },
       "official": true
     },
@@ -196,7 +196,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "9cdabdc4baaabdc29d5be6b807717c9022388f5bdb274ec73c2b44191e3700d4"
+        "sha256": "c21a74a81251069579d74318e716191261164277eabdb746bdfd025508edaa0f"
       },
       "official": true
     },
@@ -230,7 +230,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "52e7d41651b42d8aac3313941346b1387cb7da2821a92a66b3fcb8948c0c1372"
+        "sha256": "a05936e733b023956a43cd1b8ab564bef5cf43e2121af335f3ff8f05cad6d878"
       },
       "official": true
     },
@@ -264,7 +264,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "d5621376dcbd620c2227ad4551848e2f11fd1007dedfba4275841a2b29d0d301"
+        "sha256": "0c8dc78094b3da93ae47eb2581773ce1ecab129524ce6b9a1c27b718e92467da"
       },
       "official": true
     },
@@ -298,7 +298,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "84f676c1951618b4a7d032d5361293a792f0c7a6f11c7b4d53f339264960e1b8"
+        "sha256": "7b707a3ec9c516333ffc67fdd71d04cc0a4a4f7bb6490ffce592c151d37101e5"
       },
       "official": true
     },
@@ -332,7 +332,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "6b9cd18e08064c1e1dfe8d6b91115a2488df1960468d75f397a0fae7e488c9fa"
+        "sha256": "504c7f9e275ca7fcd786826a942cd7bddf437d964a5870f2cca4e70e339f84ef"
       },
       "official": true
     },
@@ -340,11 +340,12 @@
       "apiVersion": 2,
       "id": "ai-memory",
       "name": "AI Memory",
-      "version": "0.1.1",
+      "version": "0.1.4",
       "description": {
         "en": "Persistent local memory for AI coding agents via MCP. Save and retrieve preferences, project knowledge, and development decisions across sessions. Includes global and project-scoped memories, a 3D memory map, search and editing, one-click setup for supported clients, plus backup, restore, and project path reassociation.",
         "zh": "为 AI 编程助手提供持久化的本地记忆，通过 MCP 保存和检索用户偏好、项目知识及开发决策，减少跨会话重复说明。支持全局记忆与项目隔离、3D 星图浏览、记忆搜索与编辑、主流客户端一键接入，以及备份恢复和项目目录重关联。"
       },
+      "author": "FlyEnv",
       "module": {
         "typeFlag": "ai-memory",
         "moduleType": "ai",
@@ -352,15 +353,19 @@
         "isService": false,
         "isTray": false,
         "platform": [
-          "macOS"
+          "Windows",
+          "macOS",
+          "Linux"
         ]
       },
       "platforms": [
-        "macOS"
+        "Windows",
+        "macOS",
+        "Linux"
       ],
       "artifact": {
         "url": "",
-        "sha256": "9a509e46eb9ee1d771ede7d7c7670b118f406ba620eabb3753fcb48593cdec9f"
+        "sha256": "331dfaa7dec29296abc346229a5be32b26d07d1c7686554cb917ba20cc5a0537"
       },
       "official": true
     }
