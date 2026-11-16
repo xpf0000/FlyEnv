@@ -1,9 +1,8 @@
-# FlyEnv新版本4.20.2更新日志
+# FlyEnv新版本4.21.0更新日志
 
 本次更新内容：
-1. https://github.com/xpf0000/FlyEnv/pull/930
-2. https://github.com/xpf0000/FlyEnv/pull/922
-3. 修复BUG
+1. 新增AI记忆插件
+2. 一些细节优化和Bug修复. 具体可以看合并的PR.
 
 参照：
 ```

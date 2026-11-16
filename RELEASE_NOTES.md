@@ -2,6 +2,155 @@
 
 All notable changes to FlyEnv will be documented in this file.
 
+## [4.21.0] - 2026-11-16
+
+# **FlyEnv v4.21.0 Update Release Notes**
+
+## **🚀 New Features**
+
+### **1. Added AI Memory Plugin**
+
+The Plugin Market now includes **AI Memory**, giving AI coding agents persistent local memory through MCP. Save preferences, project knowledge, development decisions, and reusable procedures so your agents can retrieve useful context across sessions and spend less time asking you to repeat it.
+
+The plugin provides:
+
+- **Global and Project Memories**: Share personal preferences across projects while keeping each project's knowledge in its own scope, stored in FlyEnv's local data directory
+- **Five MCP Tools**: Search, read, save, update, and delete memories from connected agents, with source information and revision history
+- **Visual Memory Management**: Explore an interactive 3D memory map, search and filter records, and read, create, edit, or delete memories directly in FlyEnv
+- **One-Click Agent Setup**: Configure Claude Code, Antigravity CLI, Codex, GitHub Copilot CLI, OpenCode, or Kimi, including connection settings and memory rules; other compatible clients can use generated HTTP or stdio configuration
+- **Backup and Restore**: Create complete memory backups and restore them on another computer, with an automatic backup of current data before restoration
+- **Project Relocation and Combining**: Reassociate memories with a project's new directory; when a directory already has project memories, choose whether to combine the collections while retaining both sets of records and history
+- **Call Records**: Inspect session activity and request results from the plugin's dedicated call-records page
+
+Install AI Memory from **Settings → Plugin Market**, then open its **Connect an agent** page to get started. Keep FlyEnv and its MCP server running while agents use the tools, and reconnect your client after configuration. Agents decide when to save or retrieve memories according to their installed rules.
+
+---
+
+### **2. Added SamWaf Plugin**
+
+The new **SamWaf** plugin brings an open-source, lightweight web application firewall to the Plugin Market. Use it as a reverse proxy in front of local sites and manage its runtime from FlyEnv.
+
+The plugin includes version downloads, standard service controls, configuration editing, service logs, and access to SamWaf's web administration panel. Initial administrator credentials are presented during the first setup, and the configuration page links to the official documentation.
+
+---
+
+### **3. Added Confirmed Homebrew PHP Upgrades**
+
+On macOS, **Version Manager → Homebrew** can now detect an installed PHP formula's available update and upgrade it after confirmation.
+
+FlyEnv checks the selected installation and affected dependencies, stops the related managed PHP services, displays package-command progress, and refreshes version information when the operation finishes. Package changes are coordinated with service startup to prevent conflicting operations.
+
+Review your PHP configuration and extensions after upgrading, then restart the required services manually. FlyEnv leaves configuration migration and runtime selection under your control. A failed list refresh is reported separately from a completed package upgrade.
+
+[Pull Request #960](https://github.com/xpf0000/FlyEnv/pull/960)
+
+---
+
+### **4. Added Multiple Ports for Language Projects**
+
+Language projects can now declare additional TCP ports alongside their primary port. Configure them in the project editor or quick editor, then use the project's **+N** menu to open individual local HTTP addresses.
+
+Port validation rejects duplicates and out-of-range values. These entries describe ports opened by your project's startup command; configure the application itself to listen on each port you need.
+
+Thanks to [@AVidal88](https://github.com/AVidal88) for the contribution! [Pull Request #939](https://github.com/xpf0000/FlyEnv/pull/939)
+
+---
+
+### **5. Added a Continue-on-Failure Option for Startup Groups**
+
+Startup groups now offer an optional setting to continue starting remaining members after one member fails. This is useful for groups containing independent services, and failed members still display their individual errors.
+
+The option is off by default, preserving the existing behavior of skipping later members after a startup failure.
+
+Thanks to [@rikurunico](https://github.com/rikurunico) for the contribution! [Pull Request #958](https://github.com/xpf0000/FlyEnv/pull/958)
+
+---
+
+### **6. Added Slovak Language Support**
+
+FlyEnv now includes **Slovak (Slovenčina)**. This release also fills missing translations across existing language packs and corrects translation placeholders and locale registration.
+
+Thanks to [@zajonet](https://github.com/zajonet) for the Slovak translation! [Pull Request #950](https://github.com/xpf0000/FlyEnv/pull/950)
+
+---
+
+## **🛠️ Improvements & Bug Fixes**
+
+### **7. Improved Desktop Window and Tray Behavior**
+
+- **macOS Spaces and Displays**: Opening FlyEnv from the Dock, tray, or another launch now presents the main window on the current Space, with improved placement on the invoking display. The tray popup also stays on the current Space.
+- **Linux Tray Positioning**: When the desktop does not provide tray-icon bounds, FlyEnv uses the cursor position to anchor the popup and keeps it within the screen's work area.
+- **Windows Background Commands**: Runtime detection and other background commands now hide their console windows by default, reducing command-window flashes during startup.
+
+Thanks to [@rikurunico](https://github.com/rikurunico) and [@mspacemedia](https://github.com/mspacemedia) for the contributions! [Pull Request #957](https://github.com/xpf0000/FlyEnv/pull/957) · [Pull Request #943](https://github.com/xpf0000/FlyEnv/pull/943) · [Pull Request #947](https://github.com/xpf0000/FlyEnv/pull/947)
+
+---
+
+### **8. Improved PHP Extension Management and Compatibility Feedback**
+
+Refined the Windows PHP extension page with a unified searchable table, loaded-status filters, PHP build information, and access to the current or most recent installation output. Installation progress remains available when navigating between pages.
+
+When a PIE package release has no prebuilt Windows extension archive, the error now explains the compatibility limitation and suggests choosing another release or building manually. This makes failures such as `pecl/pdo_oci` easier to understand; a compatible binary is still required for automatic installation.
+
+Homebrew PHP extension package operations also use the coordinated package workflow to avoid conflicting with running services or other package changes.
+
+Thanks to [@rikurunico](https://github.com/rikurunico) for the Windows compatibility-message contribution! [Pull Request #956](https://github.com/xpf0000/FlyEnv/pull/956)
+
+---
+
+### **9. Improved Flutter Setup Guidance and Linux Shell Integration**
+
+**Flutter → Android Toolchain** now provides installation guidance when the Android SDK is missing, with links to Android Studio and the Android command-line tools. After installing the SDK, return to FlyEnv, refresh the check, and use **Auto-fix** for the remaining setup.
+
+On Linux, shell initialization now registers the project environment loader in both Bash and Zsh. Flutter's Android environment setup also updates both shells so SDK variables and `adb` are available in new terminals. Shell-profile failures are reported individually, allowing updates to other profiles to complete.
+
+Thanks to [@AVidal88](https://github.com/AVidal88) and [@rikurunico](https://github.com/rikurunico) for the contributions! [Pull Request #936](https://github.com/xpf0000/FlyEnv/pull/936) · [Pull Request #942](https://github.com/xpf0000/FlyEnv/pull/942) · [Pull Request #944](https://github.com/xpf0000/FlyEnv/pull/944)
+
+---
+
+### **10. Improved Service Startup Error Details**
+
+When a service process exits during the startup check, FlyEnv now includes the available exit code, termination signal, and recent standard-error output. Diagnostics are scoped to the current startup attempt, helping identify failures even when the service's own log is empty.
+
+Thanks to [@rikurunico](https://github.com/rikurunico) for the contribution! [Pull Request #959](https://github.com/xpf0000/FlyEnv/pull/959)
+
+---
+
+### **11. Improved Hosts Updates and Version Deletion**
+
+Hosts settings now wait for a confirmed system-file write before saving switch changes or showing success. Permission denial, cancellation, and write failures retain the previous settings. DNS-refresh problems are logged without failing a completed write, and preference-saving failures receive a separate warning.
+
+Force deletion now validates that the selected directory belongs to FlyEnv's managed installation area, requires a typed confirmation, and stops the selected service before removal. Refresh problems after a completed deletion are reported separately from the deletion result.
+
+---
+
+### **12. Improved MCP Tool Management**
+
+The MCP tools page now groups built-in and plugin tools, with per-group counts and a more compact layout for tool switches and approval settings. Plugin tools can provide localized descriptions, including Chinese descriptions for AI Memory, and the selected MCP tab is retained when switching modules.
+
+---
+
+### **13. Updated Dependencies**
+
+Updated dependencies including Hono, `@hono/node-server`, `node-forge`, `fast-xml-parser`, `follow-redirects`, `qs`, and Vue I18n, incorporating upstream fixes.
+
+[Pull Request #966](https://github.com/xpf0000/FlyEnv/pull/966) · [Pull Request #965](https://github.com/xpf0000/FlyEnv/pull/965) · [Pull Request #964](https://github.com/xpf0000/FlyEnv/pull/964) · [Pull Request #963](https://github.com/xpf0000/FlyEnv/pull/963) · [Pull Request #955](https://github.com/xpf0000/FlyEnv/pull/955) · [Pull Request #954](https://github.com/xpf0000/FlyEnv/pull/954) · [Pull Request #953](https://github.com/xpf0000/FlyEnv/pull/953) · [Pull Request #952](https://github.com/xpf0000/FlyEnv/pull/952)
+
+---
+
+## **📦 Build & Transparency**
+
+All FlyEnv installation packages are built using **[GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)**. You can inspect the build process and download workflow artifacts from the public build history:
+
+- **Global Build History:** [GitHub Actions](https://github.com/xpf0000/FlyEnv/actions)
+- **Full Changelog:** [v4.20.2...v4.21.0](https://github.com/xpf0000/FlyEnv/compare/v4.20.2...v4.21.0)
+
+---
+
+We welcome your continued feedback and bug reports via [GitHub Issues](https://github.com/xpf0000/FlyEnv/issues).
+
+**Enjoy the update!**
+
 ## [4.20.2] - 2026-10-26
 
 # **FlyEnv v4.20.2 Update Release Notes**

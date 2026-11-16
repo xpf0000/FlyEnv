@@ -1,11 +1,11 @@
-version: 4.20.2
+version: 4.21.0
 files:
-  - url: FlyEnv-4.20.2-x64.deb
-    sha512: bzLYVE37rtSOU5DhsEIdGPacgnvDoCTxFRdECjk99li6s8CRLz+u1RjM29Cc58lTlkxMrAxbwNdG2n8+kEpQgg==
-    size: 140799120
-  - url: FlyEnv-4.20.2-x64.rpm
-    sha512: nMLxacQeu8JRR4V4sPZhvTQyZHcvoGY7E86XNBcvQWt5glwhwj7rlzCrg1Eyi8AADkdCSUEiu/1dR6HJvWxhHQ==
-    size: 120448693
-path: FlyEnv-4.20.2-x64.deb
-sha512: bzLYVE37rtSOU5DhsEIdGPacgnvDoCTxFRdECjk99li6s8CRLz+u1RjM29Cc58lTlkxMrAxbwNdG2n8+kEpQgg==
-releaseDate: '2026-10-26T14:27:03.296Z'
+  - url: FlyEnv-4.21.0-x64.deb
+    sha512: kCjywbIZauOlpoR/7g9iPEI2f0X3xBAHj09VcyJWE85mlgs+tIQgNy7e85K2mCk8prTsrp5Au0yQCl09CY7JbA==
+    size: 142472400
+  - url: FlyEnv-4.21.0-x64.rpm
+    sha512: 3zUT5ABQ6esC2spAswlUx/HdCNiNdTixYtcsmyVFWI+hz9EPLafKdOUePomBp9mYg66sj/6UbjuTzt1McR3NvQ==
+    size: 121457993
+path: FlyEnv-4.21.0-x64.deb
+sha512: kCjywbIZauOlpoR/7g9iPEI2f0X3xBAHj09VcyJWE85mlgs+tIQgNy7e85K2mCk8prTsrp5Au0yQCl09CY7JbA==
+releaseDate: '2026-11-15T08:57:13.037Z'
