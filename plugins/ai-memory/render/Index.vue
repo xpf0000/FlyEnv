@@ -1,5 +1,8 @@
 <template>
-  <div class="soft-index-panel main-right-panel memory-page">
+  <div
+    class="soft-index-panel main-right-panel memory-page"
+    :class="{ 'memory-calls-page': tab === 'calls' }"
+  >
     <el-radio-group v-model="tab" class="memory-navigation" @change="changeTab">
       <el-radio-button value="memories">{{ T('memories') }}</el-radio-button>
       <el-radio-button value="connect">{{ T('connectAgent') }}</el-radio-button>
@@ -569,6 +572,10 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
+  }
+  .memory-page.memory-calls-page,
+  .memory-page.memory-calls-page > .main-block {
+    overflow: hidden;
   }
   .memory-toolbar {
     display: grid;

@@ -2,10 +2,11 @@
   container-type: inline-size;
   flex: 1;
   width: 100%;
-  height: 100%;
   min-width: 0;
   min-height: 0;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border: 1px solid #b996582c;
   border-radius: 12px;
   background: #080a0c;
@@ -21,7 +22,19 @@
   box-sizing: border-box;
 }
 .memory-calls-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
   padding: 20px;
+  overflow: hidden;
+}
+.memory-calls-header,
+.memory-calls-meta,
+.memory-calls-error,
+.memory-calls-footnote {
+  flex-shrink: 0;
 }
 .memory-calls-header {
   display: flex;
@@ -108,6 +121,10 @@ pre:focus-visible {
   background: #99a88f;
 }
 .memory-calls-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   border: 1px solid #bca16a2a;
   border-radius: 10px;

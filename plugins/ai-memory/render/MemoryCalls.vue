@@ -21,7 +21,7 @@
         <Warning aria-hidden="true" />{{ T(manager.callsResult.error_code) }}
       </p>
       <div class="memory-calls-panel">
-        <el-table :data="rows" row-key="call_id" class="memory-calls-table">
+        <el-table :data="rows" row-key="call_id" height="100%" class="memory-calls-table">
           <template #empty>
             <div class="memory-calls-empty">
               <Clock aria-hidden="true" />
