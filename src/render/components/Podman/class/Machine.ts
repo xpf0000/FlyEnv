@@ -52,20 +52,70 @@ export class Machine {
     IPC.send('app-fork:podman', 'fetchImageList', this.name).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
-        const images = res?.data ?? []
-        for (const img of images) {
-          const find = this.images.find((s) => s.id === img.id)
-          if (!find) {
-            const image = reactiveBind(new Image(img))
-            image._onRemove = this.onImageRemove.bind(this)
-            this.images.push(image)
-          } else {
-            find.name = reactive(img.name)
-          }
-        }
+        this.applyImages(res?.data ?? [])
       }
       this.ImageFetching = false
     })
+  }
+
+  /**
+   * Replace the image list with the daemon's current one.
+   *
+   * Keeping the previous behaviour of only appending unseen ids left removed or
+   * rebuilt images in the panel forever (an image keeps its old id until it is
+   * re-pulled or rebuilt), so the list is reconciled instead: existing rows are
+   * reused by id and rows whose id disappeared are dropped.
+   */
+  applyImages(items: any[]) {
+    const existing = new Map<string, Image>()
+    for (const image of this.images) {
+      existing.set(image.id, image)
+    }
+    const next: Image[] = []
+    for (const item of items) {
+      const found = existing.get(item.id)
+      if (found) {
+        existing.delete(item.id)
+        found.name = reactive(item.name)
+        next.push(found)
+      } else {
+        const image = reactiveBind(new Image(item))
+        image._onRemove = this.onImageRemove.bind(this)
+        next.push(image)
+      }
+    }
+    this.images = next
+  }
+
+  /**
+   * Replace the container list with the daemon's current one.
+   *
+   * Containers get a new id every time they are recreated (compose down/up,
+   * --force-recreate, podman run …), and appending unseen ids kept every past
+   * incarnation in the panel: the same name showed up several times and deleted
+   * containers stayed listed. Reconciling by id keeps the panel in sync with the
+   * daemon, while reusing the existing reactive object keeps row state (xterm,
+   * export flags) intact.
+   */
+  applyContainers(items: any[]) {
+    const existing = new Map<string, Container>()
+    for (const container of this.container) {
+      existing.set(container.id, container)
+    }
+    const next: Container[] = []
+    for (const item of items) {
+      const found = existing.get(item.id)
+      if (found) {
+        existing.delete(item.id)
+        next.push(found)
+      } else {
+        const container = reactiveBind(new Container(item))
+        container.machineName = this.name
+        container._onRemove = this.onContainerRemove
+        next.push(container)
+      }
+    }
+    this.container = next
   }
 
   fetchContainers() {
@@ -76,16 +126,7 @@ export class Machine {
     IPC.send('app-fork:podman', 'fetchContainerList', this.name).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
-        const containers = res?.data ?? []
-        for (const item of containers) {
-          const find = this.container.some((s) => s.id === item.id)
-          if (!find) {
-            const container = reactiveBind(new Container(item))
-            container.machineName = this.name
-            container._onRemove = this.onContainerRemove
-            this.container.unshift(container)
-          }
-        }
+        this.applyContainers(res?.data ?? [])
       }
       this.ContainerFetching = false
     })
@@ -104,27 +145,8 @@ export class Machine {
       if (res?.code === 0) {
         this.fetched = true
         this.info = reactive(res?.data?.info ?? {})
-        const containers = res?.data?.container ?? []
-        for (const item of containers) {
-          const find = this.container.some((s) => s.id === item.id)
-          if (!find) {
-            const container = reactiveBind(new Container(item))
-            container.machineName = this.name
-            container._onRemove = this.onContainerRemove
-            this.container.unshift(container)
-          }
-        }
-        const images = res?.data?.images ?? []
-        for (const img of images) {
-          const find = this.images.find((s) => s.id === img.id)
-          if (!find) {
-            const image = reactiveBind(new Image(img))
-            image._onRemove = this.onImageRemove.bind(this)
-            this.images.push(image)
-          } else {
-            find.name = reactive(img.name)
-          }
-        }
+        this.applyContainers(res?.data?.container ?? [])
+        this.applyImages(res?.data?.images ?? [])
       }
       this.DashboardFetching = false
     })
