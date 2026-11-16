@@ -3,6 +3,7 @@ import { open, mkdir, readdir, lstat, realpath, rename, rm } from 'node:fs/promi
 import { createHash, randomUUID } from 'node:crypto'
 import { basename, dirname, isAbsolute, join, relative, sep } from 'node:path'
 import { AtomicFile } from './AtomicFile'
+import { openRegularFile } from './RegularFile'
 
 export type MaintenanceReceipt = {
   path: string
@@ -40,7 +41,9 @@ const safeName = (value: unknown): value is string =>
   !isAbsolute(value) &&
   value.split('/').every((part) => !!part && part !== '.' && part !== '..' && !part.includes(':'))
 async function bytesAt(path: string, limit = MAX_FILE) {
-  const handle = await open(path, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0))
+  const handle = await openRegularFile(path, constants.O_RDONLY, undefined, () =>
+    fault('backup_invalid')
+  )
   try {
     const stat = await handle.stat()
     if (!stat.isFile() || stat.size > limit) fault('backup_invalid')

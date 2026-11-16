@@ -7,14 +7,14 @@
     "en": "Persistent local memory for AI coding agents via MCP. Save and retrieve preferences, project knowledge, and development decisions across sessions. Includes global and project-scoped memories, a 3D memory map, search and editing, one-click setup for supported clients, plus backup, restore, and project path reassociation.",
     "zh": "为 AI 编程助手提供持久化的本地记忆，通过 MCP 保存和检索用户偏好、项目知识及开发决策，减少跨会话重复说明。支持全局记忆与项目隔离、3D 星图浏览、记忆搜索与编辑、主流客户端一键接入，以及备份恢复和项目目录重关联。"
   },
-  "architecture": ["arm64"],
+  "architecture": ["x64"],
   "module": {
     "typeFlag": "ai-memory",
     "moduleType": "ai",
     "label": "AI Memory",
     "isService": false,
     "isTray": false,
-    "platform": ["macOS"]
+    "platform": ["macOS", "Windows"]
   },
   "entry": {
     "fork": "fork/index.ts",

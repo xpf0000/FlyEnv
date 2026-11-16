@@ -11,5 +11,5 @@ export default {
   asideIndex: 6,
   isService: false,
   isTray: false,
-  platform: ['macOS']
+  platform: ['macOS', 'Windows']
 } as unknown as AppModuleItem

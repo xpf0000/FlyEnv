@@ -76,13 +76,31 @@ test('unsafe, malformed, oversized and non-UTF8 instructions fail without replac
       await assert.rejects(installer.install('codex', 'memory rules'))
       assert.deepEqual(await readFile(file), content)
     }
-    await rm(file)
-    await writeFile(join(home, 'target'), 'keep')
-    await symlink(join(home, 'target'), file)
-    await assert.rejects(installer.install('codex', 'rules'))
-    assert.equal(await readFile(join(home, 'target'), 'utf8'), 'keep')
     await assert.rejects(installer.install('generic', 'rules'))
     await assert.rejects(installer.install('codex', 'rules', 'relative/path'))
+  } finally {
+    await rm(home, { recursive: true, force: true })
+  }
+})
+
+test('instruction symlinks are rejected without changing their target', async (t) => {
+  const home = await mkdtemp(join(tmpdir(), 'memory-rules-test-'))
+  try {
+    const installer = new MemoryRulesInstaller(home, {})
+    await mkdir(join(home, '.codex'))
+    const file = join(home, '.codex/AGENTS.md')
+    await writeFile(join(home, 'target'), 'keep')
+    try {
+      await symlink(join(home, 'target'), file)
+    } catch (error) {
+      if (process.platform === 'win32' && (error as NodeJS.ErrnoException).code === 'EPERM') {
+        t.skip('Windows file symlink privilege unavailable')
+        return
+      }
+      throw error
+    }
+    await assert.rejects(installer.install('codex', 'rules'))
+    assert.equal(await readFile(join(home, 'target'), 'utf8'), 'keep')
   } finally {
     await rm(home, { recursive: true, force: true })
   }

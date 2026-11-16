@@ -339,7 +339,7 @@ test('unknown committed merge retries confirm the same group without a second ma
       replace: async (path, bytes) => {
         writes++
         await atomic.replace(path, bytes)
-        if (uncertain && path.endsWith('/projects.json')) throw new AtomicWriteFailure('unknown')
+        if (uncertain && path.endsWith('projects.json')) throw new AtomicWriteFailure('unknown')
         return 'committed'
       }
     }
