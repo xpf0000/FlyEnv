@@ -20,6 +20,7 @@
     "test:renderer-operation-boundaries": "tsx scripts/renderer-operation-boundaries-test.ts",
     "test:language-project-ports": "tsx scripts/language-project-ports-test.ts",
     "test:podman-list": "tsx scripts/podman-list-parse-test.ts",
+    "test:podman-connection": "tsx scripts/podman-connection-test.ts",
     "test:window-presentation": "tsx scripts/window-presentation-test.ts",
     "test:shell-init": "tsx scripts/shell-init-test.ts",
     "test:startup-documents": "tsx scripts/startup-documents-test.ts",
