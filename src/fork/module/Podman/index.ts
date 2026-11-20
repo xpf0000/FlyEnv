@@ -17,6 +17,7 @@ import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import EnvSync from '@shared/EnvSync'
 import axios from 'axios'
 import { fetchTags } from './image'
+import { podmanContainerItem, podmanImageItem } from './list'
 import { podmanMachineInitArgs, type PodmanMachineInitConfig } from './machineInit'
 import { PODMAN_ROSETTA_DROPIN, podmanSupportsRosetta } from '@shared/podman-rosetta'
 
@@ -163,24 +164,7 @@ class Podman extends Base {
         await execPromiseWithEnv(cmd)
         const content = await readFile(tmp, 'utf-8')
         const json = JSON.parse(content)
-        containers = json.map((c: any) => ({
-          id: c.Id,
-          name: c.Names,
-          Image: c.Image,
-          ImageID: c.ImageID,
-          Mounts: c.Mounts,
-          Networks: c.Networks,
-          command: c.Command,
-          run: c.State === 'running',
-          running: false,
-          machineName: machineName,
-          Ports: c.Ports.map((p: any) => {
-            return {
-              in: p.container_port,
-              out: p.host_port
-            }
-          })
-        }))
+        containers = json.map((c: any) => podmanContainerItem(c, machineName))
         resolve(containers)
       } catch (e: any) {
         console.log('fetchContainerList error: ', e)
@@ -204,13 +188,7 @@ class Podman extends Base {
         await execPromiseWithEnv(cmd)
         const content = await readFile(tmp, 'utf-8')
         const json = JSON.parse(content)
-        images = json.map((img: any) => ({
-          id: img.Id,
-          name: img.Names,
-          tag: img.Tag,
-          size: Number(img.Size),
-          created: img.CreatedAt
-        }))
+        images = json.map((img: any) => podmanImageItem(img))
         resolve(images)
       } catch (e: any) {
         console.log('fetchImageList error: ', e)
