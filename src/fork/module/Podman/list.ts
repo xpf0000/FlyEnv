@@ -10,7 +10,7 @@ export type PodmanContainerItem = {
   ImageID: string
   Mounts: any[]
   Networks: any[]
-  command: string
+  command: string[]
   run: boolean
   running: boolean
   machineName: string
@@ -39,7 +39,7 @@ export const podmanContainerItem = (c: any, machineName: string): PodmanContaine
   ImageID: c.ImageID,
   Mounts: c.Mounts,
   Networks: c.Networks,
-  command: c.Command,
+  command: c.Command ?? [],
   run: c.State === 'running',
   running: false,
   machineName,

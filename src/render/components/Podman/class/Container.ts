@@ -18,7 +18,7 @@ export class Container {
   ImageID = ''
   Mounts: string[] = []
   Networks: string[] = []
-  command: string = ''
+  command: string[] = []
   Ports: ContainerPortItem[] = []
   run: boolean = false
   running: boolean = false

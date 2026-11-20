@@ -58,7 +58,12 @@ assert.equal(withPorts.id, runningWithPorts.Id)
 assert.deepEqual(withPorts.name, ['micro-data-share-test-mysql'])
 assert.equal(withPorts.Image, 'docker.io/library/mysql:8.0')
 assert.equal(withPorts.ImageID, runningWithPorts.ImageID)
-assert.equal(withPorts.command, runningWithPorts.Command)
+const command: string[] = withPorts.command
+assert.equal(command, runningWithPorts.Command)
+assert.deepEqual(
+  podmanContainerItem({ Id: 'x', Names: ['x'], Command: null, State: 'created' }, 'm').command,
+  []
+)
 assert.equal(withPorts.run, true)
 assert.equal(withPorts.running, false)
 assert.equal(withPorts.machineName, 'podman-machine-default')
