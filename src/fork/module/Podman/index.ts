@@ -1,7 +1,9 @@
 import { Base } from '../Base'
 import { ForkPromise } from '@shared/ForkPromise'
 import type { SoftInstalled } from '@shared/app'
+import { execFile } from 'node:child_process'
 import { tmpdir, homedir } from 'node:os'
+import { promisify } from 'node:util'
 import { join } from 'node:path'
 import {
   uuid,
@@ -16,70 +18,76 @@ import {
 import { isLinux, isMacOS, isWindows } from '@shared/utils'
 import EnvSync from '@shared/EnvSync'
 import axios from 'axios'
-import { podmanConnectionName, type PodmanServiceDestination } from './connection'
+import {
+  podmanConnectionName,
+  type PodmanConnection,
+  type PodmanServiceDestination
+} from './connection'
 import { fetchTags } from './image'
-import { podmanContainerItem, podmanImageItem } from './list'
+import {
+  podmanContainerItem,
+  podmanImageItem,
+  type PodmanContainerItem,
+  type PodmanImageItem
+} from './list'
 import { podmanMachineInitArgs, type PodmanMachineInitConfig } from './machineInit'
 import { PODMAN_ROSETTA_DROPIN, podmanSupportsRosetta } from '@shared/podman-rosetta'
+
+const execPodman = promisify(execFile)
 
 /**
  * Podman 5.1.0 introduced the Rosetta toggle, read from containers.conf
  * ([machine] rosetta) when a machine is created or started. There is no
  * `--rosetta` CLI flag on `podman machine init` in any Podman version.
  */
-
 class Podman extends Base {
-  private connectionNames = new Map<string, string>()
-  private machineInfos = new Map<string, any>()
-
   constructor() {
     super()
     this.type = 'podman'
   }
 
+  private async runPodman(args: string[]) {
+    return execPodman('podman', args, {
+      env: await EnvSync.sync(),
+      windowsHide: true,
+      maxBuffer: Infinity
+    })
+  }
+
   private async serviceDestinations(): Promise<PodmanServiceDestination[]> {
-    const tmp = join(tmpdir(), `${uuid()}.txt`)
     try {
-      await execPromiseWithEnv(
-        `podman system connection ls --format json > "${tmp}" ${getRedirect()}`
-      )
-      const list = JSON.parse((await readFile(tmp, 'utf-8')) || '[]')
+      const { stdout } = await this.runPodman(['system', 'connection', 'ls', '--format', 'json'])
+      const list = JSON.parse(stdout || '[]')
       return Array.isArray(list) ? list : []
-    } catch (e: any) {
-      console.log('podman system connection ls error: ', e?.message)
+    } catch (error) {
+      console.error('podman system connection ls error: ', error)
       return []
-    } finally {
-      if (existsSync(tmp)) {
-        await remove(tmp)
-      }
     }
   }
 
-  /**
-   * Machines are addressed by name in the UI, but `--connection` takes a
-   * service destination, which differs on a rootful machine
-   * (`<name>-root`). Resolve it once per machine and keep it: destinations
-   * only change when a machine is created, removed or toggled rootful, all of
-   * which go through this module.
-   */
-  private async connectionName(machineName: string): Promise<string> {
-    if (isLinux() || !machineName) {
-      return machineName
+  private async inspectMachine(machineName: string) {
+    try {
+      const { stdout } = await this.runPodman(['machine', 'inspect', machineName])
+      return JSON.parse(stdout)[0] ?? {}
+    } catch (error) {
+      console.error('podman machine inspect error: ', error)
+      return {}
     }
-    const cached = this.connectionNames.get(machineName)
-    if (cached) {
-      return cached
-    }
-    const destinations = await this.serviceDestinations()
-    const resolved = podmanConnectionName(
-      machineName,
-      destinations,
-      this.machineInfos.get(machineName)?.Rootful
-    )
-    if (destinations.length > 0) {
-      this.connectionNames.set(machineName, resolved)
-    }
-    return resolved
+  }
+
+  private async resolveConnection(
+    machineName: string,
+    info?: { Rootful?: boolean }
+  ): Promise<PodmanConnection | undefined> {
+    if (isLinux()) return undefined
+    if (!machineName) throw new Error('Podman machine name is required')
+
+    const [destinations, machineInfo] = await Promise.all([
+      this.serviceDestinations(),
+      info ?? this.inspectMachine(machineName)
+    ])
+    const name = podmanConnectionName(machineName, destinations, machineInfo.Rootful)
+    return { name, uri: destinations.find((item) => item?.Name === name)?.URI }
   }
 
   /**
@@ -173,20 +181,7 @@ class Podman extends Base {
 
       // 获取每个虚拟机的详细信息
       for (const m of machine) {
-        tmp = join(tmpdir(), `${uuid()}.txt`)
-        try {
-          await execPromiseWithEnv(`podman machine inspect ${m.name} > "${tmp}" ${getRedirect()}`)
-          const content = await readFile(tmp, 'utf-8')
-          const info = JSON.parse(content)[0] ?? {}
-          m.info = info
-          this.machineInfos.set(m.name, info)
-        } catch (e) {
-          console.log(`podman machine inspect ${m.name} error: `, e)
-        } finally {
-          if (existsSync(tmp)) {
-            await remove(tmp)
-          }
-        }
+        m.info = await this.inspectMachine(m.name)
       }
 
       // 按创建时间倒序排列，最新创建的在最前
@@ -203,53 +198,33 @@ class Podman extends Base {
     })
   }
 
+  private async readList(args: string[], connection?: PodmanConnection) {
+    const scope = connection ? ['--connection', connection.name] : []
+    const { stdout } = await this.runPodman([...scope, ...args])
+    return JSON.parse(stdout)
+  }
+
+  private async readContainerList(machineName: string, connection?: PodmanConnection) {
+    const json = await this.readList(['ps', '-a', '--format', 'json'], connection)
+    return json.map((c: any) => podmanContainerItem(c, machineName)) as PodmanContainerItem[]
+  }
+
   fetchContainerList(machineName: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      const tmp = join(tmpdir(), `${uuid()}.txt`)
-      let containers: any[] = []
-      try {
-        const connection = await this.connectionName(machineName)
-        const cmd = isLinux()
-          ? `podman ps -a --format json > "${tmp}" ${getRedirect()}`
-          : `podman --connection ${connection} ps -a --format json > "${tmp}" ${getRedirect()}`
-        await execPromiseWithEnv(cmd)
-        const content = await readFile(tmp, 'utf-8')
-        const json = JSON.parse(content)
-        containers = json.map((c: any) => podmanContainerItem(c, machineName))
-        resolve(containers)
-      } catch (e: any) {
-        console.log('fetchContainerList error: ', e)
-        reject(e?.message ?? 'fail')
-      } finally {
-        if (existsSync(tmp)) {
-          await remove(tmp)
-        }
-      }
+    return new ForkPromise<PodmanContainerItem[]>(async (resolve) => {
+      const connection = await this.resolveConnection(machineName)
+      resolve(await this.readContainerList(machineName, connection))
     })
   }
 
+  private async readImageList(connection?: PodmanConnection) {
+    const json = await this.readList(['images', '--format', 'json'], connection)
+    return json.map((img: any) => ({ ...podmanImageItem(img), connection })) as PodmanImageItem[]
+  }
+
   fetchImageList(machineName: string) {
-    return new ForkPromise(async (resolve, reject) => {
-      const tmp = join(tmpdir(), `${uuid()}.txt`)
-      let images: any[] = []
-      try {
-        const connection = await this.connectionName(machineName)
-        const cmd = isLinux()
-          ? `podman images --format json > "${tmp}" ${getRedirect()}`
-          : `podman --connection ${connection} images --format json > "${tmp}" ${getRedirect()}`
-        await execPromiseWithEnv(cmd)
-        const content = await readFile(tmp, 'utf-8')
-        const json = JSON.parse(content)
-        images = json.map((img: any) => podmanImageItem(img))
-        resolve(images)
-      } catch (e: any) {
-        console.log('fetchImageList error: ', e)
-        reject(e?.message ?? 'fail')
-      } finally {
-        if (existsSync(tmp)) {
-          await remove(tmp)
-        }
-      }
+    return new ForkPromise<PodmanImageItem[]>(async (resolve) => {
+      const connection = await this.resolveConnection(machineName)
+      resolve(await this.readImageList(connection))
     })
   }
 
@@ -291,7 +266,7 @@ class Podman extends Base {
   containerStart(containerName: string, machineName: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        const connection = await this.connectionName(machineName)
+        const connection = (await this.resolveConnection(machineName))?.name
         const cmd = isLinux()
           ? `podman start ${containerName}`
           : `podman --connection ${connection} start ${containerName}`
@@ -306,7 +281,7 @@ class Podman extends Base {
   containerStop(containerName: string, machineName: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        const connection = await this.connectionName(machineName)
+        const connection = (await this.resolveConnection(machineName))?.name
         const cmd = isLinux()
           ? `podman stop ${containerName}`
           : `podman --connection ${connection} stop ${containerName}`
@@ -322,8 +297,6 @@ class Podman extends Base {
     return new ForkPromise(async (resolve, reject) => {
       try {
         await execPromiseWithEnv(`podman machine rm -f ${machineName}`)
-        this.connectionNames.delete(machineName)
-        this.machineInfos.delete(machineName)
         resolve(true)
       } catch (e: any) {
         reject(e?.message ?? 'fail')
@@ -340,8 +313,6 @@ class Podman extends Base {
         const args = podmanMachineInitArgs(config)
 
         await execPromiseWithEnv(args.join(' '), rosettaEnv ? { env: rosettaEnv } : undefined)
-        this.connectionNames.clear()
-        this.machineInfos.clear()
         resolve(true)
       } catch (e: any) {
         reject(e?.message ?? 'fail')
@@ -352,7 +323,7 @@ class Podman extends Base {
   containerRemove(containerName: string, machineName: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        const connection = await this.connectionName(machineName)
+        const connection = (await this.resolveConnection(machineName))?.name
         const cmd = isLinux()
           ? `podman rm -f ${containerName}`
           : `podman --connection ${connection} rm -f ${containerName}`
@@ -410,11 +381,6 @@ class Podman extends Base {
           await execPromiseWithEnv(`podman machine start ${name}`)
         }
 
-        // `machine set --rootful/--rootful=false` switches the default
-        // connection, so the cached destination (and the rootful flag) is stale.
-        this.connectionNames.delete(name)
-        this.machineInfos.delete(name)
-
         resolve(true)
       } catch (e: any) {
         reject(e?.message ?? 'fail')
@@ -425,7 +391,7 @@ class Podman extends Base {
   imagePull(machineName: string, imageName: string, tag: string = 'latest') {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        const connection = await this.connectionName(machineName)
+        const connection = (await this.resolveConnection(machineName))?.name
         const cmd = isLinux()
           ? `podman pull ${imageName}:${tag}`
           : `podman --connection ${connection} pull ${imageName}:${tag}`
@@ -437,14 +403,21 @@ class Podman extends Base {
     })
   }
 
-  imageRemove(machineName: string, imageId: string) {
+  imageRemove(connection: PodmanConnection | undefined, imageId: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        const connection = await this.connectionName(machineName)
-        const cmd = isLinux()
-          ? `podman rmi -f ${imageId}`
-          : `podman --connection ${connection} rmi -f ${imageId}`
-        await execPromiseWithEnv(cmd)
+        const args: string[] = []
+        if (!isLinux()) {
+          const destinations = await this.serviceDestinations()
+          const destination = destinations.find((item) => item?.Name === connection?.name)
+          if (!connection?.uri || destination?.URI !== connection.uri) {
+            throw new Error(
+              'Podman connection is no longer available for this image. Refresh the image list.'
+            )
+          }
+          args.push('--connection', connection.name)
+        }
+        await this.runPodman([...args, 'rmi', '-f', '--', imageId])
         resolve(true)
       } catch (e: any) {
         reject(e?.message ?? 'fail')
@@ -455,33 +428,11 @@ class Podman extends Base {
   fetchMachineInfo(machineName: string) {
     return new ForkPromise(async (resolve, reject) => {
       try {
-        let info: any = {}
-        if (isLinux()) {
-          // Linux 下没有 machine，info 可返回空对象或本地 Podman 信息
-          info = {}
-        } else {
-          const infoTmp = join(tmpdir(), `${uuid()}.txt`)
-          try {
-            await execPromiseWithEnv(
-              `podman machine inspect ${machineName} > "${infoTmp}" ${getRedirect()}`
-            )
-            const content = await readFile(infoTmp, 'utf-8')
-            info = JSON.parse(content)[0] ?? {}
-            this.machineInfos.set(machineName, info)
-          } catch (e: any) {
-            console.error('podman machine inspect: ', e?.message)
-            info = {}
-          } finally {
-            if (existsSync(infoTmp)) {
-              await remove(infoTmp)
-            }
-          }
-        }
+        const info = isLinux() ? {} : await this.inspectMachine(machineName)
+        const connection = await this.resolveConnection(machineName, info)
 
-        // 获取容器列表
-        const containerRes = await this.fetchContainerList(machineName)
-        // 获取镜像列表
-        const imageRes = await this.fetchImageList(machineName)
+        const containerRes = await this.readContainerList(machineName, connection)
+        const imageRes = await this.readImageList(connection)
 
         resolve({
           info,
@@ -598,7 +549,7 @@ class Podman extends Base {
   isContainerRunning(containerName: string, machineName: string) {
     return new ForkPromise(async (resolve, reject) => {
       const tmp = join(tmpdir(), `${uuid()}.txt`)
-      const connection = await this.connectionName(machineName)
+      const connection = (await this.resolveConnection(machineName))?.name
       const cmd = isLinux()
         ? `podman inspect ${containerName} --format json > "${tmp}"`
         : `podman --connection ${connection} inspect ${containerName} --format json > "${tmp}"`
@@ -623,7 +574,7 @@ class Podman extends Base {
   fetchContainerInfo(id: string, machineName: string) {
     return new ForkPromise(async (resolve, reject) => {
       const tmp = join(tmpdir(), `${uuid()}.txt`)
-      const connection = await this.connectionName(machineName)
+      const connection = (await this.resolveConnection(machineName))?.name
       const cmd = isLinux()
         ? `podman inspect ${id} --format json > "${tmp}"`
         : `podman --connection ${connection} inspect ${id} --format json > "${tmp}"`

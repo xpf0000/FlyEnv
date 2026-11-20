@@ -1,3 +1,5 @@
+export type PodmanConnection = { name: string; uri?: string }
+
 export type PodmanServiceDestination = {
   Name?: string
   URI?: string

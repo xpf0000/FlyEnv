@@ -97,7 +97,7 @@
 
   const doRefresh = () => {
     if (machine.value?.tab === 'Dashboard') {
-      machine.value.fetchInfoAndContainer()
+      machine.value.fetchInfoAndContainer(true)
     } else if (machine.value?.tab === 'Compose') {
       PodmanManager.refreshComposeState()
     } else if (machine.value?.tab === 'Image') {

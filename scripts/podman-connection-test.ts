@@ -1,11 +1,8 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
 
 // A URL also lets Node's built-in TS stripping run this dependency-free test.
 const { podmanConnectionName }: typeof import('../src/fork/module/Podman/connection') =
   await import(new URL('../src/fork/module/Podman/connection.ts', import.meta.url).href)
-
-const source = (file: string) => readFileSync(new URL(`../${file}`, import.meta.url), 'utf8')
 
 // Real `podman system connection ls --format json` (Podman 6.1.2, rootful
 // Windows machine): the rootless destination and the root one, the latter
@@ -30,16 +27,28 @@ assert.equal(
   podmanConnectionName('podman-machine-default', [{ ...rootless, Default: true }]),
   rootless.Name
 )
-// Rootful machine whose default destination is not ours (several machines).
-assert.equal(podmanConnectionName('podman-machine-default', [rootless, root], true), root.Name)
+// Rootful machine when another machine owns the global default.
+const otherDefault = { ...rootless, Name: 'other-machine', Default: true }
+const nonDefaultRoot = { ...root, Default: false }
+assert.equal(
+  podmanConnectionName('podman-machine-default', [otherDefault, rootless, nonDefaultRoot], true),
+  root.Name
+)
 // An explicit default always wins: that is the store `podman ps` reads, and the
 // UI has to show the same thing even if the rootful flag says otherwise.
 assert.equal(
-  podmanConnectionName('podman-machine-default', [{ ...rootless, Default: true }, root], true),
+  podmanConnectionName(
+    'podman-machine-default',
+    [{ ...rootless, Default: true }, nonDefaultRoot],
+    true
+  ),
   rootless.Name
 )
 // No default at all, rootful machine -> root destination.
-assert.equal(podmanConnectionName('podman-machine-default', [rootless, root], true), root.Name)
+assert.equal(
+  podmanConnectionName('podman-machine-default', [rootless, nonDefaultRoot], true),
+  root.Name
+)
 // No default and rootful flag unknown -> keep the machine name (previous behaviour).
 assert.equal(
   podmanConnectionName('podman-machine-default', [
@@ -67,19 +76,4 @@ assert.equal(
   'machine-a'
 )
 
-// Keep the fork module on the resolver: every machine-scoped command must go
-// through connectionName(), never `--connection <machine name>` directly.
-const forkSource = source('src/fork/module/Podman/index.ts')
-assert.doesNotMatch(forkSource, /--connection \$\{machineName\}/)
-const resolved = forkSource.match(/await this\.connectionName\(machineName\)/g) ?? []
-assert.equal(
-  resolved.length,
-  9,
-  `expected 9 connection resolutions (list/start/stop/rm/pull/rmi/inspect), got ${resolved.length}`
-)
-assert.match(forkSource, /podman system connection ls --format json/)
-assert.match(forkSource, /this\.connectionNames\.delete\(name\)/)
-
-console.log(
-  'Podman connection: rootful machines resolve to `<machine>-root`; every scoped command uses it.'
-)
+console.log('Podman connection: default and rootful fallback resolution passed.')

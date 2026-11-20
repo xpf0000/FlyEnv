@@ -1,3 +1,4 @@
+import type { PodmanConnection } from '@fork/module/Podman/connection'
 import IPC from '@/util/IPC'
 import { MessageError } from '@/util/Element'
 import { I18nT } from '@lang/index'
@@ -14,6 +15,7 @@ export class Image {
   size: string = ''
   created: string = ''
   pulling: boolean = false
+  connection?: PodmanConnection
 
   _onRemove?: (img: Image) => void
 
@@ -33,35 +35,30 @@ export class Image {
   }
 
   remove() {
+    if (this.pulling) return
+    this.pulling = true
+    const { id } = this
+    const connection = this.connection ? { ...this.connection } : undefined
     ElMessageBox.confirm(I18nT('podman.removeImageTips'), I18nT('host.warning'), {
       confirmButtonText: I18nT('base.confirm'),
       cancelButtonText: I18nT('base.cancel'),
       type: 'warning'
-    }).then(() => {
-      this.pulling = true
-      const id = this.id
-      const command = `podman rmi -f ${id}`
-      const xtermExec = reactiveBind(new XTermExec())
-      xtermExec.id = id
-      xtermExec.command = [command]
-      xtermExec.wait().then(() => {
-        this?._onRemove?.(this)
-        delete XTermExecCache[id]
+    }).then(
+      () => {
+        IPC.send('app-fork:podman', 'imageRemove', connection, id).then((key: string, res: any) => {
+          IPC.off(key)
+          this.pulling = false
+          if (res?.code === 0) {
+            this._onRemove?.(this)
+          } else {
+            MessageError(res?.msg ?? I18nT('base.fail'))
+          }
+        })
+      },
+      () => {
         this.pulling = false
-      })
-      xtermExec.whenCancel().then(() => {
-        delete XTermExecCache[id]
-        this.pulling = false
-      })
-      xtermExec.title = I18nT('common.action.delete')
-      XTermExecCache[id] = xtermExec
-      import('@/components/XTermExecDialog/index.vue').then((res) => {
-        AsyncComponentShow(res.default, {
-          title: I18nT('common.action.delete'),
-          item: xtermExec
-        }).then()
-      })
-    })
+      }
+    )
   }
 
   doExport() {

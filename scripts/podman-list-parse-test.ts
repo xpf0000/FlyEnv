@@ -103,7 +103,7 @@ assert.equal(podmanImageItem({ Id: 'x', Names: [], Tag: '', Size: '1024' }).size
 // unguarded `.map()` on the raw Ports field cannot come back.
 const forkSource = source('src/fork/module/Podman/index.ts')
 assert.match(forkSource, /json\.map\(\(c: any\) => podmanContainerItem\(c, machineName\)\)/)
-assert.match(forkSource, /json\.map\(\(img: any\) => podmanImageItem\(img\)\)/)
+assert.match(forkSource, /\bpodmanImageItem\(img\)/)
 assert.doesNotMatch(forkSource, /c\.Ports\.map\(/)
 
 console.log(

@@ -1,3 +1,4 @@
+import type { PodmanContainerItem, PodmanImageItem } from '@fork/module/Podman/list'
 import type { MachineItemType } from '@/components/Podman/type'
 import type { CallbackFn } from '@shared/app'
 import IPC from '@/util/IPC'
@@ -45,47 +46,28 @@ export class Machine {
   }
 
   fetchImages() {
-    if (this.ImageFetching) {
+    if (this.ImageFetching || this.DashboardFetching) {
       return
     }
     this.ImageFetching = true
     IPC.send('app-fork:podman', 'fetchImageList', this.name).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
-        const images = res?.data ?? []
-        for (const img of images) {
-          const find = this.images.find((s) => s.id === img.id)
-          if (!find) {
-            const image = reactiveBind(new Image(img))
-            image._onRemove = this.onImageRemove.bind(this)
-            this.images.push(image)
-          } else {
-            find.name = reactive(img.name)
-          }
-        }
+        this.updateImages(res?.data ?? [])
       }
       this.ImageFetching = false
     })
   }
 
   fetchContainers() {
-    if (this.ContainerFetching) {
+    if (this.ContainerFetching || this.DashboardFetching) {
       return
     }
     this.ContainerFetching = true
     IPC.send('app-fork:podman', 'fetchContainerList', this.name).then((key: string, res: any) => {
       IPC.off(key)
       if (res?.code === 0) {
-        const containers = res?.data ?? []
-        for (const item of containers) {
-          const find = this.container.some((s) => s.id === item.id)
-          if (!find) {
-            const container = reactiveBind(new Container(item))
-            container.machineName = this.name
-            container._onRemove = this.onContainerRemove
-            this.container.unshift(container)
-          }
-        }
+        this.updateContainers(res?.data ?? [])
       }
       this.ContainerFetching = false
     })
@@ -94,8 +76,14 @@ export class Machine {
   /**
    * Fetch Machine info and containers
    */
-  fetchInfoAndContainer() {
-    if (this.fetched || !this.run || this.DashboardFetching) {
+  fetchInfoAndContainer(refresh = false) {
+    if (
+      (!refresh && this.fetched) ||
+      !this.run ||
+      this.DashboardFetching ||
+      this.ImageFetching ||
+      this.ContainerFetching
+    ) {
       return
     }
     this.DashboardFetching = true
@@ -104,37 +92,54 @@ export class Machine {
       if (res?.code === 0) {
         this.fetched = true
         this.info = reactive(res?.data?.info ?? {})
-        const containers = res?.data?.container ?? []
-        for (const item of containers) {
-          const find = this.container.some((s) => s.id === item.id)
-          if (!find) {
-            const container = reactiveBind(new Container(item))
-            container.machineName = this.name
-            container._onRemove = this.onContainerRemove
-            this.container.unshift(container)
-          }
-        }
-        const images = res?.data?.images ?? []
-        for (const img of images) {
-          const find = this.images.find((s) => s.id === img.id)
-          if (!find) {
-            const image = reactiveBind(new Image(img))
-            image._onRemove = this.onImageRemove.bind(this)
-            this.images.push(image)
-          } else {
-            find.name = reactive(img.name)
-          }
-        }
+        this.updateContainers(res?.data?.container ?? [])
+        this.updateImages(res?.data?.images ?? [])
       }
       this.DashboardFetching = false
     })
+  }
+
+  private updateImages(items: PodmanImageItem[]) {
+    const existing = new Map(this.images.map((image) => [image.id, image]))
+    const pendingPulls = this.images.filter((image) => image.pulling && !image._onRemove)
+    this.images = [
+      ...pendingPulls,
+      ...items.map((item) => {
+        const image = existing.get(item.id)
+        if (
+          image &&
+          image.connection?.name === item.connection?.name &&
+          image.connection?.uri === item.connection?.uri
+        ) {
+          image.name = reactive(item.name)
+          return image
+        }
+        const next = reactiveBind(new Image(item))
+        next._onRemove = this.onImageRemove.bind(this)
+        return next
+      })
+    ]
+  }
+
+  private updateContainers(items: PodmanContainerItem[]) {
+    const existing = new Map(this.container.map((container) => [container.id, container]))
+    this.container = items
+      .slice()
+      .reverse()
+      .map((item) => {
+        const container = existing.get(item.id)
+        if (container) return container
+        const next = reactiveBind(new Container(item))
+        next._onRemove = this.onContainerRemove
+        return next
+      })
   }
 
   /**
    * 镜像删除回调
    */
   onImageRemove(item: Image) {
-    this.images = this.images.filter((img) => img.id !== item.id)
+    this.images = this.images.filter((image) => image !== item)
   }
 
   onContainerRemove(item: Container) {

@@ -1,3 +1,5 @@
+import type { PodmanConnection } from './connection'
+
 export type PodmanContainerPort = {
   in: number
   out: number
@@ -18,6 +20,7 @@ export type PodmanContainerItem = {
 }
 
 export type PodmanImageItem = {
+  connection?: PodmanConnection
   id: string
   name: string[]
   tag: string
