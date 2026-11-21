@@ -553,10 +553,21 @@
     }
   })
 
-  watch(groupIsRunning, (val) => {
-    IPC.send('Application:tray-status-change', val).then((key: string) => {
-      IPC.off(key)
-    })
+  // 系统托盘图标反映 FlyEnv 管理的所有服务的运行状态。
+  const trayIsRunning = computed(
+    () =>
+      Object.values(AppServiceModule).some((module) => module?.serviceRunning) ||
+      Object.values(brewStore.modules).some(
+        (module) => module.isService && module.installed.some((item) => item.run)
+      ) ||
+      AppCustomerModule.module.some(
+        (module) => module.isService && module.item.some((item) => item.run)
+      ) ||
+      startupGroups.value.some((group) => group.run)
+  )
+
+  watch(trayIsRunning, (running) => IPC.send('Application:tray-status-change', running), {
+    immediate: true
   })
 
   watch(

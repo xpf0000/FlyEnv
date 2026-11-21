@@ -94,7 +94,6 @@ export default class TrayManager extends EventEmitter {
     if (this.style !== 'classic') {
       return
     }
-    this.iconChange(status.groupIsRunning)
     const menus: MenuItemConstructorOptions[] = []
     menus.push({
       label: status.groupIsRunning ? I18nT('common.state.running') : I18nT('tray.notRun'),
