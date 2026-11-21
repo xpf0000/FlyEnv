@@ -10,6 +10,7 @@
   "brewUpgradeConfirm": "确认更新",
   "brewUpgradeWarning": "更新会先停止相关服务，并可能改变版本和安装路径。更新后的配置文件、扩展及环境变量等关联设置需要您手动处理，服务也需要手动启动。是否继续？",
   "brewUpgradeSeriesChange": "本次更新将跨 PHP 版本系列，请自行确认配置文件和扩展的兼容性。",
+  "brewUpgradeImpact": "可能受影响的配方。请先停止在 FlyEnv 外运行的相关服务。",
   "brewUpgradeStops": "将停止的服务",
   "brewUpgradeNoServices": "没有正在运行的相关受管服务。",
   "brewUpgradeLogs": "查看日志",
@@ -21,8 +22,7 @@
     "identity": "无法确认安装来源或架构",
     "pinned": "已在 Homebrew 中固定",
     "disabled": "配方已停用",
-    "latest": "已是最新版本",
-    "dependencies": "潜在影响包含数据库，本次更新暂不支持"
+    "latest": "已是最新版本"
   },
   "brewUpgradePhase": {
     "idle": "就绪",

@@ -5,7 +5,7 @@ type Files = {
   realpath: (path: string) => Promise<string>
   readdir: (path: string, recursive?: boolean) => Promise<string[]>
   mkdirp: (path: string) => Promise<unknown>
-  copyFile: (source: string, destination: string) => Promise<unknown>
+  copyFile: (source: string, destination: string, atomic?: boolean) => Promise<boolean>
 }
 /** Required manual extension postprocessing, called and awaited by the package controller. */
 export async function copyHomebrewExtension(
@@ -22,5 +22,7 @@ export async function copyHomebrewExtension(
   const so = (await files.readdir(source, true)).filter((file) => file.endsWith('.so')).pop()
   if (!so) throw new Error('Homebrew finished, but no extension library was found')
   await files.mkdirp(extensionDir)
-  await files.copyFile(so, join(extensionDir, basename(so)))
+  // A running PHP process can still have the previous inode mapped.
+  if (!(await files.copyFile(so, join(extensionDir, basename(so)), true)))
+    throw new Error('Homebrew finished, but copying the extension failed')
 }

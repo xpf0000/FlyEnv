@@ -6,11 +6,23 @@ import {
 import { utilityProcess } from 'electron'
 import { PluginWorkerRegistry } from './PluginWorkerRegistry'
 import type { ForkPluginSnapshot } from '@shared/plugin/PluginRuntime'
-import { cpus } from 'os'
+import { constants, cpus } from 'os'
 import { currentServiceStopContext, withServiceStopContext } from '@shared/ServiceStopContext'
 import ServiceProcessManager from './ServiceProcess'
 import { HomebrewOperationCoordinator } from './HomebrewOperationCoordinator'
-import type { BrewFormulaSnapshot, BrewPackageResult } from '../../fork/module/Brew/UpgradeTypes'
+import type {
+  BrewFormulaSnapshot,
+  BrewPackageAction,
+  BrewPackageProgress,
+  BrewPackageResult
+} from '../../fork/module/Brew/UpgradeTypes'
+import {
+  brewEnvironment,
+  formulaName,
+  getBrewIdentity
+} from '../../fork/module/Brew/UpgradeCatalog'
+import { quotePosixShell } from '@shared/Gvm'
+import { nodePtyRuntime } from './lazy/OptionalRuntimes'
 import { fetchStopProcessListLocal } from '@shared/StopProcessList'
 import { appDebugLog } from '@shared/utils'
 import EnvSync from '@shared/EnvSync'
@@ -111,7 +123,7 @@ export class ForkManager {
   private languageSnapshotProvider?: () => LanguageRuntimePayload
   // 注入主进程唯一协调器；独立服务 fork 与普通池共享授权队列。
   windowsPrivilegeBridge?: WindowsPrivilegeBridge
-  private brewFork?: ForkItem
+  private brewTerminalId?: string
   private readonly brewFlights = new Set<Promise<unknown>>()
   private homebrewCoordinator?: HomebrewOperationCoordinator
   private get homebrew() {
@@ -151,34 +163,86 @@ export class ForkManager {
 
   private runBrewPackage(
     id: string,
-    action: string,
+    action: BrewPackageAction,
     snapshot: BrewFormulaSnapshot,
-    progress: (data: string) => void
+    progress: (data: BrewPackageProgress) => void
   ): Promise<BrewPackageResult> {
-    if (!this.brewFork || this.brewFork.childExited) {
-      this.brewFork = this.createForkItem(TRANSIENT_FORK_IDLE_TIMEOUT_MS)
-      this.brewFork._on = this._on
-    }
-    const worker = this.brewFork
-    worker.pin()
-    const flight = Promise.resolve(
-      worker
-        .sendWithTerminalHook(() => {}, 'brew', 'runPackage', action, snapshot, id)
-        .on((info: any) => {
-          if (info.code === 200) progress(String(info.msg ?? info.data ?? ''))
-        })
-    )
-      .then((info: any) =>
-        info.code === 0
-          ? { ...info.data, identity: snapshot.identity }
-          : { operationId: id, action, outcome: 'unknown', error: info.msg, logs: '' }
+    let logs = ''
+    let key: string | undefined
+    let submitted = false
+    const flight: Promise<BrewPackageResult> = (async () => {
+      const identity = await getBrewIdentity(global.Server.BrewBin!, await EnvSync.sync())
+      if (JSON.stringify(identity) !== JSON.stringify(snapshot.identity))
+        throw new Error('Homebrew identity changed')
+      const environment = Object.entries(brewEnvironment({}, true)).map(
+        ([name, value]) => `${name}=${value}`
       )
+      const args = [
+        ...environment,
+        identity.bin,
+        action,
+        '--formula',
+        '--verbose',
+        formulaName(snapshot.formula)
+      ]
+      const command = `exec /usr/bin/env ${args.map(quotePosixShell).join(' ')}`
+      const terminal = await nodePtyRuntime.load()
+      if (this.serviceLifecycleClosing) throw new Error('Application is shutting down')
+      key = await terminal.initNodePty()
+      if (this.serviceLifecycleClosing) {
+        terminal.stop(key)
+        throw new Error('Application is shutting down')
+      }
+      // Homebrew shares the global NodePTY lifecycle and the existing XTerm input/resize/stop channels.
+      const result = await terminal.execAndWait(key, [command], {
+        onStarted: () => {
+          submitted = true
+          this.brewTerminalId = key
+          progress({ terminalId: key! })
+        },
+        onOutput: (data) => {
+          logs = (logs + data).slice(-65536)
+        }
+      })
+      const { exitCode, signal, canceled } = result
+      const signalName = signal
+        ? (Object.entries(constants.signals).find(([, value]) => value === signal)?.[0] ??
+          String(signal))
+        : null
+      const code = signal ? null : exitCode
+      return {
+        operationId: id,
+        action,
+        identity,
+        code,
+        signal: signalName,
+        canceled,
+        logs,
+        outcome: code === 0 && !canceled ? 'succeeded' : 'failed',
+        error: canceled
+          ? 'Homebrew command was terminated'
+          : code !== 0
+            ? `Homebrew exited with ${signalName ?? code}`
+            : undefined
+      } satisfies BrewPackageResult
+    })()
+      .catch((error): BrewPackageResult => ({
+        operationId: id,
+        action,
+        outcome: submitted ? 'unknown' : 'failed',
+        error: String(error),
+        logs
+      }))
       .finally(() => {
-        worker.unpin()
+        if (this.brewTerminalId === key) this.brewTerminalId = undefined
         this.brewFlights.delete(flight)
       })
     this.brewFlights.add(flight)
     return flight
+  }
+
+  private cancelBrewTerminalForShutdown() {
+    if (this.brewTerminalId) nodePtyRuntime.peek()?.stop(this.brewTerminalId)
   }
 
   private homebrewRequest(action: string, param: any[]) {
@@ -187,9 +251,10 @@ export class ForkManager {
         let data: unknown
         if (
           ['prepareUpgrade', 'beginUpgrade', 'executeUpgrade'].includes(action) &&
-          process.platform !== 'darwin'
+          process.platform !== 'darwin' &&
+          process.platform !== 'linux'
         )
-          throw new Error('Homebrew upgrades currently require macOS')
+          throw new Error('Homebrew upgrades require macOS or Linux')
         if (action === 'prepareUpgrade')
           data = await this.homebrew.prepareUpgrade(param[0], param[1])
         else if (action === 'beginUpgrade') data = await this.homebrew.beginUpgrade(param[0])
@@ -272,7 +337,6 @@ export class ForkManager {
     const message: EnvSyncInvalidated = { type: 'env-sync-invalidated', revision }
     const forks = new Set(
       [
-        this.brewFork,
         this.ftpsrvFork,
         this.dnsFork,
         this.ollamaChatFork,
@@ -333,10 +397,6 @@ export class ForkManager {
       }
     }
     if (module === 'brew') {
-      if (['runPackage', 'cancelPackage'].includes(param[0]))
-        return new ForkPromise((_resolve, reject) =>
-          reject(new Error('Homebrew package commands require main admission'))
-        )
       if (
         [
           'prepareUpgrade',
@@ -506,10 +566,11 @@ export class ForkManager {
   beginServiceLifecycleShutdown() {
     this.serviceLifecycleClosing = true
     this.pluginWorkers.beginShutdown()
+    this.cancelBrewTerminalForShutdown()
   }
 
   async drainServiceLifecycleRequests() {
-    // Package commands may build from source: observation timeout must not kill the worker.
+    // Package admission waits for the shared terminal's actual exit.
     await Promise.allSettled([...this.brewFlights])
     try {
       await waitForServiceDrain(
@@ -545,7 +606,6 @@ export class ForkManager {
   async broadcastLanguage(message: LanguageChanged) {
     const forks = new Set(
       [
-        this.brewFork,
         this.ftpsrvFork,
         this.dnsFork,
         this.ollamaChatFork,
@@ -560,7 +620,6 @@ export class ForkManager {
   broadcastServer(server: unknown) {
     const forks = new Set(
       [
-        this.brewFork,
         this.ftpsrvFork,
         this.dnsFork,
         this.ollamaChatFork,
@@ -578,7 +637,6 @@ export class ForkManager {
 
   async destroy() {
     await Promise.allSettled([...this.brewFlights])
-    this.brewFork?.destroy()
     // Independent workers still close when another worker or cache flush fails.
     const cleanup = await Promise.allSettled([
       this.pluginWorkers.closeAll(),

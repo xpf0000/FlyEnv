@@ -1,5 +1,6 @@
 import { Server } from 'http'
 import type { IPty } from 'node-pty'
+import type { PItem } from '@shared/Process'
 
 export interface StaticHttpServe {
   server: Server
@@ -21,4 +22,7 @@ export interface PtyItem {
     reportExitCode?: boolean
   }[]
   execFile?: string
+  waitForExit?: boolean
+  killTimer?: NodeJS.Timeout
+  cancelChildren?: Promise<PItem[]>
 }

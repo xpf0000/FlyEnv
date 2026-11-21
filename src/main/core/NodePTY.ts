@@ -8,8 +8,13 @@ import { chmod, remove, writeFile } from '../utils'
 import { existsSync, watch } from 'fs'
 import EnvSync from '@shared/EnvSync'
 import type { CallbackFn } from '@shared/app'
-import { isLinux, isMacOS, isWindows } from '@shared/utils'
+import { isLinux, isMacOS, isWindows, waitTime } from '@shared/utils'
+import { ProcessKillStrict, ProcessListByExactPid, ProcessListFetch } from '@shared/Process'
+import { waitForServiceProcessExit } from '@shared/ServiceStop'
 import { tmpdir } from 'node:os'
+
+type ExitResult = { exitCode: number; signal?: number; canceled: boolean }
+type ExitOptions = { onStarted: () => void; onOutput: (data: string) => void }
 
 class NodePTY {
   pty: Partial<Record<string, PtyItem>> = {}
@@ -53,7 +58,7 @@ class NodePTY {
           for (const t of task) {
             this.completeTask(t, e.exitCode)
           }
-          this.exitPtyByKey(key)
+          if (!item.waitForExit) this.exitPtyByKey(key)
         }
       })
       this.pty[key] = {
@@ -139,7 +144,7 @@ class NodePTY {
           for (const t of task) {
             this.completeTask(t, e.exitCode)
           }
-          this.exitPtyByKey(key)
+          if (!item.waitForExit) this.exitPtyByKey(key)
         }
       })
       this.pty[key] = {
@@ -183,33 +188,89 @@ class NodePTY {
   exitAllPty() {
     this._callback = undefined
     for (const key in this.pty) {
-      this.exitPtyByKey(key)
+      this.stop(key)
     }
   }
 
   /** Internal operations await real process exit independently of renderer listeners. */
-  async execAndWait(ptyKey: string, param: string[]): Promise<void> {
-    const pty = this.pty[ptyKey]?.pty
-    if (!pty) throw new Error('Terminal process is unavailable')
+  async execAndWait(ptyKey: string, param: string[]): Promise<void>
+  async execAndWait(ptyKey: string, param: string[], options: ExitOptions): Promise<ExitResult>
+  async execAndWait(
+    ptyKey: string,
+    param: string[],
+    options?: ExitOptions
+  ): Promise<ExitResult | void> {
+    const item = this.pty[ptyKey]
+    if (!item || item.killed || item.waitForExit) throw new Error('Terminal process is unavailable')
+    const { pty } = item
+    if (options) item.waitForExit = true
     return new Promise((resolve, reject) => {
-      const exit = pty.onExit(({ exitCode }) => {
+      const output = options && pty.onData(options.onOutput)
+      const exit = pty.onExit(async ({ exitCode, signal }) => {
         exit.dispose()
-        if (exitCode === 0) resolve()
+        output?.dispose()
+        if (options) {
+          const canceled = !!item.killTimer
+          item.killed = true
+          try {
+            if (item.killTimer) {
+              clearTimeout(item.killTimer)
+              const children = await item.cancelChildren!
+              // The PTY reports the leader's exit. A child can still be in its process group.
+              const deadline = Date.now() + 5000
+              let check: NodeJS.Signals | 0 = 'SIGKILL'
+              while (true) {
+                try {
+                  process.kill(-pty.pid, check)
+                } catch (error) {
+                  const code = (error as NodeJS.ErrnoException).code
+                  if (code === 'ESRCH') break
+                  // On macOS, a group awaiting reaping can temporarily return EPERM.
+                  if (code !== 'EPERM' || !isMacOS()) throw error
+                }
+                if (Date.now() >= deadline)
+                  throw new Error('Could not confirm terminal process group exit')
+                check = 0
+                await waitTime(50)
+              }
+              await waitForServiceProcessExit(
+                children.map(({ PID }) => PID),
+                5000,
+                {
+                  initialList: children
+                }
+              )
+            }
+            resolve({ exitCode, signal, canceled })
+          } catch (error) {
+            reject(error)
+          } finally {
+            delete this.pty[ptyKey]
+          }
+        } else if (exitCode === 0) resolve()
         else reject(new Error(`Terminal exited with code ${exitCode}`))
       })
       try {
         // Fixed installation commands must not cross a writable outer script.
-        this.writeDirect(pty, param)
+        this.writeDirect(pty, param, !!options)
       } catch (error) {
+        output?.dispose()
         exit.dispose()
+        if (options) this.exitPtyByKey(ptyKey)
         reject(error)
+        return
       }
+      try {
+        options?.onStarted()
+      } catch {}
     })
   }
 
-  private writeDirect(pty: IPty, param: string[]) {
+  private writeDirect(pty: IPty, param: string[], replaceShell = false) {
     const literal = param.join('\n').replace(/'/g, "'\\''")
-    pty.write(`/bin/sh -c '${literal}'; exit $?\r`)
+    // Keep the PTY process bound to the admitted command until its actual exit.
+    if (replaceShell) pty.write(`exec /bin/sh -c '${literal}'\r`)
+    else pty.write(`/bin/sh -c '${literal}'; exit $?\r`)
   }
 
   async exec(
@@ -220,7 +281,8 @@ class NodePTY {
     key: string,
     reportExitCode = false
   ) {
-    if (!this.pty?.[ptyKey]?.pty) throw new Error('Terminal process is unavailable')
+    if (!this.pty?.[ptyKey]?.pty || this.pty[ptyKey]?.waitForExit)
+      throw new Error('Terminal process is unavailable')
     if (execUseOneFile === 'direct') {
       if (!isMacOS() && !isLinux()) throw new Error('Direct terminal execution requires Unix')
       const item = this.pty[ptyKey]!
@@ -293,8 +355,12 @@ class NodePTY {
     if (!item || item.killed) {
       return
     }
-    const pty = item?.pty
-    pty?.write(data)
+    // Ctrl+C in an awaited package command must also stop its build subprocesses.
+    if (item.waitForExit && data === '\x03') {
+      this.stop(ptyKey)
+      return
+    }
+    item.pty.write(data)
   }
 
   clean(ptyKey: string) {
@@ -316,6 +382,42 @@ class NodePTY {
   }
 
   stop(ptyKey: string) {
+    const item = this.pty[ptyKey]
+    if (item?.waitForExit) {
+      if (item.cancelChildren) return
+      const signal = (value: NodeJS.Signals) => {
+        try {
+          process.kill(-item.pty.pid, value)
+        } catch {}
+      }
+      const stopGroup = () => {
+        if (item.killed) return
+        item.killTimer = setTimeout(() => signal('SIGKILL'), 5000)
+        signal('SIGTERM')
+      }
+      item.cancelChildren = ProcessListFetch().then(
+        async (list) => {
+          if (item.killed) return []
+          const root = String(item.pty.pid)
+          const tree = ProcessListByExactPid(root, list)
+          stopGroup()
+          if (!tree.length) throw new Error('Cannot verify terminal process tree')
+          // Homebrew can launch children in their own process groups.
+          const children = tree.filter(({ PID }) => PID !== root)
+          await ProcessKillStrict(
+            'SIGKILL',
+            children.map(({ PID }) => PID)
+          )
+          return children
+        },
+        (error) => {
+          stopGroup()
+          throw error
+        }
+      )
+      item.cancelChildren.catch(() => {})
+      return
+    }
     this.exitPtyByKey(ptyKey)
   }
 }

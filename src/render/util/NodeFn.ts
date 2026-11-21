@@ -286,7 +286,7 @@ export const fs = {
   mkdirp: createIPCCall<[dir: string], void>('fs', 'mkdirp'),
   stat: createIPCCall<[path: string], Stats>('fs', 'stat'),
   copy: createIPCCall<[src: string, dest: string], void>('fs', 'copy'),
-  copyFile: createIPCCall<[src: string, dest: string], void>('fs', 'copyFile'),
+  copyFile: createIPCCall<[src: string, dest: string, atomic?: boolean], boolean>('fs', 'copyFile'),
   existsSync: createIPCCall<[string], boolean>('fs', 'existsSync'),
   access: createIPCCall<[path: string, mode?: 'r' | 'w' | 'rw'], boolean>('fs', 'access'),
   readFile: createIPCCall<[path: string], string>('fs', 'readFile'),

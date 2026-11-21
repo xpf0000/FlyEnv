@@ -52,7 +52,16 @@ const { Module } = await loadIsolated(
         setEnv() {}
       }
     },
-    '@/core/Module/ModuleHomebrewItem': {},
+    '@/core/Module/ModuleHomebrewItem': {
+      ModuleHomebrewItem: class {
+        constructor(item: any) {
+          Object.assign(this, item)
+        }
+        fetchCommand() {}
+        copyCommand() {}
+        runCommand() {}
+      }
+    },
     '@/core/Module/ModuleMacportsItem': {},
     '@/core/Module/ModuleStaticItem': {},
     '@/core/Module/ModuleSdkmanItem': {},
@@ -136,11 +145,18 @@ const brewNew = m.fetchBrew(true).then((ok: boolean) => {
   brewFreshDone = true
   return ok
 })
-brewQueries[0]([])
+brewQueries[0]([
+  { name: 'mysql', version: '8.4', installed: true },
+  { name: 'vendor/tap/mysql', version: '8.4', installed: false }
+])
 await brewOld
 await new Promise((r) => setTimeout(r, 0))
 assert.equal(brewFreshDone, false)
 assert.equal(brewQueries.length, 2)
-brewQueries[1]([])
+brewQueries[1]([{ name: 'mysql', version: '9.0', installed: true }])
 assert.equal(await brewNew, true)
-console.log('PASS fresh Homebrew catalog starts after the older flight finishes')
+assert.equal(m.brew.length, 2)
+assert.equal(m.brew[0].version, '9.0')
+assert.equal(m.brew[1].name, 'vendor/tap/mysql')
+assert.equal(m.brew[1].version, '8.4')
+console.log('PASS fresh Homebrew catalog waits for the old query and updates each formula in place')

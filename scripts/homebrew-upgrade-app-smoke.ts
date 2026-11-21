@@ -33,7 +33,44 @@ try {
     brew,
     `#!${process.execPath}
 const fs=require('fs'),path=require('path'),root=${JSON.stringify(root)};const args=process.argv.slice(2);const newer=fs.existsSync(path.join(root,'upgraded'));const info={name:'php',full_name:'php',tap:'homebrew/core',versions:{stable:'8.5.12'},revision:0,installed:[{version:newer?'8.5.12':'8.5.7'}],outdated:!newer,pinned:false,dependencies:[]};
-if(args[0]==='--prefix')console.log(path.join(root,'prefix'));else if(args[0]==='--cellar')console.log(path.join(root,'prefix/Cellar'));else if(args[0]==='info' && args.includes('--json=v2') && newer && fs.existsSync(path.join(root,'fail-catalog'))){console.error('fixture catalog query failure');process.exitCode=2}else if(args[0]==='info')console.log(JSON.stringify(args.includes('--json=v2')?{formulae:[info]}:[info]));else if(args[0]==='outdated')console.log(JSON.stringify({formulae:newer?[]:[{name:'php',installed_versions:['8.5.7'],current_version:'8.5.12'}]}));else if(args[0]==='upgrade'){fs.appendFileSync(path.join(root,'events'),'upgrade\\n');console.log('fixture upgrade running');setTimeout(()=>{if(fs.existsSync(path.join(root,'fail-upgrade'))){console.error('fixture upgrade failure');process.exitCode=9}else{const keg=path.join(root,'prefix/Cellar/php/8.5.12');fs.mkdirSync(path.join(keg,'sbin'),{recursive:true});fs.writeFileSync(path.join(keg,'INSTALL_RECEIPT.json'),JSON.stringify({source:{tap:'homebrew/core'},arch:${JSON.stringify(process.arch === 'arm64' ? 'arm64' : 'x86_64')}}));fs.writeFileSync(path.join(root,'upgraded'),'yes');console.log('fixture upgrade complete')}},2000)}else if(args[0]==='tap')console.log('shivammathur/php');else if(args[0]==='search')console.log('php');else{console.error('unexpected fake brew command');process.exitCode=2}`
+const composerMarker = path.join(root, 'composer-installed');
+const composer = fs.existsSync(composerMarker) ? fs.readFileSync(composerMarker, 'utf8') : '';
+const isComposer = args.some(arg => ['composer', 'homebrew/core/composer'].includes(arg));
+const composerInfo = {
+  name:'composer', full_name:'composer', tap:'homebrew/core', dependencies:[],
+  versions:{stable:'2.9.0'}, installed:composer ? [{version:composer}] : [],
+  outdated:composer === '2.8.7'
+};
+const installComposer = version => {
+  const keg = path.join(root, 'prefix/Cellar/composer', version);
+  fs.mkdirSync(keg, {recursive:true});
+  fs.writeFileSync(path.join(keg, 'INSTALL_RECEIPT.json'), JSON.stringify({source:{tap:'homebrew/core'}}));
+  fs.writeFileSync(composerMarker, version);
+};
+if (isComposer && ['install','uninstall','upgrade'].includes(args[0])) {
+  console.log('fixture composer', args[0], process.stdout.isTTY ? 'TTY' : 'pipe');
+  if (args[0] === 'install') {
+    process.stdin.once('data', data => {
+      if (data.toString().trim() === 'y') installComposer('2.8.7');
+      else process.exitCode = 1;
+      process.stdin.pause();
+    });
+    setTimeout(() => process.exit(2), 8000).unref();
+  } else {
+    setTimeout(() => {
+      if (args[0] === 'upgrade') installComposer('2.9.0');
+      else fs.rmSync(composerMarker, {force:true});
+    }, 2200);
+  }
+} else if (isComposer && args[0] === 'info') {
+  const report = () => console.log(JSON.stringify(args.includes('--json=v2') ? {formulae:[composerInfo]} : [composerInfo]));
+  if (composer && args.includes('--json')) setTimeout(report, 650);
+  else report();
+} else if (isComposer && args[0] === 'outdated') {
+  console.log(JSON.stringify({formulae: composerInfo.outdated ? [{name:'composer'}] : []}));
+} else if (args[0] === 'info' && args.includes('--installed') && composer) {
+  console.log(JSON.stringify({formulae:[info, composerInfo]}));
+} else if(args[0]==='--prefix')console.log(path.join(root,'prefix'));else if(args[0]==='--cellar')console.log(path.join(root,'prefix/Cellar'));else if(args[0]==='info' && args.includes('--json=v2') && newer && fs.existsSync(path.join(root,'fail-catalog'))){console.error('fixture catalog query failure');process.exitCode=2}else if(args[0]==='info')console.log(JSON.stringify(args.includes('--json=v2')?{formulae:[info]}:[info]));else if(args[0]==='outdated')console.log(JSON.stringify({formulae:newer?[]:[{name:'php',installed_versions:['8.5.7'],current_version:'8.5.12'}]}));else if(args[0]==='upgrade'){fs.appendFileSync(path.join(root,'events'),'upgrade\\n');console.log('fixture upgrade running', process.stdout.isTTY ? 'TTY' : 'pipe');setTimeout(()=>{if(fs.existsSync(path.join(root,'fail-upgrade'))){console.error('fixture upgrade failure');process.exitCode=9}else{const keg=path.join(root,'prefix/Cellar/php/8.5.12');fs.mkdirSync(path.join(keg,'sbin'),{recursive:true});fs.writeFileSync(path.join(keg,'INSTALL_RECEIPT.json'),JSON.stringify({source:{tap:'homebrew/core'},arch:${JSON.stringify(process.arch === 'arm64' ? 'arm64' : 'x86_64')}}));fs.writeFileSync(path.join(root,'upgraded'),'yes');console.log('fixture upgrade complete')}},2000)}else if(args[0]==='tap')console.log('shivammathur/php');else if(args[0]==='search')console.log('php');else{console.error('unexpected fake brew command');process.exitCode=2}`
   )
   await chmod(brew, 0o755)
   await server.listen()

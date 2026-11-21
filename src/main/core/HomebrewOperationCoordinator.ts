@@ -6,6 +6,7 @@ import type {
   BrewUpgradePreview,
   BrewServiceTarget,
   BrewPackageAction,
+  BrewPackageProgress,
   BrewPackageResult
 } from '../../fork/module/Brew/UpgradeTypes'
 
@@ -17,7 +18,7 @@ type Dependencies = {
     id: string,
     action: BrewPackageAction,
     snapshot: BrewFormulaSnapshot,
-    progress: (data: string) => void
+    progress: (data: BrewPackageProgress) => void
   ) => PromiseLike<BrewPackageResult>
 }
 type Operation = {
@@ -76,6 +77,15 @@ export class HomebrewOperationCoordinator {
         )
       )
   }
+  private upgradeStopTargets(snapshot: BrewFormulaSnapshot) {
+    const targets = this.targets(snapshot)
+    const manualStops = targets.filter(({ module }) => module !== 'php')
+    if (manualStops.length)
+      throw new Error(
+        `Stop the following services before updating with Homebrew: ${[...new Set(manualStops.map(({ module, item }) => `${module} ${item.version}`))].join(', ')}`
+      )
+    return targets
+  }
   assertKnownStarts(snapshot: BrewFormulaSnapshot, starts: { module: string; item: unknown }[]) {
     if (starts.some((start) => this.related(snapshot, start.item, start.module) !== false))
       throw new Error(
@@ -97,7 +107,6 @@ export class HomebrewOperationCoordinator {
     return { pid: accepted.item.pid!, bin: accepted.item.bin }
   }
   async prepareUpgrade(module: string, formula: string): Promise<BrewUpgradePreview> {
-    if (module !== 'php') throw new Error('Only PHP Homebrew upgrades are supported')
     const snapshot = await this.deps.inspect(formula)
     if (!snapshot.eligible) throw new Error(`Homebrew upgrade unavailable: ${snapshot.reason}`)
     await this.deps.idle(snapshot)
@@ -105,7 +114,7 @@ export class HomebrewOperationCoordinator {
       previewId: randomUUID(),
       module,
       snapshot,
-      targets: this.targets(snapshot)
+      targets: this.upgradeStopTargets(snapshot)
     }
     if (this.previews.size >= 100) this.previews.delete(this.previews.keys().next().value!)
     this.previews.set(preview.previewId, structuredClone(preview))
@@ -124,7 +133,7 @@ export class HomebrewOperationCoordinator {
     try {
       await this.deps.idle(preview.snapshot)
       const current = await this.deps.inspect(preview.snapshot.formula)
-      const targets = this.targets(current)
+      const targets = this.upgradeStopTargets(current)
       if (
         !current.eligible ||
         current.fingerprint !== preview.snapshot.fingerprint ||
@@ -148,7 +157,10 @@ export class HomebrewOperationCoordinator {
     if (this.active === operation) this.active = undefined
     this.operations.delete(id)
   }
-  execute(id: string, progress: (data: string) => void = () => {}): Promise<BrewPackageResult> {
+  execute(
+    id: string,
+    progress: (data: BrewPackageProgress) => void = () => {}
+  ): Promise<BrewPackageResult> {
     const operation = this.operations.get(id)
     if (!operation) return Promise.reject(new Error('Invalid Homebrew operation'))
     if (operation.flight) return operation.flight
@@ -196,7 +208,7 @@ export class HomebrewOperationCoordinator {
   async mutate(
     action: 'install' | 'uninstall',
     snapshot: BrewFormulaSnapshot,
-    progress: (data: string) => void
+    progress: (data: BrewPackageProgress) => void
   ) {
     if (this.active) throw new Error('Homebrew package operation is busy')
     const operation: Operation = { snapshot, targets: [], phase: 'pending' }

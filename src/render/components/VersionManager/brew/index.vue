@@ -1,72 +1,23 @@
 <template>
   <div class="h-full min-h-0 flex flex-col overflow-hidden">
-    <el-dialog
+    <UpgradeDialog
       v-model="confirmationVisible"
-      :title="I18nT('versionmanager.brewUpgradeConfirm')"
-      width="min(600px, 90vw)"
-      append-to-body
-    >
-      <template v-if="preview">
-        <p class="mb-4">{{ I18nT('versionmanager.brewUpgradeWarning') }}</p>
-        <p class="font-semibold break-all">{{ preview.snapshot.formula }}</p>
-        <p class="my-2"
-          >{{ preview.snapshot.installedVersions.join(', ') }} →
-          {{ preview.snapshot.availableVersion }}</p
-        >
-        <p v-if="changesSeries" class="text-yellow-600 dark:text-yellow-400 my-2">{{
-          I18nT('versionmanager.brewUpgradeSeriesChange')
-        }}</p>
-        <p class="mt-4">{{ I18nT('versionmanager.brewUpgradeStops') }}</p>
-        <ul class="mt-2 list-disc pl-5">
-          <li
-            v-for="target in preview.targets"
-            :key="`${target.module}:${target.item.pid}`"
-            class="break-all"
-            >{{ target.module }} {{ target.item.version }} — {{ target.item.bin }}</li
-          >
-          <li v-if="!preview.targets.length">{{
-            I18nT('versionmanager.brewUpgradeNoServices')
-          }}</li>
-        </ul>
-      </template>
-      <template #footer>
-        <el-button @click="confirmationVisible = false">{{ I18nT('base.cancel') }}</el-button>
-        <el-button type="primary" :disabled="homebrewUpgrade.busy" @click="confirmUpgrade">{{
-          I18nT('versionmanager.brewUpgradeConfirm')
-        }}</el-button>
-      </template>
-    </el-dialog>
-    <div
-      v-if="homebrewUpgrade.busy || homebrewUpgrade.result"
-      class="px-5 py-3 border-b border-gray-200 dark:border-gray-700"
-    >
-      <div class="flex items-center justify-between gap-3">
-        <span>{{ operationStatus }}</span>
-        <el-button link @click="showLogs = !showLogs">{{
-          I18nT('versionmanager.brewUpgradeLogs')
-        }}</el-button>
-      </div>
-      <pre
-        v-if="showLogs"
-        class="mt-3 max-h-56 overflow-auto whitespace-pre-wrap break-all text-xs"
-        aria-live="polite"
-        >{{ homebrewUpgrade.logs
-        }}{{
-          homebrewUpgrade.error
-            ? `
-${homebrewUpgrade.error}`
-            : ''
-        }}</pre>
-    </div>
+      :preview="preview"
+      :busy="homebrewUpgrade.busy"
+      :warn-php-series="typeFlag === 'php'"
+      @confirm="confirmUpgrade"
+    />
     <el-alert
-      v-if="typeFlag === 'php' && homebrewUpgrade.catalogError"
+      v-if="homebrewUpgrade.terminalView !== 'versions' && catalog?.error"
       :title="I18nT('versionmanager.brewUpgradeCatalogFailed')"
-      :description="homebrewUpgrade.catalogError"
+      :description="catalog?.error"
       type="warning"
       :closable="false"
       show-icon
     />
-    <template v-if="BrewSetup.installing">
+    <!-- The global package terminal takes the list's place for this operation. -->
+    <PackageTerminal v-if="homebrewUpgrade.terminalView === 'versions'" />
+    <template v-else-if="BrewSetup.installing">
       <div class="w-full h-full overflow-hidden p-5">
         <div ref="xtermDom" class="w-full h-full overflow-hidden"></div>
       </div>
@@ -167,7 +118,7 @@ ${homebrewUpgrade.error}`
         <el-table-column align="center" :label="I18nT('common.label.action')" width="170">
           <template #default="scope">
             <el-button
-              v-if="typeFlag === 'php' && upgradeInfo(scope.row)?.outdated"
+              v-if="upgradeInfo(scope.row)?.outdated"
               type="primary"
               link
               :disabled="
@@ -198,6 +149,8 @@ ${homebrewUpgrade.error}`
 <script lang="ts" setup>
   import { computed, ref } from 'vue'
   import { homebrewUpgrade } from './Controller'
+  import PackageTerminal from './PackageTerminal.vue'
+  import UpgradeDialog from './UpgradeDialog.vue'
   import type { BrewUpgradePreview } from '@fork/module/Brew/UpgradeTypes'
   import { I18nT } from '@lang/index'
   import type { AllAppModule } from '@/core/type'
@@ -209,42 +162,19 @@ ${homebrewUpgrade.error}`
 
   const confirmationVisible = ref(false)
   const preview = ref<BrewUpgradePreview>()
-  const showLogs = ref(false)
+  const catalog = computed(() => homebrewUpgrade.catalogs[props.typeFlag])
   const upgradeInfo = (row: { name: string }) =>
-    homebrewUpgrade.catalog[row.name.includes('/') ? row.name : `homebrew/core/${row.name}`]
-  const changesSeries = computed(() =>
-    preview.value?.snapshot.installedVersions.some(
-      (version) =>
-        version.split('.').slice(0, 2).join('.') !==
-        preview.value?.snapshot.availableVersion.split('.').slice(0, 2).join('.')
-    )
-  )
-  const operationStatus = computed(() => {
-    if (homebrewUpgrade.result?.postprocessError) return I18nT('versionmanager.brewPackagePartial')
-    const phase = homebrewUpgrade.phase
-    if (phase === 'succeeded')
-      return I18nT(
-        homebrewUpgrade.refreshFailed
-          ? 'versionmanager.brewUpgradeRefreshFailed'
-          : homebrewUpgrade.result?.action === 'upgrade'
-            ? 'versionmanager.brewUpgradeSuccess'
-            : 'versionmanager.brewPackageSuccess'
-      )
-    return I18nT(`versionmanager.brewUpgradePhase.${phase}`)
-  })
+    catalog.value?.rows[row.name.includes('/') ? row.name : `homebrew/core/${row.name}`]
   const openUpgrade = async (row: { name: string }) => {
     try {
-      preview.value = await homebrewUpgrade.prepare(row.name)
+      preview.value = await homebrewUpgrade.prepare(row.name, props.typeFlag)
       confirmationVisible.value = true
     } catch {
       /* controller reports the failure */
     }
   }
-  const confirmUpgrade = () => {
-    if (!preview.value) return
-    confirmationVisible.value = false
-    showLogs.value = true
-    homebrewUpgrade.confirm(preview.value).catch(() => {})
+  const confirmUpgrade = (accepted: BrewUpgradePreview) => {
+    homebrewUpgrade.confirm(accepted).catch(() => {})
   }
 
   const {

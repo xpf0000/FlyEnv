@@ -13,10 +13,10 @@ export const formulaName = (value: string) => {
 }
 export const fingerprint = (value: unknown) =>
   createHash('sha256').update(JSON.stringify(value)).digest('hex')
-export const brewEnvironment = (env: NodeJS.ProcessEnv) => ({
+export const brewEnvironment = (env: NodeJS.ProcessEnv, interactive = false) => ({
   ...env,
   HOMEBREW_NO_AUTO_UPDATE: '1',
-  HOMEBREW_NO_ASK: '1',
+  ...(interactive ? {} : { HOMEBREW_NO_ASK: '1' }),
   HOMEBREW_NO_INSTALL_CLEANUP: '1',
   HOMEBREW_NO_ANALYTICS: '1'
 })
@@ -73,10 +73,7 @@ export async function inspectFormula(
   const kegs: string[] = []
   const receipts: unknown[] = []
   let verified =
-    versions.length > 0 &&
-    versions.every((version) => /^\d/.test(version)) &&
-    !!item.versions?.stable &&
-    formula === `${item.tap}/${item.name}`
+    versions.length > 0 && !!item.versions?.stable && formula === `${item.tap}/${item.name}`
   for (const version of versions) {
     if (!/^[a-zA-Z0-9_.+-]+$/.test(version) || version === '..') {
       verified = false
@@ -137,21 +134,40 @@ export async function getBrewIdentity(bin: string, env = process.env): Promise<B
     queryBrew(resolved, ['--prefix'], env),
     queryBrew(resolved, ['--cellar'], env)
   ])
-  const arch = prefix === '/usr/local' ? 'x86_64' : process.arch === 'arm64' ? 'arm64' : 'x86_64'
+  const arch =
+    (process.platform === 'darwin' && prefix === '/usr/local') || process.arch === 'x64'
+      ? 'x86_64'
+      : process.arch
   return { bin: resolved, prefix: await realpath(prefix), cellar: await realpath(cellar), arch }
 }
 export async function getUpgradeCatalog(
   bin: string,
   formulas: string[],
-  env = process.env
+  env = process.env,
+  installedOnly = false
 ): Promise<BrewUpgradeCatalog> {
   const identity = await getBrewIdentity(bin, env)
   const result: BrewUpgradeCatalog = { rows: [], failures: [] }
-  for (const name of formulas) {
+  let installed: Set<string> | undefined
+  if (installedOnly) {
+    const metadata = JSON.parse(
+      await queryBrew(identity.bin, ['info', '--json=v2', '--installed', '--formula'], env)
+    ).formulae as Info[]
+    if (!Array.isArray(metadata)) throw new Error('Cannot verify installed Homebrew formulae')
+    installed = new Set()
+    for (const item of metadata) {
+      try {
+        installed.add(formulaName(item.full_name))
+      } catch (error) {
+        console.warn('Skipping invalid installed Homebrew formula:', String(error))
+      }
+    }
+  }
+  for (const name of new Set(formulas)) {
     let formula = name
     try {
       formula = formulaName(name)
-      if (!/^php(?:@\d+(?:\.\d+)*)?$/.test(formula.split('/').at(-1)!)) continue
+      if (installed && !installed.has(formula)) continue
       const [info, outdated] = await Promise.all([
         queryBrew(identity.bin, ['info', '--json=v2', '--formula', formula], env),
         queryBrew(identity.bin, ['outdated', '--json=v2', '--formula', formula], env)
@@ -160,13 +176,13 @@ export async function getUpgradeCatalog(
       const outdatedItems: { name: string }[] = JSON.parse(outdated).formulae
       if (!Array.isArray(items) || items.length !== 1 || !Array.isArray(outdatedItems))
         throw new Error('Cannot verify Homebrew formula metadata')
-      result.rows.push(
-        await inspectFormula(
-          identity,
-          items[0],
-          outdatedItems.map((i) => formulaName(i.name))
-        )
+      const item = items[0]
+      if (formulaName(item.full_name) !== formula)
+        throw new Error('Homebrew resolved a different formula')
+      const outdatedNames = outdatedItems.map(({ name }) =>
+        name === item.name ? formula : formulaName(name)
       )
+      result.rows.push(await inspectFormula(identity, item, outdatedNames))
     } catch (error) {
       result.failures.push({ formula, error: String(error) })
     }
@@ -239,14 +255,6 @@ export async function inspectUpgrade(bin: string, name: string, env = process.en
   const byName = new Map(all.map((i) => [i.name, i]))
   const connected = new Set(dependencyImpact(all, name.split('/').at(-1)!))
   row.affectedRacks = [...connected].sort().map((n) => join(row.identity.cellar, n))
-  if (
-    [...connected].some((n) =>
-      /^(mysql|mariadb|postgresql|mongodb(?:-community)?|redis|valkey|memcached)(?:@|$)/.test(n)
-    )
-  ) {
-    row.eligible = false
-    row.reason = 'dependencies'
-  }
   row.fingerprint = fingerprint([row.fingerprint, [...connected].sort().map((n) => byName.get(n))])
   return row
 }

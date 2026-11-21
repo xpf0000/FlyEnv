@@ -22,15 +22,17 @@ export type BrewUpgradeCatalog = {
 }
 export type BrewUpgradePreview = {
   previewId: string
-  module: 'php'
+  module: string
   snapshot: BrewFormulaSnapshot
   targets: BrewServiceTarget[]
 }
 export type BrewPackageAction = 'install' | 'uninstall' | 'upgrade'
+export type BrewPackageProgress = string | { terminalId: string }
 export type BrewPackageResult = {
   operationId: string
   identity?: BrewIdentity
   postprocessError?: string
+  canceled?: boolean
   action: BrewPackageAction
   outcome: 'succeeded' | 'failed' | 'unknown'
   code?: number | null

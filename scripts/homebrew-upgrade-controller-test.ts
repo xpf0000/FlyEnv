@@ -41,7 +41,11 @@ for (const failStop of [false, true]) {
   })
   const p = await c.prepare('php')
   assert.equal(events.includes('beginUpgrade'), false)
+  assert.equal(c.terminalView, undefined)
   const pending = c.confirm(p)
+  assert.equal(c.terminalView, 'versions')
+  c.dismissTerminal()
+  assert.equal(c.terminalView, 'versions')
   assert.equal(c.confirm(p), pending)
   await new Promise((r) => setTimeout(r, 0))
   if (!failStop) {
@@ -52,12 +56,18 @@ for (const failStop of [false, true]) {
     )
     assert.equal(c.busy, true)
     assert.equal(c.logs, 'working')
+    c.append('\r\nprogress')
+    assert.equal(c.logs, 'working\r\nprogress')
     assert.deepEqual(events.slice(2, 5), ['stop1', 'stop2', 'executeUpgrade'])
     finish()
   }
   const result = await pending
   assert.equal(result.outcome, failStop ? 'failed' : 'succeeded')
   assert.equal(c.phase, failStop ? 'failed' : 'succeeded')
+  assert.equal(c.terminalView, 'versions')
+  c.dismissTerminal()
+  assert.equal(c.terminalView, undefined)
+  assert.equal(c.result, result)
   assert.equal(events.filter((v) => v === 'executeUpgrade').length, failStop ? 0 : 1)
   assert.equal(c.refreshFailed, !failStop)
   assert.equal(notices, 1)
@@ -66,6 +76,42 @@ for (const failStop of [false, true]) {
 console.log(
   'PASS controller: cancel preview, duplicate flight, page-independent progress, stop-before-upgrade, stop failure, no restart, refresh warning'
 )
+let completePrepare!: (value: BrewUpgradePreview) => void
+let completeBegin!: (value: { operationId: string; targets: unknown[] }) => void
+const preflightActions: string[] = []
+const preflightOwner = new HomebrewUpgradeController({
+  call: async (action) => {
+    preflightActions.push(action)
+    if (action === 'prepareUpgrade')
+      return new Promise<BrewUpgradePreview>((resolve) => {
+        completePrepare = resolve
+      })
+    if (action === 'beginUpgrade')
+      return new Promise<{ operationId: string; targets: unknown[] }>((resolve) => {
+        completeBegin = resolve
+      })
+    assert.equal(action, 'cancelPendingUpgrade')
+    return true
+  },
+  stop: async () => {
+    throw new Error('Cannot stop after cancellation')
+  },
+  refresh: async () => {
+    throw new Error('Cannot refresh a canceled preflight')
+  },
+  notify: () => {}
+})
+const previewFlight = preflightOwner.prepare('php')
+assert.equal(preflightOwner.prepare('php'), previewFlight)
+await assert.rejects(preflightOwner.prepare('composer', 'composer'), /busy/)
+completePrepare(preview)
+const cancelable = preflightOwner.confirm(await previewFlight)
+preflightOwner.cancelTerminal()
+completeBegin({ operationId: 'pending', targets: preview.targets })
+assert.equal((await cancelable).canceled, true)
+assert.equal(preflightOwner.terminalView, undefined)
+assert.deepEqual(preflightActions, ['prepareUpgrade', 'beginUpgrade', 'cancelPendingUpgrade'])
+
 // Extension formula installation shares the flight and does not release renderer ownership before its required copy.
 let packageRelease!: () => void
 let copied = 0
@@ -81,6 +127,7 @@ const extensionOwner = new HomebrewUpgradeController({
 const extensionFlight = extensionOwner.package(
   { name: 'shivammathur/extensions/imagick@85', installed: false, typeFlag: 'php' },
   {
+    terminalView: 'extensions',
     afterPackage: async () => {
       copied++
       await new Promise<void>((r) => {
@@ -91,6 +138,7 @@ const extensionFlight = extensionOwner.package(
 )
 await new Promise((r) => setTimeout(r, 0))
 assert.equal(copied, 1)
+assert.equal(extensionOwner.terminalView, 'extensions')
 assert.equal(extensionOwner.busy, true)
 await assert.rejects(extensionOwner.prepare('php'), /busy/)
 packageRelease()
@@ -110,18 +158,27 @@ const catalogOwner = new HomebrewUpgradeController({
 })
 const oldCatalog = catalogOwner.loadCatalog(['php'])
 const newCatalog = catalogOwner.loadCatalog(['php'])
+const composerCatalog = catalogOwner.loadCatalog(['composer'], 'composer')
 catalogReplies[1]({
   rows: [{ formula: 'homebrew/core/php', installedVersions: ['8.5.12'] }],
   failures: []
 })
 await newCatalog
+catalogReplies[2]({
+  rows: [{ formula: 'homebrew/core/composer', installedVersions: ['2.8.7'] }],
+  failures: []
+})
+await composerCatalog
 catalogReplies[0]({
   rows: [],
   failures: [{ formula: 'homebrew/core/php', error: 'stale failure' }]
 })
 await assert.rejects(oldCatalog, /stale failure/)
-assert.deepEqual(catalogOwner.catalog['homebrew/core/php'].installedVersions, ['8.5.12'])
-assert.equal(catalogOwner.catalogError, '')
+assert.deepEqual(catalogOwner.catalogs.php.rows['homebrew/core/php'].installedVersions, ['8.5.12'])
+assert.equal(catalogOwner.catalogs.php.error, '')
+assert.deepEqual(catalogOwner.catalogs.composer.rows['homebrew/core/composer'].installedVersions, [
+  '2.8.7'
+])
 console.log('PASS catalog: late older reply cannot replace successful post-upgrade catalog')
 
 const partial = await extensionOwner.package(
@@ -173,9 +230,11 @@ catalogResponse = {
   failures: [{ formula: 'homebrew/core/php', error: 'info query timed out' }]
 }
 await assert.rejects(queryOwner.loadCatalog(['php', 'php@8.4']), /php.*timed out/)
-assert.equal(Object.hasOwn(queryOwner.catalog, 'homebrew/core/php'), false)
-assert.deepEqual(queryOwner.catalog['homebrew/core/php@8.4'].installedVersions, ['8.4.15'])
-assert.match(queryOwner.catalogError, /timed out/)
+assert.equal(Object.hasOwn(queryOwner.catalogs.php.rows, 'homebrew/core/php'), false)
+assert.deepEqual(queryOwner.catalogs.php.rows['homebrew/core/php@8.4'].installedVersions, [
+  '8.4.15'
+])
+assert.match(queryOwner.catalogs.php.error, /timed out/)
 const completed = await queryOwner.confirm({ previewId: 'query-preview', module: 'php' } as any)
 assert.equal(completed.outcome, 'succeeded')
 assert.equal(queryOwner.refreshFailed, true)
@@ -185,18 +244,18 @@ assert.equal(packageCalls, 1)
 assert.equal(notices, 1)
 catalogResponse = { rows: [], failures: [{ formula: 'homebrew/core/php', error: 'invalid JSON' }] }
 await assert.rejects(queryOwner.loadCatalog(['php']), /invalid JSON/)
-assert.match(queryOwner.catalogError, /invalid JSON/)
+assert.match(queryOwner.catalogs.php.error, /invalid JSON/)
 catalogTransportError = true
 await assert.rejects(queryOwner.loadCatalog(['php']), /worker exited/)
-assert.match(queryOwner.catalogError, /worker exited/)
+assert.match(queryOwner.catalogs.php.error, /worker exited/)
 catalogTransportError = false
 catalogResponse = {
   rows: [{ formula: 'homebrew/core/php', installedVersions: ['8.5.12'] }],
   failures: []
 }
 await queryOwner.loadCatalog(['php'])
-assert.equal(queryOwner.catalogError, '')
-assert.equal(queryOwner.catalog['homebrew/core/php'].installedVersions[0], '8.5.12')
+assert.equal(queryOwner.catalogs.php.error, '')
+assert.equal(queryOwner.catalogs.php.rows['homebrew/core/php'].installedVersions[0], '8.5.12')
 assert.equal(packageCalls, 1)
 assert.equal(notices, 1)
 console.log(

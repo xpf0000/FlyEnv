@@ -24,9 +24,23 @@ export class XTerm implements XTermType {
   private resolve: ResolveFn | undefined = undefined
   private executionKey?: string
 
-  constructor() {}
-
-  mount(dom: HTMLElement) {
+  mount(dom?: HTMLElement, existing?: { key?: string; onData?: (data: string) => void }) {
+    const attach = (ptyKey: string) => {
+      if (this.ptyKey === ptyKey) return
+      if (this.ptyKey) IPC.off(`NodePty:data:${this.ptyKey}`)
+      this.ptyKey = ptyKey
+      IPC.on(`NodePty:data:${ptyKey}`).then((_key: string, data: string) => {
+        this.write(data)
+        existing?.onData?.(data)
+        this.xterm?.focus?.()
+      })
+    }
+    if (existing?.key) attach(existing.key)
+    if (!dom) {
+      this.onWindowResit()
+      this.xterm?.focus()
+      return Promise.resolve(true)
+    }
     this.dom = dom
     return new Promise((resolve, reject) => {
       const doMount = async () => {
@@ -39,6 +53,10 @@ export class XTerm implements XTermType {
           appTheme = isDark ? 'dark' : 'light'
         } else {
           appTheme = appStore?.config?.setup?.theme
+        }
+        if (this.dom !== dom) {
+          resolve(false)
+          return
         }
         if (appTheme === 'light') {
           theme.background = '#ffffff'
@@ -81,18 +99,21 @@ export class XTerm implements XTermType {
         this.xterm.loadAddon(fitaddon)
         this.xterm.open(dom)
         fitaddon.fit()
-        const cols = this.xterm.cols
-        const rows = this.xterm.rows
-        IPC.send('NodePty:resize', this.ptyKey, { cols, rows }).then((key: string) => IPC.off(key))
+        if (this.ptyKey) {
+          const { cols, rows } = this.xterm
+          IPC.send('NodePty:resize', this.ptyKey, { cols, rows }).then((key: string) =>
+            IPC.off(key)
+          )
+        }
         this.fitaddon = fitaddon
         this.initEvent()
-        this.xterm.focus()
+        if (this.ptyKey) this.xterm.focus()
         this.initLog()
         this.xterm?.write('\x1b[?25h')
         resolve(true)
       }
 
-      if (!this.ptyKey) {
+      if (!existing && !this.ptyKey) {
         IPC.send('NodePty:init').then((key: string, res: any) => {
           if (res?.code === 200) return
           IPC.off(key)
@@ -100,15 +121,7 @@ export class XTerm implements XTermType {
             reject(new Error(res?.msg ?? 'Failed to initialize terminal'))
             return
           }
-          this.ptyKey = res?.data ?? ''
-          /**
-           * Receive node-pty data
-           */
-          IPC.on(`NodePty:data:${this.ptyKey}`).then((key: string, data: string) => {
-            this.write(data)
-            this.xterm?.focus?.()
-          })
-
+          attach(res.data)
           doMount().catch(reject)
         })
       } else {
@@ -129,7 +142,7 @@ export class XTerm implements XTermType {
       return true
     })
     this.xterm!.onData((data) => {
-      if (this.end) {
+      if (this.end || !this.ptyKey) {
         return
       }
       const request = IPC.sendSensitive('NodePty:write', this.ptyKey, data)
@@ -189,6 +202,7 @@ export class XTerm implements XTermType {
   onWindowResit() {
     if (this.xterm) {
       this.fitaddon?.fit()
+      if (!this.ptyKey || this.end) return
       const cols = this.xterm.cols
       const rows = this.xterm.rows
       IPC.send('NodePty:resize', this.ptyKey, { cols, rows }).then((key: string) => IPC.off(key))

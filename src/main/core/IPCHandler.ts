@@ -247,6 +247,9 @@ export default class IPCHandler extends EventEmitter {
         registrationSnapshot = ServiceProcessManager.registrationSnapshot(module)
       }
       try {
+        if (module === 'brew' && (action === 'beginUpgrade' || action === 'packageOperation')) {
+          await this.loadNodePty()
+        }
         const request = withWindowsPrivilegeInteraction(
           !command.startsWith('app-fork-background:') && !(module === 'app' && action === 'start'),
           () => forkManager.send(module, ...dispatchArgs)

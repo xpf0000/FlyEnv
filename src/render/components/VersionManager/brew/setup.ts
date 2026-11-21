@@ -61,6 +61,13 @@ export const Setup = (typeFlag: AllAppModule) => {
     const module = brewStore.module(typeFlag)
     return module.brewFetching
   })
+  const loadCatalog = () => {
+    const rows = brewStore.module(typeFlag).brew
+    return homebrewUpgrade.loadCatalog(
+      rows.filter((row) => row.installed).map((row) => row.name),
+      typeFlag
+    )
+  }
 
   const fetchData = () => {
     if (!checkBrew.value || BrewSetup.installing) {
@@ -71,8 +78,7 @@ export const Setup = (typeFlag: AllAppModule) => {
       return
     }
     module.fetchBrew().then((ok) => {
-      if (ok && typeFlag === 'php' && window.Server.isMacOS)
-        homebrewUpgrade.loadCatalog(module.brew.map((row) => row.name)).catch(() => {})
+      if (ok) loadCatalog().catch(() => {})
     })
   }
   const getData = () => {
@@ -238,11 +244,7 @@ export const Setup = (typeFlag: AllAppModule) => {
   }
 
   getData()
-  if (typeFlag === 'php' && window.Server.isMacOS && brewStore.module(typeFlag).brew.length) {
-    homebrewUpgrade
-      .loadCatalog(brewStore.module(typeFlag).brew.map((row) => row.name))
-      .catch(() => {})
-  }
+  if (checkBrew.value && brewStore.module(typeFlag).brew.length) loadCatalog().catch(() => {})
 
   watch(checkBrew, (v, ov) => {
     if (!ov && v) {
@@ -262,7 +264,7 @@ export const Setup = (typeFlag: AllAppModule) => {
   })
 
   onUnmounted(() => {
-    BrewSetup?.xterm?.unmounted?.()
+    if (BrewSetup.installing) BrewSetup.xterm?.unmounted()
   })
 
   return {

@@ -39,6 +39,10 @@ async function renderer() {
         removed.push(key)
       }
     },
+    '@/util/XTerm': class {
+      destroy() {}
+    },
+    './setup': { BrewSetup: {} },
     '@/util/Index': { reactiveBind: (value: unknown) => value },
     '@/store/brew': {
       BrewStore: () => {
@@ -83,6 +87,16 @@ console.log(
   'PASS transport: execute/package unknown is preserved, known failure stays failed, progress and terminal cleanup remain correct'
 )
 
+const failedInstall = await renderer()
+const installation = failedInstall.homebrewUpgrade.package({
+  name: 'composer',
+  installed: false,
+  typeFlag: 'composer'
+})
+failedInstall.reply(0, { code: 1, msg: 'Package unavailable' })
+assert.equal((await installation).outcome, 'failed')
+assert.match(failedInstall.notices[0].message, /^base\.fail\nPackage unavailable$/)
+
 for (const workflow of ['install', 'upgrade']) {
   const bridge = await renderer()
   const pending =
@@ -108,7 +122,11 @@ for (const workflow of ['install', 'upgrade']) {
   assert.match(bridge.homebrewUpgrade.logs, /package output/)
   assert.equal(bridge.refreshes(), 0)
   assert.equal(bridge.notices.length, 1)
-  assert.match(bridge.notices[0].message, /brewUpgradeUnknown/)
+  assert.match(bridge.notices[0].message, /brewUpgradePhase\.unknown/)
+  assert.equal(bridge.homebrewUpgrade.terminalFinished, true)
+  bridge.homebrewUpgrade.dismissTerminal()
+  assert.equal(bridge.homebrewUpgrade.terminalView, undefined)
+  assert.equal(bridge.homebrewUpgrade.busy, true)
   await assert.rejects(bridge.homebrewUpgrade.prepare('homebrew/core/php'), /busy/)
   assert.equal(bridge.requests.length, commandIndex + 1)
 }

@@ -1,5 +1,5 @@
 import { app } from 'electron'
-import { mkdir, writeFile, readFile, rm } from 'node:fs/promises'
+import { mkdir, writeFile, readFile, rm, open } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { spawn, type ChildProcess } from 'node:child_process'
@@ -78,6 +78,34 @@ async function run() {
     )
     const update = `Array.from(document.querySelectorAll('.el-table button')).find(b=>b.textContent.trim()==='Update')`
     await wait(`!!(${update}) && !(${update}).disabled`, 100_000)
+    const previousExtension = join(root, 'extension.so')
+    const nextExtension = join(root, 'next-extension.so')
+    await writeFile(previousExtension, 'previous library')
+    await writeFile(nextExtension, 'replacement library')
+    const liveLibrary = await open(previousExtension, 'r')
+    try {
+      const copy = (source: string) =>
+        js(
+          `(async()=> (await import('/util/NodeFn.ts')).fs.copyFile(${JSON.stringify(source)}, ${JSON.stringify(previousExtension)}, true))()`
+        )
+      assert.equal(await copy(nextExtension), true)
+      assert.equal(await liveLibrary.readFile('utf8'), 'previous library')
+      assert.equal(await copy(join(root, 'unavailable-extension.so')), false)
+      assert.equal(await readFile(previousExtension, 'utf8'), 'replacement library')
+    } finally {
+      await liveLibrary.close()
+    }
+    checkpoints.push('atomic-extension-copy-preserves-open-library-and-reports-write-failure')
+    const list = `document.querySelector('.version-manager .el-table')`
+    const terminal = `document.querySelector('.version-manager .xterm .xterm-screen')`
+    const terminalFits = `(${terminal}).offsetHeight <= (${terminal}).closest('[role="region"]').clientHeight`
+    const confirmButton = `document.querySelector('.version-manager .el-card__footer .el-button--primary')`
+    const confirmTerminal = async () => {
+      await wait(`!!(${confirmButton}) && !!(${terminal}) && !(${list})`)
+      await wait(terminalFits, 3000)
+      await js(`(${confirmButton}).click()`)
+      await wait(`!!(${list}) && !(${terminal})`)
+    }
     const ini = join(root, 'user-php.ini')
     await writeFile(ini, 'user setting remains unchanged\n')
     const current = {
@@ -133,6 +161,7 @@ async function run() {
     assert.equal(ServiceProcess.statusOf('php').instances.length, 1)
     assert.equal(existsSync(join(root, 'events')), false)
     checkpoints.push('ordinary-extension-install-blocked-with-running-service-no-stop-or-package')
+    await confirmTerminal()
     const confirm = async () => {
       await js(`(${update}).click()`)
       await wait(
@@ -142,6 +171,22 @@ async function run() {
         `Array.from(document.querySelectorAll('.el-dialog button')).find(b=>b.textContent.trim()==='Confirm update' && b.getBoundingClientRect().height>0).click()`
       )
     }
+    const { nodePtyRuntime } = await import('../../src/main/core/lazy/OptionalRuntimes')
+    const loadNodePty = nodePtyRuntime.load
+    nodePtyRuntime.load = async () => {
+      throw new Error('fixture NodePTY load failure')
+    }
+    try {
+      await confirm()
+      await wait(`window.brewSmoke.phase==='failed'`)
+      assert.match(await js('window.brewSmoke.error'), /fixture NodePTY load failure/)
+      assert.equal(ServiceProcess.statusOf('php').instances.length, 1)
+      assert.equal(existsSync(join(root, 'events')), false)
+      await confirmTerminal()
+    } finally {
+      nodePtyRuntime.load = loadNodePty
+    }
+    checkpoints.push('terminal-load-failure-preserves-running-service-and-allows-retry')
     await writeFile(join(root, 'fail-stop'), 'yes')
     await confirm()
     await wait(`window.brewSmoke.phase==='failed'`)
@@ -149,10 +194,20 @@ async function run() {
     assert.equal(existsSync(join(root, 'events')), false)
     assert.equal(ServiceProcess.statusOf('php').instances.length, 1)
     checkpoints.push('failed-stop-never-runs-brew')
+    await confirmTerminal()
     await rm(join(root, 'fail-stop'))
     await writeFile(join(root, 'fail-upgrade'), 'yes')
     await confirm()
     await wait(`window.brewSmoke.phase==='upgrading'`)
+    await wait(
+      `window.brewSmoke.logs.includes('fixture upgrade running TTY') && !!(${terminal}) && !(${list})`
+    )
+    assert.equal(await js(`!!(${confirmButton})`), false)
+    await writeFile(
+      join(output, 'terminal-live.png'),
+      (await win.webContents.capturePage()).toPNG()
+    )
+    checkpoints.push('live-node-pty-output-replaces-list-with-xterm')
     const blocked: any = await application.forkManager
       .send('php', 'startService', item)
       .catch((e: Error) => ({ code: 1, msg: e.message }))
@@ -165,14 +220,17 @@ async function run() {
       'upgrade'
     ])
     checkpoints.push('stop-before-upgrade-failure-no-restart-start-gated')
+    await confirmTerminal()
     await rm(join(root, 'fail-upgrade'))
     await startService()
     await confirm()
     await wait(`window.brewSmoke.phase==='upgrading'`)
+    await wait(`!!(${terminal}) && !(${list})`)
     await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/mcp')`)
     await new Promise((r) => setTimeout(r, 250))
     await js(`window.__FLYENV_PLUGIN_ROUTER__.push('/php')`)
     await wait(`window.brewSmoke.phase==='succeeded'`)
+    await confirmTerminal()
     await wait(`document.querySelector('.el-table')?.textContent.includes('8.5.12')`)
     assert.equal(ServiceProcess.statusOf('php').instances.length, 0)
     assert.equal(JSON.stringify(application.configManager.getConfig('server.php.current')), before)
@@ -218,21 +276,106 @@ async function run() {
     checkpoints.push('shared-lifecycle-start-gated-and-quit-drain-waits-package-close')
     assert.equal(await js('window.brewSmoke.result.outcome'), 'succeeded')
     assert.equal(await js('window.brewSmoke.refreshFailed'), true)
-    assert.match(await js('window.brewSmoke.catalogError'), /fixture catalog query failure/)
-    assert.equal(await js('Object.keys(window.brewSmoke.catalog).length'), 0)
+    assert.match(await js('window.brewSmoke.catalogs.php.error'), /fixture catalog query failure/)
+    assert.equal(await js('Object.keys(window.brewSmoke.catalogs.php.rows).length'), 0)
+    await confirmTerminal()
     await wait(
       `document.querySelector('.el-alert')?.textContent.includes('Some Homebrew update information')`
     )
     assert.equal((await readFile(join(root, 'events'), 'utf8')).match(/upgrade/g)?.length, 3)
     await rm(join(root, 'fail-catalog'))
     await js(`window.brewSmoke.loadCatalog(['homebrew/core/php'])`)
-    assert.equal(await js('window.brewSmoke.catalogError'), '')
+    assert.equal(await js('window.brewSmoke.catalogs.php.error'), '')
     checkpoints.push('catalog-query-failure-visible-success-preserved-no-replay-refresh-recovers')
+
+    const selectVersionTab = (tab: number) =>
+      js(
+        `(async()=>{ const { AppModuleTab }=await import('/core/Module.ts'); const { BrewStore }=await import('/store/brew.ts'); BrewStore().LibUse.composer='brew'; AppModuleTab.php=${tab}; })()`
+      )
+    const packageButton = (label: string) =>
+      `Array.from(document.querySelectorAll('.version-manager .el-table button')).find(b=>b.textContent.trim()===${JSON.stringify(label)})`
+    await selectVersionTab(3)
+    const startComposerOperation = async (action: string, label: string) => {
+      const button = packageButton(label)
+      await wait(`!!(${button}) && !(${button}).disabled`)
+      await js(`(${button}).click()`)
+      await wait(
+        `!!window.brewSmoke.terminalId && window.brewSmoke.logs.includes('fixture composer ${action} TTY') && !!(${terminal}) && !(${list})`
+      )
+    }
+    const composerMarker = join(root, 'composer-installed')
+    await startComposerOperation('install', 'Install')
+    const sharedPtyKey = await js('window.brewSmoke.terminalId')
+    assert(nodePtyRuntime.peek()?.pty[sharedPtyKey])
+    assert.equal(
+      await js(
+        `(async()=>{const { BrewSetup }=await import('/components/VersionManager/brew/setup.ts'); window.brewSmokeView=BrewSetup.xterm; return BrewSetup.xterm.ptyKey})()`
+      ),
+      sharedPtyKey
+    )
+    await selectVersionTab(2)
+    await wait(`!!(${terminal}) && !(${list})`)
+    await selectVersionTab(3)
+    assert.equal(
+      await js(
+        `(async()=>{const { BrewSetup }=await import('/components/VersionManager/brew/setup.ts'); return window.brewSmokeView===BrewSetup.xterm})()`
+      ),
+      true
+    )
+    await wait(`document.activeElement?.classList.contains('xterm-helper-textarea')`)
+    const footer = `document.querySelector('.version-manager .el-card__footer')`
+    const footerBottom = `(${footer})?.getBoundingClientRect().bottom`
+    const initialFooterBottom = await js(footerBottom)
+    assert(initialFooterBottom > 0)
+    win.webContents.sendInputEvent({ type: 'char', keyCode: 'y' })
+    assert.equal(await js(footerBottom), initialFooterBottom)
+    win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'Enter' })
+    await wait(`window.brewSmoke.phase==='refreshing'`)
+    assert.equal(await js(footerBottom), initialFooterBottom)
+    assert.equal(await js(`(${footer}).querySelector('button').disabled`), true)
+    await wait(`window.brewSmoke.phase==='succeeded'`)
+    assert.equal(await readFile(composerMarker, 'utf8'), '2.8.7')
+    assert.equal(nodePtyRuntime.peek()?.pty[sharedPtyKey], undefined)
+    await confirmTerminal()
+    checkpoints.push('composer-keyboard-input-and-refresh-keep-terminal-footer-fixed')
+
+    await wait(`!!(${update}) && !(${update}).disabled`)
+    await confirm()
+    await wait(`window.brewSmoke.phase==='succeeded'`)
+    assert.equal(await readFile(composerMarker, 'utf8'), '2.9.0')
+    await confirmTerminal()
+    await wait(`!(${update})`)
+    checkpoints.push('non-php-upgrade-confirmed-executed-and-refreshed')
+
+    await startComposerOperation('uninstall', 'Uninstall')
+    const canceledPtyKey = await js('window.brewSmoke.terminalId')
+    await js(`document.querySelector('.version-manager .el-card__footer button').click()`)
+    await wait(`window.brewSmoke.result?.canceled && !!(${list}) && !(${terminal})`)
+    assert.equal(nodePtyRuntime.peek()?.pty[canceledPtyKey], undefined)
+    assert.equal(await readFile(composerMarker, 'utf8'), '2.9.0')
+    checkpoints.push('running-package-cancel-waits-for-exit-before-returning-to-list')
+
+    await startComposerOperation('uninstall', 'Uninstall')
+    const keyboardCanceledPtyKey = await js('window.brewSmoke.terminalId')
+    await wait(`document.activeElement?.classList.contains('xterm-helper-textarea')`)
+    win.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'C', modifiers: ['control'] })
+    await wait(`window.brewSmoke.result?.canceled && !!(${list}) && !(${terminal})`)
+    assert.equal(nodePtyRuntime.peek()?.pty[keyboardCanceledPtyKey], undefined)
+    assert.equal(await readFile(composerMarker, 'utf8'), '2.9.0')
+    checkpoints.push('xterm-ctrl-c-uses-package-cancellation')
+
+    await startComposerOperation('uninstall', 'Uninstall')
+    await wait(`window.brewSmoke.phase==='succeeded'`)
+    assert.equal(existsSync(composerMarker), false)
+    await confirmTerminal()
+    await wait(`!!(${packageButton('Install')})`)
+    checkpoints.push('uninstall-button-refreshes-list-and-restores-install-action')
+    await selectVersionTab(2)
 
     await js(
       `(async()=>{await (await import('/core/LanguageService.ts')).RendererLanguage.switchLocale('zh');window.__FLYENV_PLUGIN_HOST__['element-plus'].ElMessage.closeAll();window.__FLYENV_PLUGIN_HOST__['element-plus'].ElMessageBox.close();document.documentElement.classList.remove('light');document.documentElement.classList.add('dark')})()`
     )
-    await wait(`document.body.textContent.includes('更新成功')`)
+    await wait(`!!(${list}) && !(${terminal})`)
     win.setSize(900, 760)
     await new Promise((r) => setTimeout(r, 700))
     await writeFile(

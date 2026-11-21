@@ -1,6 +1,7 @@
 import { statSync } from 'node:fs'
 import type { SoftInstalled } from '@shared/app'
 import { compareVersions } from '@shared/compare-versions'
+import { quotePosixShell } from '@shared/Gvm'
 import { dirname, join } from 'path'
 import {
   spawnPromiseWithEnv,
@@ -336,9 +337,9 @@ const fetchBrewCellarDirs = async () => {
   return Array.from(dirs)
 }
 
-const fetchActiveBrewCellarDirs = async () => {
+const fetchActiveBrewCellarDirs = async (bin: string) => {
   try {
-    const res = await spawnPromiseWithEnv('brew', ['--cellar'])
+    const res = await spawnPromiseWithEnv(bin, ['--cellar'], { shell: false })
     const dirs = res.stdout
       .split('\n')
       .map((dir) => normalizeExistingDir(dir))
@@ -347,7 +348,7 @@ const fetchActiveBrewCellarDirs = async () => {
       return [...new Set(dirs)]
     }
   } catch {}
-  return fetchBrewCellarDirs()
+  return bin === 'brew' ? fetchBrewCellarDirs() : []
 }
 
 export const versionLocalFetch = async (
@@ -529,15 +530,16 @@ export const brewInfoJson = async (names: string[], options?: { tapAware?: boole
     return info
   }
   const fetchedFormulae = options?.tapAware ? new Set<string>() : undefined
+  const bin = global.Server?.BrewBin || 'brew'
   let cellarDirs: string[] | undefined
   const getCellarDirs = async () => {
-    cellarDirs ??= await fetchActiveBrewCellarDirs()
+    cellarDirs ??= await fetchActiveBrewCellarDirs(bin)
     return cellarDirs
   }
   const fetchInfo = async (formulaNames: string[]) => {
-    const command = ['brew', 'info', ...formulaNames, '--json', '--formula'].join(' ')
-    console.log('brewinfo doRun: ', command)
-    const res = await execPromiseWithEnv(command)
+    const res = await spawnPromiseWithEnv(bin, ['info', ...formulaNames, '--json', '--formula'], {
+      shell: false
+    })
     const arr = JSON.parse(res.stdout)
     for (const item of arr) {
       const formulaKey = `${item?.tap ?? ''}:${item?.full_name ?? item?.name ?? ''}`
@@ -583,7 +585,10 @@ export const brewSearch = async (
   handleContent?: (content: string) => string
 ) => {
   try {
-    const res = await execPromiseWithEnv(command)
+    const bin = global.Server?.BrewBin
+    const search =
+      bin && command.startsWith('brew ') ? `${quotePosixShell(bin)}${command.slice(4)}` : command
+    const res = await execPromiseWithEnv(search)
     let content: any = res.stdout
     console.log('brewinfo content: ', content)
     if (handleContent) {

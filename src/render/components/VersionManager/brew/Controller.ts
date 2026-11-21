@@ -1,4 +1,5 @@
 import { ElMessage } from 'element-plus'
+import { markRaw } from 'vue'
 import { I18nT } from '@lang/index'
 import IPC from '@/util/IPC'
 import { reactiveBind } from '@/util/Index'
@@ -6,12 +7,14 @@ import { BrewStore } from '@/store/brew'
 import { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
 import type { AllAppModule } from '@/core/type'
 import { HomebrewUpgradeController } from './UpgradeController'
-import type { BrewPackageResult } from '@fork/module/Brew/UpgradeTypes'
+import type { BrewPackageProgress, BrewPackageResult } from '@fork/module/Brew/UpgradeTypes'
+import XTerm from '@/util/XTerm'
+import { BrewSetup } from './setup'
 
 export const brewRequest = (
   action: string,
   args: unknown[],
-  progress?: (data: string) => void
+  progress?: (data: BrewPackageProgress) => void
 ): Promise<any> =>
   new Promise((resolve, reject) => {
     const request = IPC.send('app-fork:brew', action, ...args)
@@ -19,7 +22,8 @@ export const brewRequest = (
     request.then((key: string, info: any) => {
       if (settled) return
       if (info?.code === 200) {
-        progress?.(String(info.msg ?? ''))
+        if (typeof info.msg === 'string' || typeof info.msg?.terminalId === 'string')
+          progress?.(info.msg)
         return
       }
       settled = true
@@ -40,6 +44,24 @@ export const brewRequest = (
 export const homebrewUpgrade = reactiveBind(
   new HomebrewUpgradeController({
     call: brewRequest,
+    terminal: {
+      open: () => {
+        if (BrewSetup.installing) throw new Error('Homebrew installation is busy')
+        BrewSetup.xterm?.destroy()
+        BrewSetup.xterm = markRaw(new XTerm())
+      },
+      attach: (key, onData) => {
+        void BrewSetup.xterm?.mount(undefined, { key, onData })
+      },
+      stop: () => BrewSetup.xterm?.stop(),
+      end: () => {
+        if (BrewSetup.xterm) BrewSetup.xterm.end = true
+      },
+      close: () => {
+        BrewSetup.xterm?.destroy()
+        BrewSetup.xterm = undefined
+      }
+    },
     stop: async (target) => {
       // Main's accepted PID snapshot, not a stale mounted row, is the stop target.
       const item = new ModuleInstalledItem({ ...target.item, run: true, running: false })
@@ -57,7 +79,10 @@ export const homebrewUpgrade = reactiveBind(
           }),
         module.fetchBrew(true).then(async (ok) => {
           if (!ok) throw new Error('Homebrew catalog refresh failed')
-          if (flag === 'php') await homebrewUpgrade.loadCatalog(module.brew.map((row) => row.name))
+          await homebrewUpgrade.loadCatalog(
+            module.brew.filter((row) => row.installed).map((row) => row.name),
+            flag
+          )
         })
       ])
       const errors = results.filter((r) => r.status === 'rejected')
@@ -77,14 +102,20 @@ export const homebrewUpgrade = reactiveBind(
                 ? 'brewUpgradeSuccess'
                 : 'brewPackageSuccess'
           : result.outcome === 'unknown'
-            ? 'brewUpgradeUnknown'
-            : 'brewUpgradeFailed'
+            ? 'brewUpgradePhase.unknown'
+            : 'brewUpgradePhase.failed'
+      const message = I18nT(
+        result.outcome === 'failed' && result.action !== 'upgrade'
+          ? 'base.fail'
+          : `versionmanager.${key}`
+      )
+      const detail = result.postprocessError || result.error
       ElMessage({
         type:
           result.outcome === 'succeeded' && !refreshFailed && !result.postprocessError
             ? 'success'
             : 'warning',
-        message: `${I18nT(`versionmanager.${key}`)}${result.postprocessError || result.error ? `\n${result.postprocessError || result.error}` : ''}`,
+        message: detail ? `${message}\n${detail}` : message,
         duration: 7000,
         showClose: true
       })

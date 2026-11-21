@@ -318,14 +318,17 @@ export class Module {
     this.brewFlight = brewInfo(this.typeFlag)
       .then((res: any) => {
         const newItems: any[] = []
+        const formulas = new Map(this.brew.map((item) => [item.name, item]))
         for (const item of res) {
-          const find = this.brew.find((d) => d.name === item.name && d.version === item.version)
+          // A full formula name identifies the row. Its available version can change.
+          const find = formulas.get(item.name)
           if (!find) {
             const obj = reactive(new ModuleHomebrewItem(item))
             obj.typeFlag = this.typeFlag
             obj.fetchCommand = obj.fetchCommand.bind(obj)
             obj.copyCommand = obj.copyCommand.bind(obj)
             obj.runCommand = obj.runCommand.bind(obj)
+            formulas.set(obj.name, obj)
             newItems.push(obj)
           } else {
             Object.assign(find, item)

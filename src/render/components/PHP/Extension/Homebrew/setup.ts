@@ -11,6 +11,7 @@ import { clipboard, fs } from '@/util/NodeFn'
 import { BrewExtensionCatalog as BrewSetup, fetchHomebrewExtensions } from './Catalog'
 import { copyHomebrewExtension } from './ExtensionPackage'
 import { homebrewUpgrade } from '@/components/VersionManager/brew/Controller'
+import type { BrewPackageResult, BrewUpgradePreview } from '@fork/module/Brew/UpgradeTypes'
 export { BrewSetup }
 
 export const Setup = (version: SoftInstalled) => {
@@ -20,25 +21,52 @@ export const Setup = (version: SoftInstalled) => {
     return BrewSetup.fetching?.[version.bin] ?? false
   })
 
-  const fetchData = () => fetchHomebrewExtensions(version).catch(() => {})
-  const reGetData = () => fetchHomebrewExtensions(version, true).catch(() => {})
+  const catalogKey = (bin: string) => `extensions:${bin}`
+  const catalog = computed(() => homebrewUpgrade.catalogs[catalogKey(version.bin)])
+  const refreshUpgradeCatalog = (bin: string) =>
+    homebrewUpgrade
+      .loadCatalog(
+        (BrewSetup.list[bin] ?? []).map((row) => row.libName),
+        catalogKey(bin),
+        true
+      )
+      .catch(() => {})
+  const fetchData = () =>
+    fetchHomebrewExtensions(version)
+      .then(() => refreshUpgradeCatalog(version.bin))
+      .catch(() => {})
+  const reGetData = () =>
+    fetchHomebrewExtensions(version, true)
+      .then(() => refreshUpgradeCatalog(version.bin))
+      .catch(() => {})
   BrewSetup.reFetch = reGetData
 
-  const handleEdit = (row: any) => {
-    const request = { name: String(row.libName), installed: !!row.status, typeFlag: 'php' }
+  const afterPackage = (formula: string, copy: boolean) => {
     const selected = { bin: version.bin, version: version.version }
     const extensionDir = ExtensionSetup.dir[version.bin] ?? ''
+    return async (result: BrewPackageResult) => {
+      if (copy) await copyHomebrewExtension(result, formula, extensionDir, fs)
+      ExtensionSetup.dirFile[selected.bin] = await fs.readdir(extensionDir)
+      await fetchHomebrewExtensions(selected, true)
+      await refreshUpgradeCatalog(selected.bin)
+    }
+  }
+  const handleEdit = (row: any) => {
+    const request = { name: String(row.libName), installed: !!row.status, typeFlag: 'php' }
     return homebrewUpgrade
       .package(request, {
-        afterPackage: async (result) => {
-          if (!request.installed)
-            await copyHomebrewExtension(result, request.name, extensionDir, fs)
-          ExtensionSetup.dirFile[selected.bin] = await fs.readdir(extensionDir)
-          await fetchHomebrewExtensions(selected, true)
-        }
+        terminalView: 'extensions',
+        afterPackage: afterPackage(request.name, !request.installed)
       })
       .catch(() => {})
   }
+  const upgrade = (preview: BrewUpgradePreview, copy: boolean) =>
+    homebrewUpgrade
+      .confirm(preview, {
+        terminalView: 'extensions',
+        afterPackage: afterPackage(preview.snapshot.formula, copy)
+      })
+      .catch(() => {})
 
   const tableData = computed(() => {
     const sortName = (a: any, b: any) => {
@@ -141,6 +169,8 @@ xdebug.output_dir = "${output_dir}"
     tableData,
     reGetData,
     fetching,
+    catalog,
+    upgrade,
     copyLink,
     copyXDebugTmpl,
     search,

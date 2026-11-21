@@ -754,7 +754,7 @@ await import('./language-project-ports-test')
 
 console.log('renderer operation boundary tests passed')
 
-// Homebrew formula mutations are controller/fork owned; only bootstrap retains XTerm.
+// Homebrew formula mutations are controller-owned and share the app-wide XTerm and NodePTY.
 const homebrewPage = readFileSync(join(componentsDir, 'VersionManager/brew/index.vue'), 'utf8')
 const homebrewSetup = readFileSync(join(componentsDir, 'VersionManager/brew/setup.ts'), 'utf8')
 const homebrewItem = readFileSync(
@@ -769,6 +769,19 @@ assert.doesNotMatch(homebrewPage, /IPC\.send|new XTerm|Message(?:Error|Success|W
 assert.doesNotMatch(homebrewSetup + homebrewItem, /brew-cmd\.sh/)
 assert.doesNotMatch(homebrewItem, /new XTerm|IPC\.send/)
 assert.match(homebrewController, /reactiveBind\(\s*new HomebrewUpgradeController/)
+assert.match(homebrewPage, /<PackageTerminal v-if="homebrewUpgrade\.terminalView === 'versions'"/)
+const homebrewTerminal = readFileSync(
+  join(componentsDir, 'VersionManager/brew/PackageTerminal.vue'),
+  'utf8'
+)
+assert.match(homebrewTerminal, /const terminal = BrewSetup\.xterm/)
+assert.match(homebrewTerminal, /terminal\.mount/)
+assert.doesNotMatch(homebrewTerminal, /new XTerm|onData|controlTerminal/)
+assert.doesNotMatch(
+  readFileSync(join(root, 'src/fork/module/Brew/index.ts'), 'utf8'),
+  /node-pty|BrewPackageRunner|controlPackage/
+)
+assert.doesNotMatch(homebrewTerminal, /IPC\.send|terminal\.send|terminal\.stop/)
 
 const extensionBrewSetup = readFileSync(
   join(componentsDir, 'PHP/Extension/Homebrew/setup.ts'),
@@ -781,3 +794,7 @@ const extensionBrewPage = readFileSync(
 assert.doesNotMatch(extensionBrewSetup + extensionBrewPage, /brew-cmd\.sh|new XTerm|xterm\?\.stop/)
 assert.match(extensionBrewSetup, /homebrewUpgrade\s*\.package/)
 assert.match(extensionBrewPage, /homebrewUpgrade\.busy/)
+assert.match(
+  extensionBrewPage,
+  /<PackageTerminal v-if="homebrewUpgrade\.terminalView === 'extensions'"\s*\/?>\s*<el-table\s+v-else/
+)

@@ -11,8 +11,10 @@ const files = {
   realpath: async () => '/brew/Cellar/imagick@8.5/3.8.1',
   readdir: async () => ['/brew/Cellar/imagick@8.5/3.8.1/lib/imagick.so'],
   mkdirp: async () => {},
-  copyFile: async (source: string, dest: string) => {
+  copyFile: async (source: string, dest: string, atomic?: boolean) => {
+    assert.equal(atomic, true)
     copied.push([source, dest])
+    return true
   }
 }
 await copyHomebrewExtension(
@@ -24,6 +26,13 @@ await copyHomebrewExtension(
 assert.deepEqual(copied, [
   ['/brew/Cellar/imagick@8.5/3.8.1/lib/imagick.so', '/user/extensions/imagick.so']
 ])
+await assert.rejects(
+  copyHomebrewExtension(result, 'shivammathur/extensions/imagick@8.5', '/user/extensions', {
+    ...files,
+    copyFile: async () => false
+  }),
+  /copying the extension failed/
+)
 await assert.rejects(
   copyHomebrewExtension(result, 'shivammathur/extensions/imagick@8.5', '/user/extensions', {
     ...files,
@@ -68,6 +77,8 @@ console.log(
 // Consume the actual extension entry command: it delegates to the package controller and copies only after success.
 let delegated: any
 let metadataRefreshes = 0
+let extensionUpgrade = false
+let extensionCatalogLookups = 0
 const domain: any = { dir: { php: '/user/extensions' }, dirFile: {} }
 const { Setup } = await loadIsolated(
   'src/render/components/PHP/Extension/Homebrew/setup.ts',
@@ -94,6 +105,19 @@ const { Setup } = await loadIsolated(
     './ExtensionPackage': { copyHomebrewExtension },
     '@/components/VersionManager/brew/Controller': {
       homebrewUpgrade: {
+        catalogs: {},
+        loadCatalog: async (_rows: string[], module: string, installedOnly: boolean) => {
+          assert.equal(module, 'extensions:php')
+          assert.equal(installedOnly, true)
+          extensionCatalogLookups++
+        },
+        confirm: async (preview: any, options: any) => {
+          assert.equal(preview.snapshot.formula, 'shivammathur/extensions/imagick@8.5')
+          assert.equal(options.terminalView, 'extensions')
+          await options.afterPackage(result)
+          extensionUpgrade = true
+          return result
+        },
         package: async (request: any, options: any) => {
           delegated = request
           await options.afterPackage(result)
@@ -113,6 +137,15 @@ assert.deepEqual(JSON.parse(JSON.stringify(delegated)), {
 })
 assert.deepEqual(domain.dirFile.php, ['imagick.so'])
 assert.equal(metadataRefreshes, 2)
+await page.upgrade(
+  {
+    snapshot: { formula: 'shivammathur/extensions/imagick@8.5' }
+  },
+  true
+)
+assert.equal(extensionUpgrade, true)
+assert.equal(metadataRefreshes, 3)
+assert.equal(extensionCatalogLookups, 3)
 console.log(
   'PASS actual extension entry delegates package mutation and preserves separate extension copy/refresh'
 )

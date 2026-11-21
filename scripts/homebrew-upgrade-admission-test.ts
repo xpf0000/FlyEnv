@@ -45,6 +45,7 @@ const c = new HomebrewOperationCoordinator({
   }
 })
 const p = await c.prepareUpgrade('php', 'homebrew/core/php')
+assert.equal((await c.prepareUpgrade('composer', 'composer')).module, 'composer')
 assert.equal(executed, 0)
 assert.equal(p.targets.length, 1)
 await assert.rejects(c.beginUpgrade('forged'))
@@ -73,6 +74,19 @@ assert.equal((await result).outcome, 'succeeded')
 assert.doesNotThrow(() => c.assertStart('php', {}))
 assert.equal(await c.execute(op.operationId), await result)
 assert.equal(executed, 1)
+snapshot.affectedRacks.push('/opt/homebrew/Cellar/mariadb')
+const database = {
+  module: 'mariadb',
+  item: { ...previewItem(), bin: '/opt/homebrew/Cellar/mariadb/11.8.4/bin/mariadbd' }
+}
+const afterDatabaseStops = await c.prepareUpgrade('php', 'php')
+running = [database]
+await assert.rejects(c.prepareUpgrade('php', 'php'), /stop.*mariadb/i)
+await assert.rejects(c.beginUpgrade(afterDatabaseStops.previewId), /stop.*mariadb/i)
+assert.equal(executed, 1)
+running = []
+const safe = await c.beginUpgrade(afterDatabaseStops.previewId)
+c.cancelPending(safe.operationId)
 console.log(
   'PASS admission: opaque tokens, stale confirmation, stops required, start gate, single execution, terminal replay'
 )

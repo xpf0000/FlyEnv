@@ -32,7 +32,13 @@ const service: any = {
     service.servicePID[module] = [{ pid, item, generation: 11 }]
   }
 }
+const stoppedTerminals: string[] = []
 const fmMocks: any = {
+  '../../fork/module/Brew/UpgradeCatalog': {},
+  '@shared/Gvm': {},
+  './lazy/OptionalRuntimes': {
+    nodePtyRuntime: { peek: () => ({ stop: (key: string) => stoppedTerminals.push(key) }) }
+  },
   '@shared/PerformanceDiagnostics': {
     performanceDiagnosticNow: () => 0,
     performanceDiagnosticElapsed: () => 0,
@@ -66,6 +72,38 @@ const fmMocks: any = {
   }
 }
 const { ForkManager } = await loadIsolated('src/main/core/ForkManager.ts', fmMocks)
+const { ForkManager: LinuxForkManager } = await loadIsolated(
+  'src/main/core/ForkManager.ts',
+  fmMocks,
+  { process: { platform: 'linux' } }
+)
+const linuxManager = Object.create(LinuxForkManager.prototype)
+Object.defineProperty(linuxManager, 'homebrew', {
+  value: new HomebrewOperationCoordinator({
+    inspect: async () => snapshot,
+    running: () => [],
+    idle: async () => {},
+    run: async (operationId, action) => ({ operationId, action, outcome: 'succeeded', logs: '' })
+  })
+})
+const linuxPreview = await linuxManager.homebrewRequest('prepareUpgrade', ['composer', 'composer'])
+assert.equal(linuxPreview.data.module, 'composer')
+const linuxOperation = await linuxManager.homebrewRequest('beginUpgrade', [
+  linuxPreview.data.previewId
+])
+assert.equal(linuxOperation.code, 0)
+const linuxResult = await linuxManager.homebrewRequest('executeUpgrade', [
+  linuxOperation.data.operationId
+])
+assert.equal(linuxResult.data.outcome, 'succeeded')
+console.log('PASS Linux IPC admission and non-PHP package upgrade')
+Object.assign(linuxManager, {
+  brewTerminalId: 'current',
+  pluginWorkers: { beginShutdown() {} }
+})
+linuxManager.beginServiceLifecycleShutdown()
+assert.deepEqual(stoppedTerminals, ['current'])
+console.log('PASS shutdown stops a Homebrew session through global NodePTY')
 const fm = Object.create(ForkManager.prototype)
 let rawResolve: any
 let packageRan = false

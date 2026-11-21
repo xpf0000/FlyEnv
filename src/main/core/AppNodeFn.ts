@@ -7,8 +7,8 @@ import {
 import ConfigManager from './ConfigManager'
 import { execPromise } from '@shared/child-process'
 import { type FSWatcher, rm, stat, existsSync, watch, createReadStream, constants } from 'node:fs'
-import { join } from 'node:path'
-import { readdir, access as fsAccess } from 'node:fs/promises'
+import { dirname, join } from 'node:path'
+import { readdir, access as fsAccess, mkdtemp, rename } from 'node:fs/promises'
 import Helper from '../../fork/Helper'
 import { AppHelperError } from '@shared/WindowsHelperState'
 import { resolve as PathResolve } from 'path'
@@ -628,14 +628,22 @@ X-GNOME-Autostart-enabled=true`
       })
   }
 
-  fs_copyFile(command: string, key: string, src: string, dest: string) {
-    copyFile(src, dest)
-      .then(() => {
-        this?.mainWindow?.webContents.send('command', command, key, true)
-      })
-      .catch(() => {
-        this?.mainWindow?.webContents.send('command', command, key, false)
-      })
+  async fs_copyFile(command: string, key: string, src: string, dest: string, atomic?: boolean) {
+    try {
+      if (atomic === true) {
+        const temporary = await mkdtemp(join(dirname(dest), '.flyenv-copy-'))
+        try {
+          const staged = join(temporary, 'file')
+          await copyFile(src, staged)
+          await rename(staged, dest)
+        } finally {
+          await remove(temporary).catch(() => {})
+        }
+      } else await copyFile(src, dest)
+      this?.mainWindow?.webContents.send('command', command, key, true)
+    } catch {
+      this?.mainWindow?.webContents.send('command', command, key, false)
+    }
   }
 
   fs_existsSync(command: string, key: string, path: string) {

@@ -11,6 +11,21 @@ const compiled = compileScript(parse(source).descriptor, {
 const entry = '.superpowers/sdd/2026-11-07-homebrew-language-upgrade/ui-component.ts'
 await mkdir('.superpowers/sdd/2026-11-07-homebrew-language-upgrade', { recursive: true })
 await writeFile(entry, compiled)
+const dialogEntry = '.superpowers/sdd/2026-11-07-homebrew-language-upgrade/upgrade-dialog.ts'
+const dialogSource = await readFile(
+  'src/render/components/VersionManager/brew/UpgradeDialog.vue',
+  'utf8'
+)
+await writeFile(
+  dialogEntry,
+  compileScript(parse(dialogSource).descriptor, {
+    id: 'brew-upgrade-dialog',
+    inlineTemplate: true
+  }).content
+)
+const { default: dialog } = await loadIsolated(dialogEntry, {
+  '@lang/index': { I18nT: (key: string) => key }
+})
 const old = { name: 'php', installed: true, version: '8.5.12' }
 let begins = 0
 let prepared = 0
@@ -18,12 +33,17 @@ const controller: any = reactive({
   busy: false,
   phase: 'idle',
   logs: '',
-  catalog: {
-    'homebrew/core/php': {
-      eligible: true,
-      outdated: true,
-      installedVersions: ['8.4.1'],
-      availableVersion: '8.5.12'
+  catalogs: {
+    php: {
+      error: '',
+      rows: {
+        'homebrew/core/php': {
+          eligible: true,
+          outdated: true,
+          installedVersions: ['8.4.1'],
+          availableVersion: '8.5.12'
+        }
+      }
     }
   },
   prepare: async () => {
@@ -34,7 +54,8 @@ const controller: any = reactive({
       snapshot: {
         formula: 'homebrew/core/php',
         installedVersions: ['8.4.1'],
-        availableVersion: '8.5.12'
+        availableVersion: '8.5.12',
+        affectedRacks: ['/brew/Cellar/php', '/brew/Cellar/mariadb']
       },
       targets: []
     }
@@ -48,6 +69,8 @@ const { default: component } = await loadIsolated(
   {
     '@lang/index': { I18nT: (key: string) => key },
     './Controller': { homebrewUpgrade: controller },
+    './PackageTerminal.vue': { render: () => h('package-terminal') },
+    './UpgradeDialog.vue': dialog,
     './setup': {
       BrewSetup: { installing: false },
       Setup: () => ({
@@ -151,6 +174,7 @@ await button('brewUpgrade').props.onClick()
 await nextTick()
 assert.equal(prepared, 1)
 assert.match(text(root), /brewUpgradeWarning/)
+assert.match(text(root), /brewUpgradeImpact.*mariadb/s)
 assert.match(text(root), /8\.4\.1.*8\.5\.12/s)
 assert(!text(root).includes('secret'))
 await button('base.cancel').props.onClick()
@@ -162,13 +186,27 @@ assert.match(text(root), /brewUpgradeSeriesChange/)
 await button('brewUpgradeConfirm').props.onClick()
 await nextTick()
 assert.equal(begins, 1)
-controller.catalog['homebrew/core/php'].eligible = false
-controller.catalog['homebrew/core/php'].reason = 'pinned'
+controller.busy = true
+controller.phase = 'upgrading'
+controller.terminalView = 'versions'
+await nextTick()
+assert(all(root).some((n) => n.tag === 'package-terminal'))
+assert(!all(root).some((n) => n.tag === 'table'))
+controller.phase = 'succeeded'
+controller.busy = false
+await nextTick()
+assert(!all(root).some((n) => n.tag === 'table'))
+controller.terminalView = undefined
+controller.phase = 'idle'
+await nextTick()
+assert(all(root).some((n) => n.tag === 'table'))
+controller.catalogs.php.rows['homebrew/core/php'].eligible = false
+controller.catalogs.php.rows['homebrew/core/php'].reason = 'pinned'
 vm.$forceUpdate()
 await nextTick()
 assert.equal(button('versionmanager.brewUpgrade').props.disabled, true)
 assert.match(text(root), /brewUpgradeReason.pinned/)
-controller.catalogError = 'php metadata query timed out'
+controller.catalogs.php.error = 'php metadata query timed out'
 vm.$forceUpdate()
 await nextTick()
 const catalogAlert = all(root).find(
@@ -176,7 +214,7 @@ const catalogAlert = all(root).find(
 )
 assert(catalogAlert)
 assert.equal(catalogAlert.props.description, 'php metadata query timed out')
-controller.catalog['homebrew/core/php'].outdated = false
+controller.catalogs.php.rows['homebrew/core/php'].outdated = false
 vm.$forceUpdate()
 await nextTick()
 assert.equal(button('versionmanager.brewUpgrade'), undefined)

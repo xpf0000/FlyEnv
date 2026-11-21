@@ -10,6 +10,7 @@
   "brewUpgradeConfirm": "Confirm update",
   "brewUpgradeWarning": "Updating first stops related services and may change the version and installation path. You must manually update configuration files, extensions, environment variables and other related settings, and start services yourself. Continue?",
   "brewUpgradeSeriesChange": "This update changes the PHP release series. Check configuration and extension compatibility manually.",
+  "brewUpgradeImpact": "Potentially affected formulae. Stop related services running outside FlyEnv.",
   "brewUpgradeStops": "Services to stop",
   "brewUpgradeNoServices": "No related managed services are running.",
   "brewUpgradeLogs": "Logs",
@@ -21,8 +22,7 @@
     "identity": "Cannot verify installation source or architecture",
     "pinned": "Pinned in Homebrew",
     "disabled": "Formula disabled",
-    "latest": "Up to date",
-    "dependencies": "Potential database changes are not supported by this update"
+    "latest": "Up to date"
   },
   "brewUpgradePhase": {
     "idle": "Ready",
