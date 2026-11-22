@@ -1,4 +1,5 @@
 import { reactiveBind } from '@/util/Index'
+import { IMAGE_EDGE_DEFAULTS } from '../../../../fork/module/Image/imageCompress.type'
 import type {
   BatchImageInfoItem,
   BatchImageResultItem,
@@ -30,6 +31,16 @@ class ImageCompressSetup implements SharpConfig {
   compressOpen: boolean = true
   // 裁剪配置
   trim?: boolean
+
+  border: NonNullable<SharpConfig['border']> = {
+    enabled: false,
+    width: IMAGE_EDGE_DEFAULTS.borderWidth,
+    color: IMAGE_EDGE_DEFAULTS.borderColor
+  }
+  roundedCorners: NonNullable<SharpConfig['roundedCorners']> = {
+    enabled: false,
+    radius: IMAGE_EDGE_DEFAULTS.cornerRadius
+  }
 
   // 水印配置
   watermark: WatermarkConfig = {

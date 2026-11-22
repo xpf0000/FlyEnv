@@ -4,6 +4,7 @@ import sharp from 'sharp'
 import { readFile } from 'node:fs/promises'
 import type { Sharp } from 'sharp'
 import { ImageCompressTask } from './ImageCompressTask'
+import { ImageInfoFetchTask } from './ImageInfoFetchTask'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { uuid } from '../../Fn'
@@ -239,16 +240,12 @@ export function imageEffectsTest(filePath: string, config: SharpConfig) {
         imageProcessor = imageProcessor.trim()
       }
 
-      if (typeof config.opacity === 'number' && config.opacity < 1) {
-        const task = new ImageCompressTask({} as any, {} as any, '', '')
-        imageProcessor = await task.applyOpacity(imageProcessor, config.opacity)
-      }
-
-      // 生成处理后的图片（保持原始格式）
-      const compressedBuffer = await imageProcessor.toBuffer()
-
-      // 处理后的图片base64（使用原始格式）
-      const compressedBase64 = `data:image/${originalFormat};base64,${compressedBuffer.toString('base64')}`
+      const format = config.format && config.format !== 'none' ? config.format : originalFormat
+      const task = new ImageCompressTask(new ImageInfoFetchTask(filePath), config, '', '')
+      imageProcessor = await task.applyOutputEffects(imageProcessor, format)
+      if (config.border?.enabled || config.roundedCorners?.enabled) imageProcessor.png()
+      const { data, info } = await imageProcessor.toBuffer({ resolveWithObject: true })
+      const compressedBase64 = `data:image/${info.format};base64,${data.toString('base64')}`
 
       // 返回结果
       resolve({

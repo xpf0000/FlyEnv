@@ -3,6 +3,63 @@
   <div class="effects-config">
     <h3 class="text-lg font-medium mb-4">{{ I18nT('tools.ImageCompress.effectsConfig.title') }}</h3>
     <div class="space-y-6">
+      <div class="border rounded-lg p-4">
+        <h4 class="text-md font-medium mb-3">{{
+          I18nT('tools.ImageCompress.effectsConfig.edges')
+        }}</h4>
+        <div class="space-y-3">
+          <el-checkbox v-model="config.border.enabled">{{
+            I18nT('tools.ImageCompress.effectsConfig.border')
+          }}</el-checkbox>
+          <div v-if="config.border.enabled" class="flex flex-wrap gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-2" for="image-effect-border-width">{{
+                I18nT('tools.ImageCompress.effectsConfig.borderWidth')
+              }}</label>
+              <el-input-number
+                id="image-effect-border-width"
+                v-model="config.border.width"
+                :min="1"
+                :max="9999"
+                :precision="0"
+                :value-on-clear="IMAGE_EDGE_DEFAULTS.borderWidth"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2" for="image-effect-border-color">{{
+                I18nT('tools.ImageCompress.effectsConfig.borderColor')
+              }}</label>
+              <el-color-picker
+                id="image-effect-border-color"
+                :model-value="config.border.color ?? IMAGE_EDGE_DEFAULTS.borderColor"
+                color-format="hex"
+                @update:model-value="
+                  config.border.color = $event ?? IMAGE_EDGE_DEFAULTS.borderColor
+                "
+              />
+            </div>
+          </div>
+          <div>
+            <el-checkbox v-model="config.roundedCorners.enabled">{{
+              I18nT('tools.ImageCompress.effectsConfig.roundedCorners')
+            }}</el-checkbox>
+            <div v-if="config.roundedCorners.enabled" class="mt-2">
+              <label class="block text-sm font-medium mb-2" for="image-effect-corner-radius">{{
+                I18nT('tools.ImageCompress.effectsConfig.cornerRadius')
+              }}</label>
+              <el-input-number
+                id="image-effect-corner-radius"
+                v-model="config.roundedCorners.radius"
+                :min="1"
+                :max="9999"
+                :precision="0"
+                :value-on-clear="IMAGE_EDGE_DEFAULTS.cornerRadius"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 旋转和翻转 -->
       <div class="border rounded-lg p-4">
         <h4 class="text-md font-medium mb-3">{{
@@ -235,6 +292,7 @@
 
 <script setup lang="ts">
   import ImageCompressSetup from './setup'
+  import { IMAGE_EDGE_DEFAULTS } from '../../../../fork/module/Image/imageCompress.type'
   import EffectsPreview from '@/components/Tools/ImageCompress/EffectsPreview.vue'
   import { I18nT } from '@lang/index'
 

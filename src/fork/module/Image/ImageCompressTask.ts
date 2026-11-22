@@ -1,5 +1,6 @@
 import type { TaskItem } from '@shared/TaskQueue'
 import sharp, { Sharp, FitEnum, KernelEnum, OverlayOptions, FormatEnum } from 'sharp'
+import { IMAGE_EDGE_DEFAULTS } from './imageCompress.type'
 import type {
   ImageWatermarkOptions,
   SharpConfig,
@@ -11,6 +12,8 @@ import type {
 import { stat, mkdir, copyFile } from 'fs/promises'
 import { ImageInfoFetchTask } from './ImageInfoFetchTask'
 import { dirname, extname, join, basename } from 'node:path'
+
+type ImageOutputFormat = keyof FormatEnum | 'jpg' | 'avif'
 
 export class ImageCompressTask implements TaskItem {
   /** 需要处理的图片 */
@@ -865,7 +868,7 @@ export class ImageCompressTask implements TaskItem {
     return pipeline
   }
 
-  private applyFormatOptions(pipeline: Sharp, format: keyof FormatEnum): Sharp {
+  private applyFormatOptions(pipeline: Sharp, format: ImageOutputFormat): Sharp {
     switch (format) {
       case 'jpeg':
       case 'jpg':
@@ -939,6 +942,82 @@ export class ImageCompressTask implements TaskItem {
     return pipeline
   }
 
+  private renderIntermediate(pipeline: Sharp) {
+    if (this.config.withMetadata !== false) pipeline.keepMetadata()
+    return pipeline.png({ compressionLevel: 0 }).toBuffer({ resolveWithObject: true })
+  }
+
+  async applyOutputEffects(pipeline: Sharp, format: string, hasOverlay = false): Promise<Sharp> {
+    const { border, roundedCorners, opacity } = this.config
+    const hasEdgeEffects = border?.enabled || roundedCorners?.enabled
+    if (typeof opacity === 'number' && opacity < 1) {
+      // Sharp replaces prior overlays when composite() is called again.
+      if (hasEdgeEffects && hasOverlay) {
+        const { data, info } = await this.renderIntermediate(pipeline)
+        pipeline = await this.applyOpacity(sharp(data), opacity, info.width, info.height)
+      } else {
+        pipeline = await this.applyOpacity(pipeline, opacity)
+      }
+    }
+
+    if (!hasEdgeEffects) return pipeline
+
+    const borderWidth = border?.enabled
+      ? Math.max(1, Math.round(border.width ?? IMAGE_EDGE_DEFAULTS.borderWidth))
+      : 0
+    const color =
+      border?.color && /^#[0-9a-f]{6}$/i.test(border.color)
+        ? border.color
+        : IMAGE_EDGE_DEFAULTS.borderColor
+    // Finish the image effects before applying padding so they do not alter the border.
+    const { data, info } = await this.renderIntermediate(pipeline)
+    pipeline = sharp(data)
+    if (borderWidth) {
+      pipeline.extend({
+        top: borderWidth,
+        right: borderWidth,
+        bottom: borderWidth,
+        left: borderWidth,
+        background: color
+      })
+    }
+    if (!roundedCorners?.enabled) return pipeline
+
+    const width = info.width + 2 * borderWidth
+    const height = info.height + 2 * borderWidth
+    const radius = Math.min(
+      Math.max(1, Math.round(roundedCorners.radius ?? IMAGE_EDGE_DEFAULTS.cornerRadius)),
+      width / 2,
+      height / 2
+    )
+    const svg = (rect: string) =>
+      Buffer.from(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${rect}</svg>`
+      )
+    const overlays: OverlayOptions[] = []
+
+    if (borderWidth) {
+      const inset = borderWidth / 2
+      const strokeRadius = Math.max(0, radius - inset)
+      overlays.push({
+        input: svg(
+          `<rect x="${inset}" y="${inset}" width="${width - borderWidth}" height="${height - borderWidth}" rx="${strokeRadius}" fill="none" stroke="${color}" stroke-width="${borderWidth}" />`
+        )
+      })
+    }
+    overlays.push({
+      input: svg(`<rect width="${width}" height="${height}" rx="${radius}" fill="white" />`),
+      blend: 'dest-in'
+    })
+    if (format === 'jpeg' || format === 'jpg') {
+      overlays.push({
+        input: { create: { width, height, channels: 4, background: '#FFFFFF' } },
+        blend: 'dest-over'
+      })
+    }
+    return pipeline.composite(overlays)
+  }
+
   /**
    * 保存备份文件
    * @private
@@ -959,75 +1038,44 @@ export class ImageCompressTask implements TaskItem {
       const outputDir = dirname(this.path)
       await mkdir(outputDir, { recursive: true })
 
-      let format: 'none' | keyof FormatEnum = 'jpeg'
+      let format: ImageOutputFormat = 'jpeg'
       if (this.config.format && this.config.format !== 'none') {
         format = this.config.format
       } else {
         const ext = extname(this.path).toLowerCase().replace('.', '')
         if (['jpeg', 'jpg', 'png', 'webp', 'avif', 'gif', 'tiff', 'heif'].includes(ext)) {
-          format = ext as keyof FormatEnum
+          format = ext as ImageOutputFormat
         }
       }
 
-      // 优化路径: 如果没有水印和纹理，直接处理保存，避免 Buffer 复制开销
-      if (!this.config.watermark?.enabled && !this.config.texture?.enabled) {
-        pipeline = this.applyFormatOptions(pipeline, format)
-        // 应用透明度
-        if (typeof this.config.opacity === 'number' && this.config.opacity < 1) {
-          pipeline = await this.applyOpacity(pipeline, this.config.opacity)
+      const hasOverlay = !!(this.config.watermark?.enabled || this.config.texture?.enabled)
+      if (hasOverlay) {
+        // 水印和纹理需要基础变换后的尺寸。
+        const { data, info } = await pipeline.toBuffer({ resolveWithObject: true })
+        pipeline = sharp(data)
+        if (this.config.texture?.enabled) {
+          pipeline = await this.applyTexture(pipeline, info.width, info.height)
         }
-
-        if (this.config.withMetadata !== false) pipeline = pipeline.withMetadata()
-        if (this.config.withIccProfile)
-          pipeline = pipeline.withIccProfile(this.config.withIccProfile)
-        if (this.config.timeoutSeconds)
-          pipeline = pipeline.timeout({ seconds: this.config.timeoutSeconds })
-
-        await this.saveBackupImage()
-        await pipeline.toFile(this.path)
-        return true
+        if (this.config.watermark?.enabled) {
+          const buffer = await pipeline.toBuffer()
+          pipeline = await this.applyWatermark(sharp(buffer), info.width, info.height)
+        }
       }
 
-      // 复杂路径: 有水印或纹理
-      // 1. 先执行基础形变 (Resize/Trim/Rotate)，输出到 Buffer
-      // resolveWithObject: true 可以让我们同时拿到处理后的 buffer 和图片信息(width/height)
-      const { data: buffer, info } = await pipeline.toBuffer({ resolveWithObject: true })
-
-      // 2. 基于中间 Buffer 创建新的处理流
-      let finalPipeline = sharp(buffer)
-      const baseWidth = info.width
-      const baseHeight = info.height
-
-      // 3. 应用特效 (此时已确切知道基础尺寸)
-      if (this.config.texture?.enabled) {
-        finalPipeline = await this.applyTexture(finalPipeline, baseWidth, baseHeight)
-      }
-      if (this.config.watermark?.enabled) {
-        const buffer: Buffer = await finalPipeline.toBuffer()
-        finalPipeline = sharp(buffer)
-        finalPipeline = await this.applyWatermark(finalPipeline, baseWidth, baseHeight)
-      }
-
-      // 4. 应用输出格式和元数据
-      finalPipeline = this.applyFormatOptions(finalPipeline, format)
-
-      // 应用透明度
-      if (typeof this.config.opacity === 'number' && this.config.opacity < 1) {
-        finalPipeline = await this.applyOpacity(finalPipeline, this.config.opacity)
-      }
-
+      pipeline = await this.applyOutputEffects(pipeline, format, hasOverlay)
+      pipeline = this.applyFormatOptions(pipeline, format)
       if (this.config.withMetadata !== false) {
-        finalPipeline = finalPipeline.withMetadata()
+        pipeline = pipeline.withMetadata()
       }
       if (this.config.withIccProfile) {
-        finalPipeline = finalPipeline.withIccProfile(this.config.withIccProfile)
+        pipeline = pipeline.withIccProfile(this.config.withIccProfile)
       }
       if (this.config.timeoutSeconds) {
-        finalPipeline = finalPipeline.timeout({ seconds: this.config.timeoutSeconds })
+        pipeline = pipeline.timeout({ seconds: this.config.timeoutSeconds })
       }
 
       await this.saveBackupImage()
-      await finalPipeline.toFile(this.path)
+      await pipeline.toFile(this.path)
       return true
     } catch (error: any) {
       this.errorMessage = `保存图片失败: ${error.message}`
