@@ -1409,10 +1409,14 @@ export default class IPCHandler extends EventEmitter {
       return
     }
     const patch = args?.[0]
-    if (patch && typeof patch === 'object') {
-      mcpConfig.setConfig(patch)
+    try {
+      if (patch && typeof patch === 'object') {
+        mcpConfig.setConfig(patch)
+      }
+      this.sendToMainWindow(command, key, { code: 0, data: mcpConfig.getConfig() })
+    } catch (error) {
+      this.sendRuntimeError(command, key, error)
     }
-    this.sendToMainWindow(command, key, { code: 0, data: mcpConfig.getConfig() })
   }
 
   private handleMcpGetBridgePath(command: string, key: string) {

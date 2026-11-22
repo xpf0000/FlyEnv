@@ -27,7 +27,8 @@ export default class Launcher extends EventEmitter {
     } else {
       app.on('second-instance', (event, argv, workingDirectory) => {
         logger.warn('second-instance====>', argv, workingDirectory)
-        global.application.showPage('index')
+        // 初始化完成后，首次启动会打开主窗口。
+        global.application?.showPage('index')
       })
       callback()
     }

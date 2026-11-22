@@ -1,5 +1,11 @@
 import type { FitEnum, KernelEnum, FormatEnum } from 'sharp'
 
+export const IMAGE_EDGE_DEFAULTS = {
+  borderWidth: 1,
+  borderColor: '#BDBDBD',
+  cornerRadius: 8
+} as const
+
 /**
  * 文字水印配置
  */
@@ -295,6 +301,19 @@ export type SharpConfig = {
 
   /** 是否水平翻转 (默认 false) */
   flop?: boolean
+
+  /** 外边框，宽度单位为输出像素 */
+  border?: {
+    enabled: boolean
+    width?: number
+    color?: string | null
+  }
+
+  /** 圆角，半径单位为输出像素 */
+  roundedCorners?: {
+    enabled: boolean
+    radius?: number
+  }
 
   /** 模糊半径，单位像素 (默认 0) */
   blur?: number

@@ -4,9 +4,15 @@ Use these rules only after enabling the five FlyEnv memory tools. The tools shar
 
 ## Read for the current task
 
-A global connection does not merge memory scopes. Use scope=global without a project path for cross-project preferences. Use scope=project with a confirmed project root for project facts. Without project context, use global memory only; never invent a project path.
+A global connection does not merge memory scopes. Every memory tool requires `scope`. Use `scope="global"` for cross-project memories. Use `scope="project"` with the confirmed absolute project root for project memories. Without project context, search only global memory.
 
-Confirm the project's absolute root path. A shell's working subdirectory is not necessarily the project root. Search project memory using that root and task keywords; browse pinned/recent summaries with an empty query when useful. Request global preferences explicitly. Use `get` only for relevant details and use the scope returned by search. Global results require `scope=global` for subsequent get.
+Pass one of these arguments to `flyenv_memory_search`. Replace the example path with the confirmed project root.
+
+- Global only `{"scope":"global","queries":["reuse existing implementations"]}`
+- Project only `{"scope":"project","project_path":"/absolute/project/root","queries":["build"]}`
+- Project and global `{"scope":"project","project_path":"/absolute/project/root","queries":["build"],"include_global":true}`
+
+Omit both `project_path` and `include_global` for a global search. For browsing pinned and recent summaries, omit `queries` or pass `[]`. Call `flyenv_memory_get` only for relevant results, using the scope of each result. A global result requires `scope="global"` even when it came from a project search.
 
 If a path is unregistered and `project_candidates` are returned, use the confirmed project root, or confirm it is an independent child project and pass `create_project=true` to store. Candidates are hints, not proof of project identity. After moving a project or changing computers, use Maintenance to explicitly relink the existing project to its new directory and retain its memories. An unlinked new path remains a separate project; never guess identity or merge projects automatically. If the destination already has memories, only the user can confirm a merge in Maintenance. Afterwards search using the selected directory; original memory IDs and histories remain intact.
 

@@ -98,9 +98,60 @@ void app.whenReady().then(async () => {
     const code = (await manager.getRendererPlugins())[0].code
     await window.webContents.executeJavaScript(`window.mountFixture(${JSON.stringify(code)})`)
     await mcp.start()
+    const endpoint = `http://127.0.0.1:${options.port}/mcp`
+    const browserOrigin = 'http://127.0.0.1:9931'
+    assert.equal((await ui('mcp:setConfig', { allowedOrigins: ['*'] })).code, 1)
+    const originConfig = await ui('mcp:setConfig', { allowedOrigins: [`${browserOrigin}/`] })
+    assert.equal(originConfig.code, 0)
+    assert.deepEqual(originConfig.data.allowedOrigins, [browserOrigin])
+    const preflight = await fetch(endpoint, {
+      method: 'OPTIONS',
+      headers: {
+        Origin: browserOrigin,
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'authorization,content-type,mcp-protocol-version'
+      }
+    })
+    assert.equal(preflight.status, 204)
+    assert.equal(preflight.headers.get('access-control-allow-origin'), browserOrigin)
+    assert.match(preflight.headers.get('access-control-allow-headers') ?? '', /Authorization/i)
+    assert.equal(await preflight.text(), '')
+    const badPreflight = await fetch(endpoint, {
+      method: 'OPTIONS',
+      headers: { Origin: browserOrigin, 'Access-Control-Request-Method': 'PUT' }
+    })
+    assert.equal(badPreflight.status, 403)
+    await badPreflight.text()
+    for (const method of ['GET', 'POST', 'DELETE']) {
+      const unauthorized = await fetch(endpoint, { method, headers: { Origin: browserOrigin } })
+      assert.equal(unauthorized.status, 401)
+      assert.equal(unauthorized.headers.get('access-control-allow-origin'), browserOrigin)
+      await unauthorized.text()
+    }
+    const denied = await fetch(endpoint, {
+      method: 'POST',
+      headers: { Origin: 'http://127.0.0.1:9932', Authorization: 'Bearer temporary-smoke-token' }
+    })
+    assert.equal(denied.status, 403)
+    assert.equal(denied.headers.get('access-control-allow-origin'), null)
+    await denied.text()
+    const browserClient = new Client({ name: 'flyenv-browser-fixture', version: '1.0.0' })
+    await browserClient.connect(
+      new StreamableHTTPClientTransport(new URL(endpoint), {
+        requestInit: { headers: { Origin: browserOrigin, Authorization: 'Bearer temporary-smoke-token' } }
+      })
+    )
+    assert.equal((await browserClient.listTools()).tools.length, 0)
+    await browserClient.close()
+    config.setConfig('token', '')
+    const missingToken = await fetch(endpoint, { method: 'POST' })
+    assert.equal(missingToken.status, 401)
+    await missingToken.text()
+    config.setConfig('token', 'temporary-smoke-token')
+    checkpoints.push('browser-preflight-origin-and-bearer-auth')
     const client = new Client({ name: 'flyenv', version: '1.0.0' })
     await client.connect(
-      new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${options.port}/mcp`), {
+      new StreamableHTTPClientTransport(new URL(endpoint), {
         requestInit: { headers: { Authorization: 'Bearer temporary-smoke-token' } }
       })
     )

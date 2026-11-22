@@ -46,6 +46,17 @@
             </template>
           </el-input>
         </el-form-item>
+        <el-form-item :label="I18nT('mcp.allowedBrowserOrigins')">
+          <div class="flex w-full flex-col gap-1">
+            <el-input-tag
+              :model-value="MCPSetup.config.allowedOrigins"
+              :disabled="MCPSetup.loading"
+              placeholder="http://127.0.0.1:9931"
+              @change="(allowedOrigins: string[]) => MCPSetup.saveConfig({ allowedOrigins })"
+            />
+            <p class="text-xs text-gray-500">{{ I18nT('mcp.allowedBrowserOriginsTip') }}</p>
+          </div>
+        </el-form-item>
         <el-form-item>
           <div class="w-full flex items-center justify-between gap-4">
             <div class="flex flex-col gap-1">

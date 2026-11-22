@@ -607,6 +607,26 @@ assert.match(llamaLaunchOwner, /service\.restart\(\)/)
 assert.match(llamaLaunchOwner, /generation === this\.generation/)
 assert.doesNotMatch(llamaController, /config\.setup|defineStore\(/)
 
+const ntpRender = join(root, 'plugins/ntp-server/render')
+const ntpConfigPage = readFileSync(join(ntpRender, 'Config.vue'), 'utf8')
+const ntpServicePage = readFileSync(join(ntpRender, 'Index.vue'), 'utf8')
+const ntpSettingsController = readFileSync(join(ntpRender, 'settings.ts'), 'utf8')
+for (const page of [ntpConfigPage, ntpServicePage]) {
+  assert.doesNotMatch(page, /from\s+['"]@\/util\/IPC['"]|\.send\(|\.restart\(/)
+}
+assert.match(ntpConfigPage, /@\/components\/Conf\/index\.vue/)
+assert.match(ntpConfigPage, /@\/components\/Conf\/common\.vue/)
+assert.match(ntpConfigPage, /\.setEditValue\(/)
+assert.match(ntpServicePage, /item\.run && !item\.running/)
+assert.match(ntpServicePage, /#tool-left/)
+assert.match(ntpSettingsController, /forkTerminalRequest\(/)
+assert.match(ntpSettingsController, /if \(this\.initializing\) return this\.initializing/)
+assert.match(ntpSettingsController, /this\.reading \?\?=/)
+
+const mcpServicePage = readFileSync(join(componentsDir, 'MCP/Service.vue'), 'utf8')
+assert.doesNotMatch(mcpServicePage, /from\s+['"]@\/util\/IPC['"]|IPC\.send/)
+assert.match(mcpServicePage, /MCPSetup\.saveConfig\(\{ allowedOrigins \}\)/)
+
 const mssqlPage = readFileSync(join(root, 'plugins/mssql/render/Index.vue'), 'utf8')
 const mssqlController = readFileSync(join(root, 'plugins/mssql/render/store.ts'), 'utf8')
 assert.doesNotMatch(mssqlPage, /IPC\.send\(/)

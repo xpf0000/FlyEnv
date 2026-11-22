@@ -38,6 +38,7 @@ export interface MCPConfig {
   enabledTools: string[]
   approval: Record<string, MCPApprovalPolicy>
   allowRemote: boolean
+  allowedOrigins: string[]
   maskSecrets: boolean
 }
 
@@ -62,6 +63,7 @@ class MCP {
     enabledTools: [...MCP_DEFAULT_ENABLED_TOOLS],
     approval: { ...MCP_DEFAULT_APPROVAL },
     allowRemote: false,
+    allowedOrigins: [],
     maskSecrets: false
   }
 
@@ -115,14 +117,22 @@ class MCP {
   }
 
   saveConfig(patch: Partial<MCPConfig>) {
-    return new Promise((resolve) => {
+    return new Promise<boolean>((resolve) => {
       IPC.sendSensitive('mcp:setConfig', JSON.parse(JSON.stringify(patch))).then(
         (key: string, res: any) => {
           IPC.off(key)
           if (res?.code === 0 && res?.data) {
             this.config = { ...this.config, ...res.data }
+            resolve(true)
+            return
           }
-          resolve(true)
+          const message = res?.msg
+          MessageError(
+            message === 'mcp.invalidBrowserOrigin'
+              ? I18nT(message)
+              : (message ?? I18nT('base.fail'))
+          )
+          resolve(false)
         }
       )
     })

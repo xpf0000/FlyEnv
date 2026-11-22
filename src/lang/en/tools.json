@@ -176,6 +176,12 @@
     },
     "effectsConfig": {
       "title": "Image Effects",
+      "edges": "Border and Rounded Corners",
+      "border": "Enable Border",
+      "borderWidth": "Border Width (px)",
+      "borderColor": "Border Color",
+      "roundedCorners": "Enable Rounded Corners",
+      "cornerRadius": "Corner Radius (px)",
       "rotateFlip": "Rotation and Flip",
       "verticalFlip": "Vertical Flip",
       "horizontalFlip": "Horizontal Flip",

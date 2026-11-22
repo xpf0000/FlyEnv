@@ -5,6 +5,7 @@ import { join, sep } from 'node:path'
 import { tmpdir } from 'node:os'
 import { randomUUID } from 'node:crypto'
 import { AjvJsonSchemaValidator } from '@modelcontextprotocol/sdk/validation/ajv-provider.js'
+import { PluginMCPAudit } from '../../../src/main/core/PluginMCPAudit'
 import { MemoryEngine, memoryToolResult } from '../fork/MemoryEngine'
 import { memoryInputSchema } from '../core/schema'
 import { validateInput } from '../core/validation'
@@ -132,10 +133,18 @@ test('one engine preserves receipts across restart, history/reasons and global l
       include_global: true
     })
     assert.equal(combined.data!.results[0].scope, 'global')
-    assert.equal(
-      (await restarted.call('get', { scope: 'project', project_path: f.project, id })).error_code,
-      'project_unregistered'
-    )
+    const args = { scope: 'project', project_path: f.project, id } as const
+    const failedRead = memoryToolResult('get', await restarted.call('get', args))
+    assert.equal(failedRead.error_code, 'project_unregistered')
+    const audit = new PluginMCPAudit()
+    const getTool = 'flyenv_memory_get'
+    audit.register('ai-memory', [getTool])
+    audit.log(getTool, { args, result: failedRead })
+    audit.log(getTool, { args, result: { ...failedRead, error_code: 'unexpected raw error' } })
+    const [known, unknown] = audit.list('ai-memory')
+    assert.equal(known.error_code, 'project_unregistered')
+    assert.equal(known.response?.error_code, 'project_unregistered')
+    assert.equal(unknown.response?.error_code, 'operation_failed')
     assert.equal(
       (await restarted.call('get', { scope: 'global', id })).data!.content,
       'Second body'

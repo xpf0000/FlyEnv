@@ -53,6 +53,20 @@ interface ToolDef {
   handler: (args: Record<string, any>) => Promise<MCPToolResult>
 }
 
+const MCP_CORS_METHODS = ['GET', 'POST', 'DELETE']
+const MCP_CORS_HEADERS = [
+  'accept',
+  'authorization',
+  'content-type',
+  'mcp-protocol-version',
+  'mcp-session-id',
+  'last-event-id'
+]
+
+type RequestAuthorization =
+  | { ok: true; origin?: string; preflight?: true }
+  | { ok: false; status: 401 | 403; reason: string; origin?: string }
+
 function resultText(result: MCPToolResult): string | undefined {
   const parts = result?.content
     ?.filter((item) => item?.type === 'text' && typeof item?.text === 'string')
@@ -750,21 +764,18 @@ export default class MCPServer {
   }
 
   /** 校验请求鉴权 + 来源 + Origin */
-  private checkAuth(req: IncomingMessage): { ok: boolean; reason?: string } {
+  private checkAuth(req: IncomingMessage): RequestAuthorization {
     const cfg = this.mcpConfig.getConfig() as any
     const remoteAddr = req.socket.remoteAddress ?? ''
     const isLoopback =
-      remoteAddr === '127.0.0.1' ||
-      remoteAddr === '::1' ||
-      remoteAddr === '::ffff:127.0.0.1' ||
-      remoteAddr.endsWith('127.0.0.1')
+      remoteAddr === '127.0.0.1' || remoteAddr === '::1' || remoteAddr === '::ffff:127.0.0.1'
     if (!cfg?.allowRemote && !isLoopback) {
-      return { ok: false, reason: 'remote access disabled' }
+      return { ok: false, status: 403, reason: 'remote access disabled' }
     }
 
-    // Origin 校验：浏览器型客户端会带 Origin，必须匹配当前服务地址或回环
+    // 保留现有同源地址，并只接受用户明确添加的浏览器来源。
     const origin = this.headerValue(req, 'origin')
-    if (origin) {
+    if (origin !== undefined) {
       const port: number = cfg?.port ?? 7682
       const host: string = cfg?.allowRemote ? cfg?.host : '127.0.0.1'
       const allowed = [
@@ -776,21 +787,40 @@ export default class MCPServer {
       if (cfg?.allowRemote && host && host !== '127.0.0.1') {
         allowed.push(`http://${host}:${port}`, `https://${host}:${port}`)
       }
-      if (!allowed.includes(origin)) {
-        return { ok: false, reason: 'invalid origin' }
+      const configured = Array.isArray(cfg?.allowedOrigins) && cfg.allowedOrigins.includes(origin)
+      if (!/^https?:\/\//.test(origin) || (!allowed.includes(origin) && !configured)) {
+        return { ok: false, status: 403, reason: 'invalid origin' }
+      }
+
+      const method = this.headerValue(req, 'access-control-request-method')
+      if (req.method === 'OPTIONS' && method !== undefined) {
+        const headers = this.headerValue(req, 'access-control-request-headers')
+        const requested =
+          headers
+            ?.toLowerCase()
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean) ?? []
+        if (
+          !MCP_CORS_METHODS.includes(method) ||
+          requested.some((item) => !MCP_CORS_HEADERS.includes(item))
+        ) {
+          return { ok: false, status: 403, reason: 'invalid preflight', origin }
+        }
+        // Browser preflight carries no bearer token and must stop before the MCP transport.
+        return { ok: true, origin, preflight: true }
       }
     }
 
-    // token 校验
-    const token: string = cfg?.token ?? ''
-    if (token) {
-      const auth = req.headers['authorization'] ?? ''
-      const provided = Array.isArray(auth) ? auth[0] : auth
-      if (provided !== `Bearer ${token}`) {
-        return { ok: false, reason: 'invalid token' }
-      }
+    const token = cfg?.token
+    if (
+      typeof token !== 'string' ||
+      !token.trim() ||
+      this.headerValue(req, 'authorization') !== `Bearer ${token}`
+    ) {
+      return { ok: false, status: 401, reason: 'invalid token', origin }
     }
-    return { ok: true }
+    return { ok: true, origin }
   }
 
   private headerValue(req: IncomingMessage, name: string): string | undefined {
@@ -810,9 +840,29 @@ export default class MCPServer {
 
     const httpServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
       const auth = this.checkAuth(req)
+      res.setHeader(
+        'Vary',
+        req.method === 'OPTIONS'
+          ? 'Origin, Access-Control-Request-Method, Access-Control-Request-Headers'
+          : 'Origin'
+      )
+      if (auth.origin) {
+        res.setHeader('Access-Control-Allow-Origin', auth.origin)
+        res.setHeader(
+          'Access-Control-Expose-Headers',
+          'Mcp-Session-Id, MCP-Protocol-Version, WWW-Authenticate'
+        )
+      }
       if (!auth.ok) {
-        res.writeHead(401, { 'Content-Type': 'application/json' })
+        if (auth.status === 401) res.setHeader('WWW-Authenticate', 'Bearer')
+        res.writeHead(auth.status, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ error: auth.reason }))
+        return
+      }
+      if (auth.preflight) {
+        res.setHeader('Access-Control-Allow-Methods', MCP_CORS_METHODS.join(', '))
+        res.setHeader('Access-Control-Allow-Headers', MCP_CORS_HEADERS.join(', '))
+        res.writeHead(204).end()
         return
       }
       try {

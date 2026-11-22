@@ -34,6 +34,8 @@ export interface MCPConfigOptions {
   approval: Record<string, MCPApprovalPolicy>
   /** 是否允许非回环地址访问。默认 false（强制 127.0.0.1） */
   allowRemote: boolean
+  /** 允许直连的浏览器页面来源。 */
+  allowedOrigins: string[]
   /**
    * 是否对出站内容做密钥掩码（日志/配置里的 password= 等）。默认 false。
    * FlyEnv 是本地开发工具，bin/path/凭据本就是 AI 代理执行任务所需，默认不屏蔽；
@@ -68,6 +70,7 @@ export default class MCPConfigManager {
         enabledTools: [...MCP_DEFAULT_ENABLED_TOOLS],
         approval: { ...MCP_DEFAULT_APPROVAL },
         allowRemote: false,
+        allowedOrigins: [],
         maskSecrets: false
       }
     }
@@ -87,6 +90,27 @@ export default class MCPConfigManager {
   }
 
   setConfig(key: string | Partial<MCPConfigOptions>, ...args: any) {
+    if (key === 'allowedOrigins') key = { allowedOrigins: args[0] }
+    if (typeof key !== 'string' && 'allowedOrigins' in key) {
+      if (!Array.isArray(key.allowedOrigins)) throw new Error('mcp.invalidBrowserOrigin')
+      const origins = key.allowedOrigins.map((origin) => {
+        const url = typeof origin === 'string' && URL.canParse(origin) ? new URL(origin) : undefined
+        if (
+          !url ||
+          (url.protocol !== 'http:' && url.protocol !== 'https:') ||
+          url.hostname.includes('*') ||
+          url.username ||
+          url.password ||
+          url.pathname !== '/' ||
+          url.search ||
+          url.hash
+        ) {
+          throw new Error('mcp.invalidBrowserOrigin')
+        }
+        return url.origin
+      })
+      key = { ...key, allowedOrigins: [...new Set(origins)] }
+    }
     // @ts-ignore electron-store 同时支持 set(key, value) 与 set(object)
     this.config?.set(key, ...args)
     return this.config?.store

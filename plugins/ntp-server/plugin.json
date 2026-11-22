@@ -1,0 +1,24 @@
+{
+  "apiVersion": 1,
+  "id": "ntp-server",
+  "name": "NTP Server",
+  "version": "0.1.7",
+  "description": {
+    "en": "Run a local NTP server with upstream sync, frozen time, or a running time offset for development and testing.",
+    "zh": "本地 NTP 服务，支持上游校时、冻结时间和持续走时的时间偏移，用于开发与测试。"
+  },
+  "author": "FlyEnv",
+  "module": {
+    "typeFlag": "ntp-server",
+    "moduleType": "other",
+    "label": "NTP Server",
+    "asideIndex": 72,
+    "isService": true,
+    "isTray": true,
+    "platform": ["Windows", "macOS", "Linux"]
+  },
+  "entry": {
+    "render": "render/Module.ts",
+    "fork": "fork/index.ts"
+  }
+}

@@ -176,6 +176,12 @@
     },
     "effectsConfig": {
       "title": "图片效果",
+      "edges": "边框 / 圆角",
+      "border": "启用边框",
+      "borderWidth": "边框宽度 (px)",
+      "borderColor": "边框颜色",
+      "roundedCorners": "启用圆角",
+      "cornerRadius": "圆角半径 (px)",
       "rotateFlip": "旋转和翻转",
       "verticalFlip": "垂直翻转",
       "horizontalFlip": "水平翻转",
