@@ -10,13 +10,18 @@
       </div>
       <span class="title">PHP</span>
     </div>
-    <LanguageProjectASide type-flag="php" :show-item="showItem" />
+    <LanguageProjectASide
+      type-flag="php"
+      :show-item="showItem"
+      :disabled-tooltip="I18nT('php.projectSwitchDisabledTip')"
+    />
   </li>
 </template>
 
 <script lang="ts" setup>
   import { AsideSetup } from '@/core/ASide'
   import LanguageProjectASide from '@/components/LanguageProjects/ASide.vue'
+  import { I18nT } from '@lang/index'
 
   const { showItem, currentPage, nav } = AsideSetup('php')
 </script>

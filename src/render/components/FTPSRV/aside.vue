@@ -12,17 +12,18 @@
       <span class="title">ftp-srv</span>
     </div>
 
-    <el-switch
+    <ServiceSwitch
       v-model="serviceRunning"
       :disabled="serviceDisabled"
       @click.stop="stopNav"
       @change="switchChange"
     >
-    </el-switch>
+    </ServiceSwitch>
   </li>
 </template>
 
 <script lang="ts" setup>
+  import ServiceSwitch from '@/components/Aside/ServiceSwitch.vue'
   import { computed } from 'vue'
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
   import { FtpStore } from './ftp'

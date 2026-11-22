@@ -10,9 +10,10 @@
       </div>
       <span class="title">Neo4j</span>
     </div>
-    <el-switch
+    <ServiceSwitch
       v-model="serviceRunning"
       :disabled="serviceDisabled"
+      :disabled-tooltip="serviceDisabledTooltip"
       @click.stop="stopNav"
       @change="switchChange"
     />
@@ -20,6 +21,7 @@
 </template>
 
 <script lang="ts" setup>
+  import ServiceSwitch from '@/components/Aside/ServiceSwitch.vue'
   import { onBeforeUnmount } from 'vue'
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
   import { BrewStore } from '@/store/brew'
@@ -29,6 +31,7 @@
   const {
     showItem,
     serviceDisabled,
+    serviceDisabledTooltip,
     serviceFetching,
     serviceRunning,
     currentPage,

@@ -12,23 +12,26 @@
       <span class="title">OpenClaw</span>
     </div>
 
-    <el-switch
+    <ServiceSwitch
       v-model="serviceRunning"
       :disabled="serviceDisabled"
+      :disabled-tooltip="serviceDisabledTooltip"
       @click.stop="stopNav"
       @change="switchChange"
     >
-    </el-switch>
+    </ServiceSwitch>
   </li>
 </template>
 
 <script lang="ts" setup>
+  import ServiceSwitch from '@/components/Aside/ServiceSwitch.vue'
   import { AsideSetup } from './ASide'
   import { AppServiceModule } from '@/core/ASide'
 
   const {
     showItem,
     serviceDisabled,
+    serviceDisabledTooltip,
     serviceFetching,
     currentPage,
     groupDo,

@@ -11,12 +11,18 @@
       <span class="title">PHP-FPM</span>
     </div>
 
-    <el-switch v-model="serviceRunning" :disabled="serviceDisabled" @click.stop="stopNav">
-    </el-switch>
+    <ServiceSwitch
+      v-model="serviceRunning"
+      :disabled="serviceDisabled"
+      :disabled-tooltip="serviceDisabledTooltip"
+      @click.stop="stopNav"
+    >
+    </ServiceSwitch>
   </li>
 </template>
 
 <script lang="ts" setup>
+  import ServiceSwitch from '@/components/Aside/ServiceSwitch.vue'
   import { computed } from 'vue'
   import { AppStore } from '@/store/app'
   import { BrewStore } from '@/store/brew'
@@ -77,6 +83,12 @@
 
   const serviceFetching = computed(() => {
     return phpVersions?.value?.some((v) => v.running)
+  })
+
+  const serviceDisabledTooltip = computed(() => {
+    if (!appStore.versionInitiated) return I18nT('service.sidebarSwitch.loading')
+    if (serviceFetching.value) return I18nT('service.sidebarSwitch.busy')
+    return I18nT('service.sidebarSwitch.installVersion')
   })
 
   const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {

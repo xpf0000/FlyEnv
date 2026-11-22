@@ -1,4 +1,14 @@
 {
+  "sidebarSwitch": {
+    "loading": "正在加载模块数据，请稍候。",
+    "busy": "服务操作正在进行，请稍候。",
+    "installVersion": "未找到可用版本。请前往版本管理下载安装，或检查已安装的版本。",
+    "addProject": "请先添加项目并将其设为服务。",
+    "addService": "请先在此模块中添加服务。",
+    "addTunnel": "请先添加 Cloudflare 隧道。",
+    "addInstance": "请先创建数据库实例。",
+    "installModule": "请打开此模块并完成安装。"
+  },
   "pathSavedRefreshFailed": "环境变量已保存，但列表刷新失败：{error}",
   "linuxSudoRequiresTerminal": "请手动启动此任务并在终端完成授权；macOS/Linux 不支持后台自动 sudo。",
   "linuxFtpUnmanagedRoot": "此 root FTP 进程不属于 FlyEnv 管理的服务，请先以管理员权限停止旧进程，再重新启动。",

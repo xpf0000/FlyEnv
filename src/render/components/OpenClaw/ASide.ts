@@ -2,6 +2,7 @@ import { computed } from 'vue'
 import Router from '@/router/index'
 import { AppStore } from '@/store/app'
 import { OpenClawSetup } from '@/components/OpenClaw/setup'
+import { I18nT } from '@lang/index'
 
 export const AsideSetup = () => {
   OpenClawSetup.init()
@@ -36,6 +37,13 @@ export const AsideSetup = () => {
     const c = OpenClawSetup.loading
     const d = !appStore.versionInitiated
     return a || b || c || d
+  })
+
+  const serviceDisabledTooltip = computed(() => {
+    if (!appStore.versionInitiated) return I18nT('service.sidebarSwitch.loading')
+    if (OpenClawSetup.loading) return I18nT('service.sidebarSwitch.busy')
+    if (!OpenClawSetup.installed) return I18nT('service.sidebarSwitch.installModule')
+    return I18nT('openclaw.gatewayNotInstalled')
   })
 
   const serviceRunning = computed({
@@ -86,6 +94,7 @@ export const AsideSetup = () => {
   return {
     nav,
     serviceDisabled,
+    serviceDisabledTooltip,
     serviceRunning,
     serviceFetching,
     groupDo,

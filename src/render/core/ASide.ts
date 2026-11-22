@@ -5,6 +5,7 @@ import { BrewStore } from '@/store/brew'
 import { MessageError } from '@/util/Element'
 import type { AllAppModule } from '@/core/type'
 import { AppStore } from '@/store/app'
+import { I18nT } from '@lang/index'
 
 export interface AppServiceModuleItem {
   groupDo: (isRunning: boolean, interactive?: boolean) => Array<Promise<string | boolean>>
@@ -54,14 +55,19 @@ export const AsideSetup = (flag: AllAppModule) => {
     return installed?.find((i) => i.path === current?.path && i.version === current?.version)
   })
 
-  const serviceDisabled = computed(() => {
-    const a = !currentVersion?.value?.version
+  const serviceDisabledReason = computed(() => {
+    if (!appStore.versionInitiated) return 'service.sidebarSwitch.loading'
     const installed = brewStore.module(flag).installed
-    const b = installed.length === 0
-    const c = installed.some((v) => v.running)
-    const d = !appStore.versionInitiated
-    return a || b || c || d
+    if (installed.some((v) => v.running)) return 'service.sidebarSwitch.busy'
+    if (currentVersion.value?.version) return ''
+    return installed.some((v) => v.version)
+      ? 'base.needSelectVersion'
+      : 'service.sidebarSwitch.installVersion'
   })
+  const serviceDisabled = computed(() => !!serviceDisabledReason.value)
+  const serviceDisabledTooltip = computed(() =>
+    serviceDisabledReason.value ? I18nT(serviceDisabledReason.value) : ''
+  )
 
   const serviceRunning = computed(() => {
     return currentVersion?.value?.run === true
@@ -108,6 +114,7 @@ export const AsideSetup = (flag: AllAppModule) => {
     nav,
     currentVersion,
     serviceDisabled,
+    serviceDisabledTooltip,
     serviceRunning,
     serviceFetching,
     groupDo,

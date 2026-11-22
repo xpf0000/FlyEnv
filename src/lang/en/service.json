@@ -1,4 +1,14 @@
 {
+  "sidebarSwitch": {
+    "loading": "Loading module data. Please wait.",
+    "busy": "A service operation is in progress. Please wait.",
+    "installVersion": "No usable version found. Open the Version tab to download a version or check your installed versions.",
+    "addProject": "Add a project and enable its service option to use this switch.",
+    "addService": "Add a service to this module first.",
+    "addTunnel": "Add a Cloudflare tunnel first.",
+    "addInstance": "Create a database instance first.",
+    "installModule": "Open this module and install it first."
+  },
   "pathSavedRefreshFailed": "Environment variables were saved, but the list could not be refreshed: {error}",
   "linuxSudoRequiresTerminal": "Start this privileged task interactively in the terminal; background sudo is unavailable.",
   "linuxFtpUnmanagedRoot": "This root FTP process was not started by FlyEnv's managed service. Stop it with administrator privileges before starting again.",

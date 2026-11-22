@@ -4,9 +4,10 @@
       ><div class="icon-block" :class="{ run: running }"
         ><yb-icon :svg="import('@/svg/mariaDB.svg?raw')" width="30" height="30" /></div
       ><span class="title">MariaDB Cluster</span></div
-    ><el-switch
+    ><ServiceSwitch
       :model-value="running > 0"
       :disabled="serviceDisabled"
+      :disabled-tooltip="serviceDisabledTooltip"
       :loading="serviceFetching"
       @click.stop
       @change="manager.runAll($event ? 'start' : 'stop')"
@@ -14,10 +15,12 @@
   </li>
 </template>
 <script setup lang="ts">
+  import ServiceSwitch from '@/components/Aside/ServiceSwitch.vue'
   import { computed, onUnmounted, watch } from 'vue'
   import router from '@/router'
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
   import { AppStore } from '@/store/app'
+  import { I18nT } from '@lang/index'
   import { MariadbClusterManager as manager, registerLifecycle, releaseLifecycle } from './manager'
   import { InstallationManager } from './installations'
   const route = router.currentRoute
@@ -45,6 +48,12 @@
       manager.blocked ||
       !manager.catalog.instances.length
   )
+  const serviceDisabledTooltip = computed(() => {
+    if (serviceFetching.value) return I18nT('service.sidebarSwitch.busy')
+    if (manager.loadError) return manager.loadError
+    if (!manager.initialized) return I18nT('service.sidebarSwitch.loading')
+    return I18nT('service.sidebarSwitch.addInstance')
+  })
   AppServiceModule['mariadb-cluster'] = {
     groupDo: (isRunning: boolean, interactive = true) => [
       manager.runAll(isRunning ? 'stop' : 'start', interactive).then((result) =>

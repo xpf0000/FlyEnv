@@ -1,4 +1,14 @@
 {
+  "sidebarSwitch": {
+    "loading": "正在載入模組資料，請稍候。",
+    "busy": "服務操作正在進行，請稍候。",
+    "installVersion": "找不到可用版本。請前往版本管理下載並安裝，或檢查已安裝的版本。",
+    "addProject": "請先新增專案並將其設為服務。",
+    "addService": "請先在此模組中新增服務。",
+    "addTunnel": "請先新增 Cloudflare 通道。",
+    "addInstance": "請先建立資料庫執行個體。",
+    "installModule": "請開啟此模組並完成安裝。"
+  },
   "pathSavedRefreshFailed": "環境變數已儲存，但列表重新整理失敗：{error}",
   "setaliase": "設定別名",
   "env": "環境變數",

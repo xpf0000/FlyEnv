@@ -10,7 +10,7 @@
       </div>
       <span class="title">FlyEnv {{ I18nT('mcp.title') }}</span>
     </div>
-    <el-switch
+    <ServiceSwitch
       v-model="serviceRunning"
       :disabled="serviceDisabled"
       :loading="serviceFetching"
@@ -21,6 +21,7 @@
 </template>
 
 <script lang="ts" setup>
+  import ServiceSwitch from '@/components/Aside/ServiceSwitch.vue'
   import { I18nT } from '@lang/index'
   import { AsideSetup } from './ASide'
 

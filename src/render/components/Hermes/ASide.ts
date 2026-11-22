@@ -2,6 +2,7 @@ import { computed } from 'vue'
 import Router from '@/router/index'
 import { AppStore } from '@/store/app'
 import { HermesSetup } from '@/components/Hermes/setup'
+import { I18nT } from '@lang/index'
 
 export const AsideSetup = () => {
   HermesSetup.init()
@@ -35,6 +36,12 @@ export const AsideSetup = () => {
     const b = HermesSetup.loading
     const c = !appStore.versionInitiated
     return a || b || c
+  })
+
+  const serviceDisabledTooltip = computed(() => {
+    if (!appStore.versionInitiated) return I18nT('service.sidebarSwitch.loading')
+    if (HermesSetup.loading) return I18nT('service.sidebarSwitch.busy')
+    return I18nT('service.sidebarSwitch.installModule')
   })
 
   const serviceRunning = computed({
@@ -85,6 +92,7 @@ export const AsideSetup = () => {
   return {
     nav,
     serviceDisabled,
+    serviceDisabledTooltip,
     serviceRunning,
     serviceFetching,
     groupDo,

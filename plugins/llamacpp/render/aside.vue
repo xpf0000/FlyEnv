@@ -10,9 +10,10 @@
       </div>
       <span class="title">llama.cpp</span>
     </div>
-    <el-switch
+    <ServiceSwitch
       v-model="serviceRunning"
       :disabled="serviceDisabled"
+      :disabled-tooltip="serviceDisabledTooltip"
       @click.stop="stopNav"
       @change="switchChange()"
     />
@@ -20,6 +21,7 @@
 </template>
 
 <script lang="ts" setup>
+  import ServiceSwitch from '@/components/Aside/ServiceSwitch.vue'
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
   import { BrewStore } from '@/store/brew'
   import type { ModuleInstalledItem } from '@/core/Module/ModuleInstalledItem'
@@ -29,6 +31,7 @@
   const {
     showItem,
     serviceDisabled,
+    serviceDisabledTooltip,
     serviceFetching,
     serviceRunning,
     currentPage,

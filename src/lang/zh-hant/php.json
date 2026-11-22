@@ -53,6 +53,7 @@
   "windowsSourcePie": "PIE",
   "windowsChooseVersion": "Choose extension version",
   "windowsIncompatibleRelease": "No compatible Windows binary for this PHP build. Choose another version.",
+  "projectSwitchDisabledTip": "PHP 是語言模組。請先新增 PHP 專案並將其設為服務。若要執行網站的 PHP 服務，請使用 PHP-FPM 模組。",
   "windowsPieWillVerify": "PIE will verify this package against the selected PHP build.",
   "windowsRefresh": "重新整理目錄",
   "windowsRetry": "重試",

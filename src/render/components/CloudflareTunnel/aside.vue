@@ -16,23 +16,26 @@
       <span class="title">Cloudflare Tunnel</span>
     </div>
 
-    <el-switch
+    <ServiceSwitch
       v-model="serviceRunning"
       :disabled="serviceDisabled"
+      :disabled-tooltip="serviceDisabledTooltip"
       @click.stop="stopNav"
       @change="switchChange"
     >
-    </el-switch>
+    </ServiceSwitch>
   </li>
 </template>
 
 <script lang="ts" setup>
+  import ServiceSwitch from '@/components/Aside/ServiceSwitch.vue'
   import { AppServiceModule } from '@/core/ASide'
   import { AsideSetup } from './ASide'
 
   const {
     showItem,
     serviceDisabled,
+    serviceDisabledTooltip,
     serviceFetching,
     serviceRunning,
     currentPage,

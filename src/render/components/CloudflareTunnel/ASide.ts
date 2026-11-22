@@ -40,6 +40,12 @@ export const AsideSetup = () => {
     return b || c || d
   })
 
+  const serviceDisabledTooltip = computed(() => {
+    if (!appStore.versionInitiated) return I18nT('service.sidebarSwitch.loading')
+    if (serviceFetching.value) return I18nT('service.sidebarSwitch.busy')
+    return I18nT('service.sidebarSwitch.addTunnel')
+  })
+
   const serviceRunning = computed({
     get(): boolean {
       return (
@@ -111,6 +117,7 @@ export const AsideSetup = () => {
   return {
     nav,
     serviceDisabled,
+    serviceDisabledTooltip,
     serviceRunning,
     serviceFetching,
     groupDo,

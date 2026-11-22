@@ -12,18 +12,19 @@
       <span class="title">DNS Server</span>
     </div>
 
-    <el-switch
+    <ServiceSwitch
       v-model="serviceRunning"
       :loading="serviceFetching"
       :disabled="serviceFetching"
       @click.stop="stopNav"
       @change="switchChange"
     >
-    </el-switch>
+    </ServiceSwitch>
   </li>
 </template>
 
 <script lang="ts" setup>
+  import ServiceSwitch from '@/components/Aside/ServiceSwitch.vue'
   import { AsideSetup, AppServiceModule } from '@/core/ASide'
   import { DnsStore } from './dns'
   import { computed } from 'vue'

@@ -1,6 +1,10 @@
 <template>
-  <el-switch v-model="serviceRunning" :disabled="serviceDisabled" @click.stop="stopNav">
-  </el-switch>
+  <ServiceSwitch
+    v-model="serviceRunning"
+    :disabled="serviceDisabled"
+    :disabled-tooltip="serviceDisabledTooltip"
+    @click.stop="stopNav"
+  />
 </template>
 <script lang="ts" setup>
   import { AppStore } from '@/store/app'
@@ -10,10 +14,12 @@
   import { AppServiceModule } from '@/core/ASide'
   import type { AllAppModule } from '@/core/type'
   import { ProjectSetup } from '@/components/LanguageProjects/setup'
+  import ServiceSwitch from '@/components/Aside/ServiceSwitch.vue'
 
   const props = defineProps<{
     typeFlag: AllAppModule
     showItem: boolean
+    disabledTooltip?: string
   }>()
 
   const stopNav = () => {}
@@ -76,6 +82,13 @@
 
   const serviceFetching = computed(() => {
     return services?.value?.some((v) => v.state.running)
+  })
+
+  const serviceDisabledTooltip = computed(() => {
+    if (!appStore.versionInitiated || project.fetching)
+      return I18nT('service.sidebarSwitch.loading')
+    if (serviceFetching.value) return I18nT('service.sidebarSwitch.busy')
+    return props.disabledTooltip || I18nT('service.sidebarSwitch.addProject')
   })
 
   const groupDo = (isRunning: boolean): Array<Promise<string | boolean>> => {

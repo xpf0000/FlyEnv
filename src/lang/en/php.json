@@ -51,6 +51,7 @@
   "fastcgiWorkerCount": "Worker count",
   "fastcgiWorkerInvalid": "Enter a whole number from {min} to {max}.",
   "fastcgiWorkerRestart": "Restart this PHP service now to apply the new FastCGI worker count?",
+  "projectSwitchDisabledTip": "PHP is a language module. Add a PHP project and enable its service option to use this switch. To run PHP for a website, use the PHP-FPM module.",
   "loadedExtensions": "Loaded Extensions",
   "log_errors": "Enable error logging",
   "error_log_dir": "Specify the PHP error log file path",

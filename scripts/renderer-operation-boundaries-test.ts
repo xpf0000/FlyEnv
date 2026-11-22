@@ -7,6 +7,7 @@ import {
   selectPgAdminPython
 } from '../src/render/components/PostgreSql/PgAdminPython'
 import { redisCommanderRequest } from '../src/render/components/Redis/RedisCommanderRequest'
+import { loadIsolated } from './helpers/load-isolated'
 
 const root = join(import.meta.dirname, '..')
 const componentsDir = join(root, 'src', 'render', 'components')
@@ -750,6 +751,54 @@ assert.match(
 )
 
 // Include the LanguageProjects entry-page guards and its existing PID lifecycle contract.
+const phpAside = readFileSync(join(componentsDir, 'PHP/aside.vue'), 'utf8')
+const languageProjectAside = readFileSync(join(componentsDir, 'LanguageProjects/ASide.vue'), 'utf8')
+assert.match(phpAside, /:disabled-tooltip="I18nT\('php\.projectSwitchDisabledTip'\)"/)
+assert.doesNotMatch(phpAside, /isWindows|isMacOS|isLinux/)
+assert.match(
+  languageProjectAside,
+  /props\.disabledTooltip \|\| I18nT\('service\.sidebarSwitch\.addProject'\)/
+)
+for (const path of [...walk(componentsDir), ...walk(join(root, 'plugins'))]) {
+  if (!/^aside\.vue$/i.test(basename(path))) continue
+  assert.doesNotMatch(readFileSync(path, 'utf8'), /<el-switch\b/, relative(root, path))
+}
+const vue = await import('vue')
+const version = vue.reactive({
+  path: '/fixture/service',
+  version: '1.0',
+  running: false,
+  run: false
+})
+const sidebarModule = vue.reactive({ installed: [] as (typeof version)[] })
+const sidebarApp = vue.reactive({
+  config: { server: { nginx: { current: undefined as typeof version | undefined } } },
+  versionInitiated: false
+})
+const { AsideSetup } = await loadIsolated('src/render/core/ASide.ts', {
+  vue,
+  '@/router/index': {},
+  '@/store/brew': { BrewStore: () => ({ module: () => sidebarModule }) },
+  '@/util/Element': {},
+  '@/store/app': { AppStore: () => sidebarApp },
+  '@lang/index': { I18nT: (key: string) => key }
+})
+const sidebar = AsideSetup('nginx')
+const reason = () => sidebar.serviceDisabledTooltip.value
+assert.equal(sidebar.serviceDisabled.value, true)
+assert.equal(reason(), 'service.sidebarSwitch.loading')
+sidebarApp.versionInitiated = true
+assert.equal(reason(), 'service.sidebarSwitch.installVersion')
+sidebarModule.installed = [{ ...version, version: '' }]
+assert.equal(reason(), 'service.sidebarSwitch.installVersion')
+sidebarModule.installed = [version]
+assert.equal(reason(), 'base.needSelectVersion')
+sidebarApp.config.server.nginx.current = version
+version.running = true
+assert.equal(reason(), 'service.sidebarSwitch.busy')
+version.running = false
+assert.equal(sidebar.serviceDisabled.value, false)
+assert.equal(reason(), '')
 await import('./language-project-ports-test')
 
 console.log('renderer operation boundary tests passed')

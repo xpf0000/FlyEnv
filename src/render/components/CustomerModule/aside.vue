@@ -14,24 +14,27 @@
     </div>
 
     <template v-if="item.isService">
-      <el-switch
+      <ServiceSwitch
         v-model="serviceRunning"
         :disabled="serviceDisabled"
+        :disabled-tooltip="serviceDisabledTooltip"
         @click.stop="stopNav"
         @change="switchChange()"
       >
-      </el-switch>
+      </ServiceSwitch>
     </template>
   </li>
 </template>
 
 <script lang="ts" setup>
+  import ServiceSwitch from '@/components/Aside/ServiceSwitch.vue'
   import { computed, ref, watch } from 'vue'
   import { ModuleCustomer } from '@/core/ModuleCustomer'
   import Router from '@/router'
   import { AppCustomerModule } from '@/core/Module'
   import { AppStore } from '@/store/app'
   import { uuid } from '@/util/Index'
+  import { I18nT } from '@lang/index'
 
   const props = defineProps<{
     item: ModuleCustomer
@@ -62,6 +65,14 @@
   const serviceDisabled = computed(() => {
     return props.item.item.length === 0 || props.item.item.some((s) => s.running)
   })
+
+  const serviceDisabledTooltip = computed(() =>
+    I18nT(
+      props.item.item.length === 0
+        ? 'service.sidebarSwitch.addService'
+        : 'service.sidebarSwitch.busy'
+    )
+  )
 
   const switchChange = () => {
     if (serviceRunning.value) {
