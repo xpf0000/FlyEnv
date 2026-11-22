@@ -40,11 +40,21 @@ export function memoryInputSchema(method: MemoryMethod) {
   const methods = {
     search: {
       properties: {
-        queries: { type: 'array', maxItems: L.queries, items: string(L.query) },
+        queries: {
+          type: 'array',
+          maxItems: L.queries,
+          items: string(L.query),
+          description:
+            'Optional search terms or phrases. Omit or pass [] to browse pinned and recent summaries.'
+        },
         type: draft.type,
         topic: draft.topic,
         tags: draft.tags,
-        include_global: boolean,
+        include_global: {
+          ...boolean,
+          description:
+            'Project search only. Set true to also search global memories. Omit for scope=global.'
+        },
         status: draft.status,
         include_expired: boolean,
         limit: { ...integer, maximum: L.searchLimit, default: 8 },
@@ -52,7 +62,13 @@ export function memoryInputSchema(method: MemoryMethod) {
       },
       required: []
     },
-    get: { properties: { id: uuid, revision: integer }, required: ['id'] },
+    get: {
+      properties: {
+        id: { ...uuid, description: 'Use the id and scope of the selected search result.' },
+        revision: { ...integer, description: 'Omit to read the latest revision.' }
+      },
+      required: ['id']
+    },
     store: {
       properties: { ...draft, request_id: uuid, create_project: boolean },
       required: ['type', 'topic', 'title', 'summary', 'tags', 'content', 'source', 'request_id']
@@ -82,8 +98,17 @@ export function memoryInputSchema(method: MemoryMethod) {
     type: 'object' as const,
     additionalProperties: false,
     properties: {
-      scope: { type: 'string', enum: ['global', 'project'] },
-      project_path: string(L.path),
+      scope: {
+        type: 'string',
+        enum: ['global', 'project'],
+        description:
+          'Use global for cross-project memories or project for a specific project. Always set this field.'
+      },
+      project_path: {
+        ...string(L.path),
+        description:
+          'Required for scope=project. Use the confirmed absolute project root. Omit for scope=global.'
+      },
       ...spec.properties
     },
     required: ['scope', ...spec.required],

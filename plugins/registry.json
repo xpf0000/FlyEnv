@@ -340,7 +340,7 @@
       "apiVersion": 2,
       "id": "ai-memory",
       "name": "AI Memory",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "description": {
         "en": "Persistent local memory for AI coding agents via MCP. Save and retrieve preferences, project knowledge, and development decisions across sessions. Includes global and project-scoped memories, a 3D memory map, search and editing, one-click setup for supported clients, plus backup, restore, and project path reassociation.",
         "zh": "为 AI 编程助手提供持久化的本地记忆，通过 MCP 保存和检索用户偏好、项目知识及开发决策，减少跨会话重复说明。支持全局记忆与项目隔离、3D 星图浏览、记忆搜索与编辑、主流客户端一键接入，以及备份恢复和项目目录重关联。"
@@ -365,7 +365,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "331dfaa7dec29296abc346229a5be32b26d07d1c7686554cb917ba20cc5a0537"
+        "sha256": "93198cd0ebe0e0d1ac648ae0b92d7c2fbcae2bcfd88681c4358ceffba64e1d52"
       },
       "official": true
     }

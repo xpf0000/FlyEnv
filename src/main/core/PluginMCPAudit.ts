@@ -117,15 +117,12 @@ const requestSnapshot = (tool: string, args: any) => {
 const responseSnapshot = (tool: string, result: any) => {
   const outcome = outcomes.has(result?.outcome) ? result.outcome : 'failed'
   const detailed = requestFields[tool] !== undefined
+  const errorCode = result?.error_code
+  const knownError =
+    PLUGIN_ERROR_CODES.has(errorCode) || (detailed && errorCode === 'project_unregistered')
   const snapshot = withoutContent({
     outcome,
-    ...(result?.error_code !== undefined
-      ? {
-          error_code: PLUGIN_ERROR_CODES.has(result.error_code)
-            ? result.error_code
-            : 'operation_failed'
-        }
-      : {}),
+    ...(errorCode !== undefined ? { error_code: knownError ? errorCode : 'operation_failed' } : {}),
     ...(detailed && result?.data !== undefined ? { data: result.data } : {}),
     ...(detailed && result?.warnings !== undefined ? { warnings: result.warnings } : {}),
     ...(result?.isError !== undefined ? { isError: result.isError === true } : {})
@@ -154,6 +151,7 @@ export class PluginMCPAudit {
   log(tool: string, input: AuditInput = {}) {
     const pluginId = this.tools.get(tool)
     const result = input.result
+    const response = responseSnapshot(tool, result)
     const row: PluginAuditEntry = {
       call_id: ++this.sequence,
       time: new Date().toISOString(),
@@ -161,7 +159,8 @@ export class PluginMCPAudit {
       ...(pluginId ? { pluginId } : {}),
       outcome: outcomes.has(result?.outcome) ? result.outcome : 'failed',
       request: requestSnapshot(tool, input.args),
-      response: responseSnapshot(tool, result)
+      response,
+      ...(response.error_code !== undefined ? { error_code: response.error_code } : {})
     }
     for (const key of ['id', 'request_id'] as const) {
       const value = result?.[key] ?? result?.data?.[key] ?? input.args?.[key]
@@ -174,10 +173,6 @@ export class PluginMCPAudit {
     const hits = result?.data?.results ?? result?.data?.hits
     if (Array.isArray(hits)) row.hit_count = hits.length
     if (typeof result?.data?.truncated === 'boolean') row.truncated = result.data.truncated
-    if (result?.error_code !== undefined)
-      row.error_code = PLUGIN_ERROR_CODES.has(result.error_code)
-        ? result.error_code
-        : 'operation_failed'
     if (input.client) {
       const name = ['codex', 'kimi', 'claude', 'claude-code', 'flyenv'].includes(
         input.client.name?.toLowerCase() ?? ''

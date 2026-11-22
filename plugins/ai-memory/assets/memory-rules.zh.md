@@ -4,9 +4,15 @@
 
 ## 读取
 
-全局连接不改变记忆归属：跨项目偏好使用 scope=global，无需项目路径；项目事实使用 scope=project 并提供确认过的项目根。没有项目上下文时仅使用全局记忆，不编造项目路径。
+全局连接不改变记忆归属。每个记忆工具都必须填写 `scope`。跨项目记忆使用 `scope="global"`，项目记忆使用 `scope="project"` 并提供确认过的绝对项目根路径。没有项目上下文时只查全局记忆。
 
-确认项目根目录的绝对路径，不把当前子目录当作根目录。按任务关键词搜索项目记忆，必要时用空查询浏览置顶和最近摘要。需要全局偏好时显式 include_global=true。只对相关结果 get 正文，使用结果中的 scope；全局结果必须用 scope=global 读取。
+调用 `flyenv_memory_search` 时按范围选择一组参数，将示例路径换成实际项目根目录。
+
+- 仅查全局 `{"scope":"global","queries":["复用已有实现"]}`
+- 仅查项目 `{"scope":"project","project_path":"E:/Github/FlyEnv","queries":["构建"]}`
+- 同时查项目和全局 `{"scope":"project","project_path":"E:/Github/FlyEnv","queries":["构建"],"include_global":true}`
+
+全局搜索须省略 `project_path` 和 `include_global`。浏览置顶和最近摘要时，省略 `queries` 或传 `[]`。只对相关结果调用 `flyenv_memory_get`，使用该结果的 `scope`。从项目搜索检索到的全局结果也用 `scope="global"` 读取。
 
 未登记路径若返回 project_candidates，选择确认过的已有项目根，或确认独立后用 create_project=true 保存。不要依据候选猜测归属。项目搬家或换电脑后，可在维护页为原项目重新关联新目录，保留原记忆。未重新关联的新路径按新项目处理，不猜测归属或自动合并。目标目录已有记忆时，仅由用户在维护页确认是否属于同一项目并合并；合并后按新目录查找，保留各条记忆原有 ID 与历史。
 
