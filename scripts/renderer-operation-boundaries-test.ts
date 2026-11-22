@@ -622,6 +622,10 @@ assert.match(ntpSettingsController, /forkTerminalRequest\(/)
 assert.match(ntpSettingsController, /if \(this\.initializing\) return this\.initializing/)
 assert.match(ntpSettingsController, /this\.reading \?\?=/)
 
+const mcpServicePage = readFileSync(join(componentsDir, 'MCP/Service.vue'), 'utf8')
+assert.doesNotMatch(mcpServicePage, /from\s+['"]@\/util\/IPC['"]|IPC\.send/)
+assert.match(mcpServicePage, /MCPSetup\.saveConfig\(\{ allowedOrigins \}\)/)
+
 const mssqlPage = readFileSync(join(root, 'plugins/mssql/render/Index.vue'), 'utf8')
 const mssqlController = readFileSync(join(root, 'plugins/mssql/render/store.ts'), 'utf8')
 assert.doesNotMatch(mssqlPage, /IPC\.send\(/)
