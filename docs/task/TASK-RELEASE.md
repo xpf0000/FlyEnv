@@ -1,8 +1,14 @@
-# FlyEnv新版本4.21.0更新日志
+# FlyEnv新版本4.21.1更新日志
 
 本次更新内容：
-1. 新增AI记忆插件
+1. 新增NTP服务器插件 https://github.com/xpf0000/FlyEnv/issues/961
 2. 一些细节优化和Bug修复. 具体可以看合并的PR.
+   https://github.com/xpf0000/FlyEnv/pull/970
+   https://github.com/xpf0000/FlyEnv/pull/972
+   https://github.com/xpf0000/FlyEnv/issues/962
+   https://github.com/xpf0000/FlyEnv/issues/975
+   https://github.com/xpf0000/FlyEnv/issues/976
+   https://github.com/xpf0000/FlyEnv/issues/978
 
 参照：
 ```

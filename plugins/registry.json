@@ -64,7 +64,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "200446b535440ba2b5d1d54319ef3e92e8d9277534bb692b9b55865dfb828fa5"
+        "sha256": "6d7b013ec7bd09909db1754b18acb7d5442be5ffbac0f054ef709ffffa3ac625"
       },
       "official": true
     },
@@ -98,7 +98,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "0cf00be308b7b62aa7e0adabba8839ad4f7eda6cab15121c8ae6ea7e99112989"
+        "sha256": "b143b2a9a209411ebb06ab7ac75ab2bc9e45ff8e89641e2eebc1e6199f0a003d"
       },
       "official": true
     },
@@ -132,7 +132,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "17040976e0f52556847acf69fbb03d2827c6055f0825f202506aef33a2497b30"
+        "sha256": "beede0c4f86b6e2632c46f361e2fa89ca2a5c261cc24a04076797d90355d49bb"
       },
       "official": true
     },
@@ -164,7 +164,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "5b890ddff05ec199d0582c01277cd720656f181fbaa3eeed3a729ee93f411e2b"
+        "sha256": "5d18d41fad566de13e674a03220e984fa079456dba4bdf59a288f3dbcde60e6e"
       },
       "official": true
     },
@@ -196,7 +196,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "c21a74a81251069579d74318e716191261164277eabdb746bdfd025508edaa0f"
+        "sha256": "5c0ba202dcf6d84727f1afa8d274b8b0b40eff5900f9a793e3c30b6ea9706659"
       },
       "official": true
     },
@@ -230,7 +230,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "a05936e733b023956a43cd1b8ab564bef5cf43e2121af335f3ff8f05cad6d878"
+        "sha256": "1b2ebfee18f467f8c2e412b6d3a5fe9cc13ac4f7201fd53fa1c586f6407ba275"
       },
       "official": true
     },
@@ -264,7 +264,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "0c8dc78094b3da93ae47eb2581773ce1ecab129524ce6b9a1c27b718e92467da"
+        "sha256": "c5393c2a6e1600e1888852e10f60ccbfb3352a0ed25b927a3ad7490cd0f65926"
       },
       "official": true
     },
@@ -298,7 +298,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "7b707a3ec9c516333ffc67fdd71d04cc0a4a4f7bb6490ffce592c151d37101e5"
+        "sha256": "489f67c8cc2472f4bb4dcfbfebe299519ed32fce77026cd97f9e72c3ee3dbb50"
       },
       "official": true
     },
@@ -332,7 +332,7 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "504c7f9e275ca7fcd786826a942cd7bddf437d964a5870f2cca4e70e339f84ef"
+        "sha256": "29233bd91e4c9e83f33b2e3a73871483d9190e5048a201c0326349bed6d21d16"
       },
       "official": true
     },
@@ -365,7 +365,41 @@
       ],
       "artifact": {
         "url": "",
-        "sha256": "93198cd0ebe0e0d1ac648ae0b92d7c2fbcae2bcfd88681c4358ceffba64e1d52"
+        "sha256": "1b33ea01564426e03961c21c758a69db02a41516ceafe553d6cd0632a280ccf2"
+      },
+      "official": true
+    },
+    {
+      "apiVersion": 1,
+      "id": "ntp-server",
+      "name": "NTP Server",
+      "version": "0.1.7",
+      "description": {
+        "en": "Run a local NTP server with upstream sync, frozen time, or a running time offset for development and testing.",
+        "zh": "本地 NTP 服务，支持上游校时、冻结时间和持续走时的时间偏移，用于开发与测试。"
+      },
+      "author": "FlyEnv",
+      "module": {
+        "typeFlag": "ntp-server",
+        "moduleType": "other",
+        "label": "NTP Server",
+        "asideIndex": 72,
+        "isService": true,
+        "isTray": true,
+        "platform": [
+          "Windows",
+          "macOS",
+          "Linux"
+        ]
+      },
+      "platforms": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "artifact": {
+        "url": "",
+        "sha256": "3f45f4a22ac7b687fc90db070b3df2a7abf32a46b8604bd97d61e938b4d97107"
       },
       "official": true
     }

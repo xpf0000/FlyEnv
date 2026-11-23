@@ -1,11 +1,11 @@
-version: 4.21.0
+version: 4.21.1
 files:
-  - url: FlyEnv-4.21.0-arm64.deb
-    sha512: H9U9apy5kMxsDdDCtSwZOE46ZoTCFVdyTOae7m+p3zsS3XjfjEf4YwaHfQl969i270N/3hQCWcZKrNUb0E3hjw==
-    size: 136182072
-  - url: FlyEnv-4.21.0-arm64.rpm
-    sha512: SrXN0B6ikfhXCtTIP6wJ/zkzCkR/mFzAHGWU/GI6iM3VMm8yOVVD9JGdeBYeWvLFX+UhRkGFsN2WEG1a1ycRhQ==
-    size: 115634657
-path: FlyEnv-4.21.0-arm64.deb
-sha512: H9U9apy5kMxsDdDCtSwZOE46ZoTCFVdyTOae7m+p3zsS3XjfjEf4YwaHfQl969i270N/3hQCWcZKrNUb0E3hjw==
-releaseDate: '2026-11-15T08:58:17.761Z'
+  - url: FlyEnv-4.21.1-arm64.deb
+    sha512: DQOhfIc8NSlDLkA+DrLTyzndoTMSCXLiLaVBH/qse0ZNM0y5BzSKCp7b5ZkSmejdxYuCso0z9xCDIqwNAhHmsg==
+    size: 136190036
+  - url: FlyEnv-4.21.1-arm64.rpm
+    sha512: IL9J88uSetATlh4xLT3eC8AI74uLrlugawJdOk6vQE6DbGHpQTkj56OtJTvpKLfrDYCXXS5vvIBuRHSysNolSw==
+    size: 115646829
+path: FlyEnv-4.21.1-arm64.deb
+sha512: DQOhfIc8NSlDLkA+DrLTyzndoTMSCXLiLaVBH/qse0ZNM0y5BzSKCp7b5ZkSmejdxYuCso0z9xCDIqwNAhHmsg==
+releaseDate: '2026-11-22T14:20:31.274Z'
