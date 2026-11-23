@@ -45,7 +45,6 @@ class Manager extends Base {
   Cloudflared: any
   N8N: any
   RustFS: any
-  MkCert: any
   CliProxyAPI: any
   Numa: any
   Rnacos: any
@@ -345,12 +344,6 @@ class Manager extends Base {
             this.RustFS = res.default
           }
           versions.rustfs = this.RustFS.allInstalledVersions(setup)
-        } else if (type === 'mkcert') {
-          if (!this.MkCert) {
-            const res = await import('../MkCert')
-            this.MkCert = res.default
-          }
-          versions.mkcert = this.MkCert.allInstalledVersions(setup)
         } else if (type === 'cliproxyapi') {
           if (!this.CliProxyAPI) {
             const res = await import('../CliProxyAPI')

@@ -95,7 +95,6 @@ export enum AppModuleEnum {
   hermes = 'hermes',
   n8n = 'n8n',
   rustfs = 'rustfs',
-  mkcert = 'mkcert',
   cliproxyapi = 'cliproxyapi',
   numa = 'numa',
   rnacos = 'rnacos',

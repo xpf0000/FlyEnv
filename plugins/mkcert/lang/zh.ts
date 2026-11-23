@@ -1,0 +1,22 @@
+export default {
+  checking: '检查安装状态...',
+  isInstalled: '已安装',
+  notInstalled: 'mkcert 未安装',
+  install: '安装 mkcert',
+  checkAgain: '重新检查',
+  recheck: '重新检查',
+  installCA: '安装 CA',
+  carootLabel: 'CA 根目录',
+  certificates: '证书',
+  noSSLHosts: '没有启用 SSL 的主机,请先为主机启用 SSL。',
+  selectAll: '全选',
+  clearSelection: '清除',
+  selectedCount: '已选 {count}',
+  generateSelected: '生成所选',
+  bulkEmpty: '请至少选择一个主机。',
+  bulkGenerating: '正在生成证书 ({done}/{total})...',
+  bulkResults: '结果',
+  bulkSuccess: '成功',
+  bulkFailed: '失败',
+  bulkDone: '所有证书处理完成。'
+}
