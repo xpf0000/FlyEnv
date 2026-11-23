@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { posix } from 'node:path'
 import { loadIsolated } from './helpers/load-isolated'
 
 const failures = new Map<string, string>([
@@ -7,15 +8,24 @@ const failures = new Map<string, string>([
 ])
 let identityFailed = false
 let databaseAffected = false
+const linuxPrefix = '/home/linuxbrew/.linuxbrew'
+const selectedBrew = `${linuxPrefix}/bin/brew`
+const resolvedBrew = `${linuxPrefix}/Homebrew/bin/brew`
+const linuxCommands: string[] = []
 const { getUpgradeCatalog, inspectUpgrade, queryBrew } = await loadIsolated(
   'src/fork/module/Brew/UpgradeCatalog.ts',
   {
     'node:child_process': {
-      execFile(_bin: string, args: string[], _options: any, callback: any) {
+      execFile(bin: string, args: string[], _options: any, callback: any) {
         const name = args.at(-1)!.split('/').at(-1)!
         if (identityFailed) return callback(new Error('prefix unavailable'), '')
-        if (args[0] === '--prefix') return callback(null, '/brew')
-        if (args[0] === '--cellar') return callback(null, '/brew/Cellar')
+        let prefix = '/brew'
+        if (bin === selectedBrew || bin === resolvedBrew) {
+          linuxCommands.push(bin)
+          prefix = bin === selectedBrew ? linuxPrefix : `${linuxPrefix}/Homebrew`
+        }
+        if (args[0] === '--prefix') return callback(null, prefix)
+        if (args[0] === '--cellar') return callback(null, `${prefix}/Cellar`)
         const failure = failures.get(name)
         if (failure === 'timeout') return callback(new Error('query timed out'), '')
         if (failure === 'partial-timeout')
@@ -50,8 +60,17 @@ const { getUpgradeCatalog, inspectUpgrade, queryBrew } = await loadIsolated(
         callback(null, JSON.stringify({ formulae }))
       }
     },
+    'node:path': posix,
     'node:fs/promises': {
-      realpath: async (path: string) => path,
+      async realpath(path: string) {
+        if (path === selectedBrew) return resolvedBrew
+        if (path === `${linuxPrefix}/Homebrew/Cellar`) {
+          throw Object.assign(new Error(`ENOENT: no such file or directory, realpath '${path}'`), {
+            code: 'ENOENT'
+          })
+        }
+        return path
+      },
       readFile: async () => JSON.stringify({ source: { tap: 'homebrew/core' } })
     }
   },
@@ -88,7 +107,14 @@ databaseAffected = false
 const otherFormula = await inspectUpgrade('/brew/bin/brew', 'composer')
 assert.equal(otherFormula.formula, 'homebrew/core/composer')
 assert.equal(otherFormula.eligible, true)
-const selectedBrew = '/home/linuxbrew/.linuxbrew/bin/brew'
+const linuxCatalog = await getUpgradeCatalog(selectedBrew, ['php'])
+assert.equal(linuxCatalog.failures.length, 0)
+assert.equal(linuxCatalog.rows[0]?.eligible, true)
+assert.equal(linuxCatalog.rows[0].identity.bin, selectedBrew)
+assert.equal(linuxCatalog.rows[0].identity.prefix, linuxPrefix)
+assert.equal(linuxCatalog.rows[0].identity.cellar, `${linuxPrefix}/Cellar`)
+assert.deepEqual(linuxCommands, Array<string>(4).fill(selectedBrew))
+
 const paths: string[] = []
 const linuxServer: Record<string, unknown> = {}
 const { CheckBrewOrPort } = await loadIsolated(

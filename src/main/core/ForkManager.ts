@@ -16,11 +16,7 @@ import type {
   BrewPackageProgress,
   BrewPackageResult
 } from '../../fork/module/Brew/UpgradeTypes'
-import {
-  brewEnvironment,
-  formulaName,
-  getBrewIdentity
-} from '../../fork/module/Brew/UpgradeCatalog'
+import { brewEnvironment, formulaName } from '../../fork/module/Brew/UpgradeCatalog'
 import { quotePosixShell } from '@shared/Gvm'
 import { nodePtyRuntime } from './lazy/OptionalRuntimes'
 import { fetchStopProcessListLocal } from '@shared/StopProcessList'
@@ -171,15 +167,14 @@ export class ForkManager {
     let key: string | undefined
     let submitted = false
     const flight: Promise<BrewPackageResult> = (async () => {
-      const identity = await getBrewIdentity(global.Server.BrewBin!, await EnvSync.sync())
-      if (JSON.stringify(identity) !== JSON.stringify(snapshot.identity))
-        throw new Error('Homebrew identity changed')
       const environment = Object.entries(brewEnvironment({}, true)).map(
         ([name, value]) => `${name}=${value}`
       )
+      // Keep brew as a bare command so the terminal's PATH selects it, as in 4.20.2.
+      // The recorded identity describes the installation inspected during preparation.
       const args = [
         ...environment,
-        identity.bin,
+        'brew',
         action,
         '--formula',
         '--verbose',
@@ -213,7 +208,7 @@ export class ForkManager {
       return {
         operationId: id,
         action,
-        identity,
+        identity: snapshot.identity,
         code,
         signal: signalName,
         canceled,

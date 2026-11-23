@@ -129,16 +129,17 @@ export async function catalogFromInfo(identity: BrewIdentity, items: Info[], out
   return rows
 }
 export async function getBrewIdentity(bin: string, env = process.env): Promise<BrewIdentity> {
-  const resolved = await realpath(bin)
+  // Homebrew derives its prefix from the invoked bin/brew entry. Using realpath(bin)
+  // here would run the repository script and make Linuxbrew look in the wrong Cellar.
   const [prefix, cellar] = await Promise.all([
-    queryBrew(resolved, ['--prefix'], env),
-    queryBrew(resolved, ['--cellar'], env)
+    queryBrew(bin, ['--prefix'], env),
+    queryBrew(bin, ['--cellar'], env)
   ])
   const arch =
     (process.platform === 'darwin' && prefix === '/usr/local') || process.arch === 'x64'
       ? 'x86_64'
       : process.arch
-  return { bin: resolved, prefix: await realpath(prefix), cellar: await realpath(cellar), arch }
+  return { bin, prefix: await realpath(prefix), cellar: await realpath(cellar), arch }
 }
 export async function getUpgradeCatalog(
   bin: string,

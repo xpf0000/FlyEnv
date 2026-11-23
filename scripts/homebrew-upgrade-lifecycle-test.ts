@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict'
+import { brewEnvironment, formulaName } from '../src/fork/module/Brew/UpgradeCatalog'
 import { loadIsolated } from './helpers/load-isolated'
 import { HomebrewOperationCoordinator } from '../src/main/core/HomebrewOperationCoordinator'
 import { ForkPromise } from '../src/shared/ForkPromise'
+import { quotePosixShell } from '../src/shared/Gvm'
 const snapshot: any = {
   identity: { prefix: '/opt/homebrew', cellar: '/opt/homebrew/Cellar' },
   affectedRacks: ['/opt/homebrew/Cellar/php'],
@@ -33,11 +35,21 @@ const service: any = {
   }
 }
 const stoppedTerminals: string[] = []
+const packageCommands: string[] = []
 const fmMocks: any = {
-  '../../fork/module/Brew/UpgradeCatalog': {},
-  '@shared/Gvm': {},
+  '../../fork/module/Brew/UpgradeCatalog': { brewEnvironment, formulaName },
+  '@shared/Gvm': { quotePosixShell },
   './lazy/OptionalRuntimes': {
-    nodePtyRuntime: { peek: () => ({ stop: (key: string) => stoppedTerminals.push(key) }) }
+    nodePtyRuntime: {
+      peek: () => ({ stop: (key: string) => stoppedTerminals.push(key) }),
+      load: async () => ({
+        initNodePty: async () => 'package-terminal',
+        execAndWait: async (_key: string, [command]: string[]) => {
+          packageCommands.push(command)
+          return { exitCode: 0 }
+        }
+      })
+    }
   },
   '@shared/PerformanceDiagnostics': {
     performanceDiagnosticNow: () => 0,
@@ -77,6 +89,33 @@ const { ForkManager: LinuxForkManager } = await loadIsolated(
   fmMocks,
   { process: { platform: 'linux' } }
 )
+const packageRunner = Object.assign(Object.create(LinuxForkManager.prototype), {
+  brewFlights: new Set()
+})
+const preparedIdentity = {
+  bin: '/home/linuxbrew/.linuxbrew/bin/brew',
+  prefix: '/home/linuxbrew/.linuxbrew',
+  cellar: '/home/linuxbrew/.linuxbrew/Cellar',
+  arch: 'x86_64'
+}
+for (const action of ['install', 'uninstall', 'upgrade']) {
+  const result = await packageRunner.runBrewPackage(
+    'prepared-package',
+    action,
+    { ...snapshot, identity: preparedIdentity },
+    noop
+  )
+  assert.equal(result.outcome, 'succeeded', result.error)
+  assert.equal(result.identity, preparedIdentity)
+  assert.ok(
+    packageCommands
+      .at(-1)
+      ?.endsWith(
+        ['brew', action, '--formula', '--verbose', snapshot.formula].map(quotePosixShell).join(' ')
+      )
+  )
+}
+console.log('PASS package commands resolve brew through the terminal PATH')
 const linuxManager = Object.create(LinuxForkManager.prototype)
 Object.defineProperty(linuxManager, 'homebrew', {
   value: new HomebrewOperationCoordinator({

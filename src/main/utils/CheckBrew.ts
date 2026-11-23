@@ -42,7 +42,7 @@ const runBrewChecks = async (brewBins: string[], sendGlobalUpdate: () => void) =
     return
   }
 
-  // The version list uses Homebrew on PATH. Bind its paths and mutations to that same executable.
+  // Record the entry found on PATH for Homebrew metadata queries.
   const [repo, cellar] = await Promise.allSettled([
     spawnPromiseWithEnv(brewBin, ['--repo'], { shell: false }),
     spawnPromiseWithEnv(brewBin, ['--cellar'], { shell: false })
