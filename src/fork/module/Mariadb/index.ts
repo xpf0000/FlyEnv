@@ -1103,7 +1103,8 @@ datadir=${dataDir}`
           host: '127.0.0.1',
           user: 'root',
           password: version?.rootPassword ?? 'root',
-          port
+          port,
+          charset: 'utf8mb4_general_ci'
         })
       } catch (e) {
         console.log('rootPasswordChange Connection err 0: ', e)
@@ -1114,7 +1115,8 @@ datadir=${dataDir}`
           connection = await createConnection({
             host: 'localhost',
             user: 'root',
-            port
+            port,
+            charset: 'utf8mb4_general_ci'
           })
         } catch (e) {
           console.log('rootPasswordChange Connection err 1: ', e)
@@ -1158,24 +1160,24 @@ datadir=${dataDir}`
       SELECT DISTINCT User, Host
       FROM mysql.user
       WHERE
-        Select_priv = 'Y' and
-        Insert_priv = 'Y' and
-        Update_priv = 'Y' and
-        Delete_priv = 'Y' and
-        Create_priv = 'Y' and
-        Drop_priv = 'Y' and
-        References_priv = 'Y' and
-        Index_priv = 'Y' and
-        Alter_priv = 'Y' and
-        Create_tmp_table_priv = 'Y' and
-        Lock_tables_priv = 'Y' and
-        Create_view_priv = 'Y' and
-        Show_view_priv = 'Y' and
-        Create_routine_priv = 'Y' and
-        Alter_routine_priv = 'Y' and
-        Execute_priv = 'Y' and
-        Event_priv = 'Y' and
-        Trigger_priv = 'Y'
+        Select_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Insert_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Update_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Delete_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Create_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Drop_priv = 'Y' COLLATE utf8mb4_general_ci and
+        References_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Index_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Alter_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Create_tmp_table_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Lock_tables_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Create_view_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Show_view_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Create_routine_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Alter_routine_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Execute_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Event_priv = 'Y' COLLATE utf8mb4_general_ci and
+        Trigger_priv = 'Y' COLLATE utf8mb4_general_ci
     `)
 
         const [allUsers]: any = await connection.query(`
@@ -1225,7 +1227,8 @@ datadir=${dataDir}`
           host: '127.0.0.1',
           user: 'root',
           password: version?.rootPassword ?? 'root',
-          port
+          port,
+          charset: 'utf8mb4_general_ci'
         })
       } catch (e) {
         console.log('rootPasswordChange Connection err 0: ', e)
@@ -1236,7 +1239,8 @@ datadir=${dataDir}`
           connection = await createConnection({
             host: 'localhost',
             user: 'root',
-            port
+            port,
+            charset: 'utf8mb4_general_ci'
           })
         } catch (e) {
           console.log('rootPasswordChange Connection err 1: ', e)
