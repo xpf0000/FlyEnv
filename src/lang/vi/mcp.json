@@ -51,5 +51,10 @@
     "install_service": "Tải xuống và cài đặt một phiên bản cho mô-đun FlyEnv có thể cài đặt."
   },
   "pluginToolsRefresh": "Sau khi thay đổi công cụ của plugin, hãy làm mới hoặc kết nối lại ứng dụng khách MCP để cập nhật danh sách công cụ.",
-  "builtinTools": "Tích hợp sẵn"
+  "builtinTools": "Tích hợp sẵn",
+  "approvalMessage": "Cho phép công cụ MCP \"{tool}\" chạy?",
+  "approvalAlways": "Luôn cho phép",
+  "approvalAlwaysTip": "Công cụ này sẽ được đặt thành \"{policy}\" trong MCP → Công cụ. Bạn có thể thay đổi ở đó bất cứ lúc nào.",
+  "approvalAllowOnce": "Cho phép một lần",
+  "approvalCancel": "Hủy"
 }

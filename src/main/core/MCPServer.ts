@@ -23,6 +23,7 @@ import type { PluginMCPRegistry } from './PluginMCPRegistry'
 import { MCPTools, textResult } from './MCPTools'
 import type { MCPToolResult } from './MCPTools'
 import { stopHttpServer } from '@shared/httpServerStop'
+import { I18nT } from '@lang/runtime'
 import {
   MCP_DATABASE_FLAGS,
   MCP_FLAG_DESCRIPTIONS,
@@ -52,6 +53,9 @@ interface ToolDef {
   risky?: boolean
   handler: (args: Record<string, any>) => Promise<MCPToolResult>
 }
+
+/** 审批框按钮下标,与 confirmTool 里 buttons 数组的顺序一一对应 */
+const APPROVAL_BUTTON = { cancel: 0, confirm: 1, always: 2 } as const
 
 const MCP_CORS_METHODS = ['GET', 'POST', 'DELETE']
 const MCP_CORS_HEADERS = [
@@ -91,7 +95,9 @@ export default class MCPServer {
     forkManager: ForkManager,
     mcpConfig: MCPConfigManager,
     appConfig?: { getConfig: (k?: any, d?: any) => any; setConfig: (k: string, ...a: any) => any },
-    private readonly plugins?: PluginMCPRegistry
+    private readonly plugins?: PluginMCPRegistry,
+    /** 审批框里选「始终允许」后回调,用于通知渲染进程刷新策略展示 */
+    private readonly onApprovalChanged?: (tool: string) => void
   ) {
     this.mcpConfig = mcpConfig
     this.tools = new MCPTools(forkManager, mcpConfig, appConfig)
@@ -737,7 +743,14 @@ export default class MCPServer {
     return server
   }
 
-  /** 高风险 tool 的原生确认框 */
+  /**
+   * 高风险 tool 的原生确认框。
+   *
+   * 按钮顺序即 response 的索引,请勿按界面上的视觉顺序改动:
+   * macOS 会重排按钮外观,但 Electron 始终按传入数组下标回传 response
+   * (测试夹具 test/fixtures/plugin-mcp-runtime-smoke-host.ts 就以 response=1 代表「允许本次」)。
+   * defaultId/cancelId 保持 Cancel —— 回车与关闭窗口都等价于拒绝。
+   */
   private async confirmTool(
     name: string,
     args: Record<string, any>,
@@ -749,14 +762,30 @@ export default class MCPServer {
         .join('\n')
       const { response } = await dialog.showMessageBox({
         type: 'warning',
-        buttons: ['Cancel', 'Confirm'],
-        defaultId: 0,
-        cancelId: 0,
+        buttons: [
+          I18nT('mcp.approvalCancel'),
+          I18nT('mcp.approvalAllowOnce'),
+          I18nT('mcp.approvalAlways')
+        ],
+        defaultId: APPROVAL_BUTTON.cancel,
+        cancelId: APPROVAL_BUTTON.cancel,
         title: 'FlyEnv MCP',
-        message: `Allow MCP tool "${name}"?`,
-        detail: detail || undefined
+        message: I18nT('mcp.approvalMessage', { tool: name }),
+        detail: [detail, I18nT('mcp.approvalAlwaysTip', { policy: I18nT('mcp.approvalAuto') })]
+          .filter(Boolean)
+          .join('\n\n')
       })
-      return response === 1
+      if (response === APPROVAL_BUTTON.always) {
+        // 先落盘再放行:下一次调用直接走「自动」策略,不再弹框。
+        // 写盘失败不影响本次已批准的调用(最坏情况只是下次继续询问)。
+        try {
+          this.mcpConfig.setApproval(name, 'auto')
+          this.onApprovalChanged?.(name)
+        } catch (e) {
+          console.log('MCP confirmTool persist error: ', e)
+        }
+      }
+      return response === APPROVAL_BUTTON.confirm || response === APPROVAL_BUTTON.always
     } catch (e) {
       if (!privateTool) console.log('MCP confirmTool error: ', e)
       return false

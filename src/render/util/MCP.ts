@@ -8,6 +8,7 @@ import {
 import type { AllAppModule } from '@/core/type'
 import { HostStore } from '@/components/Host/store'
 import { MysqlStore } from '@/components/Mysql/mysql'
+import { MCPSetup } from '@/components/MCP/setup'
 
 function handleServiceStatusChanged(res: any) {
   const flag = res?.flag as AllAppModule | undefined
@@ -77,6 +78,18 @@ function handleHostListChanged(res: any) {
   }
 }
 
+function handleApprovalChanged(res: any) {
+  const tool = typeof res?.tool === 'string' ? res.tool : ''
+  if (!tool) {
+    return
+  }
+  try {
+    MCPSetup.applyApprovalPolicy(tool, 'auto')
+  } catch (e) {
+    console.log('mcp-approval-changed handle error: ', e)
+  }
+}
+
 export function setupMcpIpc() {
   IPC.on('APP-MCP-Notify').then((key: string, res: any) => {
     try {
@@ -87,6 +100,8 @@ export function setupMcpIpc() {
         handleServiceInstalledNeedUpdate(res)
       } else if (type === 'host-list-changed') {
         handleHostListChanged(res)
+      } else if (type === 'mcp-approval-changed') {
+        handleApprovalChanged(res)
       }
     } catch (e) {
       console.log('APP-MCP-Notify handle error: ', e)

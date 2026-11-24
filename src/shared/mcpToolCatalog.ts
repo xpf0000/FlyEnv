@@ -60,3 +60,16 @@ export const MCP_DEFAULT_APPROVAL = {
 
 export type MCPToolName = (typeof MCP_ALL_TOOLS)[number]
 export type MCPApprovalPolicy = 'auto' | 'confirm'
+
+/**
+ * 单条工具审批策略的合并写入。
+ * MCPConfigManager.setConfig 只做顶层浅合并,直接传 `{ approval: { [tool]: policy } }`
+ * 会把其它工具的既有策略整张覆盖掉 —— 所有写入 approval 的路径都必须走这里。
+ */
+export function mergeApprovalPolicy(
+  current: Record<string, MCPApprovalPolicy> | undefined,
+  tool: string,
+  policy: MCPApprovalPolicy
+): Record<string, MCPApprovalPolicy> {
+  return { ...(current ?? {}), [tool]: policy }
+}

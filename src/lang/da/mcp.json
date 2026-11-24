@@ -51,5 +51,10 @@
     "install_service": "Download og installer en version til et installerbart FlyEnv-modul."
   },
   "pluginToolsRefresh": "Når du har ændret pluginværktøjer, skal du opdatere eller genoprette forbindelsen til din MCP-klient for at opdatere dens værktøjsliste.",
-  "builtinTools": "Indbyggede værktøjer"
+  "builtinTools": "Indbyggede værktøjer",
+  "approvalMessage": "Tillad MCP-værktøjet \"{tool}\"?",
+  "approvalAlways": "Tillad altid",
+  "approvalAlwaysTip": "Dette værktøj sættes til \"{policy}\" under MCP → Værktøjer. Du kan ændre det der når som helst.",
+  "approvalAllowOnce": "Tillad én gang",
+  "approvalCancel": "Annuller"
 }

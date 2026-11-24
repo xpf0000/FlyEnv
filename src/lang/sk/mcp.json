@@ -51,5 +51,10 @@
     "install_service": "Stiahne a nainštaluje verziu pre inštalovateľný modul FlyEnv."
   },
   "pluginToolsRefresh": "Po zmene nástrojov doplnkov obnovte alebo znovu pripojte klienta MCP, aby sa aktualizoval jeho zoznam nástrojov.",
-  "builtinTools": "Vstavané nástroje"
+  "builtinTools": "Vstavané nástroje",
+  "approvalMessage": "Povoliť nástroj MCP „{tool}“?",
+  "approvalAlways": "Vždy povoliť",
+  "approvalAlwaysTip": "Tento nástroj bude v MCP → Nástroje nastavený na „{policy}“. Môžete to tam kedykoľvek zmeniť.",
+  "approvalAllowOnce": "Povoliť raz",
+  "approvalCancel": "Zrušiť"
 }

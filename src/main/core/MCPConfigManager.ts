@@ -4,6 +4,7 @@ import { type Options } from 'electron-store'
 import {
   MCP_DEFAULT_APPROVAL,
   MCP_DEFAULT_ENABLED_TOOLS,
+  mergeApprovalPolicy,
   type MCPApprovalPolicy
 } from '@shared/mcpToolCatalog'
 
@@ -114,6 +115,15 @@ export default class MCPConfigManager {
     // @ts-ignore electron-store 同时支持 set(key, value) 与 set(object)
     this.config?.set(key, ...args)
     return this.config?.store
+  }
+
+  /**
+   * 写入单个工具的审批策略(读取-合并-回写)。
+   * 对话框里的「始终允许」与 MCP → 工具页的切换共用这一条路径,避免浅合并丢掉其它工具的策略。
+   */
+  setApproval(tool: string, policy: MCPApprovalPolicy) {
+    const current = this.getConfig('approval', {}) as Record<string, MCPApprovalPolicy> | undefined
+    return this.setConfig({ approval: mergeApprovalPolicy(current, tool, policy) })
   }
 
   /** 重置为默认值，并重新生成 token */

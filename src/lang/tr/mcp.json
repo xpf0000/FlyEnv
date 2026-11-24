@@ -51,5 +51,10 @@
     "install_service": "Yüklenebilir bir FlyEnv modülü için bir sürümü indir ve kur."
   },
   "pluginToolsRefresh": "Eklenti araçlarını değiştirdikten sonra araç listesini güncellemek için MCP istemcinizi yenileyin veya yeniden bağlayın.",
-  "builtinTools": "Yerleşik"
+  "builtinTools": "Yerleşik",
+  "approvalMessage": "MCP aracı \"{tool}\" çalıştırılsın mı?",
+  "approvalAlways": "Her zaman izin ver",
+  "approvalAlwaysTip": "Bu araç, MCP → Araçlar bölümünde \"{policy}\" olarak ayarlanacak. Oradan istediğiniz zaman değiştirebilirsiniz.",
+  "approvalAllowOnce": "Bir kez izin ver",
+  "approvalCancel": "İptal"
 }

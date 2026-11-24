@@ -51,5 +51,10 @@
     "install_service": "Quraşdırıla bilən FlyEnv modulu üçün versiyanı yüklə və quraşdır."
   },
   "pluginToolsRefresh": "Plagin alətlərini dəyişdikdən sonra alətlər siyahısını yeniləmək üçün MCP müştərinizi yeniləyin və ya yenidən qoşun.",
-  "builtinTools": "Daxili alətlər"
+  "builtinTools": "Daxili alətlər",
+  "approvalMessage": "MCP aləti \"{tool}\" işə salınsın?",
+  "approvalAlways": "Həmişə icazə ver",
+  "approvalAlwaysTip": "Bu alət MCP → Alətlər bölməsində \"{policy}\" olaraq təyin ediləcək. Ora istənilən vaxt dəyişə bilərsiniz.",
+  "approvalAllowOnce": "Bir dəfə icazə ver",
+  "approvalCancel": "Ləğv et"
 }

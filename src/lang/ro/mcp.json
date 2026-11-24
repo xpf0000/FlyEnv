@@ -51,5 +51,10 @@
     "install_service": "Descarcă și instalează o versiune pentru un modul FlyEnv instalabil."
   },
   "pluginToolsRefresh": "După modificarea instrumentelor pluginurilor, reîmprospătează sau reconectează clientul MCP pentru a-i actualiza lista de instrumente.",
-  "builtinTools": "Încorporate"
+  "builtinTools": "Încorporate",
+  "approvalMessage": "Permiteți instrumentul MCP „{tool}”?",
+  "approvalAlways": "Permite întotdeauna",
+  "approvalAlwaysTip": "Acest instrument va fi setat la „{policy}” în MCP → Instrumente. Îl puteți modifica oricând de acolo.",
+  "approvalAllowOnce": "Permite o dată",
+  "approvalCancel": "Anulează"
 }

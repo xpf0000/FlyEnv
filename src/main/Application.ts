@@ -873,7 +873,19 @@ export default class Application extends EventEmitter {
           this.forkManager!,
           this.mcpConfigManager,
           this.configManager,
-          pluginMCP
+          pluginMCP,
+          // 审批框里选「始终允许」后,同步刷新渲染进程的策略展示
+          (tool) => {
+            if (!this.mainWindow) {
+              return
+            }
+            this.windowManager.sendCommandTo(
+              this.mainWindow,
+              'APP-MCP-Notify',
+              'APP-MCP-Notify',
+              { type: 'mcp-approval-changed', tool }
+            )
+          }
         )
       },
       pluginMCP

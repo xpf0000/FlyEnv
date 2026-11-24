@@ -51,5 +51,10 @@
     "install_service": "نزّل وثبّت إصدارًا لوحدة FlyEnv قابلة للتثبيت."
   },
   "pluginToolsRefresh": "بعد تغيير أدوات الإضافات، حدّث عميل MCP أو أعد توصيله لتحديث قائمة أدواته.",
-  "builtinTools": "أدوات مدمجة"
+  "builtinTools": "أدوات مدمجة",
+  "approvalMessage": "هل تسمح بتشغيل أداة MCP «{tool}»؟",
+  "approvalAlways": "السماح دائمًا",
+  "approvalAlwaysTip": "سيتم تعيين هذه الأداة على «{policy}» في MCP → الأدوات. يمكنك تغيير ذلك من هناك في أي وقت.",
+  "approvalAllowOnce": "السماح مرة واحدة",
+  "approvalCancel": "إلغاء"
 }

@@ -51,5 +51,10 @@
     "install_service": "Last ned og installer en versjon for en installerbar FlyEnv-modul."
   },
   "pluginToolsRefresh": "Etter at du har endret programtilleggenes verktøy, må du oppdatere eller koble til MCP-klienten på nytt for å oppdatere verktøylisten.",
-  "builtinTools": "Innebygde verktøy"
+  "builtinTools": "Innebygde verktøy",
+  "approvalMessage": "Tillat MCP-verktøyet \"{tool}\"?",
+  "approvalAlways": "Tillat alltid",
+  "approvalAlwaysTip": "Dette verktøyet settes til \"{policy}\" i MCP → Verktøy. Du kan endre det der når som helst.",
+  "approvalAllowOnce": "Tillat én gang",
+  "approvalCancel": "Avbryt"
 }

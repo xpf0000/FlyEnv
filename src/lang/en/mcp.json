@@ -54,5 +54,10 @@
     "update_site": "Update an existing FlyEnv local development site.",
     "delete_site": "Delete a FlyEnv local development site from FlyEnv configuration.",
     "install_service": "Download and install a version for an installable FlyEnv module."
-  }
+  },
+  "approvalMessage": "Allow MCP tool \"{tool}\"?",
+  "approvalAlways": "Always Allow",
+  "approvalAlwaysTip": "This tool will be set to {policy} in MCP → Tools. You can change it there at any time.",
+  "approvalAllowOnce": "Allow Once",
+  "approvalCancel": "Cancel"
 }

@@ -51,5 +51,10 @@
     "install_service": "Ladda ner och installera en version för en installerbar FlyEnv-modul."
   },
   "pluginToolsRefresh": "När du har ändrat pluginverktygen uppdaterar du eller återansluter MCP-klienten för att uppdatera verktygslistan.",
-  "builtinTools": "Inbyggda"
+  "builtinTools": "Inbyggda",
+  "approvalMessage": "Tillåt MCP-verktyget \"{tool}\"?",
+  "approvalAlways": "Tillåt alltid",
+  "approvalAlwaysTip": "Det här verktyget ställs in på \"{policy}\" i MCP → Verktyg. Du kan ändra det där när som helst.",
+  "approvalAllowOnce": "Tillåt en gång",
+  "approvalCancel": "Avbryt"
 }
