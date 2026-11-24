@@ -1,0 +1,28 @@
+{
+  "apiVersion": 1,
+  "id": "mkcert",
+  "name": "MkCert",
+  "version": "1.0.0",
+  "description": {
+    "en": "Local SSL/TLS certificate authority for development. Generate trusted certificates for localhost and private networks.",
+    "zh": "本地 SSL/TLS 证书颁发机构，用于开发环境。为 localhost 和私有网络生成受信任的证书。"
+  },
+  "author": "FlyEnv",
+  "module": {
+    "typeFlag": "mkcert",
+    "moduleType": "site",
+    "label": "MkCert",
+    "asideIndex": 23,
+    "isService": false,
+    "isTray": false,
+    "platform": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ]
+  },
+  "entry": {
+    "render": "render/Module.ts",
+    "fork": "fork/index.ts"
+  }
+}

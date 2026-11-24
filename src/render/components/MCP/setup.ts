@@ -16,6 +16,7 @@ import {
   MCP_DEFAULT_APPROVAL,
   MCP_DEFAULT_ENABLED_TOOLS,
   MCP_RISKY_TOOLS,
+  mergeApprovalPolicy,
   type MCPApprovalPolicy
 } from '@shared/mcpToolCatalog'
 
@@ -218,8 +219,16 @@ class MCP {
 
   setApproval(tool: string, policy: MCPApprovalPolicy) {
     this.saveConfig({
-      approval: { ...this.config.approval, [tool]: policy }
+      approval: mergeApprovalPolicy(this.config.approval, tool, policy)
     })
+  }
+
+  /**
+   * 主进程审批框里选了「始终允许」——配置已由主进程落盘,这里只同步界面展示。
+   * 整张 approval 重新赋值,保证 reactiveBind 的 config 触发更新。
+   */
+  applyApprovalPolicy(tool: string, policy: MCPApprovalPolicy) {
+    this.config.approval = mergeApprovalPolicy(this.config.approval, tool, policy)
   }
 
   get serverUrl(): string {

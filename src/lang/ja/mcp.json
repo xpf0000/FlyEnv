@@ -51,5 +51,10 @@
     "install_service": "インストール可能な FlyEnv モジュールのバージョンをダウンロードしてインストールします。"
   },
   "pluginToolsRefresh": "プラグインのツールを変更した後は、MCP クライアントを更新するか再接続して、ツール一覧を更新してください。",
-  "builtinTools": "組み込みツール"
+  "builtinTools": "組み込みツール",
+  "approvalMessage": "MCP ツール「{tool}」の実行を許可しますか?",
+  "approvalAlways": "常に許可",
+  "approvalAlwaysTip": "このツールは「MCP → ツール」で「{policy}」に設定されます。いつでもそこで変更できます。",
+  "approvalAllowOnce": "今回のみ許可",
+  "approvalCancel": "キャンセル"
 }

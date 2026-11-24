@@ -51,5 +51,10 @@
     "install_service": "下載並安裝一個可安裝 FlyEnv 模組的指定版本。"
   },
   "pluginToolsRefresh": "外掛工具變更後，請重新整理或重新連線 MCP 用戶端，以更新工具清單。",
-  "builtinTools": "內建工具"
+  "builtinTools": "內建工具",
+  "approvalMessage": "允許 MCP 工具「{tool}」執行嗎?",
+  "approvalAlways": "永遠允許",
+  "approvalAlwaysTip": "此工具將在「MCP → 工具」中設為「{policy}」,你可隨時在那裡修改。",
+  "approvalAllowOnce": "僅本次允許",
+  "approvalCancel": "取消"
 }

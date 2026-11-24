@@ -51,5 +51,10 @@
     "install_service": "دانلود و نصب یک نسخه برای یک ماژول FlyEnv قابل نصب."
   },
   "pluginToolsRefresh": "پس از تغییر ابزارهای افزونه، برای به‌روزرسانی فهرست ابزارها، کلاینت MCP را تازه‌سازی کنید یا دوباره متصل شوید.",
-  "builtinTools": "ابزارهای داخلی"
+  "builtinTools": "ابزارهای داخلی",
+  "approvalMessage": "اجازه به اجرای ابزار MCP «{tool}»؟",
+  "approvalAlways": "همیشه اجازه بده",
+  "approvalAlwaysTip": "این ابزار در MCP → ابزارها روی «{policy}» تنظیم می‌شود. هر زمان بخواهید می‌توانید آن را از همان‌جا تغییر دهید.",
+  "approvalAllowOnce": "اجازه یکبار",
+  "approvalCancel": "لغو"
 }

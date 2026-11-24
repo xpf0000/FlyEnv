@@ -59,7 +59,6 @@ export const MCP_QUERYABLE_FLAGS = [
   'meilisearch',
   'memcached',
   'minio',
-  'mkcert',
   'mongodb',
   'mysql',
   'n8n',
@@ -123,7 +122,6 @@ export const MCP_INSTALLABLE_FLAGS = [
   'meilisearch',
   'memcached',
   'minio',
-  'mkcert',
   'mongodb',
   'mysql',
   'n8n',
@@ -218,7 +216,7 @@ export const MCP_FLAG_DESCRIPTIONS = {
   database:
     'Database/cache module flag. Allowed values: mysql, mariadb, postgresql, clickhouse, redis, mongodb, memcached.',
   installable:
-    'Installable FlyEnv module flag. Examples: bun, php, nginx, mysql, python, golang, mkcert. Use list_online_versions first to see available versions.'
+    'Installable FlyEnv module flag. Examples: bun, php, nginx, mysql, python, golang. Use list_online_versions first to see available versions.'
 } as const
 
 export const MCP_PARAM_DESCRIPTIONS = {

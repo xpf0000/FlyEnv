@@ -54,5 +54,10 @@
     "update_site": "更新一个现有的 FlyEnv 本地开发站点。",
     "delete_site": "从 FlyEnv 配置中删除一个本地开发站点。",
     "install_service": "下载并安装一个可安装 FlyEnv 模块的指定版本。"
-  }
+  },
+  "approvalMessage": "允许 MCP 工具「{tool}」执行吗?",
+  "approvalAlways": "始终允许",
+  "approvalAlwaysTip": "该工具将在「MCP → 工具」中设为「{policy}」,你可以随时在那里修改。",
+  "approvalAllowOnce": "仅本次允许",
+  "approvalCancel": "取消"
 }

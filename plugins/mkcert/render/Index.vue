@@ -25,11 +25,16 @@
 <script lang="ts" setup>
   import Certs from './Certs.vue'
   import { I18nT } from '@lang/index'
-  import Service from '@/components/ServiceManager/base.vue'
+  import Service from '@/components/ServiceManager/index.vue'
   import Manager from '@/components/VersionManager/index.vue'
   import { AppModuleSetup } from '@/core/Module'
+  import { MkcertT } from './lang'
 
   const { tab, checkVersion } = AppModuleSetup('mkcert')
-  const tabs = [I18nT('base.service'), I18nT('base.versionManager'), I18nT('mkcert.certificates')]
+  const tabs = [
+    I18nT('base.service'),
+    I18nT('base.versionManager'),
+    MkcertT('certificates')
+  ]
   checkVersion()
 </script>

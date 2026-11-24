@@ -51,5 +51,10 @@
     "install_service": "Scarica e installa una versione di un modulo FlyEnv installabile."
   },
   "pluginToolsRefresh": "Dopo aver modificato gli strumenti dei plugin, aggiorna o riconnetti il client MCP per aggiornarne l’elenco degli strumenti.",
-  "builtinTools": "Strumenti integrati"
+  "builtinTools": "Strumenti integrati",
+  "approvalMessage": "Consentire l’esecuzione dello strumento MCP «{tool}»?",
+  "approvalAlways": "Consenti sempre",
+  "approvalAlwaysTip": "Questo strumento verrà impostato su «{policy}» in MCP → Strumenti. Puoi modificarlo lì in qualsiasi momento.",
+  "approvalAllowOnce": "Consenti una volta",
+  "approvalCancel": "Annulla"
 }

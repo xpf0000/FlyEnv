@@ -51,5 +51,10 @@
     "install_service": "Unduh dan pasang versi untuk modul FlyEnv yang dapat dipasang."
   },
   "pluginToolsRefresh": "Setelah mengubah alat plugin, segarkan atau hubungkan kembali klien MCP Anda untuk memperbarui daftar alatnya.",
-  "builtinTools": "Alat bawaan"
+  "builtinTools": "Alat bawaan",
+  "approvalMessage": "Izinkan alat MCP \"{tool}\" dijalankan?",
+  "approvalAlways": "Selalu izinkan",
+  "approvalAlwaysTip": "Alat ini akan diatur ke \"{policy}\" di MCP → Alat. Anda dapat mengubahnya di sana kapan saja.",
+  "approvalAllowOnce": "Izinkan sekali",
+  "approvalCancel": "Batal"
 }

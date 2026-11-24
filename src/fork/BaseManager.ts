@@ -68,7 +68,6 @@ class BaseManager {
   Hermes: any
   N8N: any
   RustFS: any
-  MkCert: any
   Flutter: any
   Sdkman: any
   LanguageProject: any
@@ -635,12 +634,6 @@ class BaseManager {
         this.RustFS = res.default
       }
       doRun(this.RustFS)
-    } else if (module === 'mkcert') {
-      if (!this.MkCert) {
-        const res = await import('./module/MkCert')
-        this.MkCert = res.default
-      }
-      doRun(this.MkCert)
     } else if (module === 'flutter') {
       if (!this.Flutter) {
         const res = await import('./module/Flutter')

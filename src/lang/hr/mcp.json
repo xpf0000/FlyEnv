@@ -51,5 +51,10 @@
     "install_service": "Preuzmi i instaliraj verziju za instalabilni FlyEnv modul."
   },
   "pluginToolsRefresh": "Nakon promjene alata dodataka osvježite ili ponovno povežite MCP klijent kako biste ažurirali njegov popis alata.",
-  "builtinTools": "Ugrađeni alati"
+  "builtinTools": "Ugrađeni alati",
+  "approvalMessage": "Dopustiti MCP alat „{tool}“?",
+  "approvalAlways": "Uvijek dopusti",
+  "approvalAlwaysTip": "Ovaj će alat biti postavljen na „{policy}” u MCP → Alati. To možete tamo promijeniti u svakom trenutku.",
+  "approvalAllowOnce": "Dopusti jednom",
+  "approvalCancel": "Odustani"
 }

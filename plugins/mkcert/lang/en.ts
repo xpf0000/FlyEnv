@@ -1,0 +1,22 @@
+export default {
+  checking: 'Checking installation...',
+  isInstalled: 'installed',
+  notInstalled: 'mkcert is not installed',
+  install: 'Install mkcert',
+  checkAgain: 'Check Again',
+  recheck: 'Re-check',
+  installCA: 'Install CA',
+  carootLabel: 'CA Root Path',
+  certificates: 'Certificates',
+  noSSLHosts: 'No hosts with SSL enabled. Enable SSL on a host first.',
+  selectAll: 'Select All',
+  clearSelection: 'Clear',
+  selectedCount: '{count} selected',
+  generateSelected: 'Generate Selected',
+  bulkEmpty: 'Select at least one host.',
+  bulkGenerating: 'Generating certificates ({done}/{total})...',
+  bulkResults: 'Results',
+  bulkSuccess: 'Succeeded',
+  bulkFailed: 'Failed',
+  bulkDone: 'All certificates processed.'
+}

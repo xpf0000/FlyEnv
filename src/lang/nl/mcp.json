@@ -51,5 +51,10 @@
     "install_service": "Download en installeer een versie voor een installeerbare FlyEnv-module."
   },
   "pluginToolsRefresh": "Vernieuw of verbind je MCP-client opnieuw nadat je plugintools hebt gewijzigd om de lijst met tools bij te werken.",
-  "builtinTools": "Ingebouwde tools"
+  "builtinTools": "Ingebouwde tools",
+  "approvalMessage": "MCP-tool \"{tool}\" toestaan?",
+  "approvalAlways": "Altijd toestaan",
+  "approvalAlwaysTip": "Deze tool wordt in MCP → Tools op \"{policy}\" gezet. Je kunt dat daar altijd wijzigen.",
+  "approvalAllowOnce": "Eenmalig toestaan",
+  "approvalCancel": "Annuleren"
 }

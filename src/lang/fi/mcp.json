@@ -51,5 +51,10 @@
     "install_service": "Lataa ja asenna versio asennettavasta FlyEnv-moduulista."
   },
   "pluginToolsRefresh": "Kun olet muuttanut lisäosien työkaluja, päivitä MCP-asiakkaan työkaluluettelo päivittämällä asiakas tai muodostamalla yhteys uudelleen.",
-  "builtinTools": "Sisäiset työkalut"
+  "builtinTools": "Sisäiset työkalut",
+  "approvalMessage": "Sallitaanko MCP-työkalun \"{tool}\" suorittaminen?",
+  "approvalAlways": "Salli aina",
+  "approvalAlwaysTip": "Tämä työkalu asetetaan tilaan \"{policy}\" kohdassa MCP → Työkalut. Voit muuttaa sitä siellä milloin tahansa.",
+  "approvalAllowOnce": "Salli kerran",
+  "approvalCancel": "Peruuta"
 }
