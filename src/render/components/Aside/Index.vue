@@ -9,7 +9,7 @@
         <el-popover
           width="auto"
           :show-after="800"
-          placement="right"
+          :placement="appStore.asideExpanded ? 'bottom' : 'right'"
           popper-class="app-popover-min-w-auto"
         >
           <template #default>
@@ -29,7 +29,7 @@
         <el-popover
           width="auto"
           :show-after="800"
-          placement="right"
+          :placement="appStore.asideExpanded ? 'bottom' : 'right'"
           popper-class="app-popover-min-w-auto"
         >
           <template #default>
@@ -44,7 +44,7 @@
         <el-popover
           width="auto"
           :show-after="800"
-          placement="right"
+          :placement="appStore.asideExpanded ? 'bottom' : 'right'"
           popper-class="app-popover-min-w-auto"
         >
           <template #default>
@@ -56,23 +56,48 @@
             </li>
           </template>
         </el-popover>
-        <li
-          :class="{
-            'opacity-40 cursor-not-allowed': !expandEnable,
-            'cursor-pointer hover:text-yellow-500': expandEnable
-          }"
-          @click.stop="asideExpandChange"
+        <el-popover
+          ref="expandPopoverRef"
+          width="auto"
+          :show-after="800"
+          :placement="appStore.asideExpanded ? 'bottom' : 'right'"
+          popper-class="app-popover-min-w-auto"
         >
-          <template v-if="appStore.asideExpanded">
-            <yb-icon class="p-[1px]" :svg="import('@/svg/fold.svg?raw')" width="24" height="24" />
+          <template #default>
+            <span>{{
+              appStore.asideExpanded ? I18nT('aside.collapseSidebar') : I18nT('aside.expandSidebar')
+            }}</span>
           </template>
-          <template v-else>
-            <yb-icon class="p-[4px]" :svg="import('@/svg/expand.svg?raw')" width="24" height="24" />
+          <template #reference>
+            <li
+              :class="{
+                'opacity-40 cursor-not-allowed': !expandEnable,
+                'cursor-pointer hover:text-yellow-500': expandEnable
+              }"
+              @click.stop="asideExpandChange"
+            >
+              <template v-if="appStore.asideExpanded">
+                <yb-icon
+                  class="p-[1px]"
+                  :svg="import('@/svg/fold.svg?raw')"
+                  width="24"
+                  height="24"
+                />
+              </template>
+              <template v-else>
+                <yb-icon
+                  class="p-[4px]"
+                  :svg="import('@/svg/expand.svg?raw')"
+                  width="24"
+                  height="24"
+                />
+              </template>
+            </li>
           </template>
-        </li>
+        </el-popover>
       </ul>
       <el-scrollbar>
-        <ul class="menu top-menu">
+        <ul class="menu top-menu" @mouseover="onMenuMouseOver" @mouseleave="onMenuMouseLeave">
           <template v-for="(item, _index) in allModule" :key="_index">
             <div
               :style="
@@ -99,7 +124,7 @@
           </template>
         </ul>
       </el-scrollbar>
-      <ul class="menu setup-menu">
+      <ul class="menu setup-menu" @mouseover="onMenuMouseOver" @mouseleave="onMenuMouseLeave">
         <li
           :class="'non-draggable' + (currentPage === '/setup' ? ' active' : '')"
           @click="nav('/setup')"
@@ -112,6 +137,14 @@
           </div>
         </li>
       </ul>
+      <el-tooltip
+        :visible="!appStore.asideExpanded && sidebarTooltipVisible"
+        :disabled="appStore.asideExpanded"
+        :content="sidebarTooltipText"
+        placement="right"
+        virtual-triggering
+        :virtual-ref="sidebarTooltipRef"
+      />
     </div>
   </el-aside>
 </template>
@@ -137,7 +170,7 @@
   import type { ModuleCustomer } from '@/core/ModuleCustomer'
   import type { CallbackFn } from '@shared/app'
   import { BrewStore } from '@/store/brew'
-  import { ElMessageBox } from 'element-plus'
+  import { ElMessageBox, type PopoverInstance } from 'element-plus'
   import { StartupGroupManager } from '@/components/StartupGroup/class/StartupGroupManager'
   import { buildStartupGroupTrayItems } from '@/components/StartupGroup/tray'
   import type { StartupGroup } from '@/components/StartupGroup/class/StartupGroup'
@@ -871,7 +904,10 @@
     canExpand.value = width >= 960
   }
 
+  const expandPopoverRef = ref<PopoverInstance>()
+
   const asideExpandChange = () => {
+    expandPopoverRef.value?.hide()
     if (!canExpand.value && !appStore.asideExpanded) {
       return
     }
@@ -884,6 +920,44 @@
     }
     return true
   })
+
+  const sidebarTooltipVisible = ref(false)
+  const sidebarTooltipText = ref('')
+  const sidebarTooltipRef = ref<HTMLElement>()
+
+  const onMenuMouseOver = (e: MouseEvent) => {
+    if (appStore.asideExpanded) return
+    const li = (e.target as HTMLElement | null)?.closest('li') as HTMLElement | null
+    if (!li) {
+      sidebarTooltipVisible.value = false
+      return
+    }
+    if (sidebarTooltipRef.value === li && sidebarTooltipVisible.value) return
+    const text = li.querySelector('.title')?.textContent?.trim()
+    if (!text) {
+      sidebarTooltipVisible.value = false
+      return
+    }
+    sidebarTooltipRef.value = li
+    sidebarTooltipText.value = text
+    sidebarTooltipVisible.value = true
+  }
+
+  const onMenuMouseLeave = () => {
+    sidebarTooltipVisible.value = false
+  }
+
+  watch(
+    () => appStore.asideExpanded,
+    (expanded) => {
+      expandPopoverRef.value?.hide()
+      if (expanded) {
+        sidebarTooltipVisible.value = false
+        sidebarTooltipText.value = ''
+        sidebarTooltipRef.value = undefined
+      }
+    }
+  )
 
   onMounted(() => {
     checkAppWidth()

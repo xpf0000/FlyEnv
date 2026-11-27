@@ -17,5 +17,7 @@
   "networkTunnel": "Network Tunnel",
   "cacheAndQueue": "Cache & Message Queue",
   "serviceGovernance": "Service Governance",
-  "other": "Other"
+  "other": "Other",
+  "collapseSidebar": "Collapse sidebar",
+  "expandSidebar": "Expand sidebar"
 }
