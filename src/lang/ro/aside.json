@@ -17,5 +17,7 @@
   "cacheAndQueue": "Coada de geocutii şi mesaje",
   "serviceGovernance": "Guvernanța serviciilor",
   "other": "Altele",
-  "console": "Consolă"
+  "console": "Consolă",
+  "collapseSidebar": "Restrânge bara laterală",
+  "expandSidebar": "Extinde bara laterală"
 }

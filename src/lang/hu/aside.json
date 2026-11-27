@@ -17,5 +17,7 @@
   "cacheAndQueue": "Gyorsítótár és üzenetsor",
   "serviceGovernance": "Szolgáltatásirányítás",
   "other": "Egyéb",
-  "console": "Konzol"
+  "console": "Konzol",
+  "collapseSidebar": "Oldalsáv összecsukása",
+  "expandSidebar": "Oldalsáv kinyitása"
 }

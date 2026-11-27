@@ -17,5 +17,7 @@
   "cacheAndQueue": "ক্যাশ এবং বার্তা কিউ",
   "serviceGovernance": "পরিষেবা গভর্নেন্স",
   "other": "অন্যান্য",
-  "console": "কনসোল"
+  "console": "কনসোল",
+  "collapseSidebar": "সাইডবার সংকুচিত করুন",
+  "expandSidebar": "সাইডবার প্রসারিত করুন"
 }

@@ -17,5 +17,7 @@
   "cacheAndQueue": "Cache & Antrian Pesan",
   "serviceGovernance": "Tata Kelola Layanan",
   "other": "Lainnya",
-  "console": "Konsol"
+  "console": "Konsol",
+  "collapseSidebar": "Ciutkan bilah sisi",
+  "expandSidebar": "Luaskan bilah sisi"
 }

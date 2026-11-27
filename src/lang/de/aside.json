@@ -17,5 +17,7 @@
   "cacheAndQueue": "Cache- & Nachrichtenwarteschlange",
   "serviceGovernance": "Service-Steuerung",
   "other": "Andere",
-  "console": "Konsole"
+  "console": "Konsole",
+  "collapseSidebar": "Seitenleiste einklappen",
+  "expandSidebar": "Seitenleiste ausklappen"
 }

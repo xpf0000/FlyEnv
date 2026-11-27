@@ -17,5 +17,7 @@
   "cacheAndQueue": "Кеш и опашка за съобщения",
   "serviceGovernance": "Управление на услугите",
   "other": "Друго",
-  "console": "Конзола"
+  "console": "Конзола",
+  "collapseSidebar": "Свиване на страничната лента",
+  "expandSidebar": "Разгъване на страничната лента"
 }

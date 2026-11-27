@@ -17,5 +17,7 @@
   "networkTunnel": "Sieťový tunel",
   "cacheAndQueue": "Cache a fronta správ",
   "serviceGovernance": "Správa služieb",
-  "other": "Ostatné"
+  "other": "Ostatné",
+  "collapseSidebar": "Zbaliť bočný panel",
+  "expandSidebar": "Rozbaliť bočný panel"
 }

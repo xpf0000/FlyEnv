@@ -17,5 +17,7 @@
   "cacheAndQueue": "Keş və Mesaj Qrupu",
   "serviceGovernance": "Xidmət İdarəetməsi",
   "other": "Digər",
-  "console": "Konsol"
+  "console": "Konsol",
+  "collapseSidebar": "Yan paneli yığ",
+  "expandSidebar": "Yan paneli genişləndir"
 }

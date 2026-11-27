@@ -17,5 +17,7 @@
   "cacheAndQueue": "Mezipaměť a fronta zpráv",
   "serviceGovernance": "Správa služeb",
   "other": "Ostatní",
-  "console": "Konzole"
+  "console": "Konzole",
+  "collapseSidebar": "Sbalit postranní panel",
+  "expandSidebar": "Rozbalit postranní panel"
 }

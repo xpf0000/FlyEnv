@@ -17,5 +17,7 @@
   "cacheAndQueue": "キャッシュとメッセージキュー",
   "serviceGovernance": "サービスガバナンス",
   "other": "その他",
-  "console": "コンソール"
+  "console": "コンソール",
+  "collapseSidebar": "サイドバーを折りたたむ",
+  "expandSidebar": "サイドバーを展開"
 }

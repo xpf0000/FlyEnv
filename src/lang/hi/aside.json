@@ -17,5 +17,7 @@
   "networkTunnel": "नेटवर्क टनल",
   "cacheAndQueue": "कैश और मैसेज क्यू",
   "serviceGovernance": "सेवा शासन",
-  "other": "अन्य"
+  "other": "अन्य",
+  "collapseSidebar": "साइडबार संक्षिप्त करें",
+  "expandSidebar": "साइडबार विस्तृत करें"
 }
