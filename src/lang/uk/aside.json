@@ -17,5 +17,7 @@
   "cacheAndQueue": "Черга кешу і повідомлень",
   "serviceGovernance": "Керування послугами",
   "other": "Інше",
-  "console": "Консоль"
+  "console": "Консоль",
+  "collapseSidebar": "Згорнути бічну панель",
+  "expandSidebar": "Розгорнути бічну панель"
 }

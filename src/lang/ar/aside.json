@@ -17,5 +17,7 @@
   "cacheAndQueue": "التخزين المؤقت وقائمة الانتظار",
   "serviceGovernance": "الحوكمة الخدمية",
   "other": "اخرى",
-  "console": "وحدة التحكم"
+  "console": "وحدة التحكم",
+  "collapseSidebar": "طي الشريط الجانبي",
+  "expandSidebar": "توسيع الشريط الجانبي"
 }

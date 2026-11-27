@@ -17,5 +17,7 @@
   "cacheAndQueue": "Cache e Fila de Mensagens",
   "serviceGovernance": "Administração de Serviços",
   "other": "Outros",
-  "console": "Consola"
+  "console": "Consola",
+  "collapseSidebar": "Recolher barra lateral",
+  "expandSidebar": "Expandir barra lateral"
 }

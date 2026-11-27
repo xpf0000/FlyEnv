@@ -17,5 +17,7 @@
   "cacheAndQueue": "Cache en bericht wachtrij",
   "serviceGovernance": "Servicebeheer",
   "other": "anders",
-  "console": "Console"
+  "console": "Console",
+  "collapseSidebar": "Zijbalk inklappen",
+  "expandSidebar": "Zijbalk uitklappen"
 }

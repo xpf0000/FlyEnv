@@ -17,5 +17,7 @@
   "cacheAndQueue": "Cache et files d'attente de messages",
   "serviceGovernance": "Gestion des services distribués",
   "other": "Autres",
-  "console": "Console"
+  "console": "Console",
+  "collapseSidebar": "Réduire la barre latérale",
+  "expandSidebar": "Développer la barre latérale"
 }

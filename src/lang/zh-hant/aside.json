@@ -17,5 +17,7 @@
   "cacheAndQueue": "緩存&訊息佇列",
   "serviceGovernance": "服務治理",
   "other": "其他",
-  "console": "控制台"
+  "console": "控制台",
+  "collapseSidebar": "收起側邊欄",
+  "expandSidebar": "展開側邊欄"
 }

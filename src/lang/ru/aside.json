@@ -17,5 +17,7 @@
   "cacheAndQueue": "Кэш и очередь сообщений",
   "serviceGovernance": "Управление услугами",
   "other": "Прочие вопросы",
-  "console": "Консоль"
+  "console": "Консоль",
+  "collapseSidebar": "Свернуть боковую панель",
+  "expandSidebar": "Развернуть боковую панель"
 }

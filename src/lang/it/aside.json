@@ -17,5 +17,7 @@
   "cacheAndQueue": "Cache E Coda Dei Messaggi",
   "serviceGovernance": "Governance Dei Servizi",
   "other": "Altro",
-  "console": "Console"
+  "console": "Console",
+  "collapseSidebar": "Comprimi barra laterale",
+  "expandSidebar": "Espandi barra laterale"
 }

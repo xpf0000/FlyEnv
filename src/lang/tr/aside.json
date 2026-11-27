@@ -17,5 +17,7 @@
   "cacheAndQueue": "Önbellek ve Mesaj Kuyruğu",
   "serviceGovernance": "Servis Yönetimi",
   "other": "Diğer",
-  "console": "Konsol"
+  "console": "Konsol",
+  "collapseSidebar": "Kenar çubuğunu daralt",
+  "expandSidebar": "Kenar çubuğunu genişlet"
 }

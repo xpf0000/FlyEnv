@@ -17,5 +17,7 @@
   "cacheAndQueue": "Cache & Meddelandekö",
   "serviceGovernance": "Styrning av tjänster",
   "other": "Annat",
-  "console": "Konsol"
+  "console": "Konsol",
+  "collapseSidebar": "Fäll ihop sidofältet",
+  "expandSidebar": "Expandera sidofältet"
 }

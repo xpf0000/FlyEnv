@@ -17,5 +17,7 @@
   "cacheAndQueue": "캐시 및 메시지 큐",
   "serviceGovernance": "서비스 거버넌스",
   "other": "기타",
-  "console": "콘솔"
+  "console": "콘솔",
+  "collapseSidebar": "사이드바 접기",
+  "expandSidebar": "사이드바 펼치기"
 }

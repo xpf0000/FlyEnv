@@ -17,5 +17,7 @@
   "cacheAndQueue": "Cache og meldingskø",
   "serviceGovernance": "Tjenestestyring",
   "other": "Annet",
-  "console": "Konsoll"
+  "console": "Konsoll",
+  "collapseSidebar": "Skjul sidefelt",
+  "expandSidebar": "Utvid sidefelt"
 }

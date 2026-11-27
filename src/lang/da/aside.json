@@ -17,5 +17,7 @@
   "cacheAndQueue": "Cache & Brevskø",
   "serviceGovernance": "Styring Af Tjenester",
   "other": "Andet",
-  "console": "Konsol"
+  "console": "Konsol",
+  "collapseSidebar": "Skjul sidepanel",
+  "expandSidebar": "Udvid sidepanel"
 }

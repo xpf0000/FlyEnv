@@ -17,5 +17,7 @@
   "networkTunnel": "تونل شبکه",
   "cacheAndQueue": "کش و صف پیام",
   "serviceGovernance": "راهبری سرویس (Service Governance)",
-  "other": "سایر"
+  "other": "سایر",
+  "collapseSidebar": "جمع کردن نوار کناری",
+  "expandSidebar": "باز کردن نوار کناری"
 }

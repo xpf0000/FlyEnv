@@ -17,5 +17,7 @@
   "cacheAndQueue": "Välimuisti & Viestijono",
   "serviceGovernance": "Palvelun Hallinto",
   "other": "Muu",
-  "console": "Konsoli"
+  "console": "Konsoli",
+  "collapseSidebar": "Kutista sivupalkki",
+  "expandSidebar": "Laajenna sivupalkki"
 }

@@ -17,5 +17,7 @@
   "cacheAndQueue": "Cache i Red Poruka",
   "serviceGovernance": "Upravljanje Servisima",
   "other": "Ostalo",
-  "console": "Konzola"
+  "console": "Konzola",
+  "collapseSidebar": "Sažmi bočnu traku",
+  "expandSidebar": "Proširi bočnu traku"
 }
